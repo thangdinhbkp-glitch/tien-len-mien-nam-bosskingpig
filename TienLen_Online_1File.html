@@ -1706,7 +1706,8 @@ body {
   background: #090d1a;
 }
 
-.shop-burst-preview-wrap img {
+.shop-burst-preview-wrap img,
+.shop-burst-preview-wrap video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -4667,8 +4668,8 @@ body {
         <button class="icon-btn anime-theme-btn" id="btn-top-random-bots" title="Random ngẫu nhiên nhân vật Bot từ 10 nhân vật 5★ có Hoạt Ảnh Kỹ Năng Nộ riêng">
           🎲 Đổi Nhân Vật Bot (5★)
         </button>
-        <button class="icon-btn anime-theme-btn" id="btn-bgm" title="Đổi bài Nhạc Nền Anime (Inazuma / Fontaine / Tinh Không) hoặc Tắt Nhạc Nền">
-          🎵 Nhạc: <span id="bgm-label">Inazuma 🌸</span>
+        <button class="icon-btn anime-theme-btn" id="btn-bgm" title="Nhạc nền Genshin Impact tự động đổi bài (Auto 🔄) — Bấm để chuyển bài tiếp theo hoặc Tắt Nhạc Nền">
+          🎵 Nhạc: <span id="bgm-label">Auto 🔄: Inazuma 🌸</span>
         </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -4897,8 +4898,8 @@ body {
             <button class="ad-reward-btn" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay 1 Roll (+1,600 Xu)!">
               📺 Xem QC (+1 Roll)
             </button>
-            <button class="icon-btn anime-theme-btn" id="btn-lobby-bgm" title="Đổi bài Nhạc Nền Anime hoặc Bật/Tắt Nhạc Nền">
-              🎵 Nhạc: <span id="lobby-bgm-label">Inazuma 🌸</span>
+            <button class="icon-btn anime-theme-btn" id="btn-lobby-bgm" title="Nhạc nền Genshin Impact tự động đổi bài (Auto 🔄) — Bấm để chuyển bài tiếp theo hoặc Tắt Nhạc Nền">
+              🎵 Nhạc: <span id="lobby-bgm-label">Auto 🔄: Inazuma 🌸</span>
             </button>
             <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
               📖 Luật
@@ -5400,13 +5401,13 @@ body {
       </div>
     </div>
 
-    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC ANIMATION OVERLAY (RAIDEN SHOGUN & SKIRK) -->
+    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC VIDEO + VOICE ANIMATION OVERLAY -->
     <div class="genshin-burst-overlay hidden" id="genshin-burst-overlay">
       <div class="burst-bg-fx" id="burst-bg-fx"></div>
       <div class="burst-chakra-ring" id="burst-chakra-ring"></div>
       <div class="burst-character-wrap">
-        <video class="burst-video" id="burst-video" autoplay muted playsinline loop></video>
-        <img class="burst-character-img" id="burst-character-img" src="" alt="Genshin Elemental Burst Animation" referrerpolicy="no-referrer" />
+        <video class="burst-video" id="burst-video" autoplay playsinline preload="auto"></video>
+        <audio id="burst-audio" preload="auto"></audio>
       </div>
       <div class="burst-slash-container" id="burst-slash-container"></div>
       <div class="burst-text-box">
@@ -5416,6 +5417,7 @@ body {
         <div class="burst-skill-detail" id="burst-skill-detail">💥 Chặt Heo +200 Xu!</div>
       </div>
     </div>
+    <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
   <script>
@@ -5620,16 +5622,16 @@ const ANIME_AVATARS = [
   })),
 ];
 
-// Danh mục 10 Hiệu Ứng Kỹ Năng Nộ (Elemental Burst Animations) bán bằng Xu trong Shop
+// Danh mục 10 Hiệu Ứng Kỹ Năng Nộ (Elemental Burst Video + Voice Animations)
 const GENSHIN_BURSTS = [
   {
     id: 'hutao',
     name: 'Hu Tao — An Thần Bí Pháp',
-    desc: '[Sử Thi] Đường chủ Vãng Sinh Đường vung hồn ma Boo Tao quét sạch bàn bài.',
+    desc: '[Sử Thi] Đường chủ Vãng Sinh Đường vung hồn ma Boo Tao quét sạch bàn bài (Video + Giọng lồng tiếng thật).',
     price: 80000,
-    gifUrl: 'hutao_burst.gif',
-    mp4Url: '',
-    remoteGif: 'hutao_burst.gif',
+    mp4Url: 'hutao_burst.mp4',
+    audioUrl: 'hutao_burst.ogg',
+    posterUrl: 'fanart/hutao.jpg',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '🦋 KỸ NĂNG NỘ • HU TAO (SPIRIT SOOTHER)',
@@ -5639,11 +5641,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'eula',
     name: 'Eula — Thanh Kiếm Sóng Nước',
-    desc: '[Sử Thi] Kỵ Sĩ Sóng Nước triệu hồi Kiếm Ánh Sáng phát nổ sát thương cực đại.',
+    desc: '[Sử Thi] Kỵ Sĩ Sóng Nước triệu hồi Kiếm Ánh Sáng phát nổ sát thương cực đại (Video + Giọng lồng tiếng thật).',
     price: 85000,
-    gifUrl: 'eula_burst.gif',
-    mp4Url: '',
-    remoteGif: 'eula_burst.gif',
+    mp4Url: 'eula_burst.mp4',
+    audioUrl: 'eula_burst.ogg',
+    posterUrl: 'fanart/eula.jpg',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '❄️ KỸ NĂNG NỘ • EULA (GLACIAL ILLUMINATION)',
@@ -5653,11 +5655,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'ayaka',
     name: 'Kamisato Ayaka — Soumetsu',
-    desc: '[Sử Thi] Bạch Hạc Sương Hoa triệu hồi lốc xoáy băng hoa cắt nát mọi quân bài.',
+    desc: '[Sử Thi] Bạch Hạc Sương Hoa triệu hồi lốc xoáy băng hoa cắt nát mọi quân bài (Video + Giọng lồng tiếng thật).',
     price: 95000,
-    gifUrl: 'ayaka_burst.gif',
-    mp4Url: '',
-    remoteGif: 'ayaka_burst.gif',
+    mp4Url: 'ayaka_burst.mp4',
+    audioUrl: 'ayaka_burst.ogg',
+    posterUrl: 'fanart/ayaka.jpg',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '❄️ KỸ NĂNG NỘ • KAMISATO AYAKA (SOUMETSU)',
@@ -5667,11 +5669,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'clorinde',
     name: 'Clorinde — Ánh Chớp Tàn Đêm',
-    desc: '[Sử Thi] Đấu sĩ đại diện Fontaine tung liên hoàn kiếm và súng chớp nhoáng.',
+    desc: '[Sử Thi] Đấu sĩ đại diện Fontaine tung liên hoàn kiếm và súng chớp nhoáng (Video + Giọng lồng tiếng thật).',
     price: 105000,
-    gifUrl: 'clorinde_burst.gif',
-    mp4Url: '',
-    remoteGif: 'clorinde_burst.gif',
+    mp4Url: 'clorinde_burst.mp4',
+    audioUrl: 'clorinde_burst.ogg',
+    posterUrl: 'fanart/clorinde.jpg',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '⚡ KỸ NĂNG NỘ • CLORINDE (LAST LIGHTFALL)',
@@ -5681,11 +5683,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'yelan',
     name: 'Yelan — Xúc Xắc Toan Tính',
-    desc: '[Huyền Thoại] Thần bài Liyue tung xúc xắc Linh Lung định đoạt ván cược.',
+    desc: '[Huyền Thoại] Thần bài Liyue tung xúc xắc Linh Lung định đoạt ván cược (Video + Giọng lồng tiếng thật).',
     price: 120000,
-    gifUrl: 'yelan_burst.gif',
-    mp4Url: '',
-    remoteGif: 'yelan_burst.gif',
+    mp4Url: 'yelan_burst.mp4',
+    audioUrl: 'yelan_burst.ogg',
+    posterUrl: 'fanart/yelan.jpg',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🎲 KỸ NĂNG NỘ • YELAN (DEPTH-CLARION DICE)',
@@ -5695,11 +5697,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'yaemiko',
     name: 'Yae Miko — Thiên Hồ Lôi Phạt',
-    desc: '[Huyền Thoại] Guuji Đền Narukami giáng sấm sét Thiên Hồ hủy diệt từ chín tầng mây.',
+    desc: '[Huyền Thoại] Guuji Đền Narukami giáng sấm sét Thiên Hồ hủy diệt từ chín tầng mây (Video + Giọng lồng tiếng thật).',
     price: 135000,
-    gifUrl: 'yae_burst.gif',
-    mp4Url: '',
-    remoteGif: 'yae_burst.gif',
+    mp4Url: 'yae_burst.mp4',
+    audioUrl: 'yae_burst.ogg',
+    posterUrl: 'fanart/yaemiko.jpg',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '🌸 KỸ NĂNG NỘ • YAE MIKO (TENKO KENSHIN)',
@@ -5709,11 +5711,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'furina',
     name: 'Furina — Vạn Dân Reo Hò',
-    desc: '[Thần Thoại] Thủy Thần Fontaine mở màn đại nhạc kịch sân khấu Epiclese.',
+    desc: '[Thần Thoại] Thủy Thần Fontaine mở màn đại nhạc kịch sân khấu Epiclese (Video + Giọng lồng tiếng thật).',
     price: 150000,
-    gifUrl: 'furina_burst.gif',
-    mp4Url: '',
-    remoteGif: 'furina_burst.gif',
+    mp4Url: 'furina_burst.mp4',
+    audioUrl: 'furina_burst.ogg',
+    posterUrl: 'fanart/furina.jpg',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '💧 KỸ NĂNG NỘ • FURINA (LET THE PEOPLE REJOICE)',
@@ -5723,11 +5725,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'mavuika',
     name: 'Mavuika — Bầu Trời Rực Cháy',
-    desc: '[Thần Thoại] Hỏa Thần Natlan bùng nổ đại dương rực lửa thiêu rụi mọi đối thủ.',
+    desc: '[Thần Thoại] Hỏa Thần Natlan bùng nổ đại dương rực lửa thiêu rụi mọi đối thủ (Video + Giọng lồng tiếng thật).',
     price: 165000,
-    gifUrl: 'mavuika_burst.gif',
-    mp4Url: '',
-    remoteGif: 'mavuika_burst.gif',
+    mp4Url: 'mavuika_burst.mp4',
+    audioUrl: 'mavuika_burst.ogg',
+    posterUrl: 'fanart/mavuika.jpg',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '🔥 KỸ NĂNG NỘ • MAVUIKA (HOUR OF BURNING SKIES)',
@@ -5737,11 +5739,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'raiden',
     name: 'Raiden Shogun — Mộng Tưởng Chân Thuyết',
-    desc: '[Thần Thoại] Vô Tưởng Nhất Đao chém rách không gian bằng sấm sét tím Vĩnh Hằng.',
+    desc: '[Thần Thoại] Vô Tưởng Nhất Đao chém rách không gian bằng sấm sét tím Vĩnh Hằng (Video + Giọng lồng tiếng thật).',
     price: 180000,
-    gifUrl: 'raiden_burst.gif',
     mp4Url: 'raiden_burst.mp4',
-    remoteGif: 'https://media.tenor.com/umRS1zU3OUsAAAAM/raiden-baal.gif',
+    audioUrl: 'raiden_burst.ogg',
+    posterUrl: 'fanart/raiden.jpg',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '⚡ KỸ NĂNG NỘ • RAIDEN SHOGUN (MUSOU NO HITOTACHI)',
@@ -5751,11 +5753,11 @@ const GENSHIN_BURSTS = [
   {
     id: 'skirk',
     name: 'Skirk — Phá Toái Tinh Không',
-    desc: '[Thần Thoại] Tuyệt kỹ Vực Sâu triệu hồi hố đen Tinh Không nuốt chửng bàn bài.',
+    desc: '[Thần Thoại] Tuyệt kỹ Vực Sâu triệu hồi hố đen Tinh Không nuốt chửng bàn bài (Video + Giọng lồng tiếng thật).',
     price: 190000,
-    gifUrl: 'skirk_burst.gif',
     mp4Url: 'skirk_burst.mp4',
-    remoteGif: 'https://media.tenor.com/vrLe2zvzqNYAAAAM/genshin-genshin-impact.gif',
+    audioUrl: 'skirk_burst.ogg',
+    posterUrl: 'fanart/skirk.jpg',
     theme: 'theme-abyss',
     sfxType: 'skirk',
     tag: '🌌 KỸ NĂNG NỘ • SKIRK (ABYSSAL STARSHATTER)',
@@ -5823,52 +5825,72 @@ const COMBO_TYPES = {
   FOUR_PAIRS: 'FOUR_PAIRS',
 };
 
-// Web Audio Synthesizer + Continuous Anime / Genshin BGM Player
+// Web Audio Synthesizer + Auto-Switching Genshin Impact Soundtrack BGM Player
 const ANIME_BGM_TRACKS = [
   {
     id: 'inazuma',
     label: 'Inazuma 🌸',
+    audioUrl: 'bgm_inazuma.ogg',
     stepMs: 420,
-    // Giai điệu đàn Koto & Harp Anh Đào Inazuma (Am - F - C - G/E)
     melody: [
       440.0, 523.25, 659.25, 587.33, 523.25, 659.25, 880.0, 783.99,
       698.46, 659.25, 523.25, 440.0, 523.25, 587.33, 659.25, 523.25,
       523.25, 659.25, 783.99, 880.0, 1046.5, 880.0, 783.99, 659.25,
       587.33, 659.25, 493.88, 392.0, 440.0, 523.25, 659.25, 440.0,
     ],
-    bass: [
-      220.0, 220.0, 174.61, 174.61, 261.63, 261.63, 196.0, 164.81,
-    ],
+    bass: [220.0, 220.0, 174.61, 174.61, 261.63, 261.63, 196.0, 164.81],
   },
   {
-    id: 'fontaine',
-    label: 'Fontaine 💧',
+    id: 'tavern',
+    label: 'Quán Rượu 🃏',
+    audioUrl: 'bgm_tavern.ogg',
     stepMs: 400,
-    // Điệu Valse Pha Lê Nhà Hát Epiclese Fontaine (Dm - Bb - F - A)
     melody: [
       587.33, 698.46, 880.0, 783.99, 698.46, 659.25, 587.33, 440.0,
       466.16, 587.33, 698.46, 880.0, 783.99, 698.46, 659.25, 587.33,
       523.25, 698.46, 880.0, 1046.5, 880.0, 698.46, 659.25, 523.25,
       554.37, 659.25, 880.0, 783.99, 698.46, 659.25, 587.33, 587.33,
     ],
-    bass: [
-      293.66, 293.66, 233.08, 233.08, 174.61, 174.61, 220.0, 220.0,
-    ],
+    bass: [293.66, 293.66, 233.08, 233.08, 174.61, 174.61, 220.0, 220.0],
   },
   {
-    id: 'celestia',
-    label: 'Tinh Không 🌌',
+    id: 'raiden',
+    label: 'Lôi Thần ⚡',
+    audioUrl: 'bgm_raiden.ogg',
     stepMs: 440,
-    // Giai điệu Đêm Sao Cầu Nguyện Celestia Genshin Impact (Fmaj7 - G6 - Em7 - Am9)
     melody: [
       523.25, 659.25, 783.99, 1046.5, 987.77, 783.99, 659.25, 523.25,
       587.33, 783.99, 987.77, 1174.66, 987.77, 783.99, 659.25, 587.33,
       659.25, 783.99, 987.77, 783.99, 659.25, 523.25, 493.88, 392.0,
       440.0, 523.25, 659.25, 880.0, 783.99, 659.25, 523.25, 440.0,
     ],
-    bass: [
-      174.61, 174.61, 196.0, 196.0, 164.81, 164.81, 220.0, 220.0,
+    bass: [174.61, 174.61, 196.0, 196.0, 164.81, 164.81, 220.0, 220.0],
+  },
+  {
+    id: 'mondstadt',
+    label: 'Mondstadt 🍃',
+    audioUrl: 'bgm_mondstadt.ogg',
+    stepMs: 410,
+    melody: [
+      523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 392.0,
+      440.0, 523.25, 659.25, 587.33, 523.25, 493.88, 440.0, 392.0,
+      523.25, 659.25, 783.99, 1046.5, 880.0, 783.99, 659.25, 587.33,
+      523.25, 587.33, 659.25, 523.25, 493.88, 392.0, 523.25, 523.25,
     ],
+    bass: [261.63, 261.63, 220.0, 220.0, 174.61, 174.61, 196.0, 196.0],
+  },
+  {
+    id: 'liyue',
+    label: 'Liyue 🏮',
+    audioUrl: 'bgm_liyue.ogg',
+    stepMs: 430,
+    melody: [
+      440.0, 523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25,
+      440.0, 523.25, 659.25, 880.0, 783.99, 659.25, 587.33, 440.0,
+      523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 880.0, 659.25,
+      587.33, 523.25, 440.0, 392.0, 440.0, 523.25, 587.33, 440.0,
+    ],
+    bass: [220.0, 220.0, 196.0, 196.0, 174.61, 174.61, 220.0, 220.0],
   },
 ];
 
@@ -5877,10 +5899,14 @@ class SoundFX {
     this.enabled = true;
     this.ctx = null;
     this.bgmEnabled = true;
-    this.bgmTrackIndex = 0; // 0: Inazuma, 1: Fontaine, 2: Celestia
+    this.bgmAutoCycle = true; // Mặc định BẬT Auto Đổi Nhạc!
+    this.bgmTrackIndex = 0;
     this.bgmStep = 0;
     this.bgmTimer = null;
     this.bgmPausedForAd = false;
+    this.bgmDucked = false;
+    this.bgmPlaying = false;
+    this.onTrackChanged = null;
   }
 
   init() {
@@ -5893,35 +5919,89 @@ class SoundFX {
     }
   }
 
+  getBgmAudioElement() {
+    return document.getElementById('bgm-audio');
+  }
+
   startBGM() {
     if (!this.bgmEnabled || !this.enabled || this.bgmPausedForAd) return;
     this.init();
+    const track = ANIME_BGM_TRACKS[this.bgmTrackIndex] || ANIME_BGM_TRACKS[0];
+    const audioEl = this.getBgmAudioElement();
+    const isFileProtocol = window.location.protocol === 'file:';
+
+    if (audioEl && !isFileProtocol && track.audioUrl) {
+      clearTimeout(this.bgmTimer);
+      this.bgmTimer = null;
+
+      const wantedSrc = track.audioUrl;
+      if (!audioEl.getAttribute('data-track') || audioEl.getAttribute('data-track') !== wantedSrc) {
+        audioEl.setAttribute('data-track', wantedSrc);
+        audioEl.src = wantedSrc;
+      }
+      audioEl.loop = !this.bgmAutoCycle;
+      audioEl.volume = this.bgmDucked ? 0.08 : 0.34;
+      audioEl.onended = () => {
+        if (this.bgmAutoCycle && this.bgmEnabled && this.enabled && !this.bgmPausedForAd) {
+          this.advanceBGMAuto();
+        }
+      };
+      audioEl.onerror = () => {
+        this.startSynthBGM();
+      };
+
+      const playPromise = audioEl.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise
+          .then(() => {
+            this.bgmPlaying = true;
+          })
+          .catch(() => {
+            this.bgmPlaying = false;
+          });
+      }
+      return;
+    }
+
+    this.startSynthBGM();
+  }
+
+  startSynthBGM() {
+    if (!this.bgmEnabled || !this.enabled || this.bgmPausedForAd) return;
+    this.init();
     if (this.bgmTimer) return;
+    this.bgmPlaying = true;
     const tick = () => {
       if (!this.bgmEnabled || !this.enabled || this.bgmPausedForAd) {
         clearTimeout(this.bgmTimer);
         this.bgmTimer = null;
+        this.bgmPlaying = false;
         return;
       }
       const track = ANIME_BGM_TRACKS[this.bgmTrackIndex] || ANIME_BGM_TRACKS[0];
       const step = this.bgmStep % track.melody.length;
       const noteFreq = track.melody[step];
       const bassFreq = track.bass[Math.floor(step / 4) % track.bass.length];
+      const gainScale = this.bgmDucked ? 0.22 : 1.0;
 
-      // Nốt đàn Harp / Music Box trong trẻo
       if (noteFreq) {
-        this.playHarpNote(noteFreq, 0.95, 0.042);
+        this.playHarpNote(noteFreq, 0.95, 0.042 * gainScale);
         if (step % 2 === 0) {
-          this.playHarpNote(noteFreq * 2, 0.55, 0.014);
+          this.playHarpNote(noteFreq * 2, 0.55, 0.014 * gainScale);
         }
       }
-      // Hợp âm nền trầm ấm mỗi đầu nhịp 4 phách
       if (step % 4 === 0 && bassFreq) {
-        this.playHarpNote(bassFreq, 1.55, 0.028);
-        this.playHarpNote(bassFreq * 1.5, 1.35, 0.018);
+        this.playHarpNote(bassFreq, 1.55, 0.028 * gainScale);
+        this.playHarpNote(bassFreq * 1.5, 1.35, 0.018 * gainScale);
       }
 
       this.bgmStep++;
+      // Tự động đổi sang bài tiếp theo sau mỗi 2 vòng giai điệu nếu bật Auto Đổi Nhạc
+      if (this.bgmAutoCycle && this.bgmStep >= track.melody.length * 2) {
+        this.bgmStep = 0;
+        this.bgmTrackIndex = (this.bgmTrackIndex + 1) % ANIME_BGM_TRACKS.length;
+        if (typeof this.onTrackChanged === 'function') this.onTrackChanged();
+      }
       this.bgmTimer = setTimeout(tick, track.stepMs || 420);
     };
     this.bgmTimer = setTimeout(tick, 120);
@@ -5930,6 +6010,36 @@ class SoundFX {
   stopBGM() {
     clearTimeout(this.bgmTimer);
     this.bgmTimer = null;
+    this.bgmPlaying = false;
+    const audioEl = this.getBgmAudioElement();
+    if (audioEl) {
+      try {
+        audioEl.pause();
+      } catch (_) {}
+    }
+  }
+
+  duckBGM(ducked) {
+    this.bgmDucked = !!ducked;
+    const audioEl = this.getBgmAudioElement();
+    if (audioEl && !audioEl.paused) {
+      audioEl.volume = this.bgmDucked ? 0.06 : 0.34;
+    }
+  }
+
+  advanceBGMAuto() {
+    if (!this.bgmEnabled || !this.enabled || !this.bgmAutoCycle) return;
+    this.bgmTrackIndex = (this.bgmTrackIndex + 1) % ANIME_BGM_TRACKS.length;
+    this.bgmStep = 0;
+    const audioEl = this.getBgmAudioElement();
+    if (audioEl) {
+      audioEl.removeAttribute('data-track');
+    }
+    this.stopBGM();
+    this.startBGM();
+    if (typeof this.onTrackChanged === 'function') {
+      this.onTrackChanged();
+    }
   }
 
   playHarpNote(freq, duration = 0.9, maxGain = 0.04) {
@@ -5959,9 +6069,13 @@ class SoundFX {
   }
 
   cycleBGM() {
-    // Chu kỳ: Bài 1 (Inazuma) -> Bài 2 (Fontaine) -> Bài 3 (Tinh Không) -> Tắt Nhạc -> Bài 1
+    // Đổi bài tiếp theo trong Playlist (luôn bật Auto 🔄), hết 5 bài thì Tắt Nhạc -> Bật lại Auto Bài 1
+    const audioEl = this.getBgmAudioElement();
+    if (audioEl) audioEl.removeAttribute('data-track');
+
     if (!this.bgmEnabled) {
       this.bgmEnabled = true;
+      this.bgmAutoCycle = true;
       this.bgmTrackIndex = 0;
       this.bgmStep = 0;
       this.startBGM();
@@ -5980,7 +6094,7 @@ class SoundFX {
   getBGMLabel() {
     if (!this.bgmEnabled || !this.enabled) return 'Tắt 🔇';
     const track = ANIME_BGM_TRACKS[this.bgmTrackIndex] || ANIME_BGM_TRACKS[0];
-    return track.label;
+    return `${this.bgmAutoCycle ? 'Auto 🔄: ' : ''}${track.label}`;
   }
 
   playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.12, delay = 0) {
@@ -6672,6 +6786,7 @@ class TienLenGame {
     this.botTimer = null;
 
     this.bindDOM();
+    sfx.onTrackChanged = () => this.syncBGMButtonsUI();
     this.applyArenaThemeUI();
     this.randomizeBotCharacters(false);
     this.renderSoloPlayerCountUI();
@@ -6689,13 +6804,13 @@ class TienLenGame {
   }
 
   fetchLiveAnimeImages() {
-    // Tải trước (Preload) GIF Kỹ Năng Nộ & Fanart đang trang bị để phát tức thì
+    // Tải trước (Preload) Poster Fanart & trang bị đang dùng để phát tức thì
     try {
       const bChop = getBurstMeta(this.equippedChopBurst);
       const bWin = getBurstMeta(this.equippedWinBurst);
       const preloadList = [
-        bChop ? bChop.gifUrl : '',
-        bWin ? bWin.gifUrl : '',
+        bChop ? bChop.posterUrl : '',
+        bWin ? bWin.posterUrl : '',
         getCardSkinMeta(this.equippedSkin).imgUrl,
         ...Object.values(BOT_ANIME_AVATARS),
       ].filter(Boolean);
@@ -6723,7 +6838,7 @@ class TienLenGame {
     }
 
     const videoEl = document.getElementById('burst-video');
-    const imgEl = document.getElementById('burst-character-img');
+    const audioEl = document.getElementById('burst-audio');
     const chakraEl = document.getElementById('burst-chakra-ring');
     const slashContainer = document.getElementById('burst-slash-container');
     const tagEl = document.getElementById('burst-skill-tag');
@@ -6750,7 +6865,8 @@ class TienLenGame {
       tableEl.classList.add('burst-shake');
     }
 
-    const isFileProtocol = window.location.protocol === 'file:';
+    // Hạ nhỏ nhạc nền (Ducking) để tiếng hô Nộ & hiệu ứng âm thanh Video nghe rõ 100%
+    sfx.duckBGM(true);
 
     if (burstMeta.sfxType === 'skirk') {
       sfx.skirkBurst();
@@ -6758,25 +6874,35 @@ class TienLenGame {
       sfx.raidenBurst();
     }
 
-    imgEl.src = isFileProtocol && burstMeta.remoteGif.startsWith('http') ? burstMeta.remoteGif : burstMeta.gifUrl;
-    imgEl.onerror = () => {
-      if (burstMeta.remoteGif) imgEl.src = burstMeta.remoteGif;
-    };
-
-    if (videoEl) {
-      if (!isFileProtocol && burstMeta.mp4Url) {
-        videoEl.style.display = 'block';
-        videoEl.src = burstMeta.mp4Url;
-        videoEl.currentTime = 0;
-        videoEl.play().catch(() => {
-          videoEl.style.display = 'none';
-        });
-        videoEl.onerror = () => {
-          videoEl.style.display = 'none';
-        };
-      } else {
-        videoEl.style.display = 'none';
+    if (videoEl && burstMeta.mp4Url) {
+      videoEl.style.display = 'block';
+      if (burstMeta.posterUrl) {
+        videoEl.poster = burstMeta.posterUrl;
       }
+      videoEl.src = burstMeta.mp4Url;
+      videoEl.muted = !sfx.enabled;
+      videoEl.volume = 0.95;
+      try {
+        videoEl.currentTime = 0;
+      } catch (_) {}
+      const playPromise = videoEl.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          // Nếu trình duyệt chặn autoplay có tiếng thì phát hình + bật tiếng qua #burst-audio
+          videoEl.muted = true;
+          videoEl.play().catch(() => {});
+        });
+      }
+    }
+
+    if (audioEl && burstMeta.audioUrl && sfx.enabled) {
+      audioEl.src = burstMeta.audioUrl;
+      audioEl.muted = false;
+      audioEl.volume = 1.0;
+      try {
+        audioEl.currentTime = 0;
+      } catch (_) {}
+      audioEl.play().catch(() => {});
     }
 
     tagEl.textContent = burstMeta.tag;
@@ -6829,13 +6955,19 @@ class TienLenGame {
           videoEl.pause();
         } catch (_) {}
       }
+      if (audioEl) {
+        try {
+          audioEl.pause();
+        } catch (_) {}
+      }
+      sfx.duckBGM(false);
       overlay.classList.add('hidden');
       overlay.onclick = null;
       if (onDoneCallback) onDoneCallback();
     };
 
     overlay.onclick = finishBurst;
-    this.burstTimeout = setTimeout(finishBurst, 3000);
+    this.burstTimeout = setTimeout(finishBurst, 3400);
   }
 
   // ============================================================================
@@ -7242,10 +7374,11 @@ class TienLenGame {
         timeStr: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         star: 5,
         category: 'burst',
-        typeLabel: '🎬 KỸ NĂNG NỘ 5★',
+        typeLabel: '🎬 VIDEO KỸ NĂNG NỘ 5★',
         id: chosenBurst.id,
         name: chosenBurst.name,
-        thumbUrl: chosenBurst.gifUrl,
+        thumbUrl: chosenBurst.posterUrl,
+        mp4Url: chosenBurst.mp4Url,
         isNew: !alreadyOwned,
         refund,
         pityUsed: hitPity,
@@ -7461,10 +7594,15 @@ class TienLenGame {
               ? `<button class="tool-btn" style="margin-top:4px;width:100%;" onclick="window.tienLenGame.buyOrEquipSkin('${item.id}')">🃏 Trang bị Bài</button>`
               : `<button class="tool-btn" style="margin-top:4px;width:100%;" onclick="window.tienLenGame.buyOrEquipAvatar('${item.id}')">🎭 Dùng Avatar</button>`;
 
+          const mediaThumbHtml =
+            item.category === 'burst' && item.mp4Url
+              ? `<video class="gacha-result-thumb" src="${item.mp4Url}" poster="${item.thumbUrl}" autoplay muted loop playsinline></video>`
+              : `<img class="gacha-result-thumb" src="${item.thumbUrl}" alt="${item.name}" referrerpolicy="no-referrer" />`;
+
           return `
             <div class="gacha-result-card star-${item.star}" style="animation-delay:${idx * 0.055}s">
               <div class="rarity-stars-badge rarity-${item.star}">${starsStr}</div>
-              <img class="gacha-result-thumb" src="${item.thumbUrl}" alt="${item.name}" referrerpolicy="no-referrer" />
+              ${mediaThumbHtml}
               <div class="gacha-result-type">${item.typeLabel}</div>
               <div class="gacha-result-name">${item.name}</div>
               <div style="font-size:10px;color:#cbd5e1;">${item.rateNote}</div>
@@ -7579,14 +7717,14 @@ class TienLenGame {
             </div>
 
             <div class="gacha-featured-visual">
-              <img class="gacha-featured-gif" src="${featuredBurst.gifUrl}" alt="${featuredBurst.name}" />
+              <video class="gacha-featured-gif" src="${featuredBurst.mp4Url}" poster="${featuredBurst.posterUrl}" autoplay muted loop playsinline></video>
               <div class="gacha-featured-info">
-                <div class="gacha-featured-stars">⭐⭐⭐⭐⭐ HIỆU ỨNG KỸ NĂNG NỘ (5 SAO UP)</div>
+                <div class="gacha-featured-stars">⭐⭐⭐⭐⭐ VIDEO KỸ NĂNG NỘ KÈM TIẾNG (5 SAO UP)</div>
                 <div style="font-size:12px;color:#fde68a;font-weight:700;">${featuredBurst.title}</div>
                 <div style="font-size:11px;color:#cbd5e1;font-style:italic;">${featuredBurst.quote}</div>
                 <div style="margin-top:4px;">
-                  <button class="tool-btn" onclick="window.tienLenGame.triggerGenshinBurst('${featuredBurst.id}', '🎬 Xem thử Kỹ Năng Nộ 5★ UP: ${featuredBurst.name}!')">
-                    ▶ Xem Thử Hoạt Ảnh Nộ 5★
+                  <button class="tool-btn" onclick="window.tienLenGame.triggerGenshinBurst('${featuredBurst.id}', '🎬 Xem & Nghe Thử Video Nộ 5★ UP: ${featuredBurst.name}!')">
+                    🔊 Xem & Nghe Thử Video Nộ 5★
                   </button>
                 </div>
               </div>
@@ -7694,9 +7832,9 @@ class TienLenGame {
           <div class="shop-item-card ${isChop || isWin ? 'equipped' : ''}">
             <div class="rarity-stars-badge rarity-5">⭐⭐⭐⭐⭐ KỸ NĂNG NỘ 5 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}</div>
             <div class="shop-burst-preview-wrap">
-              <img src="${b.gifUrl}" alt="${b.name}" loading="lazy" />
-              <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem thử: ${b.name}!')">
-                ▶ Xem thử
+              <video src="${b.mp4Url}" poster="${b.posterUrl}" autoplay muted loop playsinline preload="metadata"></video>
+              <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem & Nghe Thử Video Nộ: ${b.name}!')">
+                🔊 Xem Video + Tiếng
               </button>
             </div>
             <div class="shop-item-title">${b.name}</div>

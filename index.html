@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="styles.css?v=17" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -45,8 +45,8 @@
         <button class="icon-btn anime-theme-btn" id="btn-top-random-bots" title="Random ngẫu nhiên nhân vật Bot từ 10 nhân vật 5★ có Hoạt Ảnh Kỹ Năng Nộ riêng">
           🎲 Đổi Nhân Vật Bot (5★)
         </button>
-        <button class="icon-btn anime-theme-btn" id="btn-bgm" title="Đổi bài Nhạc Nền Anime (Inazuma / Fontaine / Tinh Không) hoặc Tắt Nhạc Nền">
-          🎵 Nhạc: <span id="bgm-label">Inazuma 🌸</span>
+        <button class="icon-btn anime-theme-btn" id="btn-bgm" title="Nhạc nền Genshin Impact tự động đổi bài (Auto 🔄) — Bấm để chuyển bài tiếp theo hoặc Tắt Nhạc Nền">
+          🎵 Nhạc: <span id="bgm-label">Auto 🔄: Inazuma 🌸</span>
         </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -275,8 +275,8 @@
             <button class="ad-reward-btn" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay 1 Roll (+1,600 Xu)!">
               📺 Xem QC (+1 Roll)
             </button>
-            <button class="icon-btn anime-theme-btn" id="btn-lobby-bgm" title="Đổi bài Nhạc Nền Anime hoặc Bật/Tắt Nhạc Nền">
-              🎵 Nhạc: <span id="lobby-bgm-label">Inazuma 🌸</span>
+            <button class="icon-btn anime-theme-btn" id="btn-lobby-bgm" title="Nhạc nền Genshin Impact tự động đổi bài (Auto 🔄) — Bấm để chuyển bài tiếp theo hoặc Tắt Nhạc Nền">
+              🎵 Nhạc: <span id="lobby-bgm-label">Auto 🔄: Inazuma 🌸</span>
             </button>
             <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
               📖 Luật
@@ -778,13 +778,13 @@
       </div>
     </div>
 
-    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC ANIMATION OVERLAY (RAIDEN SHOGUN & SKIRK) -->
+    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC VIDEO + VOICE ANIMATION OVERLAY -->
     <div class="genshin-burst-overlay hidden" id="genshin-burst-overlay">
       <div class="burst-bg-fx" id="burst-bg-fx"></div>
       <div class="burst-chakra-ring" id="burst-chakra-ring"></div>
       <div class="burst-character-wrap">
-        <video class="burst-video" id="burst-video" autoplay muted playsinline loop></video>
-        <img class="burst-character-img" id="burst-character-img" src="" alt="Genshin Elemental Burst Animation" referrerpolicy="no-referrer" />
+        <video class="burst-video" id="burst-video" autoplay playsinline preload="auto"></video>
+        <audio id="burst-audio" preload="auto"></audio>
       </div>
       <div class="burst-slash-container" id="burst-slash-container"></div>
       <div class="burst-text-box">
@@ -794,8 +794,9 @@
         <div class="burst-skill-detail" id="burst-skill-detail">💥 Chặt Heo +200 Xu!</div>
       </div>
     </div>
+    <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=16"></script>
+  <script src="game.js?v=17"></script>
 </body>
 </html>

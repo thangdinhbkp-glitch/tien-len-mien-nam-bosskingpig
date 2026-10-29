@@ -1699,7 +1699,8 @@ body {
   background: #090d1a;
 }
 
-.shop-burst-preview-wrap img {
+.shop-burst-preview-wrap img,
+.shop-burst-preview-wrap video {
   width: 100%;
   height: 100%;
   object-fit: cover;

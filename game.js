@@ -6097,7 +6097,11 @@ class TienLenGame {
       // Chỉ tráo bài khi Bot có lá lẻ rác thấp (3..8) đứng cô lập để đẩy rác sang đối thủ và lấy bài lớn về
       const struct = this.analyzeBotHandStructure(bot.hand);
       const isolatedLowTrash = sortCardsAsc(bot.hand).find(
-        (c) => c.rankIndex <= 5 && rankCounts[c.rankIndex] === 1 && !struct.comboCardIds.has(c.id)
+        (c) =>
+          c.rankIndex <= 5 &&
+          rankCounts[c.rankIndex] === 1 &&
+          !struct.bombRanks.has(c.rankIndex) &&
+          !struct.criticalStraightRanks.has(c.rankIndex)
       );
       if (isolatedLowTrash && (minOppCards <= 8 || validMoves.length === 0)) {
         shouldCast = true;
@@ -7595,8 +7599,16 @@ class TienLenGame {
 
     // Bot tự động cân nhắc kích hoạt Kỹ Năng Nhân Vật chiến thuật (1 lần/ván)
     // Nếu Bot kích hoạt Kỹ Năng [E], dừng lại đợi hết hoạt ảnh Kỹ Năng Nộ rồi mới đánh bài!
-    if (!onlyFourPairs && this.maybeBotUseSkill(bot, validMoves)) {
-      return;
+    if (!onlyFourPairs) {
+      let usedSkill = false;
+      try {
+        usedSkill = this.maybeBotUseSkill(bot, validMoves);
+      } catch (err) {
+        console.warn('Bot skill check error:', err);
+      }
+      if (usedSkill) {
+        return;
+      }
     }
 
     if (this.raidenSlashMustSingle && !this.currentCombo) {
@@ -7689,7 +7701,14 @@ class TienLenGame {
     }
     flushRun(run);
 
-    return { rankCounts, bombRanks, criticalStraightRanks };
+    const comboCardIds = new Set();
+    hand.forEach((c) => {
+      if (rankCounts[c.rankIndex] >= 2 || bombRanks.has(c.rankIndex) || criticalStraightRanks.has(c.rankIndex)) {
+        comboCardIds.add(c.id);
+      }
+    });
+
+    return { rankCounts, bombRanks, criticalStraightRanks, comboCardIds };
   }
 
   evaluateMoveBreakCost(move, struct) {

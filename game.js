@@ -468,7 +468,7 @@ const CHARACTER_SKILLS = {
     charName: 'Raiden Shogun',
     icon: '⚡',
     name: 'Tịnh Thổ Cắt Vòng',
-    shortDesc: 'Chém đứt bộ bài thường trên bàn (dưới Heo & không phải Hàng) để cướp cái mở vòng mới ngay lập tức',
+    shortDesc: 'Khi còn ≥6 lá: Chém đứt Lá Lẻ/Đôi nhỏ (≤ J) trên bàn để mở vòng mới (nhịp mở vòng bắt buộc đánh 1 lá lẻ dưới Heo)',
   },
   furina: {
     id: 'furina',
@@ -1656,6 +1656,7 @@ class TienLenGame {
 
     // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
     this.raidenElectroMarkOwnerId = null;
+    this.raidenSlashMustSingle = false;
     this.furinaReverseSuitRound = false;
     this.yaeForcePlayRound = false;
     this.clorindeDuelPair = null;
@@ -1970,7 +1971,7 @@ class TienLenGame {
         }
         if (typeof data.totalWishes === 'number') this.totalWishes = Math.max(this.totalWishes || 0, data.totalWishes);
         if (Array.isArray(data.gachaHistory) && data.gachaHistory.length >= this.gachaHistory.length) {
-          this.gachaHistory = data.gachaHistory.slice(0, 5000);
+          this.gachaHistory = data.gachaHistory.slice(0, 300);
         }
         if (Array.isArray(data.unlockedSkins)) {
           data.unlockedSkins.forEach((id) => {
@@ -2122,7 +2123,7 @@ class TienLenGame {
         gachaGuaranteed4: !!this.gachaGuaranteed4,
         selectedBannerBurstId: this.selectedBannerBurstId || 'raiden',
         totalWishes: this.totalWishes || 0,
-        gachaHistory: (this.gachaHistory || []).slice(0, 5000),
+        gachaHistory: (this.gachaHistory || []).slice(0, 300),
         lastDailyDate: this.lastDailyDate || today,
         dailyReliefUsed: this.dailyReliefUsed || 0,
         dailyQuestsDate: this.dailyQuestsDate || today,
@@ -2223,6 +2224,7 @@ class TienLenGame {
     document.getElementById('shop-avatars-grid')?.classList.toggle('hidden', tabName !== 'avatars');
     document.getElementById('shop-history-panel')?.classList.toggle('hidden', tabName !== 'history');
     sfx.click();
+    this.renderShopModal();
   }
 
   openGachaForCharacter(charId) {
@@ -2230,7 +2232,6 @@ class TienLenGame {
       this.selectedBannerBurstId = charId;
     }
     this.saveShopProfile();
-    this.renderShopModal();
     this.switchShopTab('gacha');
   }
 
@@ -2303,7 +2304,7 @@ class TienLenGame {
         rateNote,
       };
       this.gachaHistory.unshift(result);
-      if (this.gachaHistory.length > 5000) this.gachaHistory.length = 5000;
+      if (this.gachaHistory.length > 300) this.gachaHistory.length = 300;
       return result;
     }
 
@@ -2353,7 +2354,7 @@ class TienLenGame {
         rateNote,
       };
       this.gachaHistory.unshift(result);
-      if (this.gachaHistory.length > 5000) this.gachaHistory.length = 5000;
+      if (this.gachaHistory.length > 300) this.gachaHistory.length = 300;
       return result;
     }
 
@@ -2385,7 +2386,7 @@ class TienLenGame {
       rateNote: '3★ Tiêu chuẩn',
     };
     this.gachaHistory.unshift(result);
-    if (this.gachaHistory.length > 5000) this.gachaHistory.length = 5000;
+    if (this.gachaHistory.length > 300) this.gachaHistory.length = 300;
     return result;
   }
 
@@ -2420,18 +2421,23 @@ class TienLenGame {
 
     const maxStar = Math.max(...results.map((r) => r.star));
     const newUnlocks = results.filter((r) => r.isNew).length;
-    this.addLog(
-      `🌠 <strong>Cầu Nguyện ×${pullCount}:</strong> Nổ cao nhất <strong>${maxStar}★</strong> (${newUnlocks} món mới${
-        totalRefund > 0 ? ` • Hoàn +${totalRefund.toLocaleString()} xu từ đồ trùng` : ''
-      })!`,
-      maxStar === 5 ? 'log-win' : 'log-play'
-    );
 
-    this.saveShopProfile();
-    this.renderShopModal();
-    this.renderAll();
-    this.syncCosmeticsInRoom();
+    // Hiển thị sao băng ngay lập tức trên frame đầu tiên để không bị khựng / lag
     this.showGachaMeteorAndResults(results, totalRefund);
+
+    // Đẩy tác vụ lưu trữ và cập nhật UI nền sang frame sau khi sao băng đã bay
+    setTimeout(() => {
+      this.addLog(
+        `🌠 <strong>Cầu Nguyện ×${pullCount}:</strong> Nổ cao nhất <strong>${maxStar}★</strong> (${newUnlocks} món mới${
+          totalRefund > 0 ? ` • Hoàn +${totalRefund.toLocaleString()} xu từ đồ trùng` : ''
+        })!`,
+        maxStar === 5 ? 'log-win' : 'log-play'
+      );
+      this.saveShopProfile();
+      this.renderShopModal();
+      this.renderAll();
+      this.syncCosmeticsInRoom();
+    }, 60);
   }
 
   showGachaMeteorAndResults(results, totalRefund) {
@@ -2512,10 +2518,7 @@ class TienLenGame {
               ? `<button class="tool-btn" style="margin-top:4px;width:100%;" onclick="window.tienLenGame.buyOrEquipSkin('${item.id}')">🃏 Trang bị Bài</button>`
               : `<button class="tool-btn" style="margin-top:4px;width:100%;" onclick="window.tienLenGame.buyOrEquipAvatar('${item.id}')">🎭 Dùng Avatar</button>`;
 
-          const mediaThumbHtml =
-            item.category === 'burst' && item.mp4Url
-              ? `<video class="gacha-result-thumb" src="${item.mp4Url}" poster="${item.thumbUrl}" autoplay muted loop playsinline></video>`
-              : `<img class="gacha-result-thumb" src="${item.thumbUrl}" alt="${item.name}" referrerpolicy="no-referrer" />`;
+          const mediaThumbHtml = `<img class="gacha-result-thumb" src="${item.thumbUrl}" alt="${item.name}" loading="lazy" referrerpolicy="no-referrer" />`;
 
           return `
             <div class="gacha-result-card star-${item.star}" style="animation-delay:${idx * 0.055}s">
@@ -2577,9 +2580,11 @@ class TienLenGame {
       tabAvatarsBtn.textContent = `⭐⭐⭐ Avatar 3★ (${this.unlockedAvatars.size}/${ANIME_AVATARS.length})`;
     }
 
-    // 1. RENDER TAB SẢNH CẦU NGUYỆN GENSHIN IMPACT
+    const activeTab = this.activeShopTab || 'gacha';
+
+    // 1. RENDER TAB SẢNH CẦU NGUYỆN GENSHIN IMPACT (Chỉ render khi đang mở tab gacha)
     const gachaPanel = document.getElementById('shop-gacha-panel');
-    if (gachaPanel) {
+    if (gachaPanel && activeTab === 'gacha') {
       const featuredId = this.selectedBannerBurstId || 'raiden';
       const featuredBurst = getBurstMeta(featuredId) || GENSHIN_BURSTS[0];
       const rateUp4Ids = BANNER_4STAR_RATEUPS[featuredBurst.id] || ['raiden', 'furina', 'skirk'];
@@ -2596,7 +2601,7 @@ class TienLenGame {
         const charName = b.name.split('—')[0].trim();
         return `
           <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" onclick="window.tienLenGame.selectBannerUp('${b.id}')">
-            <img src="fanart/${b.id}.jpg" alt="${charName}" referrerpolicy="no-referrer" />
+            <img src="fanart/${b.id}.jpg" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name">${charName}</div>
               <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★'}</div>
@@ -2610,7 +2615,7 @@ class TienLenGame {
           const s = getCardSkinMeta(id);
           return `
             <span class="gacha-rateup-4star-pill">
-              <img src="fanart/${id}.jpg" alt="${s.name}" referrerpolicy="no-referrer" />
+              <img src="fanart/${id}.jpg" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
               ${id.toUpperCase()} (4★ UP)
             </span>
           `;
@@ -2635,7 +2640,7 @@ class TienLenGame {
             </div>
 
             <div class="gacha-featured-visual">
-              <video class="gacha-featured-gif" src="${featuredBurst.mp4Url}" poster="${featuredBurst.posterUrl}" autoplay muted loop playsinline></video>
+              <img class="gacha-featured-gif" src="${featuredBurst.posterUrl}" alt="${featuredBurst.name}" loading="lazy" referrerpolicy="no-referrer" />
               <div class="gacha-featured-info">
                 <div class="gacha-featured-stars">⭐⭐⭐⭐⭐ VIDEO KỸ NĂNG NỘ KÈM TIẾNG (5 SAO UP)</div>
                 <div style="font-size:12px;color:#fde68a;font-weight:700;">${featuredBurst.title}</div>
@@ -2720,7 +2725,7 @@ class TienLenGame {
 
     // 2. RENDER TAB KHO ĐỒ 5★ NHÂN VẬT & KỸ NĂNG NỘ (CHỈ SỞ HỮU NỘ 5★ MỚI ĐƯỢC XÀI KỸ NĂNG NHÂN VẬT ĐÓ)
     const burstsGrid = document.getElementById('shop-bursts-grid');
-    if (burstsGrid) {
+    if (burstsGrid && activeTab === 'bursts') {
       const currentCharId = this.getPlayerActiveCharId(me);
       burstsGrid.innerHTML = GENSHIN_BURSTS.map((b) => {
         const owned = this.unlockedBursts.has(b.id);
@@ -2748,7 +2753,7 @@ class TienLenGame {
           <div class="shop-item-card ${isEquipped ? 'equipped' : ''}">
             <div class="rarity-stars-badge rarity-5">⭐⭐⭐⭐⭐ NHÂN VẬT &amp; NỘ 5★ ${isEquipped ? '• ĐANG XÀI' : owned ? '• ĐÃ SỞ HỮU' : '• CHƯA SỞ HỮU'}</div>
             <div class="shop-burst-preview-wrap">
-              <video src="${b.mp4Url}" poster="${b.posterUrl}" autoplay muted loop playsinline preload="metadata"></video>
+              <img src="${b.posterUrl}" alt="${b.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" referrerpolicy="no-referrer" />
               <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem & Nghe Thử Video Nộ: ${b.name}!')">
                 🔊 Xem Video + Tiếng
               </button>
@@ -2766,7 +2771,7 @@ class TienLenGame {
 
     // 3. RENDER TAB KHO ĐỒ 4★ DECOR BÀI
     const skinsGrid = document.getElementById('shop-skins-grid');
-    if (skinsGrid) {
+    if (skinsGrid && activeTab === 'skins') {
       skinsGrid.innerHTML = ANIME_CARD_SKINS.map((skin) => {
         const owned = this.unlockedSkins.has(skin.id);
         const equipped = this.equippedSkin === skin.id;
@@ -2831,7 +2836,7 @@ class TienLenGame {
 
     // 4. RENDER TAB KHO ĐỒ 3★ AVATAR
     const avatarsGrid = document.getElementById('shop-avatars-grid');
-    if (avatarsGrid) {
+    if (avatarsGrid && activeTab === 'avatars') {
       avatarsGrid.innerHTML = ANIME_AVATARS.map((av) => {
         const owned = this.unlockedAvatars.has(av.id);
         const equipped = this.equippedAvatar === av.id;
@@ -2868,7 +2873,7 @@ class TienLenGame {
 
     // 5. RENDER TAB TOÀN BỘ LỊCH SỬ CẦU NGUYỆN & BẢNG TỶ LỆ TĂNG DẦN THEO SỐ ROLL
     const historyPanel = document.getElementById('shop-history-panel');
-    if (historyPanel) {
+    if (historyPanel && activeTab === 'history') {
       const allHistory = this.gachaHistory || [];
       const curFilter = this.gachaHistoryFilter || 'all';
       const count5 = allHistory.filter((h) => h.star === 5).length;
@@ -2885,13 +2890,13 @@ class TienLenGame {
           : allHistory;
 
       const totalLen = allHistory.length;
+      const visibleHistory = filteredHistory.slice(0, 100);
       const historyItemsHtml =
-        filteredHistory.length === 0
+        visibleHistory.length === 0
           ? `<div style="color:#94a3b8;font-size:13px;padding:12px 0;">Chưa có lịch sử Cầu Nguyện ở mục lọc này. Hãy thử vận may ở tab 🌠 Sảnh Cầu Nguyện nhé!</div>`
-          : filteredHistory
-              .map((h) => {
-                const idxInAll = allHistory.indexOf(h);
-                const rollNo = h.pullNo || Math.max(1, (this.totalWishes || totalLen) - idxInAll);
+          : visibleHistory
+              .map((h, idx) => {
+                const rollNo = h.pullNo || Math.max(1, (this.totalWishes || totalLen) - idx);
                 const color = h.star === 5 ? '#fde047' : h.star === 4 ? '#d8b4fe' : '#93c5fd';
                 const timeBadge = h.timeStr ? ` • 🕒 ${h.timeStr}` : '';
                 return `
@@ -4605,10 +4610,9 @@ class TienLenGame {
     const pills = [];
     const b = this.betPerCard || 100;
 
-    if (this.raidenElectroMarkOwnerId !== null) {
-      const owner = this.players[this.raidenElectroMarkOwnerId];
+    if (this.raidenSlashMustSingle) {
       pills.push(
-        `<span class="round-skill-pill">⚡ Lôi Ấn (${owner ? owner.name : 'Raiden'}): Bỏ lượt vòng này nộp phạt ${b.toLocaleString()} Xu</span>`
+        `<span class="round-skill-pill">⚡ Dư Chấn Tịnh Thổ: Nhịp mở vòng này Raiden chỉ được đánh 1 Lá Lẻ thường (dưới Heo)!</span>`
       );
     }
     if (this.furinaReverseSuitRound) {
@@ -4685,11 +4689,28 @@ class TienLenGame {
     if (activeOpponents.length === 0) return { ok: false, reason: 'Không còn đối thủ' };
 
     if (charId === 'raiden') {
-      const canCutTable = this.currentCombo && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb;
+      if (player.hand.length < 6) {
+        return {
+          ok: false,
+          reason: 'Chỉ được dùng Tịnh Thổ Cắt Vòng khi trên tay còn từ 6 lá bài trở lên (không dùng khi còn ≤ 5 lá cuối ván)!',
+        };
+      }
+      const hasNormalSingle = player.hand.some((c) => c.rankIndex < 12);
+      if (!hasNormalSingle) {
+        return {
+          ok: false,
+          reason: 'Cần có ít nhất 1 lá bài thường (dưới Heo) trên tay để đánh mở vòng sau khi cắt!',
+        };
+      }
+      const canCutTable =
+        this.currentCombo &&
+        (this.currentCombo.type === COMBO_TYPES.SINGLE || this.currentCombo.type === COMBO_TYPES.PAIR) &&
+        this.currentCombo.highRank <= 8 &&
+        !this.currentCombo.isBomb;
       if (!canCutTable) {
         return {
           ok: false,
-          reason: 'Chỉ dùng khi trên bàn đang có bộ bài thường (dưới Heo & không phải Hàng) để chém đứt cướp cái!',
+          reason: 'Chỉ chém đứt được Lá Lẻ hoặc Đôi nhỏ từ 3 đến J trên bàn (không chém được Q, K, A, Heo, Sám, Sảnh hay Hàng)!',
         };
       }
     }
@@ -4774,11 +4795,12 @@ class TienLenGame {
       this.previousCombo = this.currentCombo;
       this.currentCombo = null;
       this.trickOwnerId = player.id;
+      this.raidenSlashMustSingle = true;
       this.players.forEach((p) => {
         p.passed = false;
         p.declinedFourPairsCut = false;
       });
-      skillSummary = `⚡ [Tịnh Thổ Cắt Vòng] ${player.name} chém đứt ${oldLabel} trên bàn và cướp cái mở vòng mới!`;
+      skillSummary = `⚡ [Tịnh Thổ Cắt Vòng] ${player.name} chém đứt ${oldLabel} (≤ J) để mở vòng mới (bắt buộc đánh 1 lá lẻ dưới Heo)!`;
     } else if (charId === 'furina') {
       this.furinaReverseSuitRound = true;
       activeFurinaReverseSuit = true;
@@ -4967,11 +4989,16 @@ class TienLenGame {
     // AI Bot cân nhắc thời điểm tung Kỹ Năng chiến thuật:
     let shouldCast = false;
     if (charId === 'raiden') {
-      // Nếu không có bài đỡ hoặc đối thủ còn <= 6 lá và trên bàn là bài thường -> Cắt vòng cướp cái ngay!
-      if (this.currentCombo && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
-        if (validMoves.length === 0 || (this.currentCombo.highRank >= 7 && bot.hand.length <= 9)) {
-          shouldCast = true;
-        }
+      // Chỉ cắt vòng khi không có bài đỡ bộ Lẻ/Đôi <= J trên bàn và còn >= 6 lá
+      if (
+        this.currentCombo &&
+        (this.currentCombo.type === COMBO_TYPES.SINGLE || this.currentCombo.type === COMBO_TYPES.PAIR) &&
+        this.currentCombo.highRank <= 8 &&
+        !this.currentCombo.isBomb &&
+        bot.hand.length >= 6 &&
+        validMoves.length === 0
+      ) {
+        shouldCast = true;
       }
     } else if (charId === 'eula') {
       if (this.currentCombo && this.currentCombo.highRank >= 6 && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
@@ -5883,6 +5910,7 @@ class TienLenGame {
 
     // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
     this.raidenElectroMarkOwnerId = null;
+    this.raidenSlashMustSingle = false;
     this.furinaReverseSuitRound = false;
     activeFurinaReverseSuit = false;
     this.yaeForcePlayRound = false;
@@ -6082,6 +6110,13 @@ class TienLenGame {
 
   playCombo(player, combo) {
     if (this.isGameOver || !player || !player.active || this.currentTurn !== player.id) return false;
+    if (this.raidenSlashMustSingle && !this.currentCombo) {
+      if (combo.type !== COMBO_TYPES.SINGLE || combo.highRank >= 12) {
+        return false;
+      }
+      this.raidenSlashMustSingle = false;
+      this.renderRoundSkillStatusBar();
+    }
     const beatCheck = canBeatCombo(combo, this.currentCombo);
     if (!beatCheck.ok) return false;
 
@@ -6378,6 +6413,7 @@ class TienLenGame {
 
     // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
     this.raidenElectroMarkOwnerId = null;
+    this.raidenSlashMustSingle = false;
     this.furinaReverseSuitRound = false;
     activeFurinaReverseSuit = false;
     this.yaeForcePlayRound = false;
@@ -6421,6 +6457,13 @@ class TienLenGame {
     // Bot tự động cân nhắc kích hoạt Kỹ Năng Nhân Vật chiến thuật (1 lần/ván)
     if (!onlyFourPairs && this.maybeBotUseSkill(bot, validMoves)) {
       validMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false);
+    }
+
+    if (this.raidenSlashMustSingle && !this.currentCombo) {
+      const singleMoves = validMoves.filter((m) => m.type === COMBO_TYPES.SINGLE && m.highRank < 12);
+      if (singleMoves.length > 0) {
+        validMoves = singleMoves;
+      }
     }
 
     if (validMoves.length === 0) {
@@ -7117,6 +7160,15 @@ class TienLenGame {
     if (human.passed && combo.type !== COMBO_TYPES.FOUR_PAIRS) {
       this.btnPlay.disabled = true;
       return;
+    }
+
+    if (this.raidenSlashMustSingle && !this.currentCombo) {
+      if (combo.type !== COMBO_TYPES.SINGLE || combo.highRank >= 12) {
+        this.btnPlay.disabled = true;
+        this.elSelectedPreview.textContent = '⚠️ Sau khi Cắt Vòng, nhịp mở vòng này chỉ được đánh 1 Lá Lẻ thường (dưới Heo)!';
+        this.elSelectedPreview.classList.add('invalid');
+        return;
+      }
     }
 
     const canBeat = canBeatCombo(combo, this.currentCombo);

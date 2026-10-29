@@ -5953,7 +5953,7 @@ body {
           <div class="lobby-top-row">
             <div class="lobby-name-box">
               <label>👤 Tên hiển thị của bạn trên bàn:</label>
-              <input type="text" id="input-player-name" value="Thắng" maxlength="18" placeholder="Nhập tên của bạn..." />
+              <input type="text" id="input-player-name" value="Nhà Lữ Hành" maxlength="18" placeholder="Nhập tên của bạn..." />
             </div>
 
             <div class="lobby-mode-selector">
@@ -8080,7 +8080,7 @@ class TienLenGame {
 
     const botBankroll = Math.max(INITIAL_COINS, this.betPerCard * 500);
     this.players = [
-      { id: 0, name: this.savedPlayerName || 'Thắng', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, activeChar: this.equippedActiveChar || 'raiden', skillUsed: false, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
+      { id: 0, name: this.savedPlayerName || this.currentAccountUsername || 'Nhà Lữ Hành', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, activeChar: this.equippedActiveChar || 'raiden', skillUsed: false, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
       { id: 1, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', activeChar: 'furina', skillUsed: false, isBot: true, active: this.soloPlayerCount >= 3, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
       { id: 2, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', activeChar: 'raiden', skillUsed: false, isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
       { id: 3, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', activeChar: 'skirk', skillUsed: false, isBot: true, active: this.soloPlayerCount === 4, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
@@ -8476,13 +8476,26 @@ class TienLenGame {
     } catch (_) {}
   }
 
+  resolveCleanPlayerName(rawName, usernameKey = this.currentAccountUsername) {
+    const trimmed = String(rawName || '').trim();
+    const uKey = String(usernameKey || '').trim();
+    if (trimmed === 'Thắng' && uKey && !uKey.toLowerCase().includes('thang')) {
+      return uKey;
+    }
+    if (trimmed === 'Thắng' && !uKey) {
+      return 'Nhà Lữ Hành';
+    }
+    if (trimmed) return trimmed;
+    return uKey || 'Nhà Lữ Hành';
+  }
+
   applyProfileDataObject(data, today = this.getTodayKey()) {
     if (!data || typeof data !== 'object') return;
     if (typeof data.coins === 'number') {
       this.savedCoins = data.coins;
     }
     if (data.playerName) {
-      this.savedPlayerName = data.playerName;
+      this.savedPlayerName = this.resolveCleanPlayerName(data.playerName, data.accountUsername || this.currentAccountUsername);
     }
     if (typeof data.betPerCard === 'number' && data.betPerCard >= 20) {
       this.savedBetPerCard = data.betPerCard;
@@ -8571,7 +8584,7 @@ class TienLenGame {
   resetProfileMemoryToDefaults() {
     const today = this.getTodayKey();
     this.savedCoins = INITIAL_COINS;
-    this.savedPlayerName = 'Thắng';
+    this.savedPlayerName = 'Nhà Lữ Hành';
     this.savedBetPerCard = 100;
     this.savedSoloPlayerCount = 4;
     this.unlockedSkins = new Set(['classic']);
@@ -8708,13 +8721,13 @@ class TienLenGame {
     });
     const questsPack = qParts.join('_');
 
-    const dispName = String(accObj.displayName || p.playerName || 'Thắng').slice(0, 14);
-    let nameHex = '5468616e67';
+    const dispName = this.resolveCleanPlayerName(accObj.displayName || p.playerName, accObj.username).slice(0, 14);
+    let nameHex = '4e67756f6943686f69';
     try {
       nameHex =
         Array.from(new TextEncoder().encode(dispName))
           .map((b) => b.toString(16).padStart(2, '0'))
-          .join('') || '5468616e67';
+          .join('') || '4e67756f6943686f69';
     } catch (_) {}
 
     const updatedSec36 = Math.floor((accObj.updatedAtMs || Date.now()) / 1000).toString(36);
@@ -8776,11 +8789,12 @@ class TienLenGame {
         dailyQuestsState[q.id] = { progress: Math.min(q.target, pVal), claimed: cVal };
       });
 
-      let displayName = 'Thắng';
+      let displayName = usernameKey || 'Nhà Lữ Hành';
       try {
         if (nameHex && nameHex.length >= 2) {
           const bytes = new Uint8Array(nameHex.match(/.{1,2}/g).map((h) => parseInt(h, 16)));
-          displayName = new TextDecoder().decode(bytes) || 'Thắng';
+          const decoded = new TextDecoder().decode(bytes);
+          displayName = this.resolveCleanPlayerName(decoded, usernameKey);
         }
       } catch (_) {}
 
@@ -8836,16 +8850,18 @@ class TienLenGame {
 
     const safeKey = this.getCloudSafeUserKey(usernameKey);
     acc.updatedAtMs = acc.updatedAtMs || Date.now();
+    const cleanDisp = this.resolveCleanPlayerName(acc.displayName || acc.profile?.playerName, usernameKey);
     const cloudRecord = {
       v: 26,
       username: usernameKey,
-      displayName: acc.displayName || acc.profile?.playerName || 'Thắng',
+      displayName: cleanDisp,
       passwordHash: acc.passwordHash,
       createdAt: acc.createdAt || new Date().toLocaleString('vi-VN'),
       updatedAt: acc.updatedAt || new Date().toLocaleString('vi-VN'),
       updatedAtMs: acc.updatedAtMs,
       profile: {
         ...(acc.profile || {}),
+        playerName: cleanDisp,
         gachaHistory: ((acc.profile && acc.profile.gachaHistory) || []).slice(0, 60),
       },
     };
@@ -9081,15 +9097,12 @@ class TienLenGame {
         }
       });
 
-      const nameInput = document.getElementById('input-player-name');
-      if (nameInput && nameInput.value.trim()) {
-        this.savedPlayerName = nameInput.value.trim();
-      }
+      this.savedPlayerName = this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
 
       const payload = {
         accountUsername: this.currentAccountUsername || '',
         coins: this.savedCoins,
-        playerName: this.savedPlayerName || 'Thắng',
+        playerName: this.savedPlayerName,
         betPerCard: this.betPerCard || 100,
         soloPlayerCount: this.soloPlayerCount || 4,
         arenaTheme: this.arenaTheme || 'inazuma',
@@ -9177,10 +9190,11 @@ class TienLenGame {
   }
 
   syncLoadedProfileToLivePlayer() {
+    this.savedPlayerName = this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
     const me = this.getLocalPlayer();
     if (me) {
       me.coins = this.savedCoins;
-      me.name = this.savedPlayerName || 'Thắng';
+      me.name = this.savedPlayerName;
       me.cardSkin = this.equippedSkin || 'classic';
       me.avatar = this.equippedAvatar || 'default_player';
       me.activeChar = this.equippedActiveChar || 'none';
@@ -9188,7 +9202,7 @@ class TienLenGame {
       me.winBurst = this.equippedWinBurst || 'none';
     }
     const nameInput = document.getElementById('input-player-name');
-    if (nameInput) nameInput.value = this.savedPlayerName || 'Thắng';
+    if (nameInput) nameInput.value = this.savedPlayerName;
     this.applyArenaThemeUI();
     this.updateArenaBackdropCharacters();
     this.renderShopModal();
@@ -9209,7 +9223,11 @@ class TienLenGame {
     const usernameKey = rawUser.toLowerCase();
     const pass = passEl?.value || '';
     const pass2 = pass2El?.value || '';
-    const displayName = (nameEl?.value || '').trim() || this.savedPlayerName || 'Thắng';
+    const typedName = (nameEl?.value || '').trim();
+    const displayName =
+      typedName && typedName !== 'Nhà Lữ Hành' && (typedName !== 'Thắng' || usernameKey.includes('thang'))
+        ? typedName
+        : rawUser;
     const keepCurrentData = keepEl ? keepEl.checked : true;
 
     if (!/^[a-zA-Z0-9_.-]{3,20}$/.test(rawUser)) {
@@ -9344,9 +9362,16 @@ class TienLenGame {
     );
 
     const nowStr = new Date().toLocaleString('vi-VN');
+    const resolvedLoginName = this.resolveCleanPlayerName(
+      finalProfile?.playerName || targetAcc.displayName,
+      usernameKey
+    );
+    if (finalProfile) {
+      finalProfile.playerName = resolvedLoginName;
+    }
     accountsDb[usernameKey] = {
       username: usernameKey,
-      displayName: finalProfile?.playerName || targetAcc.displayName || 'Thắng',
+      displayName: resolvedLoginName,
       passwordHash: inputHash,
       createdAt: targetAcc.createdAt || nowStr,
       updatedAt: nowStr,
@@ -9493,7 +9518,7 @@ class TienLenGame {
           <div style="font-size:13px;font-weight:900;color:#fde68a;">🔑 Cập Nhật Tên Hiển Thị / Đổi Mật Khẩu</div>
           <div class="account-field">
             <label>👤 Tên hiển thị trong bàn bài:</label>
-            <input type="text" id="acc-change-displayname" value="${this.savedPlayerName || 'Thắng'}" maxlength="18" />
+            <input type="text" id="acc-change-displayname" value="${this.resolveCleanPlayerName(this.savedPlayerName, acc.username)}" maxlength="18" />
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <div class="account-field">
@@ -9575,7 +9600,7 @@ class TienLenGame {
         <div class="account-form-box">
           <div class="account-field">
             <label>👤 Tên tài khoản (Username — viết liền không dấu, 3–20 ký tự):</label>
-            <input type="text" id="acc-reg-username" maxlength="20" placeholder="Ví dụ: thangboss2026" />
+            <input type="text" id="acc-reg-username" maxlength="20" placeholder="Ví dụ: player2026" oninput="const d=document.getElementById('acc-reg-displayname'); if(d && !d.dataset.userEdited){ d.value=this.value.trim(); }" />
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <div class="account-field">
@@ -9588,8 +9613,8 @@ class TienLenGame {
             </div>
           </div>
           <div class="account-field">
-            <label>🏷️ Tên hiển thị trên bàn bài:</label>
-            <input type="text" id="acc-reg-displayname" value="${this.savedPlayerName || 'Thắng'}" maxlength="18" />
+            <label>🏷️ Tên hiển thị trên bàn bài (Tự động lấy theo Tên tài khoản hoặc tự đặt):</label>
+            <input type="text" id="acc-reg-displayname" value="${this.savedPlayerName && this.savedPlayerName !== 'Thắng' && this.savedPlayerName !== 'Nhà Lữ Hành' ? this.savedPlayerName : ''}" placeholder="Mặc định lấy theo Tên tài khoản (Username)..." maxlength="18" oninput="this.dataset.userEdited = this.value.trim() ? '1' : '';" />
           </div>
           <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#a7f3d0;font-weight:700;cursor:pointer;margin-top:2px;">
             <input type="checkbox" id="acc-reg-keep-data" checked style="width:16px;height:16px;accent-color:#10b981;" />
@@ -11028,9 +11053,9 @@ class TienLenGame {
 
     const nameInput = document.getElementById('input-player-name');
     if (nameInput) {
-      nameInput.value = this.savedPlayerName || 'Thắng';
+      nameInput.value = this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
       nameInput.addEventListener('change', () => {
-        const val = nameInput.value.trim() || 'Thắng';
+        const val = nameInput.value.trim() || this.currentAccountUsername || 'Nhà Lữ Hành';
         this.savedPlayerName = val;
         const me = this.getLocalPlayer();
         if (me) me.name = val;
@@ -11728,7 +11753,10 @@ class TienLenGame {
 
       this.players = snap.players.map((p, idx) => ({
         id: idx,
-        name: p.name || (idx === 0 ? this.savedPlayerName || 'Thắng' : `Bot #${idx}`),
+        name:
+          idx === 0
+            ? this.resolveCleanPlayerName(this.savedPlayerName || p.name, this.currentAccountUsername)
+            : p.name || `Bot #${idx}`,
         avatar: idx === 0 ? this.equippedAvatar : p.avatar || 'raiden',
         cardSkin: idx === 0 ? this.equippedSkin : p.cardSkin || 'raiden',
         chopBurst: idx === 0 ? this.equippedChopBurst : p.chopBurst || 'raiden',
@@ -12853,9 +12881,9 @@ class TienLenGame {
       this.selectLobbyMode('human');
       document.getElementById('input-room-code').value = roomParam.toUpperCase();
       document.getElementById('input-player-name').value =
-        this.savedPlayerName && this.savedPlayerName !== 'Thắng'
+        this.savedPlayerName && this.savedPlayerName !== 'Nhà Lữ Hành'
           ? this.savedPlayerName
-          : 'Người chơi ' + Math.floor(10 + Math.random() * 89);
+          : this.currentAccountUsername || 'Người chơi ' + Math.floor(10 + Math.random() * 89);
       this.modalWifi.classList.remove('hidden');
       this.renderLobbyModal();
     }
@@ -12936,7 +12964,9 @@ class TienLenGame {
     this.mySeatId = 0;
     this.modalWifi?.classList.add('hidden');
 
-    const myName = document.getElementById('input-player-name')?.value.trim() || this.savedPlayerName || 'Thắng';
+    const myName =
+      document.getElementById('input-player-name')?.value.trim() ||
+      this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
     const botBankroll = Math.max(INITIAL_COINS, (this.betPerCard || 100) * 500);
     const count = this.soloPlayerCount || 4;
 

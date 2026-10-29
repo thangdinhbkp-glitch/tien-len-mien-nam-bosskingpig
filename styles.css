@@ -1277,15 +1277,16 @@ body {
   background-size: cover;
   background-position: center 18%;
   background-repeat: no-repeat;
-  opacity: 0.42;
+  opacity: 0.68;
   pointer-events: none;
   z-index: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .playing-card:hover .card-anime-art,
 .playing-card.selected .card-anime-art {
-  opacity: 0.56;
+  opacity: 0.84;
+  transform: scale(1.04);
 }
 
 .playing-card .card-corner,
@@ -1295,18 +1296,30 @@ body {
   z-index: 2;
 }
 
-.playing-card[class*="skin-"]:not(.skin-classic) .card-corner {
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(2px);
-  border-radius: 6px;
-  padding: 1px 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+.playing-card[class*="skin-"]:not(.skin-classic) {
+  background: linear-gradient(155deg, #1e1b4b 0%, #0f172a 100%) !important;
+  border: 2px solid rgba(244, 114, 182, 0.85) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.55), 0 0 10px rgba(236, 72, 153, 0.3);
 }
 
-.playing-card.skin-uchiha_sharingan .card-corner,
-.playing-card.skin-cyber_waifu .card-corner {
-  background: rgba(15, 23, 42, 0.86);
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+.playing-card[class*="skin-"]:not(.skin-classic) .card-corner {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(3px);
+  border-radius: 6px;
+  padding: 1px 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+}
+
+.playing-card[class*="skin-"]:not(.skin-classic).black-card .card-corner {
+  color: #0f172a;
+}
+
+.playing-card[class*="skin-"]:not(.skin-classic).red-card .card-corner {
+  color: #dc2626;
+}
+
+.playing-card[class*="skin-"]:not(.skin-classic) .card-center-art {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 0 4px rgba(255, 255, 255, 0.7);
 }
 
 .card-anime-crest {
@@ -1504,6 +1517,50 @@ body {
   object-position: center 15%;
 }
 
+.shop-burst-preview-wrap {
+  position: relative;
+  width: 100%;
+  height: 112px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(232, 121, 249, 0.7);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  background: #090d1a;
+}
+
+.shop-burst-preview-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.shop-burst-preview-btn {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(244, 114, 182, 0.85);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.shop-burst-preview-btn:hover {
+  background: #db2777;
+}
+
+.shop-burst-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
 .shop-item-title {
   font-size: 14px;
   font-weight: 800;
@@ -1553,7 +1610,7 @@ body {
 }
 
 /* ============================================================================
-   GENSHIN IMPACT ELEMENTAL BURST CUT-IN (RAIDEN SHOGUN & SKIRK)
+   GENSHIN IMPACT ELEMENTAL BURST CUT-IN (ALL ELEMENTAL BURSTS)
    ============================================================================ */
 .genshin-burst-overlay {
   position: fixed;
@@ -1576,12 +1633,23 @@ body {
   }
 }
 
-.genshin-burst-overlay.theme-raiden {
+.genshin-burst-overlay.theme-raiden,
+.genshin-burst-overlay.theme-electro {
   background: radial-gradient(circle at 50% 45%, rgba(147, 51, 234, 0.88) 0%, rgba(46, 16, 101, 0.95) 55%, rgba(9, 5, 24, 0.98) 100%);
 }
 
-.genshin-burst-overlay.theme-skirk {
-  background: radial-gradient(circle at 50% 45%, rgba(56, 189, 248, 0.82) 0%, rgba(49, 16, 98, 0.95) 52%, rgba(5, 8, 28, 0.98) 100%);
+.genshin-burst-overlay.theme-skirk,
+.genshin-burst-overlay.theme-abyss,
+.genshin-burst-overlay.theme-hydro {
+  background: radial-gradient(circle at 50% 45%, rgba(56, 189, 248, 0.82) 0%, rgba(30, 27, 75, 0.95) 52%, rgba(5, 8, 28, 0.98) 100%);
+}
+
+.genshin-burst-overlay.theme-pyro {
+  background: radial-gradient(circle at 50% 45%, rgba(239, 68, 68, 0.88) 0%, rgba(124, 45, 18, 0.95) 52%, rgba(18, 5, 5, 0.98) 100%);
+}
+
+.genshin-burst-overlay.theme-cryo {
+  background: radial-gradient(circle at 50% 45%, rgba(103, 232, 249, 0.85) 0%, rgba(15, 23, 42, 0.95) 55%, rgba(4, 9, 20, 0.98) 100%);
 }
 
 .burst-bg-fx {

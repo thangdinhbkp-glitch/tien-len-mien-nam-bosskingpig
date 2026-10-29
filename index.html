@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=6" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -376,13 +376,13 @@
       </div>
     </div>
 
-    <!-- Anime Card Skin & Avatar Shop Modal -->
+    <!-- Anime Card Skin, Avatar & Burst Shop Modal -->
     <div class="modal-backdrop hidden" id="shop-modal">
       <div class="modal-card shop-card">
         <div class="modal-header">
           <div>
-            <h2>🛍️ CỬA HÀNG ANIME (TRANG TRÍ BÀI & AVATAR)</h2>
-            <p>Dùng xu thắng ván bài để mở khóa Skin Bài Anime & Avatar Nhân Vật</p>
+            <h2>🛍️ CỬA HÀNG GENSHIN FANART & KỸ NĂNG NỘ</h2>
+            <p>Dùng xu thắng ván bài để mua Fanart Bài, Avatar Fanart (29 nhân vật) & Hiệu ứng Kỹ Năng Nộ (Burst Animation)</p>
           </div>
           <div class="shop-header-right">
             <div class="shop-balance-pill">
@@ -395,15 +395,19 @@
         <div class="modal-body shop-body">
           <div class="shop-tabs">
             <button class="shop-tab active" id="tab-btn-skins">
-              🎴 Trang Trí Bài Anime (Card Skins)
+              🎴 Skin Bài Fanart (29)
             </button>
             <button class="shop-tab" id="tab-btn-avatars">
-              🎭 Nhân Vật Anime (Avatars)
+              🎭 Avatar Fanart (29)
+            </button>
+            <button class="shop-tab" id="tab-btn-bursts">
+              🎬 Kỹ Năng Nộ (Burst)
             </button>
           </div>
 
           <div class="shop-grid" id="shop-skins-grid"></div>
           <div class="shop-grid hidden" id="shop-avatars-grid"></div>
+          <div class="shop-grid hidden" id="shop-bursts-grid"></div>
         </div>
 
         <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
@@ -441,6 +445,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=5"></script>
+  <script src="game.js?v=6"></script>
 </body>
 </html>

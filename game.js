@@ -17,16 +17,39 @@ const DAILY_RECOVERY_COINS = 5000;
 const MAX_DAILY_RELIEF_CLAIMS = 3;
 
 // ============================================================================
-// GENSHIN IMPACT SHOP CATALOG: CHARACTER SKINS, AVATARS & BURST SPLASH ART
+// GENSHIN IMPACT FANART CATALOG (29 CHARACTERS) & ELEMENTAL BURST ANIMATIONS
 // ============================================================================
-const GENSHIN_BURST_ART = {
-  raidenGif: 'raiden_burst.gif',
-  raidenMp4: 'raiden_burst.mp4',
-  raidenRemoteGif: 'https://media.tenor.com/umRS1zU3OUsAAAAM/raiden-baal.gif',
-  skirkGif: 'skirk_burst.gif',
-  skirkMp4: 'skirk_burst.mp4',
-  skirkRemoteGif: 'https://media.tenor.com/vrLe2zvzqNYAAAAM/genshin-genshin-impact.gif',
-};
+const GENSHIN_FANART_ROSTER = [
+  { id: 'hutao', name: 'Hu Tao (Đường Chủ Vãng Sinh)', desc: 'Fanart Đường chủ Vãng Sinh Đường tinh nghịch (Mặc định miễn phí).', price: 0, crest: '🦋' },
+  { id: 'zibai', name: 'Zibai (Tiên Nhân Bạch Mã)', desc: '[Hiếm] Fanart Tiên Nhân Zibai thanh tao của vùng đất Liyue.', price: 2500, crest: '🐎' },
+  { id: 'citlali', name: 'Citlali (Bà Ngoại Itztli)', desc: '[Hiếm] Fanart đại pháp sư bộ tộc Chủ Nhân Gió Đêm Natlan.', price: 3000, crest: '❄️' },
+  { id: 'clorinde', name: 'Clorinde (Đấu Sĩ Đại Diện)', desc: '[Sử Thi] Fanart nữ kiếm sĩ Lôi nguyên tố bất bại của Fontaine.', price: 4500, crest: '⚡' },
+  { id: 'columbina', name: 'Columbina (Thiếu Nữ Fatui #3)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 3 của Fatui đầy bí ẩn.', price: 6500, crest: '🕊️' },
+  { id: 'escoffier', name: 'Escoffier (Siêu Đầu Bếp Fontaine)', desc: '[Hiếm] Fanart thiên tài ẩm thực Băng nguyên tố của Fontaine.', price: 3500, crest: '🍰' },
+  { id: 'eula', name: 'Eula (Kỵ Sĩ Sóng Nước)', desc: '[Sử Thi] Fanart Đội trưởng Đội Du Kích Kỵ Sĩ Đoàn Tây Phong.', price: 4000, crest: '❄️' },
+  { id: 'furina', name: 'Furina (Thủy Thần Fontaine)', desc: '[Huyền Thoại] Fanart ngôi sao sân khấu Epiclese rực rỡ hào quang.', price: 6500, crest: '💧' },
+  { id: 'ganyu', name: 'Ganyu (Tuần Lộc Ánh Trăng)', desc: '[Sử Thi] Fanart tổng thư ký Nguyệt Hải Đình dịu dàng.', price: 4000, crest: '🏹' },
+  { id: 'ayaka', name: 'Kamisato Ayaka (Bạch Hạc Sương Hoa)', desc: '[Sử Thi] Fanart đại tiểu thư Hiệp Hội Yashiro kiêu sa.', price: 4500, crest: '❄️' },
+  { id: 'lauma', name: 'Lauma (Nữ Tu Sương Giá)', desc: '[Hiếm] Fanart thiếu nữ huyền bí mang sức mạnh cổ đại.', price: 2800, crest: '✨' },
+  { id: 'linnea', name: 'Linnea (Ảo Thuật Gia Tinh Linh)', desc: '[Hiếm] Fanart thiếu nữ tinh linh duyên dáng và sắc sảo.', price: 2800, crest: '🎩' },
+  { id: 'mavuika', name: 'Mavuika (Hỏa Thần Natlan)', desc: '[Thần Thoại] Fanart Hỏa Thần rực cháy dẫn lối chiến thắng bất bại.', price: 8500, crest: '🔥' },
+  { id: 'mualani', name: 'Mualani (Hướng Dẫn Viên Suối Nước)', desc: '[Hiếm] Fanart cô nàng lướt sóng năng động của Cư Dân Suối Nước.', price: 3200, crest: '🦈' },
+  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Fanart đại tiểu thư Pháo Hồng Hoa rạng rỡ.', price: 4200, crest: '☂️' },
+  { id: 'nefer', name: 'Nefer (Nữ Hoàng Sa Mạc)', desc: '[Hiếm] Fanart vẻ đẹp quyến rũ và quyền lực vùng cát vàng.', price: 3000, crest: '🌙' },
+  { id: 'odette', name: 'Odette (Thiên Nga Băng Giá)', desc: '[Hiếm] Fanart vũ công thiên nga mang vẻ đẹp quý tộc.', price: 3000, crest: '🦢' },
+  { id: 'raiden', name: 'Raiden Shogun (Lôi Thần Vĩnh Hằng)', desc: '[Thần Thoại] Fanart Chúa tể sấm sét Inazuma — Vô Tưởng Nhất Đao.', price: 9000, crest: '⚡' },
+  { id: 'sandrone', name: 'Sandrone (Marionette Fatui #7)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 7 của Fatui & cỗ máy cổ.', price: 5500, crest: '⚙️' },
+  { id: 'kokomi', name: 'Sangonomiya Kokomi (Thánh Pháp Sư)', desc: '[Sử Thi] Fanart quân sư tối cao đảo Watatsumi.', price: 4000, crest: '🫧' },
+  { id: 'shenhe', name: 'Shenhe (Cô Thần Hàn Sương)', desc: '[Sử Thi] Fanart đệ tử tiên nhân mang khí chất thoát tục.', price: 4500, crest: '❄️' },
+  { id: 'skirk', name: 'Skirk (Kiếm Khách Vực Sâu)', desc: '[Thần Thoại] Fanart nữ kiếm khách bí ẩn ngự trị Tinh Không Vực Sâu.', price: 10000, crest: '🌌' },
+  { id: 'varesa', name: 'Varesa (Đấu Sĩ Lôi Đình)', desc: '[Sử Thi] Fanart nữ chiến binh tràn đầy năng lượng vùng Natlan.', price: 3800, crest: '⚡' },
+  { id: 'vesna', name: 'Vesna (Nữ Thần Tuyết Xuân)', desc: '[Huyền Thoại] Fanart tuyệt sắc giai nhân xứ sở băng tuyết.', price: 5000, crest: '❄️' },
+  { id: 'vodyanitsa', name: 'Vodyanitsa (Nữ Hoàng Băng Giá)', desc: '[Thần Thoại] Fanart Băng Hoàng tối cao ngự trị cung điện mùa đông.', price: 9500, crest: '👑' },
+  { id: 'xilonen', name: 'Xilonen (Thợ Rèn Tên Cổ)', desc: '[Sử Thi] Fanart bậc thầy chế tác Tên Cổ của bộ tộc Đứa Con Tiếng Vang.', price: 4800, crest: '🐆' },
+  { id: 'yaemiko', name: 'Yae Miko (Guuji Đền Narukami)', desc: '[Huyền Thoại] Fanart Guuji Yae Miko quyến rũ dưới tán anh đào.', price: 5500, crest: '🌸' },
+  { id: 'yelan', name: 'Yelan (Lan Sinh U Cốc)', desc: '[Huyền Thoại] Fanart thần bài tình báo bí ẩn của Liyue.', price: 5200, crest: '🎲' },
+  { id: 'yoimiya', name: 'Yoimiya (Nữ Hoàng Lễ Hội Hè)', desc: '[Sử Thi] Fanart chủ tiệm pháo hoa Naganohara rực rỡ.', price: 3800, crest: '🎆' },
+];
 
 const ANIME_CARD_SKINS = [
   {
@@ -37,119 +60,208 @@ const ANIME_CARD_SKINS = [
     crest: '',
     imgUrl: '',
   },
-  {
-    id: 'sakura_miko',
-    name: 'Yae Miko (Anh Đào Narukami)',
-    desc: '[Hiếm] Hình nền Guuji Yae Miko đền Narukami & hoa anh đào Inazuma.',
-    price: 2500,
-    crest: '🌸',
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Yae.png',
-  },
-  {
-    id: 'uchiha_sharingan',
-    name: 'Arlecchino (Xích Nguyệt Phán Quyết)',
-    desc: '[Sử Thi] Hình nền Quan Chấp Hành Arlecchino viền đỏ Huyết Nguyệt cực ngầu.',
-    price: 4500,
-    crest: '🩸',
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Arlecchino.png',
-  },
-  {
-    id: 'gojo_infinity',
-    name: 'Furina (Thủy Thần Fontaine)',
-    desc: '[Sử Thi] Hình nền Thủy Thần Furina & hào quang đại dương xanh lam.',
-    price: 6500,
-    crest: '💧',
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Furina.png',
-  },
-  {
-    id: 'sun_breathing',
-    name: 'Raiden Shogun (Lôi Thần Vĩnh Hằng)',
-    desc: '[Huyền Thoại] Hình nền Lôi Thần Ei & ấn sấm sét Vô Tưởng Nhất Đao.',
-    price: 9500,
-    crest: '⚡',
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Shougun.png',
-  },
-  {
-    id: 'cyber_waifu',
-    name: 'Skirk (Kiếm Khách Vực Sâu)',
-    desc: '[Thần Thoại] Hình nền Skirk — Sư phụ Childe mang hào quang Tinh Không Vực Sâu.',
-    price: 14000,
-    crest: '🌌',
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_SkirkNew.png',
-  },
+  ...GENSHIN_FANART_ROSTER.map((c) => ({
+    id: c.id,
+    name: `Bài Fanart: ${c.name}`,
+    desc: c.desc,
+    price: c.price === 0 ? 1500 : c.price,
+    crest: c.crest,
+    imgUrl: `fanart/${c.id}.jpg`,
+  })),
 ];
 
-const ANIME_AVATARS = [
+const ANIME_AVATARS = GENSHIN_FANART_ROSTER.map((c) => ({
+  id: c.id,
+  name: c.name,
+  desc: c.desc,
+  price: c.price,
+  imgUrl: `fanart/${c.id}.jpg`,
+}));
+
+// Danh mục 10 Hiệu Ứng Kỹ Năng Nộ (Elemental Burst Animations) bán bằng Xu trong Shop
+const GENSHIN_BURSTS = [
   {
-    id: 'default_cool',
-    name: 'Hu Tao (Đường Chủ Vãng Sinh)',
-    desc: 'Đường chủ Vãng Sinh Đường tinh nghịch (Mặc định miễn phí).',
+    id: 'raiden',
+    name: 'Raiden Shogun — Mộng Tưởng Chân Thuyết',
+    desc: '[Mặc định Chặt Heo] Vô Tưởng Nhất Đao chém rách không gian bằng sấm sét tím Vĩnh Hằng.',
     price: 0,
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Hutao.png',
+    gifUrl: 'raiden_burst.gif',
+    mp4Url: 'raiden_burst.mp4',
+    remoteGif: 'https://media.tenor.com/umRS1zU3OUsAAAAM/raiden-baal.gif',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '⚡ KỸ NĂNG NỘ • RAIDEN SHOGUN (MUSOU NO HITOTACHI)',
+    title: 'BÍ THUẬT: MỘNG TƯỞNG CHÂN THUYẾT',
+    quote: '“Vô Tưởng Nhất Đao — Chặt Đứt Vĩnh Hằng!”',
   },
   {
-    id: 'anime_swordsman',
-    name: 'Nahida (Thảo Thần Sumeru)',
-    desc: '[Hiếm] Tiểu Vương Kusanali thông thái của vùng đất Sumeru.',
-    price: 2000,
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Nahida.png',
+    id: 'skirk',
+    name: 'Skirk — Phá Toái Tinh Không',
+    desc: '[Mặc định Về Nhất] Tuyệt kỹ Vực Sâu triệu hồi hố đen Tinh Không nuốt chửng bàn bài.',
+    price: 0,
+    gifUrl: 'skirk_burst.gif',
+    mp4Url: 'skirk_burst.mp4',
+    remoteGif: 'https://media.tenor.com/vrLe2zvzqNYAAAAM/genshin-genshin-impact.gif',
+    theme: 'theme-abyss',
+    sfxType: 'skirk',
+    tag: '🌌 KỸ NĂNG NỘ • SKIRK (ABYSSAL STARSHATTER)',
+    title: 'TUYỆT KỸ VỰC SÂU: PHÁ TOÁI TINH KHÔNG',
+    quote: '“Vạn Vật Quy Hư Vô — Nhất Ăn Tất!”',
   },
   {
-    id: 'anime_kitsune',
-    name: 'Furina (Thủy Thần Fontaine)',
-    desc: '[Sử Thi] Ngôi sao sân khấu Epiclese mang lại vận may rực rỡ.',
-    price: 3800,
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Furina.png',
+    id: 'mavuika',
+    name: 'Mavuika — Bầu Trời Rực Cháy',
+    desc: '[Thần Thoại] Hỏa Thần Natlan bùng nổ đại dương rực lửa thiêu rụi mọi đối thủ.',
+    price: 7500,
+    gifUrl: 'mavuika_burst.gif',
+    mp4Url: '',
+    remoteGif: 'mavuika_burst.gif',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '🔥 KỸ NĂNG NỘ • MAVUIKA (HOUR OF BURNING SKIES)',
+    title: 'THỜI KHẮC BẦU TRỜI RỰC CHÁY',
+    quote: '“Ngọn Lửa Vĩnh Cửu Natlan — Thiêu Rụi Tất Cả!”',
   },
   {
-    id: 'anime_sorcerer',
-    name: 'Arlecchino (The Knave)',
-    desc: '[Sử Thi] Quan Chấp Hành thứ 4 của Fatui với ngọn lửa Xích Nguyệt.',
+    id: 'furina',
+    name: 'Furina — Vạn Dân Reo Hò',
+    desc: '[Huyền Thoại] Thủy Thần Fontaine mở màn đại nhạc kịch sân khấu Epiclese.',
+    price: 6500,
+    gifUrl: 'furina_burst.gif',
+    mp4Url: '',
+    remoteGif: 'furina_burst.gif',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '💧 KỸ NĂNG NỘ • FURINA (LET THE PEOPLE REJOICE)',
+    title: 'ĐẠI NHẠC KỊCH: VẠN DÂN REO HÒ',
+    quote: '“Hãy Để Thế Gian Cùng Ca Vang Chiến Thắng!”',
+  },
+  {
+    id: 'clorinde',
+    name: 'Clorinde — Ánh Chớp Tàn Đêm',
+    desc: '[Sử Thi] Đấu sĩ đại diện Fontaine tung liên hoàn kiếm và súng chớp nhoáng.',
+    price: 5500,
+    gifUrl: 'clorinde_burst.gif',
+    mp4Url: '',
+    remoteGif: 'clorinde_burst.gif',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '⚡ KỸ NĂNG NỘ • CLORINDE (LAST LIGHTFALL)',
+    title: 'PHÁN QUYẾT: ÁNH CHỚP TÀN ĐÊM',
+    quote: '“Danh Dự Đấu Sĩ — Kết Liễu Trong Chớp Mắt!”',
+  },
+  {
+    id: 'hutao',
+    name: 'Hu Tao — An Thần Bí Pháp',
+    desc: '[Sử Thi] Đường chủ Vãng Sinh Đường vung hồn ma Boo Tao quét sạch bàn bài.',
+    price: 4500,
+    gifUrl: 'hutao_burst.gif',
+    mp4Url: '',
+    remoteGif: 'hutao_burst.gif',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '🦋 KỸ NĂNG NỘ • HU TAO (SPIRIT SOOTHER)',
+    title: 'VÃNG SINH ĐƯỜNG: AN THẦN BÍ PHÁP',
+    quote: '“Khách Quý Lên Đường Bình An Nhé ~!”',
+  },
+  {
+    id: 'ayaka',
+    name: 'Kamisato Ayaka — Soumetsu',
+    desc: '[Sử Thi] Bạch Hạc Sương Hoa triệu hồi lốc xoáy băng hoa cắt nát mọi quân bài.',
+    price: 5000,
+    gifUrl: 'ayaka_burst.gif',
+    mp4Url: '',
+    remoteGif: 'ayaka_burst.gif',
+    theme: 'theme-cryo',
+    sfxType: 'skirk',
+    tag: '❄️ KỸ NĂNG NỘ • KAMISATO AYAKA (SOUMETSU)',
+    title: 'KAMISATO LƯU: BÃO TUYẾT SƯƠNG HOA',
+    quote: '“Tuyết Hoa Rơi Xuống — Đóng Băng Vĩnh Viễn!”',
+  },
+  {
+    id: 'yaemiko',
+    name: 'Yae Miko — Thiên Hồ Lôi Phạt',
+    desc: '[Huyền Thoại] Guuji Đền Narukami giáng sấm sét Thiên Hồ hủy diệt từ chín tầng mây.',
     price: 6000,
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Arlecchino.png',
+    gifUrl: 'yae_burst.gif',
+    mp4Url: '',
+    remoteGif: 'yae_burst.gif',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '🌸 KỸ NĂNG NỘ • YAE MIKO (TENKO KENSHIN)',
+    title: 'ĐẠI BÍ PHÁP: THIÊN HỒ LÔI PHẠT',
+    quote: '“Sấm Sét Narukami — Hóa Thành Tro Bụi Đi!”',
   },
   {
-    id: 'anime_shinobi',
-    name: 'Raiden Shogun (Lôi Thần Ei)',
-    desc: '[Huyền Thoại] Chúa tể sấm sét Inazuma với tuyệt kỹ Vô Tưởng Nhất Đao.',
-    price: 8500,
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Shougun.png',
+    id: 'yelan',
+    name: 'Yelan — Xúc Xắc Toan Tính',
+    desc: '[Huyền Thoại] Thần bài Liyue tung xúc xắc Linh Lung định đoạt ván cược.',
+    price: 5500,
+    gifUrl: 'yelan_burst.gif',
+    mp4Url: '',
+    remoteGif: 'yelan_burst.gif',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '🎲 KỸ NĂNG NỘ • YELAN (DEPTH-CLARION DICE)',
+    title: 'THẦN BÀI LIYUE: XÚC XẮC TOAN TÍNH',
+    quote: '“Ván Cược Này — Phần Thắng Thuộc Về Ta!”',
   },
   {
-    id: 'genshin_mavuika',
-    name: 'Mavuika (Hỏa Thần Natlan)',
-    desc: '[Huyền Thoại] Hỏa Thần rực cháy dẫn lối chiến thắng bất bại.',
-    price: 10000,
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Mavuika.png',
-  },
-  {
-    id: 'anime_empress',
-    name: 'Skirk (Chân Truyền Vực Sâu)',
-    desc: '[Thần Thoại] Nữ kiếm khách bí ẩn ngự trị Tinh Không Vực Sâu.',
-    price: 12000,
-    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_SkirkNew.png',
+    id: 'eula',
+    name: 'Eula — Thanh Kiếm Sóng Nước',
+    desc: '[Sử Thi] Kỵ Sĩ Sóng Nước triệu hồi Kiếm Ánh Sáng phát nổ sát thương cực đại.',
+    price: 4500,
+    gifUrl: 'eula_burst.gif',
+    mp4Url: '',
+    remoteGif: 'eula_burst.gif',
+    theme: 'theme-cryo',
+    sfxType: 'skirk',
+    tag: '❄️ KỸ NĂNG NỘ • EULA (GLACIAL ILLUMINATION)',
+    title: 'TÂY PHONG KIẾM THUẬT: KIẾM SÓNG NƯỚC',
+    quote: '“Mối Thù Này — Ta Sẽ Khắc Ghi Gấp Bội!”',
   },
 ];
 
 const BOT_ANIME_AVATARS = {
-  1: 'https://enka.network/ui/UI_AvatarIcon_Shougun.png', // Bot Raiden Shogun
-  2: 'https://enka.network/ui/UI_AvatarIcon_SkirkNew.png', // Bot Skirk
-  3: 'https://enka.network/ui/UI_AvatarIcon_Furina.png', // Bot Furina
+  1: 'fanart/raiden.jpg',
+  2: 'fanart/skirk.jpg',
+  3: 'fanart/furina.jpg',
+};
+
+const LEGACY_ID_MAP = {
+  default_cool: 'hutao',
+  sakura_miko: 'yaemiko',
+  uchiha_sharingan: 'clorinde',
+  gojo_infinity: 'furina',
+  sun_breathing: 'raiden',
+  cyber_waifu: 'skirk',
+  anime_swordsman: 'citlali',
+  anime_kitsune: 'furina',
+  anime_sorcerer: 'columbina',
+  anime_shinobi: 'raiden',
+  genshin_mavuika: 'mavuika',
+  anime_empress: 'skirk',
 };
 
 function getAvatarHtml(avatarIdOrEmoji) {
-  const found = ANIME_AVATARS.find((a) => a.id === avatarIdOrEmoji);
+  const mappedId = LEGACY_ID_MAP[avatarIdOrEmoji] || avatarIdOrEmoji;
+  const found = ANIME_AVATARS.find((a) => a.id === mappedId);
   if (found && found.imgUrl) {
     return `<img class="anime-avatar-img" src="${found.imgUrl}" alt="${found.name}" referrerpolicy="no-referrer" />`;
   }
-  if (typeof avatarIdOrEmoji === 'string' && avatarIdOrEmoji.startsWith('http')) {
-    return `<img class="anime-avatar-img" src="${avatarIdOrEmoji}" alt="Genshin Avatar" referrerpolicy="no-referrer" />`;
+  if (typeof mappedId === 'string' && (mappedId.startsWith('http') || mappedId.startsWith('fanart/'))) {
+    return `<img class="anime-avatar-img" src="${mappedId}" alt="Genshin Fanart Avatar" referrerpolicy="no-referrer" />`;
   }
-  return avatarIdOrEmoji || '😎';
+  return `<img class="anime-avatar-img" src="fanart/hutao.jpg" alt="Hu Tao" />`;
 }
 
 function getCardSkinMeta(skinId) {
-  return ANIME_CARD_SKINS.find((s) => s.id === skinId) || ANIME_CARD_SKINS[0];
+  const mappedId = LEGACY_ID_MAP[skinId] || skinId;
+  return ANIME_CARD_SKINS.find((s) => s.id === mappedId) || ANIME_CARD_SKINS[0];
+}
+
+function getBurstMeta(burstId) {
+  return GENSHIN_BURSTS.find((b) => b.id === burstId) || GENSHIN_BURSTS[0];
 }
 
 const COMBO_TYPES = {
@@ -699,10 +811,10 @@ class TienLenGame {
     this.loadShopProfile();
 
     this.players = [
-      { id: 0, name: 'Bạn', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'sun_breathing', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'cyber_waifu', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'gojo_infinity', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 0, name: 'Bạn', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
+      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
     ];
 
     // Multiplayer state
@@ -761,14 +873,15 @@ class TienLenGame {
   }
 
   fetchLiveAnimeImages() {
-    // Tải trước (Preload) GIF/Video Kỹ Năng Nộ của Raiden Shogun & Skirk để phát tức thì
+    // Tải trước (Preload) GIF Kỹ Năng Nộ & Fanart đang trang bị để phát tức thì
     try {
-      [
-        GENSHIN_BURST_ART.raidenGif,
-        GENSHIN_BURST_ART.skirkGif,
-        ...ANIME_CARD_SKINS.map((s) => s.imgUrl).filter(Boolean),
-        ...ANIME_AVATARS.map((a) => a.imgUrl).filter(Boolean),
-      ].forEach((url) => {
+      const preloadList = [
+        getBurstMeta(this.equippedChopBurst).gifUrl,
+        getBurstMeta(this.equippedWinBurst).gifUrl,
+        getCardSkinMeta(this.equippedSkin).imgUrl,
+        ...Object.values(BOT_ANIME_AVATARS),
+      ].filter(Boolean);
+      preloadList.forEach((url) => {
         const img = new Image();
         img.referrerPolicy = 'no-referrer';
         img.src = url;
@@ -776,13 +889,14 @@ class TienLenGame {
     } catch (_) {}
   }
 
-  triggerGenshinBurst(type, detailText, onDoneCallback = null) {
+  triggerGenshinBurst(burstId, detailText, onDoneCallback = null) {
     const overlay = document.getElementById('genshin-burst-overlay');
     if (!overlay) {
       if (onDoneCallback) onDoneCallback();
       return;
     }
 
+    const burstMeta = getBurstMeta(burstId);
     const videoEl = document.getElementById('burst-video');
     const imgEl = document.getElementById('burst-character-img');
     const chakraEl = document.getElementById('burst-chakra-ring');
@@ -793,7 +907,18 @@ class TienLenGame {
     const detailEl = document.getElementById('burst-skill-detail');
     const tableEl = document.querySelector('.casino-table');
 
-    overlay.classList.remove('hidden', 'theme-raiden', 'theme-skirk');
+    overlay.classList.remove(
+      'hidden',
+      'theme-raiden',
+      'theme-skirk',
+      'theme-electro',
+      'theme-abyss',
+      'theme-pyro',
+      'theme-hydro',
+      'theme-cryo'
+    );
+    overlay.classList.add(burstMeta.theme || 'theme-electro');
+
     if (tableEl) {
       tableEl.classList.remove('burst-shake');
       void tableEl.offsetWidth;
@@ -802,33 +927,39 @@ class TienLenGame {
 
     const isFileProtocol = window.location.protocol === 'file:';
 
-    if (type === 'raiden') {
+    if (burstMeta.sfxType === 'skirk') {
+      sfx.skirkBurst();
+    } else {
       sfx.raidenBurst();
-      overlay.classList.add('theme-raiden');
-      imgEl.src = isFileProtocol ? GENSHIN_BURST_ART.raidenRemoteGif : GENSHIN_BURST_ART.raidenGif;
-      imgEl.onerror = () => {
-        imgEl.src = GENSHIN_BURST_ART.raidenRemoteGif;
-      };
-      if (videoEl) {
-        if (!isFileProtocol) {
-          videoEl.style.display = 'block';
-          videoEl.src = GENSHIN_BURST_ART.raidenMp4;
-          videoEl.currentTime = 0;
-          videoEl.play().catch(() => {
-            videoEl.style.display = 'none';
-          });
-          videoEl.onerror = () => {
-            videoEl.style.display = 'none';
-          };
-        } else {
-          videoEl.style.display = 'none';
-        }
-      }
-      tagEl.textContent = '⚡ KỸ NĂNG NỘ • RAIDEN SHOGUN (MUSOU NO HITOTACHI)';
-      titleEl.textContent = 'BÍ THUẬT: MỘNG TƯỞNG CHÂN THUYẾT';
-      quoteEl.textContent = '“Vô Tưởng Nhất Đao — Chặt Đứt Vĩnh Hằng!”';
-      detailEl.textContent = detailText;
+    }
 
+    imgEl.src = isFileProtocol && burstMeta.remoteGif.startsWith('http') ? burstMeta.remoteGif : burstMeta.gifUrl;
+    imgEl.onerror = () => {
+      if (burstMeta.remoteGif) imgEl.src = burstMeta.remoteGif;
+    };
+
+    if (videoEl) {
+      if (!isFileProtocol && burstMeta.mp4Url) {
+        videoEl.style.display = 'block';
+        videoEl.src = burstMeta.mp4Url;
+        videoEl.currentTime = 0;
+        videoEl.play().catch(() => {
+          videoEl.style.display = 'none';
+        });
+        videoEl.onerror = () => {
+          videoEl.style.display = 'none';
+        };
+      } else {
+        videoEl.style.display = 'none';
+      }
+    }
+
+    tagEl.textContent = burstMeta.tag;
+    titleEl.textContent = burstMeta.title;
+    quoteEl.textContent = burstMeta.quote;
+    detailEl.textContent = detailText || `💥 Tuyệt Kỹ Nộ: ${burstMeta.name}!`;
+
+    if (burstMeta.sfxType === 'raiden') {
       chakraEl.innerHTML = `
         <svg viewBox="0 0 200 200" width="90%" height="90%">
           <circle cx="100" cy="100" r="88" fill="none" stroke="#e879f9" stroke-width="2.5" stroke-dasharray="10 6"/>
@@ -846,32 +977,6 @@ class TienLenGame {
         </svg>
       `;
     } else {
-      sfx.skirkBurst();
-      overlay.classList.add('theme-skirk');
-      imgEl.src = isFileProtocol ? GENSHIN_BURST_ART.skirkRemoteGif : GENSHIN_BURST_ART.skirkGif;
-      imgEl.onerror = () => {
-        imgEl.src = GENSHIN_BURST_ART.skirkRemoteGif;
-      };
-      if (videoEl) {
-        if (!isFileProtocol) {
-          videoEl.style.display = 'block';
-          videoEl.src = GENSHIN_BURST_ART.skirkMp4;
-          videoEl.currentTime = 0;
-          videoEl.play().catch(() => {
-            videoEl.style.display = 'none';
-          });
-          videoEl.onerror = () => {
-            videoEl.style.display = 'none';
-          };
-        } else {
-          videoEl.style.display = 'none';
-        }
-      }
-      tagEl.textContent = '🌌 KỸ NĂNG NỘ • SKIRK (ABYSSAL STARSHATTER)';
-      titleEl.textContent = 'TUYỆT KỸ VỰC SÂU: PHÁ TOÁI TINH KHÔNG';
-      quoteEl.textContent = '“Vạn Vật Quy Hư Vô — Nhất Ăn Tất!”';
-      detailEl.textContent = detailText;
-
       chakraEl.innerHTML = `
         <svg viewBox="0 0 200 200" width="92%" height="92%">
           <circle cx="100" cy="100" r="90" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="14 6"/>
@@ -923,14 +1028,16 @@ class TienLenGame {
     this.savedCoins = INITIAL_COINS; // Cấp sẵn 20,000 xu (~100 ván thắng thua)
     this.unlockedSkins = new Set(['classic']);
     this.equippedSkin = 'classic';
-    this.unlockedAvatars = new Set(['default_cool']);
-    this.equippedAvatar = 'default_cool';
+    this.unlockedAvatars = new Set(['hutao']);
+    this.equippedAvatar = 'hutao';
+    this.unlockedBursts = new Set(['raiden', 'skirk']);
+    this.equippedChopBurst = 'raiden';
+    this.equippedWinBurst = 'skirk';
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
     this.dailyRecoveredOnLoad = false;
 
     try {
-      // Giữ lại vật phẩm từ bản v1 nếu người chơi đã mở trước đó, nhưng nâng vốn lên chuẩn v2 (20,000 xu)
       const rawV2 = localStorage.getItem('tlmn_anime_profile_v2');
       const rawV1 = localStorage.getItem('tlmn_anime_profile_v1');
 
@@ -938,13 +1045,24 @@ class TienLenGame {
         const data = JSON.parse(rawV2);
         if (typeof data.coins === 'number') this.savedCoins = data.coins;
         if (Array.isArray(data.unlockedSkins)) {
-          this.unlockedSkins = new Set(['classic', ...data.unlockedSkins]);
+          const mappedSkins = data.unlockedSkins.map((id) => LEGACY_ID_MAP[id] || id);
+          this.unlockedSkins = new Set(['classic', ...mappedSkins]);
         }
-        if (data.equippedSkin) this.equippedSkin = data.equippedSkin;
+        if (data.equippedSkin) {
+          this.equippedSkin = LEGACY_ID_MAP[data.equippedSkin] || data.equippedSkin;
+        }
         if (Array.isArray(data.unlockedAvatars)) {
-          this.unlockedAvatars = new Set(['default_cool', ...data.unlockedAvatars]);
+          const mappedAvatars = data.unlockedAvatars.map((id) => LEGACY_ID_MAP[id] || id);
+          this.unlockedAvatars = new Set(['hutao', ...mappedAvatars]);
         }
-        if (data.equippedAvatar) this.equippedAvatar = data.equippedAvatar;
+        if (data.equippedAvatar) {
+          this.equippedAvatar = LEGACY_ID_MAP[data.equippedAvatar] || data.equippedAvatar;
+        }
+        if (Array.isArray(data.unlockedBursts)) {
+          this.unlockedBursts = new Set(['raiden', 'skirk', ...data.unlockedBursts]);
+        }
+        if (data.equippedChopBurst) this.equippedChopBurst = data.equippedChopBurst;
+        if (data.equippedWinBurst) this.equippedWinBurst = data.equippedWinBurst;
         if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
         if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
 
@@ -963,13 +1081,19 @@ class TienLenGame {
       } else if (rawV1) {
         const dataV1 = JSON.parse(rawV1);
         if (Array.isArray(dataV1.unlockedSkins)) {
-          this.unlockedSkins = new Set(['classic', ...dataV1.unlockedSkins]);
+          const mappedSkins = dataV1.unlockedSkins.map((id) => LEGACY_ID_MAP[id] || id);
+          this.unlockedSkins = new Set(['classic', ...mappedSkins]);
         }
-        if (dataV1.equippedSkin) this.equippedSkin = dataV1.equippedSkin;
+        if (dataV1.equippedSkin) {
+          this.equippedSkin = LEGACY_ID_MAP[dataV1.equippedSkin] || dataV1.equippedSkin;
+        }
         if (Array.isArray(dataV1.unlockedAvatars)) {
-          this.unlockedAvatars = new Set(['default_cool', ...dataV1.unlockedAvatars]);
+          const mappedAvatars = dataV1.unlockedAvatars.map((id) => LEGACY_ID_MAP[id] || id);
+          this.unlockedAvatars = new Set(['hutao', ...mappedAvatars]);
         }
-        if (dataV1.equippedAvatar) this.equippedAvatar = dataV1.equippedAvatar;
+        if (dataV1.equippedAvatar) {
+          this.equippedAvatar = LEGACY_ID_MAP[dataV1.equippedAvatar] || dataV1.equippedAvatar;
+        }
         this.savedCoins = INITIAL_COINS;
       }
       this.saveShopProfile();
@@ -988,6 +1112,9 @@ class TienLenGame {
         equippedSkin: this.equippedSkin,
         unlockedAvatars: Array.from(this.unlockedAvatars),
         equippedAvatar: this.equippedAvatar,
+        unlockedBursts: Array.from(this.unlockedBursts || ['raiden', 'skirk']),
+        equippedChopBurst: this.equippedChopBurst || 'raiden',
+        equippedWinBurst: this.equippedWinBurst || 'skirk',
         lastDailyDate: this.lastDailyDate || this.getTodayKey(),
         dailyReliefUsed: this.dailyReliefUsed || 0,
       };
@@ -1125,13 +1252,61 @@ class TienLenGame {
         return `
           <div class="shop-item-card ${equipped ? 'equipped' : ''}">
             <div class="shop-avatar-preview-wrap">
-              <img class="anime-avatar-img" src="${av.imgUrl}" alt="${av.name}" referrerpolicy="no-referrer" />
+              <img class="anime-avatar-img" src="${av.imgUrl}" alt="${av.name}" loading="lazy" referrerpolicy="no-referrer" />
             </div>
             <div class="shop-item-title">${av.name}</div>
             <div class="shop-item-desc">${av.desc}</div>
             <button class="shop-buy-btn ${btnClass}" onclick="window.tienLenGame.buyOrEquipAvatar('${av.id}')">
               ${btnLabel}
             </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    const burstsGrid = document.getElementById('shop-bursts-grid');
+    if (burstsGrid) {
+      burstsGrid.innerHTML = GENSHIN_BURSTS.map((b) => {
+        const owned = this.unlockedBursts.has(b.id);
+        const isChop = this.equippedChopBurst === b.id;
+        const isWin = this.equippedWinBurst === b.id;
+        const canAfford = me && me.coins >= b.price;
+
+        let actionsHtml = '';
+        if (!owned) {
+          const buyClass = canAfford ? 'buy-btn' : 'cant-afford';
+          const buyLabel = canAfford
+            ? `🪙 Mua Nộ (${b.price.toLocaleString()} xu)`
+            : `🔒 Cần ${b.price.toLocaleString()} xu`;
+          actionsHtml = `
+            <button class="shop-buy-btn ${buyClass}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'chop')">
+              ${buyLabel}
+            </button>
+          `;
+        } else {
+          actionsHtml = `
+            <div class="shop-burst-actions">
+              <button class="shop-buy-btn ${isChop ? 'equipped-btn' : 'equip-btn'}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'chop')">
+                ${isChop ? '⚡ Đang dùng Chặt Heo' : '⚡ Gắn cho Chặt Heo'}
+              </button>
+              <button class="shop-buy-btn ${isWin ? 'equipped-btn' : 'equip-btn'}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'win')">
+                ${isWin ? '👑 Đang dùng Về Nhất' : '👑 Gắn cho Về Nhất'}
+              </button>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="shop-item-card ${isChop || isWin ? 'equipped' : ''}">
+            <div class="shop-burst-preview-wrap">
+              <img src="${b.gifUrl}" alt="${b.name}" loading="lazy" />
+              <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem thử: ${b.name}!')">
+                ▶ Xem thử
+              </button>
+            </div>
+            <div class="shop-item-title">${b.name}</div>
+            <div class="shop-item-desc">${b.desc}</div>
+            ${actionsHtml}
           </div>
         `;
       }).join('');
@@ -1155,7 +1330,7 @@ class TienLenGame {
       this.unlockedSkins.add(skinId);
       sfx.win();
       this.addLog(
-        `🛍️ Bạn đã mở khóa bộ bài Anime <strong>${skin.name}</strong> (-${skin.price.toLocaleString()} xu)!`,
+        `🛍️ Bạn đã mở khóa bộ bài Fanart <strong>${skin.name}</strong> (-${skin.price.toLocaleString()} xu)!`,
         'log-win'
       );
     } else {
@@ -1187,7 +1362,7 @@ class TienLenGame {
       this.unlockedAvatars.add(avatarId);
       sfx.win();
       this.addLog(
-        `🛍️ Bạn đã sở hữu Avatar Anime <strong>${av.name}</strong> (-${av.price.toLocaleString()} xu)!`,
+        `🛍️ Bạn đã sở hữu Avatar Fanart <strong>${av.name}</strong> (-${av.price.toLocaleString()} xu)!`,
         'log-win'
       );
     } else {
@@ -1199,6 +1374,43 @@ class TienLenGame {
     this.saveShopProfile();
     this.renderShopModal();
     this.renderAll();
+    this.syncCosmeticsInRoom();
+  }
+
+  buyOrEquipBurst(burstId, slot = 'chop') {
+    const burst = GENSHIN_BURSTS.find((b) => b.id === burstId);
+    if (!burst) return;
+    const me = this.getLocalPlayer();
+    if (!me) return;
+
+    if (!this.unlockedBursts.has(burstId)) {
+      if (me.coins < burst.price) {
+        alert(
+          `Bạn chưa đủ xu! Hiệu ứng Kỹ Năng Nộ "${burst.name}" cần ${burst.price.toLocaleString()} xu.\n💡 Bạn có thể đánh thắng thêm ván bài hoặc bấm nút "🎁 Hồi Xu Hàng Ngày (+5,000 Xu)" ở góc dưới Cửa Hàng!`
+        );
+        return;
+      }
+      me.coins -= burst.price;
+      this.unlockedBursts.add(burstId);
+      sfx.win();
+      this.addLog(
+        `🎬 Bạn đã mở khóa Kỹ Năng Nộ <strong>${burst.name}</strong> (-${burst.price.toLocaleString()} xu)!`,
+        'log-win'
+      );
+    } else {
+      sfx.click();
+    }
+
+    if (slot === 'win') {
+      this.equippedWinBurst = burstId;
+      me.winBurst = burstId;
+    } else {
+      this.equippedChopBurst = burstId;
+      me.chopBurst = burstId;
+    }
+
+    this.saveShopProfile();
+    this.renderShopModal();
     this.syncCosmeticsInRoom();
   }
 
@@ -1242,6 +1454,8 @@ class TienLenGame {
         clientId: this.myClientId,
         avatar: this.equippedAvatar,
         cardSkin: this.equippedSkin,
+        chopBurst: this.equippedChopBurst,
+        winBurst: this.equippedWinBurst,
         coins: me ? me.coins : INITIAL_COINS,
       });
     }
@@ -1297,24 +1511,24 @@ class TienLenGame {
 
       const tabSkinsBtn = document.getElementById('tab-btn-skins');
       const tabAvatarsBtn = document.getElementById('tab-btn-avatars');
+      const tabBurstsBtn = document.getElementById('tab-btn-bursts');
       const skinsGrid = document.getElementById('shop-skins-grid');
       const avatarsGrid = document.getElementById('shop-avatars-grid');
+      const burstsGrid = document.getElementById('shop-bursts-grid');
 
-      tabSkinsBtn?.addEventListener('click', () => {
-        tabSkinsBtn.classList.add('active');
-        tabAvatarsBtn?.classList.remove('active');
-        skinsGrid?.classList.remove('hidden');
-        avatarsGrid?.classList.add('hidden');
+      const activateShopTab = (tabName) => {
+        tabSkinsBtn?.classList.toggle('active', tabName === 'skins');
+        tabAvatarsBtn?.classList.toggle('active', tabName === 'avatars');
+        tabBurstsBtn?.classList.toggle('active', tabName === 'bursts');
+        skinsGrid?.classList.toggle('hidden', tabName !== 'skins');
+        avatarsGrid?.classList.toggle('hidden', tabName !== 'avatars');
+        burstsGrid?.classList.toggle('hidden', tabName !== 'bursts');
         sfx.click();
-      });
+      };
 
-      tabAvatarsBtn?.addEventListener('click', () => {
-        tabAvatarsBtn.classList.add('active');
-        tabSkinsBtn?.classList.remove('active');
-        avatarsGrid?.classList.remove('hidden');
-        skinsGrid?.classList.add('hidden');
-        sfx.click();
-      });
+      tabSkinsBtn?.addEventListener('click', () => activateShopTab('skins'));
+      tabAvatarsBtn?.addEventListener('click', () => activateShopTab('avatars'));
+      tabBurstsBtn?.addEventListener('click', () => activateShopTab('bursts'));
 
       document.getElementById('btn-claim-bonus')?.addEventListener('click', () => {
         this.claimFreeBonus();
@@ -1549,10 +1763,10 @@ class TienLenGame {
 
     // Khởi tạo bàn WiFi: Ghế 0 là Chủ phòng, Ghế 1-2-3 để trống chờ bạn bè vào (hoặc bấm + Thêm Bot)
     this.players = [
-      { id: 0, name: myName, avatar: this.equippedAvatar, cardSkin: this.equippedSkin, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: this.myClientId },
-      { id: 1, name: 'Ghế trống 2', avatar: '🐯', cardSkin: 'classic', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Ghế trống 3', avatar: '🦊', cardSkin: 'classic', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Ghế trống 4', avatar: '🐼', cardSkin: 'classic', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 0, name: myName, avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: this.myClientId },
+      { id: 1, name: 'Ghế trống 2', avatar: '🐯', cardSkin: 'classic', chopBurst: 'raiden', winBurst: 'skirk', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Ghế trống 3', avatar: '🦊', cardSkin: 'classic', chopBurst: 'raiden', winBurst: 'skirk', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Ghế trống 4', avatar: '🐼', cardSkin: 'classic', chopBurst: 'raiden', winBurst: 'skirk', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
     ];
 
     document.getElementById('wifi-status-label').textContent = `Phòng ${code}`;
@@ -1587,6 +1801,8 @@ class TienLenGame {
       name: myName,
       avatar: this.equippedAvatar,
       cardSkin: this.equippedSkin,
+      chopBurst: this.equippedChopBurst,
+      winBurst: this.equippedWinBurst,
       coins: this.savedCoins,
     });
 
@@ -1604,10 +1820,10 @@ class TienLenGame {
     this.mySeatId = 0;
 
     this.players = [
-      { id: 0, name: 'Bạn', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'sun_breathing', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'cyber_waifu', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'gojo_infinity', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 0, name: 'Bạn', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
+      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
     ];
 
     document.getElementById('wifi-status-label').textContent = 'Tạo phòng';
@@ -1695,6 +1911,8 @@ class TienLenGame {
               name: myName,
               avatar: this.equippedAvatar,
               cardSkin: this.equippedSkin,
+              chopBurst: this.equippedChopBurst,
+              winBurst: this.equippedWinBurst,
               coins: this.savedCoins,
             });
           });
@@ -1734,6 +1952,8 @@ class TienLenGame {
         name: p.name,
         avatar: p.avatar,
         cardSkin: p.cardSkin || 'classic',
+        chopBurst: p.chopBurst || 'raiden',
+        winBurst: p.winBurst || 'skirk',
         isBot: p.isBot,
         active: p.active,
         hand: p.hand,
@@ -1823,6 +2043,8 @@ class TienLenGame {
         seat.name = evt.name || `Người chơi ${seat.id + 1}`;
         if (evt.avatar) seat.avatar = evt.avatar;
         if (evt.cardSkin) seat.cardSkin = evt.cardSkin;
+        if (evt.chopBurst) seat.chopBurst = evt.chopBurst;
+        if (evt.winBurst) seat.winBurst = evt.winBurst;
         if (typeof evt.coins === 'number') seat.coins = evt.coins;
         seat.isBot = false;
         seat.active = true;
@@ -1838,6 +2060,8 @@ class TienLenGame {
       if (seat) {
         if (evt.avatar) seat.avatar = evt.avatar;
         if (evt.cardSkin) seat.cardSkin = evt.cardSkin;
+        if (evt.chopBurst) seat.chopBurst = evt.chopBurst;
+        if (evt.winBurst) seat.winBurst = evt.winBurst;
         if (typeof evt.coins === 'number') seat.coins = evt.coins;
         this.renderLobbyModal();
         this.renderAll();
@@ -1909,10 +2133,11 @@ class TienLenGame {
     if (state.lastBurstEffect && state.lastBurstEffect.id !== this.lastShownBurstId) {
       this.lastShownBurstId = state.lastBurstEffect.id;
       const burst = state.lastBurstEffect;
-      if (burst.type === 'raiden') {
-        this.triggerGenshinBurst('raiden', burst.detail);
-      } else if (burst.type === 'skirk') {
-        this.triggerGenshinBurst('skirk', burst.detail, () => {
+      const bId = burst.burstId || burst.type || 'raiden';
+      if (!burst.isWin) {
+        this.triggerGenshinBurst(bId, burst.detail);
+      } else {
+        this.triggerGenshinBurst(bId, burst.detail, () => {
           if (this.isGameOver && state.lastSummaryData) {
             this.showSummaryModal(
               state.lastSummaryData.coinChanges,
@@ -1926,7 +2151,7 @@ class TienLenGame {
 
     if (this.isGameOver && state.lastSummaryData) {
       this.btnShowSummary.classList.remove('hidden');
-      if (!wasGameOver && (!state.lastBurstEffect || state.lastBurstEffect.type !== 'skirk')) {
+      if (!wasGameOver && (!state.lastBurstEffect || !state.lastBurstEffect.isWin)) {
         sfx.win();
         this.showSummaryModal(
           state.lastSummaryData.coinChanges,
@@ -2012,7 +2237,8 @@ class TienLenGame {
   toggleBotInLobby(seatIdx, addBot) {
     if (!this.isHost || seatIdx <= 0 || seatIdx > 3) return;
     const botNames = ['', 'Bot Raiden Shogun', 'Bot Skirk', 'Bot Furina'];
-    const botSkins = ['', 'sun_breathing', 'cyber_waifu', 'gojo_infinity'];
+    const botSkins = ['', 'raiden', 'skirk', 'furina'];
+    const botBursts = ['', 'raiden', 'skirk', 'furina'];
     const p = this.players[seatIdx];
     if (addBot) {
       p.active = true;
@@ -2020,6 +2246,8 @@ class TienLenGame {
       p.name = botNames[seatIdx];
       p.avatar = BOT_ANIME_AVATARS[seatIdx];
       p.cardSkin = botSkins[seatIdx];
+      p.chopBurst = botBursts[seatIdx];
+      p.winBurst = botBursts[seatIdx];
       p.clientId = null;
     } else {
       p.active = false;
@@ -2214,7 +2442,8 @@ class TienLenGame {
     const bannerTitle = `🎉 ${winner.name} TỚI TRẮNG (${reason}) - ĂN TRỌN +${totalWon} XU!`;
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon} Xu!`;
-    this.lastBurstEffect = { id: Date.now(), type: 'skirk', detail: burstDetail };
+    const winBurstId = winner.winBurst || 'skirk';
+    this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: burstDetail };
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
 
@@ -2222,7 +2451,7 @@ class TienLenGame {
     if (this.isMultiplayer && this.isHost) {
       this.broadcastState();
     }
-    this.triggerGenshinBurst('skirk', burstDetail, () => {
+    this.triggerGenshinBurst(winBurstId, burstDetail, () => {
       this.showSummaryModal(coinChanges, detailsByPlayer, bannerTitle);
     });
   }
@@ -2313,8 +2542,9 @@ class TienLenGame {
       });
 
       const chopBurstDetail = `⚡ ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue} xu)!`;
-      this.lastBurstEffect = { id: Date.now(), type: 'raiden', detail: chopBurstDetail };
-      this.triggerGenshinBurst('raiden', chopBurstDetail);
+      const chopBurstId = player.chopBurst || 'raiden';
+      this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
+      this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
       this.showComboBanner(`💥 CHẶT HEO/HÀNG! +${chopValue} XU`);
       this.addLog(
         `💥 <strong>${player.name}</strong> tung <strong>${combo.label}</strong> chặt <strong>${this.currentCombo.label}</strong> của <strong>${victim.name}</strong> (+${chopValue} xu)!`,
@@ -2842,7 +3072,8 @@ class TienLenGame {
     const winBurstDetail = wonBy3Spade
       ? `👑 ${winner.name} Đút 3♠ Về Nhất • +${totalWinnerGain} Xu!`
       : `🏆 ${winner.name} Về Nhất Ăn Tất • +${totalWinnerGain} Xu!`;
-    this.lastBurstEffect = { id: Date.now(), type: 'skirk', detail: winBurstDetail };
+    const winBurstId = winner.winBurst || 'skirk';
+    this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: winBurstDetail };
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
@@ -2852,7 +3083,7 @@ class TienLenGame {
       this.broadcastState();
     }
 
-    this.triggerGenshinBurst('skirk', winBurstDetail, () => {
+    this.triggerGenshinBurst(winBurstId, winBurstDetail, () => {
       this.showSummaryModal(coinChanges, detailsByPlayer, bannerTitle);
     });
   }

@@ -4549,6 +4549,7 @@ class TienLenGame {
         cardSkin: this.equippedSkin,
         chopBurst: this.equippedChopBurst,
         winBurst: this.equippedWinBurst,
+        activeChar: this.equippedActiveChar || 'none',
         coins: me ? me.coins : INITIAL_COINS,
       });
     }
@@ -5826,6 +5827,8 @@ class TienLenGame {
     }
     if (this.isMultiplayer && !this.isHost) {
       const selectedIds = Array.from(this.selectedCardIds);
+      this.selectedCardIds.clear();
+      this.companionCardIds.clear();
       this.sendClientEvent({
         type: 'USE_CHAR_SKILL',
         clientId: this.myClientId,
@@ -6028,6 +6031,7 @@ class TienLenGame {
       type: charId,
       burstId: charId,
       isWin: false,
+      lockGameplay: true,
       detail: skillSummary,
     };
     this.triggerGenshinBurst(charId, skillSummary, null, true);
@@ -6432,26 +6436,64 @@ class TienLenGame {
     const myName = document.getElementById('input-player-name').value.trim() || 'Chủ Phòng';
     const code = String(Math.floor(1000 + Math.random() * 9000));
 
+    clearTimeout(this.botTimer);
     this.stopMultiplayerSync();
+    this.clearActiveMatchSnapshot();
     this.isMultiplayer = true;
     this.isHost = true;
     this.roomId = code;
     this.mySeatId = 0;
 
+    // Reset sạch trạng thái ván cũ trước khi tạo phòng để khách vào phòng không bị dính kết quả ván trước!
+    this.isGameOver = false;
+    this.isBurstPlaying = false;
+    this.matchCount = 0;
+    this.lastWinnerId = null;
+    this.currentTurn = 0;
+    this.currentCombo = null;
+    this.previousCombo = null;
+    this.trickOwnerId = null;
+    this.mustPlay3Spade = false;
+    this.chopPot = 0;
+    this.lastChoppedPlayerId = null;
+    this.lastSummaryData = null;
+    this.lastBurstEffect = null;
+    this.penaltyCardIdsByPlayer = [new Set(), new Set(), new Set(), new Set()];
+    this.matchChopCoins = [0, 0, 0, 0];
+    this.matchChopDetails = [[], [], [], []];
+    this.raidenElectroMarkOwnerId = null;
+    this.raidenSlashMustSingle = false;
+    this.furinaReverseSuitRound = false;
+    activeFurinaReverseSuit = false;
+    this.yaeForcePlayRound = false;
+    this.clorindeDuelPair = null;
+    this.ayakaFrozenPlayerId = null;
+    this.hutaoTaxOwnerId = null;
+    this.eulaNextPlayBoost = false;
+    this.yelanRevealedByPlayer = {};
+    this.logsData = [];
+    if (this.elGameLog) this.elGameLog.innerHTML = '';
+    this.modalSummary?.classList.add('hidden');
+    this.btnShowSummary?.classList.add('hidden');
+
     // Khởi tạo bàn WiFi: Ghế 0 là Chủ phòng, Ghế 1-2-3 để trống chờ bạn bè vào (hoặc bấm + Thêm Bot)
     this.players = [
-      { id: 0, name: myName, avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: this.myClientId },
-      { id: 1, name: 'Ghế trống 2', avatar: '🐯', cardSkin: 'classic', chopBurst: 'raiden', winBurst: 'skirk', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Ghế trống 3', avatar: '🦊', cardSkin: 'classic', chopBurst: 'raiden', winBurst: 'skirk', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Ghế trống 4', avatar: '🐼', cardSkin: 'classic', chopBurst: 'raiden', winBurst: 'skirk', isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 0, name: myName, avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, activeChar: this.equippedActiveChar || 'none', skillUsed: false, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: this.myClientId },
+      { id: 1, name: 'Ghế trống 2', avatar: '🐯', cardSkin: 'classic', chopBurst: 'none', winBurst: 'none', activeChar: 'none', skillUsed: false, isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Ghế trống 3', avatar: '🦊', cardSkin: 'classic', chopBurst: 'none', winBurst: 'none', activeChar: 'none', skillUsed: false, isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Ghế trống 4', avatar: '🐼', cardSkin: 'classic', chopBurst: 'none', winBurst: 'none', activeChar: 'none', skillUsed: false, isBot: false, active: false, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
     ];
 
+    if (this.elTurnBanner) {
+      this.elTurnBanner.textContent = `🏠 Phòng ${code} đang chờ người chơi vào bàn...`;
+    }
     document.getElementById('wifi-status-label').textContent = `Phòng ${code}`;
     document.getElementById('display-room-code').textContent = code;
     document.getElementById('share-link-input').value = this.getShareableRoomUrl(code);
     document.getElementById('wifi-room-box').classList.remove('hidden');
 
     this.updateBetBadges();
+    this.updateMidMatchLockUI();
     this.initHostPeer(code);
     this.broadcastState();
     this.pollTimer = setInterval(() => this.pollRoomAsHost(), 350);
@@ -6462,10 +6504,23 @@ class TienLenGame {
 
   joinWifiRoom(code) {
     const myName = document.getElementById('input-player-name').value.trim() || 'Bạn bè';
+    clearTimeout(this.botTimer);
     this.stopMultiplayerSync();
+    this.clearActiveMatchSnapshot();
     this.isMultiplayer = true;
     this.isHost = false;
     this.roomId = code;
+
+    // Reset sạch kết quả ván cũ trên máy khách trước khi đồng bộ phòng mới
+    this.isGameOver = false;
+    this.isBurstPlaying = false;
+    this.matchCount = 0;
+    this.currentCombo = null;
+    this.previousCombo = null;
+    this.lastSummaryData = null;
+    this.lastBurstEffect = null;
+    this.modalSummary?.classList.add('hidden');
+    this.btnShowSummary?.classList.add('hidden');
 
     document.getElementById('wifi-status-label').textContent = `Phòng ${code}`;
     document.getElementById('display-room-code').textContent = code;
@@ -6481,6 +6536,7 @@ class TienLenGame {
       cardSkin: this.equippedSkin,
       chopBurst: this.equippedChopBurst,
       winBurst: this.equippedWinBurst,
+      activeChar: this.equippedActiveChar || 'none',
       coins: this.savedCoins,
     });
 
@@ -6609,6 +6665,7 @@ class TienLenGame {
               cardSkin: this.equippedSkin,
               chopBurst: this.equippedChopBurst,
               winBurst: this.equippedWinBurst,
+              activeChar: this.equippedActiveChar || 'none',
               coins: this.savedCoins,
             });
           });
@@ -6634,15 +6691,23 @@ class TienLenGame {
       previousCombo: this.previousCombo,
       trickOwnerId: this.trickOwnerId,
       mustPlay3Spade: this.mustPlay3Spade,
-      isGameOver: this.isGameOver,
+      isGameOver: this.isGameOver && this.matchCount >= 1,
+      raidenElectroMarkOwnerId: this.raidenElectroMarkOwnerId ?? null,
+      raidenSlashMustSingle: !!this.raidenSlashMustSingle,
+      furinaReverseSuitRound: !!this.furinaReverseSuitRound,
+      yaeForcePlayRound: !!this.yaeForcePlayRound,
+      clorindeDuelPair: this.clorindeDuelPair || null,
+      ayakaFrozenPlayerId: this.ayakaFrozenPlayerId ?? null,
+      hutaoTaxOwnerId: this.hutaoTaxOwnerId ?? null,
+      eulaNextPlayBoost: !!this.eulaNextPlayBoost,
       turnBannerText: this.elTurnBanner.textContent,
       firstTurnBadgeText: this.elFirstTurnBadge.textContent,
       comboBannerText: !this.elComboAnnouncement.classList.contains('hidden')
         ? this.elComboAnnouncement.textContent
         : null,
       logsData: this.logsData.slice(0, 25),
-      lastSummaryData: this.lastSummaryData,
-      lastBurstEffect: this.lastBurstEffect,
+      lastSummaryData: this.matchCount >= 1 ? this.lastSummaryData : null,
+      lastBurstEffect: this.matchCount >= 1 ? this.lastBurstEffect : null,
       penaltyCardIds: this.penaltyCardIdsByPlayer.map((s) => Array.from(s)),
       players: this.players.map((p) => ({
         id: p.id,
@@ -6651,6 +6716,8 @@ class TienLenGame {
         cardSkin: p.cardSkin || 'classic',
         chopBurst: p.chopBurst || 'none',
         winBurst: p.winBurst || 'none',
+        activeChar: p.activeChar || p.chopBurst || 'none',
+        skillUsed: !!p.skillUsed,
         isBot: p.isBot,
         active: p.active,
         hand: p.hand,
@@ -6742,9 +6809,12 @@ class TienLenGame {
         if (evt.cardSkin) seat.cardSkin = evt.cardSkin;
         if (evt.chopBurst) seat.chopBurst = evt.chopBurst;
         if (evt.winBurst) seat.winBurst = evt.winBurst;
+        if (evt.activeChar) seat.activeChar = evt.activeChar;
         if (typeof evt.coins === 'number') seat.coins = evt.coins;
         seat.isBot = false;
         seat.active = true;
+        seat.finishRank = null;
+        seat.passed = false;
         seat.clientId = evt.clientId;
         sfx.win();
         this.addLog(`👋 <strong>${seat.name}</strong> đã vào bàn (Ghế #${seat.id + 1})!`, 'log-win');
@@ -6759,11 +6829,21 @@ class TienLenGame {
         if (evt.cardSkin) seat.cardSkin = evt.cardSkin;
         if (evt.chopBurst) seat.chopBurst = evt.chopBurst;
         if (evt.winBurst) seat.winBurst = evt.winBurst;
+        if (evt.activeChar) seat.activeChar = evt.activeChar;
         if (typeof evt.coins === 'number') seat.coins = evt.coins;
         this.renderLobbyModal();
         this.renderAll();
         this.broadcastState();
       }
+    } else if (evt.type === 'USE_CHAR_SKILL') {
+      const seat = this.players.find((p) => p.clientId === evt.clientId);
+      if (!seat || this.currentTurn !== seat.id || this.isGameOver) return;
+      if (evt.charId && CHARACTER_SKILLS[evt.charId]) {
+        seat.activeChar = evt.charId;
+        seat.chopBurst = evt.charId;
+        seat.winBurst = evt.charId;
+      }
+      this.useCharacterSkill(seat, evt.selectedIds || []);
     } else if (evt.type === 'PLAY_CARDS') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
       if (!seat || this.currentTurn !== seat.id || this.isGameOver) return;
@@ -6785,20 +6865,35 @@ class TienLenGame {
       this.betPerCard = state.betPerCard;
       this.updateBetBadges();
     }
-    this.matchCount = state.matchCount || 1;
+    this.matchCount = typeof state.matchCount === 'number' ? state.matchCount : 0;
     this.currentTurn = state.currentTurn || 0;
     this.currentCombo = state.currentCombo || null;
     this.previousCombo = state.previousCombo || null;
     this.trickOwnerId = state.trickOwnerId;
     this.mustPlay3Spade = !!state.mustPlay3Spade;
+    this.raidenElectroMarkOwnerId = state.raidenElectroMarkOwnerId ?? null;
+    this.raidenSlashMustSingle = !!state.raidenSlashMustSingle;
+    this.furinaReverseSuitRound = !!state.furinaReverseSuitRound;
+    activeFurinaReverseSuit = this.furinaReverseSuitRound;
+    this.yaeForcePlayRound = !!state.yaeForcePlayRound;
+    this.clorindeDuelPair = state.clorindeDuelPair || null;
+    this.ayakaFrozenPlayerId = state.ayakaFrozenPlayerId ?? null;
+    this.hutaoTaxOwnerId = state.hutaoTaxOwnerId ?? null;
+    this.eulaNextPlayBoost = !!state.eulaNextPlayBoost;
     const wasGameOver = this.isGameOver;
-    this.isGameOver = !!state.isGameOver;
+    this.isGameOver = !!(state.isGameOver && this.matchCount >= 1);
 
     if (Array.isArray(state.players)) {
       this.players = state.players;
       const me = this.players.find((p) => p.clientId === this.myClientId);
       if (me) {
         this.mySeatId = me.id;
+        if (Array.isArray(me.hand)) {
+          const handIds = new Set(me.hand.map((c) => c.id));
+          Array.from(this.selectedCardIds).forEach((id) => {
+            if (!handIds.has(id)) this.selectedCardIds.delete(id);
+          });
+        }
         this.saveShopProfile();
       }
     }
@@ -6831,12 +6926,12 @@ class TienLenGame {
         .join('');
     }
 
-    if (state.lastBurstEffect && state.lastBurstEffect.id !== this.lastShownBurstId) {
+    if (this.matchCount >= 1 && state.lastBurstEffect && state.lastBurstEffect.id !== this.lastShownBurstId) {
       this.lastShownBurstId = state.lastBurstEffect.id;
       const burst = state.lastBurstEffect;
       const bId = burst.burstId || burst.type || 'none';
       if (!burst.isWin) {
-        this.triggerGenshinBurst(bId, burst.detail);
+        this.triggerGenshinBurst(bId, burst.detail, null, !!burst.lockGameplay);
       } else {
         this.triggerGenshinBurst(bId, burst.detail, () => {
           if (this.isGameOver && state.lastSummaryData) {
@@ -6850,7 +6945,7 @@ class TienLenGame {
       }
     }
 
-    if (this.isGameOver && state.lastSummaryData) {
+    if (this.isGameOver && this.matchCount >= 1 && state.lastSummaryData) {
       this.btnShowSummary.classList.remove('hidden');
       if (!wasGameOver) {
         this.incrementDailyQuest('play_matches', 1);
@@ -6877,6 +6972,8 @@ class TienLenGame {
       this.modalWifi.classList.add('hidden');
     }
 
+    this.updateArenaBackdropCharacters();
+    this.renderRoundSkillStatusBar();
     this.renderLobbyModal();
     this.renderAll();
   }
@@ -7467,7 +7564,9 @@ class TienLenGame {
       this.players.forEach((p) => {
         if (p.active && p.id !== player.id) p.finishRank = 2;
       });
-      const wonBy3Spade = combo.cards.some((c) => c.value === 0);
+      // Chỉ tính ĐÚT 3 BÍCH khi đánh RIÊNG lẻ 1 con 3♠ ở nước cuối cùng!
+      const wonBy3Spade =
+        combo.type === COMBO_TYPES.SINGLE && combo.cards.length === 1 && combo.cards[0].value === 0;
       sfx.win();
       if (wonBy3Spade) {
         this.showComboBanner(`👑 ${player.name.toUpperCase()} ĐÚT 3 BÍCH VỀ NHẤT!`);

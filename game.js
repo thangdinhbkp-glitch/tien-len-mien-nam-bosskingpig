@@ -314,9 +314,77 @@ class SoundFX {
     this.playTone(520, 'triangle', 0.06, 0.09);
   }
 
-  playCard() {
-    this.playTone(320, 'triangle', 0.08, 0.14);
-    this.playTone(640, 'sine', 0.09, 0.1, 0.03);
+  playImpactThud(startFreq = 145, endFreq = 36, duration = 0.19, gainVal = 0.34, delay = 0) {
+    if (!this.enabled) return;
+    try {
+      this.init();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), now + duration);
+      gain.gain.setValueAtTime(gainVal, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration);
+    } catch (_) {}
+  }
+
+  playNoiseSnap(duration = 0.085, gainVal = 0.24, delay = 0) {
+    if (!this.enabled) return;
+    try {
+      this.init();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime + delay;
+      const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.32));
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1650, now);
+      filter.Q.setValueAtTime(1.1, now);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(gainVal, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start(now);
+      noise.stop(now + duration);
+    } catch (_) {}
+  }
+
+  playCard(intensity = 'normal') {
+    if (intensity === 'ultra') {
+      // Đập Hàng / Tứ Quý / Đôi Thông: Rầm trầm cực đại + tiếng tạch xé gió + hợp âm sấm sét
+      this.playImpactThud(190, 28, 0.32, 0.45, 0);
+      this.playNoiseSnap(0.12, 0.35, 0);
+      this.playTone(110, 'sawtooth', 0.25, 0.24, 0.01);
+      this.playTone(440, 'triangle', 0.18, 0.22, 0.03);
+      this.playTone(880, 'sawtooth', 0.22, 0.18, 0.05);
+    } else if (intensity === 'heavy') {
+      // Đập Heo (2) / Sảnh Dài / Sám Cô: Tiếng đập bàn cực đầm + kim khí ngân vang
+      this.playImpactThud(165, 32, 0.25, 0.38, 0);
+      this.playNoiseSnap(0.1, 0.28, 0);
+      this.playTone(146.8, 'sawtooth', 0.18, 0.18, 0.01);
+      this.playTone(587.3, 'triangle', 0.16, 0.18, 0.03);
+      this.playTone(880, 'sine', 0.18, 0.15, 0.05);
+    } else {
+      // Đánh bài thường: Tiếng quất bài + đập xuống mặt bàn đanh gọn, có lực
+      this.playImpactThud(140, 40, 0.18, 0.3, 0);
+      this.playNoiseSnap(0.075, 0.22, 0);
+      this.playTone(360, 'triangle', 0.08, 0.15, 0.01);
+      this.playTone(720, 'sine', 0.08, 0.11, 0.025);
+    }
   }
 
   pass() {
@@ -2552,13 +2620,18 @@ class TienLenGame {
       );
       this.saveShopProfile();
     } else {
-      sfx.playCard();
-      if (
+      const isUltra =
         combo.type === COMBO_TYPES.FOUR_OF_A_KIND ||
         combo.type === COMBO_TYPES.THREE_PAIRS ||
-        combo.type === COMBO_TYPES.FOUR_PAIRS ||
-        (combo.highRank === 12 && combo.length >= 2)
-      ) {
+        combo.type === COMBO_TYPES.FOUR_PAIRS;
+      const isHeavy =
+        isUltra ||
+        combo.highRank === 12 ||
+        combo.length >= 4 ||
+        combo.type === COMBO_TYPES.TRIPLE;
+
+      sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
+      if (isUltra || (combo.highRank === 12 && combo.length >= 1)) {
         this.showComboBanner(`🔥 ${combo.label.toUpperCase()}!`);
       }
       this.addLog(
@@ -2570,6 +2643,7 @@ class TienLenGame {
     }
 
     combo.ownerSkin = player.cardSkin || 'classic';
+    combo.wasChop = !!beatCheck.isChop;
     this.previousCombo = this.currentCombo;
     this.currentCombo = combo;
     this.trickOwnerId = player.id;
@@ -3276,14 +3350,75 @@ class TienLenGame {
     }
 
     this.elCurrentTrick.innerHTML = '';
+    this.elCurrentTrick.classList.remove('impact-normal', 'impact-heavy', 'impact-ultra');
+
     if (this.currentCombo) {
       const owner = this.players[this.trickOwnerId];
       const curSkin = this.currentCombo.ownerSkin || (owner && owner.cardSkin) || 'classic';
-      this.currentCombo.cards.forEach((c) => {
-        this.elCurrentTrick.appendChild(this.createCardElement(c, false, false, curSkin));
+      const sig = `${this.trickOwnerId}:${this.currentCombo.cards.map((c) => c.id).join('-')}`;
+      const isNewPlay = sig !== this.lastRenderedTrickSig;
+      this.lastRenderedTrickSig = sig;
+
+      const isUltra =
+        this.currentCombo.wasChop ||
+        this.currentCombo.type === COMBO_TYPES.FOUR_OF_A_KIND ||
+        this.currentCombo.type === COMBO_TYPES.THREE_PAIRS ||
+        this.currentCombo.type === COMBO_TYPES.FOUR_PAIRS;
+      const isHeavy =
+        isUltra ||
+        this.currentCombo.highRank === 12 ||
+        this.currentCombo.length >= 4 ||
+        this.currentCombo.type === COMBO_TYPES.TRIPLE;
+      const impactTier = isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal';
+      this.elCurrentTrick.classList.add(`impact-${impactTier}`);
+
+      // Tính hướng bay từ vị trí ghế của người vừa đánh (0: Dưới, 1: Trái, 2: Trên, 3: Phải)
+      const visualSlot = ((this.trickOwnerId || 0) - this.mySeatId + 4) % 4;
+      const fromVectors = [
+        { x: '0px', y: '145px' },
+        { x: '-220px', y: '0px' },
+        { x: '0px', y: '-135px' },
+        { x: '220px', y: '0px' },
+      ];
+      const vec = fromVectors[visualSlot] || fromVectors[0];
+
+      if (isNewPlay) {
+        const fxWrap = document.createElement('div');
+        fxWrap.className = `trick-impact-fx impact-${impactTier}`;
+        fxWrap.innerHTML = `
+          <div class="trick-flash-core"></div>
+          <div class="trick-shockwave-ring"></div>
+          ${isHeavy ? '<div class="trick-slash-line"></div>' : ''}
+        `;
+        this.elCurrentTrick.appendChild(fxWrap);
+
+        const tableEl = document.querySelector('.casino-table');
+        if (tableEl && !this.currentCombo.wasChop) {
+          tableEl.classList.remove('recoil-normal', 'recoil-heavy');
+          void tableEl.offsetWidth;
+          tableEl.classList.add(isHeavy ? 'recoil-heavy' : 'recoil-normal');
+        }
+      }
+
+      const len = this.currentCombo.cards.length;
+      this.currentCombo.cards.forEach((c, idx) => {
+        const cardEl = this.createCardElement(c, false, false, curSkin);
+        const tilt = ((idx - (len - 1) / 2) * (len > 5 ? 1.8 : 3.2)).toFixed(1);
+        cardEl.style.setProperty('--card-tilt', `${tilt}deg`);
+        if (isNewPlay) {
+          cardEl.classList.add('card-slam-anim');
+          cardEl.style.setProperty('--from-x', vec.x);
+          cardEl.style.setProperty('--from-y', vec.y);
+          cardEl.style.setProperty('--slam-delay', `${idx * 26}ms`);
+        } else {
+          cardEl.style.transform = `rotate(${tilt}deg)`;
+        }
+        this.elCurrentTrick.appendChild(cardEl);
       });
+
       this.elTrickOwnerLabel.textContent = `${owner ? owner.name : ''} đánh: ${this.currentCombo.label}`;
     } else {
+      this.lastRenderedTrickSig = '';
       this.elCurrentTrick.innerHTML = `<div class="empty-table-watermark">NHẤT ĂN TẤT • ĐẾM LÁ</div>`;
       this.elTrickOwnerLabel.textContent = '';
     }

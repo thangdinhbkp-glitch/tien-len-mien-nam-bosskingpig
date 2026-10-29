@@ -547,12 +547,13 @@ body {
 
 .previous-trick {
   position: absolute;
-  transform: translate(-20px, -12px) scale(0.8);
-  opacity: 0.35;
-  filter: grayscale(35%);
+  transform: translate(-22px, -14px) scale(0.78);
+  opacity: 0.34;
+  filter: grayscale(40%);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.25s ease;
 }
 
 .current-trick {
@@ -560,7 +561,177 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  z-index: 3;
+  perspective: 900px;
+}
+
+/* ============================================================================
+   HIỆU ỨNG ĐẬP BÀI CỰC LỰC (CARD SLAM, SHOCKWAVE RING & TABLE RECOIL)
+   ============================================================================ */
+.current-trick .playing-card.card-slam-anim {
+  animation: cardSlamFlight 0.34s cubic-bezier(0.12, 1.15, 0.28, 1) backwards;
+  animation-delay: var(--slam-delay, 0ms);
+  transform: rotate(var(--card-tilt, 0deg));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.65), 0 0 14px rgba(250, 204, 21, 0.35);
+}
+
+.current-trick.impact-heavy .playing-card.card-slam-anim {
+  animation-duration: 0.38s;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8), 0 0 24px rgba(249, 115, 22, 0.85), 0 0 8px #fde047;
+}
+
+.current-trick.impact-ultra .playing-card.card-slam-anim {
+  animation-duration: 0.42s;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.9), 0 0 32px rgba(217, 70, 239, 0.95), 0 0 12px #38bdf8;
+}
+
+@keyframes cardSlamFlight {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--from-x, 0px), var(--from-y, 120px), 180px) scale(1.85) rotate(calc(var(--card-tilt, 0deg) * 3.5));
+    filter: brightness(1.8) drop-shadow(0 28px 25px rgba(0, 0, 0, 0.85));
+  }
+  58% {
+    opacity: 1;
+    transform: translate3d(0, 4px, 0) scale(0.92) rotate(var(--card-tilt, 0deg));
+    filter: brightness(1.25);
+  }
+  78% {
+    transform: translate3d(0, -3px, 12px) scale(1.06) rotate(var(--card-tilt, 0deg));
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(var(--card-tilt, 0deg));
+    filter: brightness(1);
+  }
+}
+
+.trick-impact-fx {
+  position: absolute;
+  inset: -40px -70px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.trick-shockwave-ring {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 4px solid rgba(250, 204, 21, 0.92);
+  box-shadow: 0 0 26px rgba(250, 204, 21, 0.85), inset 0 0 18px rgba(250, 204, 21, 0.65);
+  animation: trickShockwaveExpand 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.trick-impact-fx.impact-heavy .trick-shockwave-ring {
+  border-width: 6px;
+  border-color: #fb923c;
+  box-shadow: 0 0 42px #ef4444, inset 0 0 28px #fde047;
+  animation-duration: 0.56s;
+}
+
+.trick-impact-fx.impact-ultra .trick-shockwave-ring {
+  border-width: 7px;
+  border-color: #e879f9;
+  box-shadow: 0 0 55px #a855f7, inset 0 0 34px #38bdf8;
+  animation-duration: 0.65s;
+}
+
+@keyframes trickShockwaveExpand {
+  0% {
+    transform: scale(0.25);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.85);
+    opacity: 0;
+  }
+}
+
+.trick-flash-core {
+  position: absolute;
+  width: 150px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.92) 0%, rgba(250, 204, 21, 0.55) 45%, transparent 72%);
+  animation: trickFlashBurst 0.32s ease-out forwards;
+}
+
+.trick-impact-fx.impact-heavy .trick-flash-core {
+  width: 220px;
+  height: 150px;
+  background: radial-gradient(circle, #ffffff 0%, rgba(249, 115, 22, 0.82) 45%, rgba(220, 38, 38, 0.4) 68%, transparent 78%);
+}
+
+.trick-impact-fx.impact-ultra .trick-flash-core {
+  width: 270px;
+  height: 180px;
+  background: radial-gradient(circle, #ffffff 0%, rgba(232, 121, 249, 0.9) 42%, rgba(56, 189, 248, 0.55) 68%, transparent 82%);
+}
+
+@keyframes trickFlashBurst {
+  0% {
+    transform: scale(0.35);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.75);
+    opacity: 0;
+  }
+}
+
+.trick-slash-line {
+  position: absolute;
+  width: 260px;
+  height: 6px;
+  background: linear-gradient(90deg, transparent, #fff, #fde047, #fff, transparent);
+  box-shadow: 0 0 18px #f97316, 0 0 32px #ef4444;
+  transform: rotate(-14deg) scaleX(0);
+  animation: trickSlashCut 0.36s 0.04s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes trickSlashCut {
+  0% {
+    transform: rotate(-14deg) scaleX(0);
+    opacity: 1;
+  }
+  45% {
+    transform: rotate(-14deg) scaleX(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(-14deg) scaleX(1.35);
+    height: 1px;
+    opacity: 0;
+  }
+}
+
+/* Rung chấn bàn bài theo lực đánh */
+.casino-table.recoil-normal {
+  animation: tableRecoilNormal 0.22s ease-out;
+}
+
+.casino-table.recoil-heavy {
+  animation: tableRecoilHeavy 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes tableRecoilNormal {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(4px) scale(0.996); }
+  70% { transform: translateY(-2px) scale(1.001); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes tableRecoilHeavy {
+  0% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(-6px, 7px) scale(0.992); }
+  40% { transform: translate(6px, -5px) scale(1.004); }
+  60% { transform: translate(-4px, 4px) scale(0.997); }
+  80% { transform: translate(3px, -2px) scale(1.001); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
 .trick-owner-label {

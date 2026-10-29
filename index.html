@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=15" />
+  <link rel="stylesheet" href="styles.css?v=16" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -42,8 +42,11 @@
         <button class="icon-btn anime-theme-btn" id="btn-arena-theme" title="Đổi Chủ Đề Sân Đấu Anime (Inazuma / Fontaine / Vực Sâu / Natlan / Băng Tuyết)">
           🌸 Sân: <span id="arena-theme-label">Inazuma ⚡</span>
         </button>
-        <button class="icon-btn anime-theme-btn" id="btn-top-random-bots" title="Random ngẫu nhiên nhân vật Bot Genshin (29 nhân vật Fanart)">
-          🎲 Đổi Nhân Vật Bot
+        <button class="icon-btn anime-theme-btn" id="btn-top-random-bots" title="Random ngẫu nhiên nhân vật Bot từ 10 nhân vật 5★ có Hoạt Ảnh Kỹ Năng Nộ riêng">
+          🎲 Đổi Nhân Vật Bot (5★)
+        </button>
+        <button class="icon-btn anime-theme-btn" id="btn-bgm" title="Đổi bài Nhạc Nền Anime (Inazuma / Fontaine / Tinh Không) hoặc Tắt Nhạc Nền">
+          🎵 Nhạc: <span id="bgm-label">Inazuma 🌸</span>
         </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -272,6 +275,9 @@
             <button class="ad-reward-btn" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay 1 Roll (+1,600 Xu)!">
               📺 Xem QC (+1 Roll)
             </button>
+            <button class="icon-btn anime-theme-btn" id="btn-lobby-bgm" title="Đổi bài Nhạc Nền Anime hoặc Bật/Tắt Nhạc Nền">
+              🎵 Nhạc: <span id="lobby-bgm-label">Inazuma 🌸</span>
+            </button>
             <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
               📖 Luật
             </button>
@@ -383,18 +389,18 @@
               </div>
             </div>
 
-            <!-- Thanh Random Nhân Vật Bot (29 Nhân Vật Genshin Fanart) -->
+            <!-- Thanh Random Nhân Vật Bot (10 Nhân Vật 5★ Có Kỹ Năng Nộ Riêng) -->
             <div class="bot-random-bar" id="bot-random-bar">
               <div class="bot-lineup-avatars" id="bot-lineup-avatars">
                 <!-- Populated dynamically by renderBotLineupPreview() -->
               </div>
               <div class="bot-random-controls">
                 <button class="tool-btn anime-random-bot-btn" id="btn-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)">
-                  🎲 Random Đối Thủ Bot Khác (29 Nhân Vật)
+                  🎲 Random Đối Thủ Bot (10 Nhân Vật Có Nộ 5★)
                 </button>
-                <label class="bot-auto-random-toggle" title="Tự động đổi ngẫu nhiên nhân vật Bot sau mỗi ván bài mới">
+                <label class="bot-auto-random-toggle" title="Tự động đổi ngẫu nhiên nhân vật Bot 5★ sau mỗi ván bài mới">
                   <input type="checkbox" id="chk-auto-random-bots" checked onchange="window.tienLenGame.toggleAutoRandomBots(this.checked)" />
-                  <span>Tự động random Bot mỗi ván</span>
+                  <span>Tự động random Bot 5★ mỗi ván</span>
                 </label>
               </div>
             </div>
@@ -790,6 +796,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=15"></script>
+  <script src="game.js?v=16"></script>
 </body>
 </html>

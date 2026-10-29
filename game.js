@@ -402,11 +402,64 @@ const COMBO_TYPES = {
   FOUR_PAIRS: 'FOUR_PAIRS',
 };
 
-// Web Audio Synthesizer
+// Web Audio Synthesizer + Continuous Anime / Genshin BGM Player
+const ANIME_BGM_TRACKS = [
+  {
+    id: 'inazuma',
+    label: 'Inazuma 🌸',
+    stepMs: 420,
+    // Giai điệu đàn Koto & Harp Anh Đào Inazuma (Am - F - C - G/E)
+    melody: [
+      440.0, 523.25, 659.25, 587.33, 523.25, 659.25, 880.0, 783.99,
+      698.46, 659.25, 523.25, 440.0, 523.25, 587.33, 659.25, 523.25,
+      523.25, 659.25, 783.99, 880.0, 1046.5, 880.0, 783.99, 659.25,
+      587.33, 659.25, 493.88, 392.0, 440.0, 523.25, 659.25, 440.0,
+    ],
+    bass: [
+      220.0, 220.0, 174.61, 174.61, 261.63, 261.63, 196.0, 164.81,
+    ],
+  },
+  {
+    id: 'fontaine',
+    label: 'Fontaine 💧',
+    stepMs: 400,
+    // Điệu Valse Pha Lê Nhà Hát Epiclese Fontaine (Dm - Bb - F - A)
+    melody: [
+      587.33, 698.46, 880.0, 783.99, 698.46, 659.25, 587.33, 440.0,
+      466.16, 587.33, 698.46, 880.0, 783.99, 698.46, 659.25, 587.33,
+      523.25, 698.46, 880.0, 1046.5, 880.0, 698.46, 659.25, 523.25,
+      554.37, 659.25, 880.0, 783.99, 698.46, 659.25, 587.33, 587.33,
+    ],
+    bass: [
+      293.66, 293.66, 233.08, 233.08, 174.61, 174.61, 220.0, 220.0,
+    ],
+  },
+  {
+    id: 'celestia',
+    label: 'Tinh Không 🌌',
+    stepMs: 440,
+    // Giai điệu Đêm Sao Cầu Nguyện Celestia Genshin Impact (Fmaj7 - G6 - Em7 - Am9)
+    melody: [
+      523.25, 659.25, 783.99, 1046.5, 987.77, 783.99, 659.25, 523.25,
+      587.33, 783.99, 987.77, 1174.66, 987.77, 783.99, 659.25, 587.33,
+      659.25, 783.99, 987.77, 783.99, 659.25, 523.25, 493.88, 392.0,
+      440.0, 523.25, 659.25, 880.0, 783.99, 659.25, 523.25, 440.0,
+    ],
+    bass: [
+      174.61, 174.61, 196.0, 196.0, 164.81, 164.81, 220.0, 220.0,
+    ],
+  },
+];
+
 class SoundFX {
   constructor() {
     this.enabled = true;
     this.ctx = null;
+    this.bgmEnabled = true;
+    this.bgmTrackIndex = 0; // 0: Inazuma, 1: Fontaine, 2: Celestia
+    this.bgmStep = 0;
+    this.bgmTimer = null;
+    this.bgmPausedForAd = false;
   }
 
   init() {
@@ -417,6 +470,96 @@ class SoundFX {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+  }
+
+  startBGM() {
+    if (!this.bgmEnabled || !this.enabled || this.bgmPausedForAd) return;
+    this.init();
+    if (this.bgmTimer) return;
+    const tick = () => {
+      if (!this.bgmEnabled || !this.enabled || this.bgmPausedForAd) {
+        clearTimeout(this.bgmTimer);
+        this.bgmTimer = null;
+        return;
+      }
+      const track = ANIME_BGM_TRACKS[this.bgmTrackIndex] || ANIME_BGM_TRACKS[0];
+      const step = this.bgmStep % track.melody.length;
+      const noteFreq = track.melody[step];
+      const bassFreq = track.bass[Math.floor(step / 4) % track.bass.length];
+
+      // Nốt đàn Harp / Music Box trong trẻo
+      if (noteFreq) {
+        this.playHarpNote(noteFreq, 0.95, 0.042);
+        if (step % 2 === 0) {
+          this.playHarpNote(noteFreq * 2, 0.55, 0.014);
+        }
+      }
+      // Hợp âm nền trầm ấm mỗi đầu nhịp 4 phách
+      if (step % 4 === 0 && bassFreq) {
+        this.playHarpNote(bassFreq, 1.55, 0.028);
+        this.playHarpNote(bassFreq * 1.5, 1.35, 0.018);
+      }
+
+      this.bgmStep++;
+      this.bgmTimer = setTimeout(tick, track.stepMs || 420);
+    };
+    this.bgmTimer = setTimeout(tick, 120);
+  }
+
+  stopBGM() {
+    clearTimeout(this.bgmTimer);
+    this.bgmTimer = null;
+  }
+
+  playHarpNote(freq, duration = 0.9, maxGain = 0.04) {
+    if (!this.enabled || !this.bgmEnabled || !this.ctx || this.ctx.state !== 'running') return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(Math.min(3600, freq * 3.2), now);
+
+      gain.gain.setValueAtTime(0.0005, now);
+      gain.gain.linearRampToValueAtTime(maxGain, now + 0.035);
+      gain.gain.exponentialRampToValueAtTime(0.0005, now + duration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration + 0.02);
+    } catch (_) {}
+  }
+
+  cycleBGM() {
+    // Chu kỳ: Bài 1 (Inazuma) -> Bài 2 (Fontaine) -> Bài 3 (Tinh Không) -> Tắt Nhạc -> Bài 1
+    if (!this.bgmEnabled) {
+      this.bgmEnabled = true;
+      this.bgmTrackIndex = 0;
+      this.bgmStep = 0;
+      this.startBGM();
+    } else if (this.bgmTrackIndex < ANIME_BGM_TRACKS.length - 1) {
+      this.bgmTrackIndex++;
+      this.bgmStep = 0;
+      this.stopBGM();
+      this.startBGM();
+    } else {
+      this.bgmEnabled = false;
+      this.stopBGM();
+    }
+    return this.getBGMLabel();
+  }
+
+  getBGMLabel() {
+    if (!this.bgmEnabled || !this.enabled) return 'Tắt 🔇';
+    const track = ANIME_BGM_TRACKS[this.bgmTrackIndex] || ANIME_BGM_TRACKS[0];
+    return track.label;
   }
 
   playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.12, delay = 0) {
@@ -2435,6 +2578,8 @@ class TienLenGame {
     this.adRewardClaimed = false;
     clearInterval(this.adIntervalTimer);
 
+    sfx.bgmPausedForAd = true;
+    sfx.stopBGM();
     overlay.classList.remove('hidden');
 
     if (countdownPill) {
@@ -2566,6 +2711,10 @@ class TienLenGame {
       } catch (_) {}
     }
     overlay?.classList.add('hidden');
+    sfx.bgmPausedForAd = false;
+    if (sfx.bgmEnabled && sfx.enabled) {
+      sfx.startBGM();
+    }
     sfx.click();
   }
 
@@ -3006,6 +3155,24 @@ class TienLenGame {
       this.cycleArenaTheme();
     });
 
+    document.getElementById('btn-bgm')?.addEventListener('click', () => {
+      this.cycleBGMTrack();
+    });
+
+    document.getElementById('btn-lobby-bgm')?.addEventListener('click', () => {
+      this.cycleBGMTrack();
+    });
+
+    // Tự động khởi động Nhạc nền Anime / Genshin ngay ở tương tác đầu tiên của người chơi (click/chạm/phím)
+    const autoStartBGM = () => {
+      if (sfx.bgmEnabled && sfx.enabled && !sfx.bgmPlaying && !sfx.bgmPausedForAd) {
+        sfx.startBGM();
+        this.syncBGMButtonsUI();
+      }
+    };
+    window.addEventListener('pointerdown', autoStartBGM, { passive: true });
+    window.addEventListener('keydown', autoStartBGM, { passive: true });
+
     document.getElementById('btn-top-random-bots')?.addEventListener('click', () => {
       if (this.isMultiplayer && !this.isHost) {
         alert('Chỉ Chủ phòng mới có thể đổi nhân vật Bot!');
@@ -3156,7 +3323,15 @@ class TienLenGame {
     this.btnSound.addEventListener('click', () => {
       sfx.enabled = !sfx.enabled;
       this.btnSound.textContent = sfx.enabled ? '🔊 Âm thanh' : '🔇 Tắt tiếng';
-      if (sfx.enabled) sfx.click();
+      if (sfx.enabled) {
+        sfx.click();
+        if (sfx.bgmEnabled && !sfx.bgmPausedForAd) {
+          sfx.startBGM();
+        }
+      } else {
+        sfx.stopBGM();
+      }
+      this.syncBGMButtonsUI();
     });
 
     this.btnRules.addEventListener('click', () => {
@@ -3294,14 +3469,33 @@ class TienLenGame {
     document.querySelectorAll('.arena-pill').forEach((btn) => {
       btn.classList.toggle('active', btn.getAttribute('data-theme') === cur);
     });
+    this.syncBGMButtonsUI();
+  }
+
+  cycleBGMTrack() {
+    const label = sfx.cycleBGM();
+    this.syncBGMButtonsUI();
+    this.addLog(`🎵 <strong>Nhạc nền Anime:</strong> Đã chuyển sang chế độ <strong>${label}</strong>.`, 'log-play');
+  }
+
+  syncBGMButtonsUI() {
+    const label = sfx.getBGMLabel();
+    const topLabel = document.getElementById('bgm-label');
+    if (topLabel) topLabel.textContent = label;
+    const lobbyLabel = document.getElementById('lobby-bgm-label');
+    if (lobbyLabel) lobbyLabel.textContent = label;
+  }
+
+  getBotBurstRoster() {
+    // Chỉ những nhân vật có Hoạt Ảnh Kỹ Năng Nộ (Burst Animation) trong GENSHIN_BURSTS mới được làm Bot!
+    const burstIds = new Set(GENSHIN_BURSTS.map((b) => b.id));
+    return GENSHIN_FANART_ROSTER.filter((c) => burstIds.has(c.id));
   }
 
   getCharacterBurstForBot(charId) {
+    // Mỗi Bot sử dụng chính xác 100% Hoạt Ảnh Kỹ Năng Nộ của chính nhân vật đó!
     if (GENSHIN_BURSTS.some((b) => b.id === charId)) return charId;
-    const pool = GENSHIN_BURSTS.map((b) => b.id);
-    let hash = 0;
-    for (let i = 0; i < charId.length; i++) hash = (hash * 31 + charId.charCodeAt(i)) >>> 0;
-    return pool[hash % pool.length] || 'raiden';
+    return 'raiden';
   }
 
   toggleAutoRandomBots(checked) {
@@ -3312,10 +3506,11 @@ class TienLenGame {
 
   randomizeBotCharacters(notify = false) {
     if (!this.players || this.players.length < 4) return;
+    const botRoster = this.getBotBurstRoster(); // 10 Nhân vật 5★ có Burst Animation riêng
     const currentSeat2Char = this.players[2]?.cardSkin || '';
-    const shuffled = [...GENSHIN_FANART_ROSTER].sort(() => Math.random() - 0.5);
+    const shuffled = [...botRoster].sort(() => Math.random() - 0.5);
 
-    // Đảm bảo ghế đối diện (Ghế #2 trong Solo 1v1) luôn đổi sang nhân vật MỚI không trùng ván trước!
+    // Đảm bảo ghế đối diện (Ghế #2 trong Solo 1v1) luôn đổi sang nhân vật 5★ MỚI không trùng ván trước!
     let picked = [];
     for (const c of shuffled) {
       if (picked.length === 1 && c.id === currentSeat2Char && shuffled.length > 3) {
@@ -3329,16 +3524,16 @@ class TienLenGame {
 
     [1, 2, 3].forEach((seatIdx, idx) => {
       const p = this.players[seatIdx];
-      const ch = picked[idx] || GENSHIN_FANART_ROSTER[idx];
+      const ch = picked[idx] || botRoster[idx % botRoster.length];
       if (!p || !ch) return;
       if (!this.isMultiplayer || p.isBot) {
         const shortName = ch.name.split('(')[0].trim();
         p.name = `Bot ${shortName} ${ch.crest}`;
         p.avatar = ch.id;
         p.cardSkin = ch.id;
-        const burstId = this.getCharacterBurstForBot(ch.id);
-        p.chopBurst = burstId;
-        p.winBurst = burstId;
+        // Bot xài chính xác 100% Kỹ Năng Nộ 5★ của chính nhân vật đó!
+        p.chopBurst = ch.id;
+        p.winBurst = ch.id;
       }
     });
 
@@ -3356,7 +3551,10 @@ class TienLenGame {
       const names = (activeBots.length > 0 ? activeBots : [this.players[2]])
         .map((b) => `<strong>${b.name}</strong>`)
         .join(', ');
-      this.addLog(`🎲 <strong>Đổi Nhân Vật Đối Thủ Bot:</strong> Bàn đấu hiện tại gồm ${names}!`, 'log-win');
+      this.addLog(
+        `🎲 <strong>Random Đối Thủ Bot (10 Nhân Vật Có Nộ 5★):</strong> Bàn đấu hiện tại gồm ${names}!`,
+        'log-win'
+      );
     }
   }
 
@@ -4119,20 +4317,20 @@ class TienLenGame {
     if (!this.isHost || seatIdx <= 0 || seatIdx > 3) return;
     const p = this.players[seatIdx];
     if (addBot) {
+      const botRoster = this.getBotBurstRoster();
       const usedSkins = new Set(this.players.map((pl) => pl.cardSkin));
-      const available = GENSHIN_FANART_ROSTER.filter((c) => !usedSkins.has(c.id));
+      const available = botRoster.filter((c) => !usedSkins.has(c.id));
       const pick =
         available[Math.floor(Math.random() * available.length)] ||
-        GENSHIN_FANART_ROSTER[seatIdx % GENSHIN_FANART_ROSTER.length];
+        botRoster[seatIdx % botRoster.length];
       const shortName = pick.name.split('(')[0].trim();
-      const burstId = this.getCharacterBurstForBot(pick.id);
       p.active = true;
       p.isBot = true;
       p.name = `Bot ${shortName} ${pick.crest}`;
       p.avatar = pick.id;
       p.cardSkin = pick.id;
-      p.chopBurst = burstId;
-      p.winBurst = burstId;
+      p.chopBurst = pick.id;
+      p.winBurst = pick.id;
       p.coins = Math.max(INITIAL_COINS, (this.betPerCard || 100) * 500);
       p.clientId = null;
     } else {

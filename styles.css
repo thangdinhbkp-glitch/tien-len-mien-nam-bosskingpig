@@ -49,7 +49,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 18px;
-  z-index: 20;
+  position: relative;
+  z-index: 150;
 }
 
 .brand {
@@ -1079,7 +1080,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 500;
 }
 
 .modal-card {
@@ -1787,7 +1788,7 @@ body {
 .genshin-burst-overlay {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 11000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2509,13 +2510,26 @@ body {
 .home-lobby-backdrop {
   background: radial-gradient(circle at 50% 20%, rgba(16, 40, 56, 0.96) 0%, rgba(6, 12, 18, 0.98) 100%);
   backdrop-filter: blur(14px);
-  z-index: 120;
+  z-index: 100;
+  padding-top: 46px;
+}
+
+#shop-modal,
+#quests-modal,
+#rules-modal,
+#account-modal,
+#summary-modal {
+  z-index: 520;
+}
+
+#char-skill-detail-modal {
+  z-index: 620;
 }
 
 .home-lobby-card {
   width: min(1040px, 96vw);
-  max-height: 93vh;
-  max-height: 93dvh;
+  max-height: calc(100vh - 58px);
+  max-height: calc(100dvh - 58px);
   border: 2px solid rgba(255, 209, 102, 0.45);
   box-shadow:
     0 24px 64px rgba(0, 0, 0, 0.85),

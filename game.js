@@ -2176,7 +2176,390 @@ class TienLenGame {
       }
 
       this.saveShopProfile();
+      setTimeout(() => this.syncExistingAccountsToCloudOnBoot(), 350);
     } catch (_) {}
+  }
+
+  // ============================================================================
+  // ĐỒNG BỘ TÀI KHOẢN ĐÁM MÂY TỰ ĐỘNG (MULTI-CLOUD REALTIME ACCOUNT SYNC)
+  // Đăng nhập bằng Tên Tài Khoản + Mật Khẩu trên BẤT KỲ MÁY / ĐIỆN THOẠI NÀO!
+  // ============================================================================
+  getCloudSafeUserKey(usernameKey) {
+    return String(usernameKey || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '_');
+  }
+
+  packCloudAccountV2(accObj) {
+    if (!accObj || !accObj.username) return '';
+    const p = accObj.profile || {};
+    const passHash = String(accObj.passwordHash || '0').replace(/[^a-zA-Z0-9]/g, '');
+    const coins36 = Math.max(0, Math.round(Number(p.coins ?? INITIAL_COINS))).toString(36);
+
+    let bMask = 0;
+    const uBursts = new Set(Array.isArray(p.unlockedBursts) ? p.unlockedBursts : []);
+    GENSHIN_BURSTS.forEach((b, idx) => {
+      if (idx < 28 && uBursts.has(b.id)) bMask |= 1 << idx;
+    });
+    const bursts36 = (bMask >>> 0).toString(36);
+
+    let sMask = 0;
+    const uSkins = new Set(Array.isArray(p.unlockedSkins) ? p.unlockedSkins : ['classic']);
+    ANIME_CARD_SKINS.forEach((s, idx) => {
+      if (idx < 30 && uSkins.has(s.id)) sMask |= 1 << idx;
+    });
+    const skins36 = (sMask >>> 0).toString(36);
+
+    let aMask = 0;
+    const uAvatars = new Set(Array.isArray(p.unlockedAvatars) ? p.unlockedAvatars : ['default_player']);
+    ANIME_AVATARS.forEach((a, idx) => {
+      if (idx < 30 && uAvatars.has(a.id)) aMask |= 1 << idx;
+    });
+    const avatars36 = (aMask >>> 0).toString(36);
+
+    const skinIdx = Math.max(0, ANIME_CARD_SKINS.findIndex((s) => s.id === p.equippedSkin));
+    const avIdx = Math.max(0, ANIME_AVATARS.findIndex((a) => a.id === p.equippedAvatar));
+    const charIdx = GENSHIN_BURSTS.findIndex((b) => b.id === p.equippedActiveChar);
+    const upIdx = Math.max(0, GENSHIN_BURSTS.findIndex((b) => b.id === p.selectedBannerBurstId));
+    const themes = ['inazuma', 'fontaine', 'abyss', 'natlan', 'cryo'];
+    const themeIdx = Math.max(0, themes.indexOf(p.arenaTheme));
+    const equipPack = `${skinIdx}_${avIdx}_${charIdx < 0 ? 'n' : charIdx}_${upIdx}_${themeIdx}`;
+
+    const p5 = Math.max(0, Number(p.gachaPity5) || 0).toString(36);
+    const p4 = Math.max(0, Number(p.gachaPity4) || 0).toString(36);
+    const g5 = p.gachaGuaranteed5 ? 1 : 0;
+    const g4 = p.gachaGuaranteed4 ? 1 : 0;
+    const tw = Math.max(0, Number(p.totalWishes) || 0).toString(36);
+    const pityPack = `${p5}_${p4}_${g5}_${g4}_${tw}`;
+
+    const qDate = String(p.dailyQuestsDate || this.getTodayKey()).replace(/[^0-9]/g, '').slice(-6) || '0';
+    const qParts = [qDate];
+    DAILY_QUESTS_CONFIG.forEach((q) => {
+      const sq = p.dailyQuestsState?.[q.id];
+      qParts.push(Math.min(99, Math.max(0, Number(sq?.progress) || 0)));
+      qParts.push(sq?.claimed ? 1 : 0);
+    });
+    const questsPack = qParts.join('_');
+
+    const dispName = String(accObj.displayName || p.playerName || 'Thắng').slice(0, 14);
+    let nameHex = '5468616e67';
+    try {
+      nameHex =
+        Array.from(new TextEncoder().encode(dispName))
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('') || '5468616e67';
+    } catch (_) {}
+
+    const updatedSec36 = Math.floor((accObj.updatedAtMs || Date.now()) / 1000).toString(36);
+    return `v2-${passHash}-${coins36}-${bursts36}-${skins36}-${avatars36}-${equipPack}-${pityPack}-${questsPack}-${nameHex}-${updatedSec36}`;
+  }
+
+  unpackCloudAccountV2(usernameKey, packedStr) {
+    if (!packedStr || typeof packedStr !== 'string' || !packedStr.startsWith('v2-')) return null;
+    try {
+      const parts = packedStr.split('-');
+      if (parts.length < 11) return null;
+      const [, passHash, coins36, bursts36, skins36, avatars36, equipPack, pityPack, questsPack, nameHex, updatedSec36] = parts;
+
+      const coins = parseInt(coins36, 36) || INITIAL_COINS;
+      const bMask = parseInt(bursts36, 36) || 0;
+      const sMask = parseInt(skins36, 36) || 0;
+      const aMask = parseInt(avatars36, 36) || 0;
+
+      const unlockedBursts = [];
+      GENSHIN_BURSTS.forEach((b, idx) => {
+        if (idx < 28 && (bMask & (1 << idx)) !== 0) unlockedBursts.push(b.id);
+      });
+
+      const unlockedSkins = ['classic'];
+      ANIME_CARD_SKINS.forEach((s, idx) => {
+        if (idx < 30 && (sMask & (1 << idx)) !== 0 && !unlockedSkins.includes(s.id)) unlockedSkins.push(s.id);
+      });
+
+      const unlockedAvatars = ['default_player'];
+      ANIME_AVATARS.forEach((a, idx) => {
+        if (idx < 30 && (aMask & (1 << idx)) !== 0 && !unlockedAvatars.includes(a.id)) unlockedAvatars.push(a.id);
+      });
+
+      const eq = (equipPack || '').split('_');
+      const equippedSkin = ANIME_CARD_SKINS[Number(eq[0]) || 0]?.id || 'classic';
+      const equippedAvatar = ANIME_AVATARS[Number(eq[1]) || 0]?.id || 'default_player';
+      const equippedActiveChar = eq[2] === 'n' ? 'none' : GENSHIN_BURSTS[Number(eq[2]) || 0]?.id || 'none';
+      const selectedBannerBurstId = GENSHIN_BURSTS[Number(eq[3]) || 0]?.id || 'raiden';
+      const themes = ['inazuma', 'fontaine', 'abyss', 'natlan', 'cryo'];
+      const arenaTheme = themes[Number(eq[4]) || 0] || 'inazuma';
+
+      const pt = (pityPack || '').split('_');
+      const gachaPity5 = parseInt(pt[0] || '0', 36) || 0;
+      const gachaPity4 = parseInt(pt[1] || '0', 36) || 0;
+      const gachaGuaranteed5 = pt[2] === '1';
+      const gachaGuaranteed4 = pt[3] === '1';
+      const totalWishes = parseInt(pt[4] || '0', 36) || 0;
+
+      const qp = (questsPack || '').split('_');
+      const qRawDate = qp[0] || '';
+      const dailyQuestsDate =
+        qRawDate.length === 6
+          ? `20${qRawDate.slice(0, 2)}-${qRawDate.slice(2, 4)}-${qRawDate.slice(4, 6)}`
+          : this.getTodayKey();
+      const dailyQuestsState = this.getDefaultDailyQuestsState();
+      DAILY_QUESTS_CONFIG.forEach((q, idx) => {
+        const pVal = Number(qp[1 + idx * 2]) || 0;
+        const cVal = qp[2 + idx * 2] === '1';
+        dailyQuestsState[q.id] = { progress: Math.min(q.target, pVal), claimed: cVal };
+      });
+
+      let displayName = 'Thắng';
+      try {
+        if (nameHex && nameHex.length >= 2) {
+          const bytes = new Uint8Array(nameHex.match(/.{1,2}/g).map((h) => parseInt(h, 16)));
+          displayName = new TextDecoder().decode(bytes) || 'Thắng';
+        }
+      } catch (_) {}
+
+      const updatedAtMs = (parseInt(updatedSec36 || '0', 36) || 0) * 1000;
+      const nowStr = new Date(updatedAtMs || Date.now()).toLocaleString('vi-VN');
+
+      return {
+        username: usernameKey,
+        displayName,
+        passwordHash: passHash,
+        createdAt: nowStr,
+        updatedAt: nowStr,
+        updatedAtMs,
+        profile: {
+          accountUsername: usernameKey,
+          coins,
+          playerName: displayName,
+          betPerCard: 100,
+          soloPlayerCount: 4,
+          arenaTheme,
+          autoRandomizeBots: true,
+          unlockedSkins,
+          equippedSkin,
+          unlockedAvatars,
+          equippedAvatar,
+          unlockedBursts,
+          equippedChopBurst: equippedActiveChar,
+          equippedWinBurst: equippedActiveChar,
+          equippedActiveChar,
+          gachaPity5,
+          gachaPity4,
+          gachaGuaranteed5,
+          gachaGuaranteed4,
+          selectedBannerBurstId,
+          totalWishes,
+          gachaHistory: [],
+          lastDailyDate: dailyQuestsDate,
+          dailyReliefUsed: 0,
+          dailyQuestsDate,
+          dailyQuestsState,
+        },
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async pushAccountToCloud(usernameKey) {
+    if (!usernameKey) return false;
+    const accountsDb = this.loadAccountsDb();
+    const acc = accountsDb[usernameKey];
+    if (!acc || !acc.passwordHash) return false;
+
+    const safeKey = this.getCloudSafeUserKey(usernameKey);
+    acc.updatedAtMs = acc.updatedAtMs || Date.now();
+    const cloudRecord = {
+      v: 26,
+      username: usernameKey,
+      displayName: acc.displayName || acc.profile?.playerName || 'Thắng',
+      passwordHash: acc.passwordHash,
+      createdAt: acc.createdAt || new Date().toLocaleString('vi-VN'),
+      updatedAt: acc.updatedAt || new Date().toLocaleString('vi-VN'),
+      updatedAtMs: acc.updatedAtMs,
+      profile: {
+        ...(acc.profile || {}),
+        gachaHistory: ((acc.profile && acc.profile.gachaHistory) || []).slice(0, 60),
+      },
+    };
+
+    const tasks = [];
+    // 1. Primary Cloud DB (textdb.dev — lưu trọn vẹn toàn bộ JSON + Lịch sử Gacha)
+    try {
+      const b64 = 'TLMN_CLOUD_V26:' + btoa(unescape(encodeURIComponent(JSON.stringify(cloudRecord))));
+      tasks.push(
+        fetch(`https://textdb.dev/api/data/tlmn_bkp_acc_${safeKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: b64,
+        }).then((r) => r.ok)
+      );
+    } catch (_) {}
+
+    // 2. Secondary Cloud DB (keyvalue.immanuel.co — 2 cụm độc lập dự phòng)
+    const packedV2 = this.packCloudAccountV2(acc);
+    if (packedV2) {
+      ['w3crt6ib', 'iykuu08k'].forEach((appKey) => {
+        tasks.push(
+          fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${appKey}/tlacc_${safeKey}/${packedV2}`, {
+            method: 'POST',
+          }).then((r) => r.ok)
+        );
+      });
+    }
+
+    try {
+      const results = await Promise.allSettled(tasks);
+      const ok = results.some((r) => r.status === 'fulfilled' && r.value);
+      if (ok) {
+        this.lastCloudSyncTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const statusEl = document.getElementById('account-cloud-sync-badge');
+        if (statusEl) {
+          statusEl.innerHTML = `☁️ Đã đồng bộ Đám Mây lúc ${this.lastCloudSyncTime} (Vào máy khác chỉ cần nhập TK + MK!)`;
+        }
+      }
+      return ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async fetchCloudAccount(usernameKey) {
+    if (!usernameKey) return null;
+    const safeKey = this.getCloudSafeUserKey(usernameKey);
+    const candidates = [];
+
+    // 1. Fetch từ Primary Cloud DB (textdb.dev)
+    const pTextDb = fetch(`https://textdb.dev/api/data/tlmn_bkp_acc_${safeKey}`, {
+      method: 'GET',
+      cache: 'no-store',
+    })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        const txt = (await res.text()).trim();
+        if (!txt || !txt.startsWith('TLMN_CLOUD_V26:')) return null;
+        const jsonStr = decodeURIComponent(escape(atob(txt.slice('TLMN_CLOUD_V26:'.length))));
+        const parsed = JSON.parse(jsonStr);
+        if (parsed && parsed.username && parsed.passwordHash) return parsed;
+        return null;
+      })
+      .catch(() => null);
+
+    // 2. Fetch từ Secondary Cloud DB (keyvalue.immanuel.co)
+    const fetchKv = (appKey) =>
+      fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/${appKey}/tlacc_${safeKey}`, {
+        method: 'GET',
+        cache: 'no-store',
+      })
+        .then(async (res) => {
+          if (!res.ok) return null;
+          const raw = (await res.text()).trim();
+          let val = raw;
+          try {
+            val = JSON.parse(raw);
+          } catch (_) {
+            val = raw.replace(/^"|"$/g, '');
+          }
+          if (!val || typeof val !== 'string' || !val.startsWith('v2-')) return null;
+          return this.unpackCloudAccountV2(usernameKey, val);
+        })
+        .catch(() => null);
+
+    const results = await Promise.all([pTextDb, fetchKv('w3crt6ib'), fetchKv('iykuu08k')]);
+    results.forEach((acc) => {
+      if (acc && acc.passwordHash) candidates.push(acc);
+    });
+    if (candidates.length === 0) return null;
+
+    // Ưu tiên bản ghi có dữ liệu đầy đủ nhất / mới nhất
+    candidates.sort((a, b) => (b.updatedAtMs || 0) - (a.updatedAtMs || 0));
+    const best = candidates[0];
+    // Nếu có bản ghi từ textdb.dev có lịch sử Gacha thì giữ lại gachaHistory
+    const withHistory = candidates.find((c) => Array.isArray(c.profile?.gachaHistory) && c.profile.gachaHistory.length > 0);
+    if (withHistory && best.profile && (!best.profile.gachaHistory || best.profile.gachaHistory.length === 0)) {
+      best.profile.gachaHistory = withHistory.profile.gachaHistory;
+    }
+    return best;
+  }
+
+  mergeTwoAccountProfiles(baseProfile, incomingProfile) {
+    if (!baseProfile) return incomingProfile;
+    if (!incomingProfile) return baseProfile;
+    const baseTime = Number(baseProfile.updatedAtMs) || 0;
+    const incTime = Number(incomingProfile.updatedAtMs) || 0;
+    const newer = incTime >= baseTime ? incomingProfile : baseProfile;
+    const older = incTime >= baseTime ? baseProfile : incomingProfile;
+
+    const mergedSkins = Array.from(new Set([...(older.unlockedSkins || ['classic']), ...(newer.unlockedSkins || ['classic'])]));
+    const mergedAvatars = Array.from(new Set([...(older.unlockedAvatars || ['default_player']), ...(newer.unlockedAvatars || ['default_player'])]));
+    const mergedBursts = Array.from(new Set([...(older.unlockedBursts || []), ...(newer.unlockedBursts || [])]));
+    const mergedHistory =
+      (newer.gachaHistory || []).length >= (older.gachaHistory || []).length
+        ? newer.gachaHistory || []
+        : older.gachaHistory || [];
+
+    return {
+      ...older,
+      ...newer,
+      coins: typeof newer.coins === 'number' ? newer.coins : older.coins ?? INITIAL_COINS,
+      totalWishes: Math.max(Number(newer.totalWishes) || 0, Number(older.totalWishes) || 0),
+      unlockedSkins: mergedSkins,
+      unlockedAvatars: mergedAvatars,
+      unlockedBursts: mergedBursts,
+      gachaHistory: mergedHistory,
+    };
+  }
+
+  scheduleCloudAccountSync() {
+    if (!this.currentAccountUsername) return;
+    clearTimeout(this.cloudSyncDebounceTimer);
+    this.cloudSyncDebounceTimer = setTimeout(() => {
+      if (this.currentAccountUsername) {
+        this.pushAccountToCloud(this.currentAccountUsername);
+      }
+    }, 1000);
+  }
+
+  async syncExistingAccountsToCloudOnBoot() {
+    try {
+      const accountsDb = this.loadAccountsDb();
+      const usernames = Object.keys(accountsDb);
+      for (const u of usernames) {
+        const localAcc = accountsDb[u];
+        if (!localAcc || !localAcc.passwordHash) continue;
+        const cloudAcc = await this.fetchCloudAccount(u);
+        if (!cloudAcc) {
+          // Tài khoản vừa được tạo từ bản cũ chưa lên Cloud ➔ Tự động đẩy lên Cloud ngay!
+          await this.pushAccountToCloud(u);
+        } else if (u === this.currentAccountUsername) {
+          // Gộp dữ liệu Cloud và Local nếu người chơi vừa chơi ở máy khác
+          const mergedProfile = this.mergeTwoAccountProfiles(
+            { ...(localAcc.profile || {}), updatedAtMs: localAcc.updatedAtMs || 0 },
+            { ...(cloudAcc.profile || {}), updatedAtMs: cloudAcc.updatedAtMs || 0 }
+          );
+          localAcc.profile = mergedProfile;
+          localAcc.displayName = mergedProfile.playerName || cloudAcc.displayName || localAcc.displayName;
+          localAcc.updatedAtMs = Math.max(localAcc.updatedAtMs || 0, cloudAcc.updatedAtMs || 0);
+          this.saveAccountsDb(accountsDb);
+          this.applyProfileDataObject(mergedProfile, this.getTodayKey());
+          this.syncLoadedProfileToLivePlayer();
+          await this.pushAccountToCloud(u);
+        }
+      }
+    } catch (_) {}
+  }
+
+  async manualSyncCloudNow() {
+    if (!this.currentAccountUsername) return;
+    this.saveShopProfile();
+    const ok = await this.pushAccountToCloud(this.currentAccountUsername);
+    if (ok) {
+      sfx.win();
+      alert(`☁️ Đã đồng bộ tài khoản @${this.currentAccountUsername} lên Đám Mây thành công!\nBạn có thể mở bất kỳ máy hay điện thoại nào, nhập Tên Tài Khoản + Mật Khẩu là vào thẳng nick ngay!`);
+    } else {
+      alert('⚠️ Kết nối mạng đang chập chờn, hệ thống sẽ tự động thử đồng bộ lại sau ít giây.');
+    }
   }
 
   saveShopProfile() {
@@ -2276,8 +2659,10 @@ class TienLenGame {
         if (accountsDb[this.currentAccountUsername]) {
           accountsDb[this.currentAccountUsername].displayName = payload.playerName;
           accountsDb[this.currentAccountUsername].updatedAt = new Date().toLocaleString('vi-VN');
+          accountsDb[this.currentAccountUsername].updatedAtMs = Date.now();
           accountsDb[this.currentAccountUsername].profile = payload;
           this.saveAccountsDb(accountsDb);
+          this.scheduleCloudAccountSync();
         }
       }
 
@@ -2297,14 +2682,14 @@ class TienLenGame {
     if (this.currentAccountUsername) {
       if (topBtn) topBtn.classList.remove('is-guest');
       if (lobbyBtn) lobbyBtn.classList.remove('is-guest');
-      if (topLabel) topLabel.textContent = `TK: ${this.currentAccountUsername}`;
-      if (lobbyLabel) lobbyLabel.textContent = `TK: ${this.currentAccountUsername} (Đã lưu)`;
+      if (topLabel) topLabel.textContent = `☁️ TK: ${this.currentAccountUsername}`;
+      if (lobbyLabel) lobbyLabel.textContent = `☁️ TK: ${this.currentAccountUsername}`;
       if (guestBanner) guestBanner.classList.add('hidden');
     } else {
       if (topBtn) topBtn.classList.add('is-guest');
       if (lobbyBtn) lobbyBtn.classList.add('is-guest');
-      if (topLabel) topLabel.textContent = 'Tạo TK (Giữ Dữ Liệu)';
-      if (lobbyLabel) lobbyLabel.textContent = 'Tạo TK (Giữ Dữ Liệu)';
+      if (topLabel) topLabel.textContent = 'Tạo TK / Đăng Nhập';
+      if (lobbyLabel) lobbyLabel.textContent = 'Tạo TK / Đăng Nhập';
       if (guestBanner) guestBanner.classList.remove('hidden');
     }
   }
@@ -2346,12 +2731,13 @@ class TienLenGame {
     this.syncAccountButtonsUI();
   }
 
-  registerAccount() {
+  async registerAccount() {
     const userEl = document.getElementById('acc-reg-username');
     const passEl = document.getElementById('acc-reg-password');
     const pass2El = document.getElementById('acc-reg-password2');
     const nameEl = document.getElementById('acc-reg-displayname');
     const keepEl = document.getElementById('acc-reg-keep-data');
+    const btnEl = document.getElementById('btn-acc-register-submit');
 
     const rawUser = (userEl?.value || '').trim();
     const usernameKey = rawUser.toLowerCase();
@@ -2373,13 +2759,34 @@ class TienLenGame {
       return;
     }
 
+    if (btnEl) {
+      btnEl.disabled = true;
+      btnEl.textContent = '⏳ Đang kiểm tra & lưu lên Đám Mây (Cloud)...';
+    }
+
+    const inputHash = this.hashAccountPassword(pass, usernameKey);
     const accountsDb = this.loadAccountsDb();
-    if (accountsDb[usernameKey]) {
-      alert(`⚠️ Tài khoản "${rawUser}" đã tồn tại! Vui lòng chọn tên tài khoản khác hoặc chuyển sang tab Đăng Nhập.`);
+    const cloudExisting = await this.fetchCloudAccount(usernameKey);
+    const existingAcc = cloudExisting || accountsDb[usernameKey];
+
+    if (existingAcc) {
+      // Nếu trùng đúng mật khẩu của chính người chơi (ví dụ qua máy mới bấm nhầm Tạo TK thay vì Đăng Nhập) ➔ Tự động đăng nhập luôn!
+      if (existingAcc.passwordHash === inputHash) {
+        accountsDb[usernameKey] = existingAcc;
+        this.saveAccountsDb(accountsDb);
+        await this.loginAccount(usernameKey, pass);
+        return;
+      }
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.textContent = '🔐 Tạo Tài Khoản & Đồng Bộ Đám Mây Ngay';
+      }
+      alert(
+        `⚠️ Tài khoản "${rawUser}" đã tồn tại trên hệ thống Đám Mây! Nếu đây là tài khoản của bạn, hãy chuyển sang tab "🔑 Đăng Nhập" nhé.`
+      );
       return;
     }
 
-    // Nếu người chơi tạo tài khoản mới từ đầu (bỏ chọn giữ dữ liệu), reset về mặc định;
     // Mặc định (keepCurrentData = true): GIỮ NGUYÊN 100% toàn bộ dữ liệu đang chơi hiện tại!
     if (!keepCurrentData) {
       this.resetProfileMemoryToDefaults();
@@ -2393,27 +2800,30 @@ class TienLenGame {
     accountsDb[usernameKey] = {
       username: usernameKey,
       displayName,
-      passwordHash: this.hashAccountPassword(pass, usernameKey),
+      passwordHash: inputHash,
       createdAt: nowStr,
       updatedAt: nowStr,
+      updatedAtMs: Date.now(),
       profile: null,
     };
     this.saveAccountsDb(accountsDb);
     this.saveShopProfile();
+    await this.pushAccountToCloud(usernameKey);
     this.syncLoadedProfileToLivePlayer();
     sfx.win();
     this.addLog(
-      `🔐 <strong>Đã tạo & liên kết tài khoản @${usernameKey}</strong> thành công! Toàn bộ dữ liệu (${this.savedCoins.toLocaleString()} Xu, ${this.unlockedBursts.size} Nộ 5★, ${this.unlockedSkins.size} Decor 4★) được bảo lưu 100%!`,
+      `☁️ <strong>Đã tạo & đồng bộ Đám Mây tài khoản @${usernameKey}</strong> thành công! Bạn có thể vào bất kỳ máy / điện thoại nào khác chỉ bằng Tài Khoản + Mật Khẩu!`,
       'log-win'
     );
     this.renderAccountModal();
   }
 
-  loginAccount(prefillUsername = '') {
+  async loginAccount(prefillUsername = '', prefillPassword = '') {
     const userEl = document.getElementById('acc-login-username');
     const passEl = document.getElementById('acc-login-password');
+    const btnEl = document.getElementById('btn-acc-login-submit');
     const usernameKey = (prefillUsername || userEl?.value || '').trim().toLowerCase();
-    const pass = passEl?.value || '';
+    const pass = prefillPassword || passEl?.value || '';
 
     if (!usernameKey) {
       alert('⚠️ Vui lòng nhập Tên tài khoản!');
@@ -2424,46 +2834,83 @@ class TienLenGame {
       return;
     }
 
-    const accountsDb = this.loadAccountsDb();
-    const acc = accountsDb[usernameKey];
-    if (!acc) {
-      alert(`⚠️ Không tìm thấy tài khoản "${usernameKey}" trên thiết bị này! Nếu bạn đang chơi chưa có tài khoản, hãy bấm sang tab "Tạo Tài Khoản Mới (Giữ Nguyên Dữ Liệu)" nhé!`);
-      return;
-    }
-
-    const inputHash = this.hashAccountPassword(pass, usernameKey);
-    if (acc.passwordHash !== inputHash) {
-      alert('❌ Mật khẩu không chính xác! Vui lòng kiểm tra lại.');
-      return;
+    if (btnEl) {
+      btnEl.disabled = true;
+      btnEl.textContent = '⏳ Đang tải tài khoản từ Đám Mây (Cloud)...';
     }
 
     // Lưu tài khoản cũ trước khi chuyển
     if (this.currentAccountUsername && this.currentAccountUsername !== usernameKey) {
       this.saveShopProfile();
+      await this.pushAccountToCloud(this.currentAccountUsername);
     }
 
-    // Nếu người chơi đang chơi chưa có tài khoản (khách) mà đăng nhập vào tài khoản đã có, gộp hoặc nạp hồ sơ của tài khoản đó
+    const accountsDb = this.loadAccountsDb();
+    const localAcc = accountsDb[usernameKey] || null;
+    const cloudAcc = await this.fetchCloudAccount(usernameKey);
+    const targetAcc = cloudAcc || localAcc;
+
+    if (!targetAcc) {
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.textContent = '🔑 Đăng Nhập Vào Tài Khoản';
+      }
+      alert(
+        `⚠️ Không tìm thấy tài khoản "${usernameKey}" trên hệ thống Đám Mây!\n💡 Nếu bạn chưa tạo tài khoản hoặc tạo trên máy cũ lúc chưa có Cloud, hãy mở lại máy cũ 1 lần để tự động đồng bộ lên Cloud hoặc bấm sang tab "📝 Tạo Tài Khoản Mới" nhé!`
+      );
+      return;
+    }
+
+    const inputHash = this.hashAccountPassword(pass, usernameKey);
+    if (targetAcc.passwordHash !== inputHash && (!localAcc || localAcc.passwordHash !== inputHash)) {
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.textContent = '🔑 Đăng Nhập Vào Tài Khoản';
+      }
+      alert('❌ Mật khẩu không chính xác! Vui lòng kiểm tra lại.');
+      return;
+    }
+
+    // Gộp dữ liệu mới nhất giữa Cloud và Local (nếu có cả 2) để không bao giờ mất đồ
+    const finalProfile = this.mergeTwoAccountProfiles(
+      localAcc ? { ...(localAcc.profile || {}), updatedAtMs: localAcc.updatedAtMs || 0 } : null,
+      cloudAcc ? { ...(cloudAcc.profile || {}), updatedAtMs: cloudAcc.updatedAtMs || 0 } : null
+    );
+
+    const nowStr = new Date().toLocaleString('vi-VN');
+    accountsDb[usernameKey] = {
+      username: usernameKey,
+      displayName: finalProfile?.playerName || targetAcc.displayName || 'Thắng',
+      passwordHash: inputHash,
+      createdAt: targetAcc.createdAt || nowStr,
+      updatedAt: nowStr,
+      updatedAtMs: Math.max(Date.now(), targetAcc.updatedAtMs || 0),
+      profile: finalProfile,
+    };
+    this.saveAccountsDb(accountsDb);
+
     this.resetProfileMemoryToDefaults();
     this.currentAccountUsername = usernameKey;
     localStorage.setItem('tlmn_active_account_v1', usernameKey);
 
-    if (acc.profile) {
-      const jsonStr = JSON.stringify({ ...acc.profile, accountUsername: usernameKey });
+    if (finalProfile) {
+      const jsonStr = JSON.stringify({ ...finalProfile, accountUsername: usernameKey });
       localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
       window.name = `TLMN_VAULT_V9:${jsonStr}`;
-      this.applyProfileDataObject(acc.profile, this.getTodayKey());
+      this.applyProfileDataObject(finalProfile, this.getTodayKey());
     }
     this.saveShopProfile();
+    await this.pushAccountToCloud(usernameKey);
     this.syncLoadedProfileToLivePlayer();
     sfx.win();
     this.addLog(
-      `🔑 <strong>Đăng nhập thành công tài khoản @${usernameKey} (${this.savedPlayerName})!</strong> Số dư: <strong>${this.savedCoins.toLocaleString()} Xu</strong> • Nộ 5★: <strong>${this.unlockedBursts.size}/${GENSHIN_BURSTS.length}</strong>.`,
+      `☁️ <strong>Đăng nhập Đám Mây thành công @${usernameKey} (${this.savedPlayerName})!</strong> Số dư: <strong>${this.savedCoins.toLocaleString()} Xu</strong> • Nộ 5★: <strong>${this.unlockedBursts.size}/${GENSHIN_BURSTS.length}</strong>.`,
       'log-win'
     );
     this.renderAccountModal();
   }
 
-  changeAccountPassword() {
+  async changeAccountPassword() {
     if (!this.currentAccountUsername) return;
     const oldPass = document.getElementById('acc-change-oldpass')?.value || '';
     const newPass = document.getElementById('acc-change-newpass')?.value || '';
@@ -2490,17 +2937,20 @@ class TienLenGame {
       acc.passwordHash = this.hashAccountPassword(newPass, this.currentAccountUsername);
     }
 
+    acc.updatedAtMs = Date.now();
     this.saveAccountsDb(accountsDb);
     this.saveShopProfile();
+    await this.pushAccountToCloud(this.currentAccountUsername);
     this.syncLoadedProfileToLivePlayer();
     sfx.win();
-    alert('✅ Đã cập nhật thông tin Tài Khoản & Mật Khẩu thành công!');
+    alert('✅ Đã cập nhật thông tin Tài Khoản & đồng bộ Mật Khẩu mới lên Đám Mây thành công!');
     this.renderAccountModal();
   }
 
-  logoutAccount() {
+  async logoutAccount() {
     if (!this.currentAccountUsername) return;
     this.saveShopProfile();
+    await this.pushAccountToCloud(this.currentAccountUsername);
     const oldUser = this.currentAccountUsername;
     this.currentAccountUsername = '';
     localStorage.setItem('tlmn_active_account_v1', '');
@@ -2509,84 +2959,9 @@ class TienLenGame {
     this.renderAccountModal();
     sfx.click();
     this.addLog(
-      `🚪 Đã đăng xuất khỏi tài khoản <strong>@${oldUser}</strong> (Dữ liệu của @${oldUser} đã được lưu an toàn).`,
+      `🚪 Đã đăng xuất khỏi tài khoản <strong>@${oldUser}</strong> (Dữ liệu đã được đồng bộ an toàn trên Đám Mây ☁️).`,
       'log-play'
     );
-  }
-
-  exportAccountBackupCode() {
-    if (!this.currentAccountUsername) return;
-    this.saveShopProfile();
-    const accountsDb = this.loadAccountsDb();
-    const acc = accountsDb[this.currentAccountUsername];
-    if (!acc) return;
-    const tokenObj = {
-      v: 1,
-      u: acc.username,
-      d: acc.displayName,
-      h: acc.passwordHash,
-      p: acc.profile,
-    };
-    const code = 'TLMN_ACC:' + btoa(unescape(encodeURIComponent(JSON.stringify(tokenObj))));
-    const inputEl = document.getElementById('acc-export-code-input');
-    if (inputEl) {
-      inputEl.value = code;
-      inputEl.select();
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(code).catch(() => {});
-    }
-    sfx.win();
-    alert('✅ Đã Copy Mã Tài Khoản! Bạn có thể dán mã này ở trình duyệt/máy khác kèm Mật Khẩu để đăng nhập.');
-  }
-
-  importAccountBackupCode() {
-    const codeRaw = (document.getElementById('acc-import-code-input')?.value || '').trim();
-    const pass = document.getElementById('acc-import-password')?.value || '';
-    if (!codeRaw.startsWith('TLMN_ACC:')) {
-      alert('⚠️ Mã Tài Khoản không hợp lệ (Phải bắt đầu bằng TLMN_ACC:)!');
-      return;
-    }
-    if (!pass) {
-      alert('⚠️ Vui lòng nhập Mật khẩu của tài khoản đó để xác thực!');
-      return;
-    }
-    try {
-      const jsonStr = decodeURIComponent(escape(atob(codeRaw.slice('TLMN_ACC:'.length))));
-      const tokenObj = JSON.parse(jsonStr);
-      if (!tokenObj || !tokenObj.u || !tokenObj.h || !tokenObj.p) {
-        throw new Error('Invalid token');
-      }
-      const usernameKey = String(tokenObj.u).toLowerCase();
-      if (this.hashAccountPassword(pass, usernameKey) !== tokenObj.h) {
-        alert('❌ Mật khẩu không đúng với Mã Tài Khoản này!');
-        return;
-      }
-      const accountsDb = this.loadAccountsDb();
-      accountsDb[usernameKey] = {
-        username: usernameKey,
-        displayName: tokenObj.d || tokenObj.p.playerName || 'Thắng',
-        passwordHash: tokenObj.h,
-        createdAt: new Date().toLocaleString('vi-VN'),
-        updatedAt: new Date().toLocaleString('vi-VN'),
-        profile: tokenObj.p,
-      };
-      this.saveAccountsDb(accountsDb);
-      this.resetProfileMemoryToDefaults();
-      this.currentAccountUsername = usernameKey;
-      localStorage.setItem('tlmn_active_account_v1', usernameKey);
-      const vaultStr = JSON.stringify({ ...tokenObj.p, accountUsername: usernameKey });
-      localStorage.setItem('tlmn_genshin_vault_v9', vaultStr);
-      window.name = `TLMN_VAULT_V9:${vaultStr}`;
-      this.applyProfileDataObject(tokenObj.p, this.getTodayKey());
-      this.saveShopProfile();
-      this.syncLoadedProfileToLivePlayer();
-      sfx.win();
-      alert(`🎉 Đã khôi phục & đăng nhập thành công tài khoản @${usernameKey}!`);
-      this.renderAccountModal();
-    } catch (_) {
-      alert('❌ Không thể giải mã Mã Tài Khoản! Vui lòng kiểm tra lại chuỗi mã.');
-    }
   }
 
   fillSavedAccountUsername(username) {
@@ -2608,16 +2983,25 @@ class TienLenGame {
 
     if (this.currentAccountUsername && accountsDb[this.currentAccountUsername]) {
       const acc = accountsDb[this.currentAccountUsername];
+      const syncTimeText = this.lastCloudSyncTime
+        ? `☁️ Đã đồng bộ Đám Mây lúc ${this.lastCloudSyncTime} (Vào máy khác chỉ cần nhập TK + MK!)`
+        : `☁️ Tự động đồng bộ Đám Mây Online (Vào máy/điện thoại khác chỉ cần nhập TK + MK!)`;
+
       body.innerHTML = `
         <div class="account-preserve-card">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <div>
-              <div style="font-size:11.5px;color:#6ee7b7;font-weight:800;">✅ ĐANG ĐĂNG NHẬP &amp; TỰ ĐỘNG ĐỒNG BỘ</div>
+              <div style="font-size:11.5px;color:#6ee7b7;font-weight:800;" id="account-cloud-sync-badge">${syncTimeText}</div>
               <div style="font-size:16px;font-weight:900;color:#ffffff;margin-top:2px;">👤 Tài khoản: <span style="color:#fde047;">@${acc.username}</span> (${this.savedPlayerName})</div>
             </div>
-            <button class="clear-log-btn" onclick="window.tienLenGame.logoutAccount()" style="padding:6px 12px;font-weight:800;">
-              🚪 Đăng Xuất / Đổi TK
-            </button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="tool-btn" onclick="window.tienLenGame.manualSyncCloudNow()" style="padding:6px 10px;font-weight:800;">
+                ☁️ Đồng Bộ Cloud Ngay
+              </button>
+              <button class="clear-log-btn" onclick="window.tienLenGame.logoutAccount()" style="padding:6px 12px;font-weight:800;">
+                🚪 Đăng Xuất / Đổi TK
+              </button>
+            </div>
           </div>
           <div class="account-stats-grid">
             <div class="account-stat-item">
@@ -2639,7 +3023,7 @@ class TienLenGame {
           </div>
         </div>
 
-        <div class="account-form-box" style="margin-bottom:10px;">
+        <div class="account-form-box">
           <div style="font-size:13px;font-weight:900;color:#fde68a;">🔑 Cập Nhật Tên Hiển Thị / Đổi Mật Khẩu</div>
           <div class="account-field">
             <label>👤 Tên hiển thị trong bàn bài:</label>
@@ -2656,16 +3040,8 @@ class TienLenGame {
             </div>
           </div>
           <button class="primary-btn" onclick="window.tienLenGame.changeAccountPassword()" style="width:100%;">
-            💾 Lưu Thay Đổi Tài Khoản
+            💾 Lưu Thay Đổi &amp; Đồng Bộ Lên Cloud
           </button>
-        </div>
-
-        <div class="account-form-box">
-          <div style="font-size:12.5px;font-weight:800;color:#38bdf8;">☁️ Mã Tài Khoản Liên Thiết Bị (Mang sang máy/trình duyệt khác)</div>
-          <div style="display:flex;gap:6px;">
-            <input type="text" id="acc-export-code-input" readonly placeholder="Bấm nút bên cạnh để lấy Mã Tài Khoản..." style="flex:1;background:#020617;border:1px solid #334155;color:#93c5fd;padding:6px 9px;border-radius:7px;font-size:11.5px;" />
-            <button class="tool-btn" onclick="window.tienLenGame.exportAccountBackupCode()">📋 Copy Mã TK</button>
-          </div>
         </div>
       `;
       return;
@@ -2676,7 +3052,7 @@ class TienLenGame {
       savedUsernames.length > 0
         ? `
           <div style="margin-bottom:8px;">
-            <div style="font-size:11.5px;color:#94a3b8;margin-bottom:5px;">📌 Tài khoản đã tạo trên thiết bị này (Bấm để điền nhanh):</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-bottom:5px;">📌 Tài khoản gần đây trên máy này (Bấm để điền nhanh):</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               ${savedUsernames
                 .map((u) => {
@@ -2692,10 +3068,11 @@ class TienLenGame {
     body.innerHTML = `
       <div class="account-preserve-card">
         <div style="font-size:12.5px;font-weight:900;color:#6ee7b7;">
-          🛡️ BẠN ĐANG CHƠI CHƯA TẠO TÀI KHOẢN — TẠO TÀI KHOẢN NGAY, DỮ LIỆU GIỮ NGUYÊN 100%!
+          ☁️ ĐỒNG BỘ ĐÁM MÂY TỰ ĐỘNG — ĐĂNG NHẬP TRÊN MỌI MÁY CHỈ CẦN TÀI KHOẢN &amp; MẬT KHẨU!
         </div>
         <div style="font-size:11.5px;color:#e2e8f0;margin-top:3px;">
-          Khi bạn tạo tài khoản bên dưới, toàn bộ dữ liệu đang chơi hiện tại sẽ được <strong>gắn thẳng vào tài khoản của bạn mà không mất bất kỳ món đồ hay đồng Xu nào</strong>:
+          • <strong>Tạo tài khoản mới:</strong> Giữ nguyên 100% dữ liệu bạn đang chơi hiện tại và lưu thẳng lên Đám Mây.<br/>
+          • <strong>Sang máy tính / điện thoại khác:</strong> Chỉ cần mở mục <strong>🔑 Đăng Nhập</strong>, nhập đúng <strong>Tên Tài Khoản + Mật Khẩu</strong> là vào thẳng nick ngay lập tức!
         </div>
         <div class="account-stats-grid">
           <div class="account-stat-item">
@@ -2722,7 +3099,7 @@ class TienLenGame {
           📝 Tạo Tài Khoản Mới (Giữ Dữ Liệu)
         </button>
         <button class="account-tab-btn ${tab === 'login' ? 'active' : ''}" onclick="window.tienLenGame.switchAccountModalTab('login')">
-          🔑 Đăng Nhập Tài Khoản Đã Có (${savedUsernames.length})
+          🔑 Đăng Nhập Tài Khoản (Trên Mọi Máy ☁️)
         </button>
       </div>
 
@@ -2752,8 +3129,8 @@ class TienLenGame {
             <input type="checkbox" id="acc-reg-keep-data" checked style="width:16px;height:16px;accent-color:#10b981;" />
             <span>✅ Giữ nguyên 100% dữ liệu đang chơi hiện tại (${curCoins.toLocaleString()} Xu, ${this.unlockedBursts.size} Nộ 5★, ${this.unlockedSkins.size} Skin Bài &amp; Pity) vào tài khoản này</span>
           </label>
-          <button class="primary-btn" onclick="window.tienLenGame.registerAccount()" style="width:100%;margin-top:4px;font-size:13.5px;padding:10px;">
-            🔐 Tạo Tài Khoản &amp; Lưu Giữ Nguyên Dữ Liệu Ngay
+          <button class="primary-btn" id="btn-acc-register-submit" onclick="window.tienLenGame.registerAccount()" style="width:100%;margin-top:4px;font-size:13.5px;padding:10px;">
+            🔐 Tạo Tài Khoản &amp; Đồng Bộ Đám Mây Ngay
           </button>
         </div>
       `
@@ -2762,24 +3139,15 @@ class TienLenGame {
           ${savedChipsHtml}
           <div class="account-field">
             <label>👤 Tên tài khoản (Username):</label>
-            <input type="text" id="acc-login-username" maxlength="20" placeholder="Nhập tên tài khoản của bạn..." />
+            <input type="text" id="acc-login-username" maxlength="20" placeholder="Nhập tên tài khoản của bạn..." onkeydown="if(event.key==='Enter') window.tienLenGame.loginAccount()" />
           </div>
           <div class="account-field">
             <label>🔒 Mật khẩu:</label>
-            <input type="password" id="acc-login-password" placeholder="Nhập mật khẩu..." />
+            <input type="password" id="acc-login-password" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter') window.tienLenGame.loginAccount()" />
           </div>
-          <button class="primary-btn" onclick="window.tienLenGame.loginAccount()" style="width:100%;margin-top:4px;font-size:13.5px;padding:10px;">
-            🔑 Đăng Nhập Vào Tài Khoản
+          <button class="primary-btn" id="btn-acc-login-submit" onclick="window.tienLenGame.loginAccount()" style="width:100%;margin-top:4px;font-size:13.5px;padding:10px;">
+            🔑 Đăng Nhập Vào Tài Khoản (Tự Động Tải Từ Cloud ☁️)
           </button>
-
-          <div style="border-top:1px solid rgba(148,163,184,0.25);padding-top:10px;margin-top:6px;">
-            <div style="font-size:12px;font-weight:800;color:#38bdf8;margin-bottom:6px;">📥 Hoặc Khôi Phục Tài Khoản Từ Máy Khác (Bằng Mã TK + Mật Khẩu):</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <input type="text" id="acc-import-code-input" placeholder="Dán Mã TLMN_ACC:... vào đây" style="flex:1;min-width:160px;background:#020617;border:1px solid #334155;color:#e2e8f0;padding:6px 9px;border-radius:7px;font-size:11.5px;" />
-              <input type="password" id="acc-import-password" placeholder="Mật khẩu TK" style="width:130px;background:#020617;border:1px solid #334155;color:#e2e8f0;padding:6px 9px;border-radius:7px;font-size:11.5px;" />
-              <button class="tool-btn" onclick="window.tienLenGame.importAccountBackupCode()">📥 Khôi Phục</button>
-            </div>
-          </div>
         </div>
       `
       }
@@ -4394,6 +4762,9 @@ class TienLenGame {
       if (this.roomId) {
         document.getElementById('share-link-input').value = this.getShareableRoomUrl(this.roomId);
       }
+      ['shop-modal', 'quests-modal', 'rules-modal', 'account-modal', 'char-skill-detail-modal', 'summary-modal'].forEach(
+        (id) => document.getElementById(id)?.classList.add('hidden')
+      );
       this.modalWifi.classList.remove('hidden');
       this.renderSoloPlayerCountUI();
       this.renderBetTiers();

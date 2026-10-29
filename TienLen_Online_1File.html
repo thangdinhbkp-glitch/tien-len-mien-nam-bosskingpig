@@ -3674,6 +3674,202 @@ body {
   }
 }
 
+/* ============================================================================
+   RICK ROLL REWARDED VIDEO AD OVERLAY (XEM QUẢNG CÁO NHẬN XU)
+   ============================================================================ */
+.ad-reward-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: 1.5px solid #6ee7b7;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.35);
+  transition: all 0.18s ease;
+}
+
+.ad-reward-btn:hover {
+  transform: translateY(-1px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+.rickroll-ad-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  background: rgba(2, 6, 14, 0.94);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.rickroll-ad-card {
+  width: min(860px, 96vw);
+  background: linear-gradient(165deg, #0f172a, #090d16);
+  border: 2px solid #fbbf24;
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.85), 0 0 32px rgba(245, 158, 11, 0.3);
+}
+
+.ad-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 10px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ad-sponsor-badge {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.ad-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ad-countdown-pill {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 11px;
+  border-radius: 999px;
+}
+
+.ad-countdown-pill strong {
+  color: #34d399;
+}
+
+.ad-skip-btn {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.ad-skip-btn.ready-claim {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-color: #6ee7b7;
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
+  animation: pulseClaimBtn 1s infinite alternate;
+}
+
+@keyframes pulseClaimBtn {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.ad-video-stage {
+  position: relative;
+  width: 100%;
+  height: min(440px, 58vh);
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.rickroll-video,
+.rickroll-gif-fallback {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ad-rickroll-banner {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 92%;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid #fbbf24;
+  color: #fef08a;
+  font-size: 12.5px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+}
+
+.ad-lyrics-sub {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 92%;
+  background: rgba(0, 0, 0, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 800;
+  padding: 5px 16px;
+  border-radius: 999px;
+  text-align: center;
+  text-shadow: 0 2px 6px #000;
+}
+
+.ad-progress-bar-bg {
+  width: 100%;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ad-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #10b981);
+  transition: width 0.25s linear;
+}
+
+.ad-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 15px;
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.ad-toast-msg {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
 </style>
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
@@ -3702,6 +3898,9 @@ body {
         </button>
         <button class="shop-btn" id="btn-shop" title="Cầu Nguyện (Gacha Genshin Impact) mở khóa Kỹ Năng Nộ 5★, Decor Bài 4★ & Avatar 3★">
           🌠 Cầu Nguyện (Gacha)
+        </button>
+        <button class="ad-reward-btn" id="btn-top-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) để nhận ngay +8,000 Xu (5 Lượt Cầu Nguyện)!">
+          📺 Xem QC (+8,000 Xu)
         </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -3899,6 +4098,9 @@ body {
             </div>
             <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Sảnh Cầu Nguyện Gacha Genshin Impact & Kho Đồ">
               🌠 Cầu Nguyện (Gacha)
+            </button>
+            <button class="ad-reward-btn" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay +8,000 Xu!">
+              📺 Xem QC (+8,000 Xu)
             </button>
             <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
               📖 Luật
@@ -4201,6 +4403,9 @@ body {
             <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
               🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
             </button>
+            <button class="ad-reward-btn" id="btn-shop-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) nhận ngay +8,000 Xu (= 5 Lượt Cầu Nguyện!)">
+              📺 Xem Quảng Cáo Nhận +8,000 Xu
+            </button>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Xem thử Kỹ Năng Nộ 5★ Raiden Shogun!')">
@@ -4246,6 +4451,9 @@ body {
             Số dư hiện tại: 🪙 <strong id="gacha-results-balance">20,000</strong> xu
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="ad-reward-btn" id="btn-results-watch-ad" onclick="window.tienLenGame.startRickRollAd()">
+              📺 Xem QC (+8,000 Xu)
+            </button>
             <button class="icon-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(1)">
               🌠 Cầu Nguyện Tiếp ×1 (1,600 Xu)
             </button>
@@ -4254,6 +4462,55 @@ body {
             </button>
             <button class="primary-btn" id="btn-close-gacha-results">✅ Xác Nhận & Thu Nhận</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RICK ROLL REWARDED VIDEO AD OVERLAY (XEM QUẢNG CÁO NHẬN XU) -->
+    <div class="rickroll-ad-overlay hidden" id="rickroll-ad-overlay">
+      <div class="rickroll-ad-card">
+        <!-- Top Ad HUD Bar -->
+        <div class="ad-top-bar">
+          <div class="ad-sponsor-badge">
+            📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI RICK ASTLEY (FONTAINE TV)
+          </div>
+          <div class="ad-top-right">
+            <div class="ad-countdown-pill" id="ad-countdown-pill">
+              ⏳ Nhận +8,000 Xu sau: <strong>15s</strong>
+            </div>
+            <button class="ad-skip-btn" id="btn-ad-skip-or-claim">
+              🔒 Chờ 15s...
+            </button>
+          </div>
+        </div>
+
+        <!-- Video Stage -->
+        <div class="ad-video-stage">
+          <video class="rickroll-video" id="rickroll-video" src="rickroll.mp4" playsinline></video>
+          <img class="rickroll-gif-fallback hidden" id="rickroll-gif-fallback" src="rickroll.gif" alt="Rick Astley Dancing" />
+          <audio id="rickroll-audio" src="rickroll.mp3" preload="auto"></audio>
+
+          <div class="ad-rickroll-banner" id="ad-rickroll-banner">
+            🕺 <strong>BẠN ĐÃ BỊ RICK ROLL!</strong> Hãy thưởng thức giai điệu bất hủ <em>“Never Gonna Give You Up”</em> đủ 15 giây để nhận ngay <strong>+8,000 Xu</strong>! 🎤
+          </div>
+
+          <div class="ad-lyrics-sub" id="ad-lyrics-sub">
+            🎵 “We're no strangers to love ~ You know the rules and so do I...” 🎵
+          </div>
+        </div>
+
+        <!-- Ad Progress Bar & Footer -->
+        <div class="ad-progress-bar-bg">
+          <div class="ad-progress-bar-fill" id="ad-progress-fill" style="width:0%;"></div>
+        </div>
+
+        <div class="ad-bottom-bar">
+          <div class="ad-toast-msg" id="ad-toast-msg">
+            💡 Xem hết 15 giây quảng cáo sẽ được cộng tự động <strong>+8,000 Xu</strong> (tương đương <strong>5 Lượt Cầu Nguyện</strong>)!
+          </div>
+          <button class="clear-log-btn" id="btn-ad-force-abandon" title="Tắt quảng cáo sớm sẽ mất phần thưởng +8,000 Xu!">
+            ✕ Tắt sớm (Không nhận thưởng)
+          </button>
         </div>
       </div>
     </div>
@@ -6523,6 +6780,162 @@ class TienLenGame {
     this.syncCosmeticsInRoom();
   }
 
+  // ============================================================================
+  // RICK ROLL REWARDED VIDEO AD (XEM VIDEO RICK ROLL NHẬN +8,000 XU)
+  // ============================================================================
+  startRickRollAd() {
+    const overlay = document.getElementById('rickroll-ad-overlay');
+    const videoEl = document.getElementById('rickroll-video');
+    const gifFallback = document.getElementById('rickroll-gif-fallback');
+    const audioEl = document.getElementById('rickroll-audio');
+    const countdownPill = document.getElementById('ad-countdown-pill');
+    const skipBtn = document.getElementById('btn-ad-skip-or-claim');
+    const progressFill = document.getElementById('ad-progress-fill');
+    const lyricsSub = document.getElementById('ad-lyrics-sub');
+    const toastMsg = document.getElementById('ad-toast-msg');
+
+    if (!overlay) return;
+
+    const AD_DURATION = 15;
+    const AD_REWARD = 8000;
+    this.adRemainingSec = AD_DURATION;
+    this.adRewardClaimed = false;
+    clearInterval(this.adIntervalTimer);
+
+    overlay.classList.remove('hidden');
+
+    if (countdownPill) {
+      countdownPill.innerHTML = `⏳ Nhận +${AD_REWARD.toLocaleString()} Xu sau: <strong>${AD_DURATION}s</strong>`;
+    }
+    if (skipBtn) {
+      skipBtn.textContent = `🔒 Chờ ${AD_DURATION}s...`;
+      skipBtn.classList.remove('ready-claim');
+    }
+    if (progressFill) {
+      progressFill.style.width = '0%';
+    }
+    if (toastMsg) {
+      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> quảng cáo Rick Roll sẽ được cộng ngay <strong>+${AD_REWARD.toLocaleString()} Xu</strong> (= 5 Lượt Cầu Nguyện)!`;
+    }
+
+    const lyricsTimeline = [
+      { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
+      { at: 3, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
+      { at: 7, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
+      { at: 11, text: '🔥 “Never gonna make you cry ~ Never gonna say goodbye!” 👑' },
+    ];
+    if (lyricsSub) lyricsSub.textContent = lyricsTimeline[0].text;
+
+    // Bật Video Rick Roll (kèm Fallback GIF + MP3 nếu trình duyệt chặn MP4 local)
+    if (videoEl) {
+      videoEl.classList.remove('hidden');
+      gifFallback?.classList.add('hidden');
+      videoEl.muted = false;
+      videoEl.volume = 0.85;
+      try {
+        videoEl.currentTime = 42; // Vào thẳng đoạn điệp khúc "Never gonna give you up!"
+      } catch (_) {}
+
+      const playPromise = videoEl.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          // Fallback sang GIF + Audio hoặc WebAudio
+          videoEl.classList.add('hidden');
+          gifFallback?.classList.remove('hidden');
+          if (audioEl) {
+            try {
+              audioEl.currentTime = 42;
+              audioEl.volume = 0.85;
+              audioEl.play().catch(() => {});
+            } catch (_) {}
+          }
+        });
+      }
+      videoEl.onerror = () => {
+        videoEl.classList.add('hidden');
+        gifFallback?.classList.remove('hidden');
+        if (audioEl) {
+          try {
+            audioEl.currentTime = 42;
+            audioEl.volume = 0.85;
+            audioEl.play().catch(() => {});
+          } catch (_) {}
+        }
+      };
+    }
+
+    let elapsed = 0;
+    this.adIntervalTimer = setInterval(() => {
+      elapsed++;
+      this.adRemainingSec = Math.max(0, AD_DURATION - elapsed);
+      const pct = Math.min(100, Math.round((elapsed / AD_DURATION) * 100));
+      if (progressFill) progressFill.style.width = `${pct}%`;
+
+      const curLyric = [...lyricsTimeline].reverse().find((l) => elapsed >= l.at);
+      if (curLyric && lyricsSub) {
+        lyricsSub.textContent = curLyric.text;
+      }
+
+      if (this.adRemainingSec > 0) {
+        if (countdownPill) {
+          countdownPill.innerHTML = `⏳ Nhận +${AD_REWARD.toLocaleString()} Xu sau: <strong>${this.adRemainingSec}s</strong>`;
+        }
+        if (skipBtn) {
+          skipBtn.textContent = `🔒 Chờ ${this.adRemainingSec}s...`;
+        }
+      } else {
+        clearInterval(this.adIntervalTimer);
+        if (!this.adRewardClaimed) {
+          this.adRewardClaimed = true;
+          const me = this.getLocalPlayer();
+          if (me) {
+            me.coins += AD_REWARD;
+          }
+          sfx.win();
+          this.saveShopProfile();
+          this.renderShopModal();
+          this.renderSeats();
+          const resBal = document.getElementById('gacha-results-balance');
+          if (resBal && me) resBal.textContent = me.coins.toLocaleString();
+          this.addLog(
+            `🕺 <strong>Quảng Cáo Rick Roll:</strong> Bạn đã nghe Rick Astley hát đủ 15 giây và nhận thưởng <strong>+${AD_REWARD.toLocaleString()} xu</strong>!`,
+            'log-win'
+          );
+          this.syncCosmeticsInRoom();
+        }
+        if (countdownPill) {
+          countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +${AD_REWARD.toLocaleString()} XU VÀO VÍ!</strong>`;
+        }
+        if (skipBtn) {
+          skipBtn.textContent = `✅ Nhận +${AD_REWARD.toLocaleString()} Xu & Đóng QC`;
+          skipBtn.classList.add('ready-claim');
+        }
+        if (toastMsg) {
+          toastMsg.innerHTML = `🎁 <strong>Hoàn tất Quảng Cáo!</strong> Tài khoản của bạn đã được cộng thêm <strong>+${AD_REWARD.toLocaleString()} Xu</strong>!`;
+        }
+      }
+    }, 1000);
+  }
+
+  stopRickRollAd() {
+    clearInterval(this.adIntervalTimer);
+    const overlay = document.getElementById('rickroll-ad-overlay');
+    const videoEl = document.getElementById('rickroll-video');
+    const audioEl = document.getElementById('rickroll-audio');
+    if (videoEl) {
+      try {
+        videoEl.pause();
+      } catch (_) {}
+    }
+    if (audioEl) {
+      try {
+        audioEl.pause();
+      } catch (_) {}
+    }
+    overlay?.classList.add('hidden');
+    sfx.click();
+  }
+
   claimFreeBonus() {
     const me = this.getLocalPlayer();
     if (!me) return;
@@ -6644,6 +7057,26 @@ class TienLenGame {
     document.getElementById('btn-close-gacha-results')?.addEventListener('click', () => {
       document.getElementById('gacha-wish-overlay')?.classList.add('hidden');
       sfx.click();
+    });
+
+    document.getElementById('btn-top-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
+    document.getElementById('btn-lobby-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
+    document.getElementById('btn-shop-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
+
+    document.getElementById('btn-ad-skip-or-claim')?.addEventListener('click', () => {
+      if (this.adRemainingSec > 0 && !this.adRewardClaimed) {
+        const toastMsg = document.getElementById('ad-toast-msg');
+        if (toastMsg) {
+          toastMsg.innerHTML = `<span style="color:#fde047;font-weight:800;">😂 Không bỏ qua được đâu! Bạn vừa bị RICK ROLL — hãy nghe Rick Astley hát thêm ${this.adRemainingSec} giây nữa để nhận +8,000 Xu nhé!</span>`;
+        }
+        sfx.pass();
+        return;
+      }
+      this.stopRickRollAd();
+    });
+
+    document.getElementById('btn-ad-force-abandon')?.addEventListener('click', () => {
+      this.stopRickRollAd();
     });
 
     if (this.btnShop && this.modalShop) {

@@ -2244,6 +2244,162 @@ class TienLenGame {
     this.syncCosmeticsInRoom();
   }
 
+  // ============================================================================
+  // RICK ROLL REWARDED VIDEO AD (XEM VIDEO RICK ROLL NHẬN +8,000 XU)
+  // ============================================================================
+  startRickRollAd() {
+    const overlay = document.getElementById('rickroll-ad-overlay');
+    const videoEl = document.getElementById('rickroll-video');
+    const gifFallback = document.getElementById('rickroll-gif-fallback');
+    const audioEl = document.getElementById('rickroll-audio');
+    const countdownPill = document.getElementById('ad-countdown-pill');
+    const skipBtn = document.getElementById('btn-ad-skip-or-claim');
+    const progressFill = document.getElementById('ad-progress-fill');
+    const lyricsSub = document.getElementById('ad-lyrics-sub');
+    const toastMsg = document.getElementById('ad-toast-msg');
+
+    if (!overlay) return;
+
+    const AD_DURATION = 15;
+    const AD_REWARD = 8000;
+    this.adRemainingSec = AD_DURATION;
+    this.adRewardClaimed = false;
+    clearInterval(this.adIntervalTimer);
+
+    overlay.classList.remove('hidden');
+
+    if (countdownPill) {
+      countdownPill.innerHTML = `⏳ Nhận +${AD_REWARD.toLocaleString()} Xu sau: <strong>${AD_DURATION}s</strong>`;
+    }
+    if (skipBtn) {
+      skipBtn.textContent = `🔒 Chờ ${AD_DURATION}s...`;
+      skipBtn.classList.remove('ready-claim');
+    }
+    if (progressFill) {
+      progressFill.style.width = '0%';
+    }
+    if (toastMsg) {
+      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> quảng cáo Rick Roll sẽ được cộng ngay <strong>+${AD_REWARD.toLocaleString()} Xu</strong> (= 5 Lượt Cầu Nguyện)!`;
+    }
+
+    const lyricsTimeline = [
+      { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
+      { at: 3, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
+      { at: 7, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
+      { at: 11, text: '🔥 “Never gonna make you cry ~ Never gonna say goodbye!” 👑' },
+    ];
+    if (lyricsSub) lyricsSub.textContent = lyricsTimeline[0].text;
+
+    // Bật Video Rick Roll (kèm Fallback GIF + MP3 nếu trình duyệt chặn MP4 local)
+    if (videoEl) {
+      videoEl.classList.remove('hidden');
+      gifFallback?.classList.add('hidden');
+      videoEl.muted = false;
+      videoEl.volume = 0.85;
+      try {
+        videoEl.currentTime = 42; // Vào thẳng đoạn điệp khúc "Never gonna give you up!"
+      } catch (_) {}
+
+      const playPromise = videoEl.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          // Fallback sang GIF + Audio hoặc WebAudio
+          videoEl.classList.add('hidden');
+          gifFallback?.classList.remove('hidden');
+          if (audioEl) {
+            try {
+              audioEl.currentTime = 42;
+              audioEl.volume = 0.85;
+              audioEl.play().catch(() => {});
+            } catch (_) {}
+          }
+        });
+      }
+      videoEl.onerror = () => {
+        videoEl.classList.add('hidden');
+        gifFallback?.classList.remove('hidden');
+        if (audioEl) {
+          try {
+            audioEl.currentTime = 42;
+            audioEl.volume = 0.85;
+            audioEl.play().catch(() => {});
+          } catch (_) {}
+        }
+      };
+    }
+
+    let elapsed = 0;
+    this.adIntervalTimer = setInterval(() => {
+      elapsed++;
+      this.adRemainingSec = Math.max(0, AD_DURATION - elapsed);
+      const pct = Math.min(100, Math.round((elapsed / AD_DURATION) * 100));
+      if (progressFill) progressFill.style.width = `${pct}%`;
+
+      const curLyric = [...lyricsTimeline].reverse().find((l) => elapsed >= l.at);
+      if (curLyric && lyricsSub) {
+        lyricsSub.textContent = curLyric.text;
+      }
+
+      if (this.adRemainingSec > 0) {
+        if (countdownPill) {
+          countdownPill.innerHTML = `⏳ Nhận +${AD_REWARD.toLocaleString()} Xu sau: <strong>${this.adRemainingSec}s</strong>`;
+        }
+        if (skipBtn) {
+          skipBtn.textContent = `🔒 Chờ ${this.adRemainingSec}s...`;
+        }
+      } else {
+        clearInterval(this.adIntervalTimer);
+        if (!this.adRewardClaimed) {
+          this.adRewardClaimed = true;
+          const me = this.getLocalPlayer();
+          if (me) {
+            me.coins += AD_REWARD;
+          }
+          sfx.win();
+          this.saveShopProfile();
+          this.renderShopModal();
+          this.renderSeats();
+          const resBal = document.getElementById('gacha-results-balance');
+          if (resBal && me) resBal.textContent = me.coins.toLocaleString();
+          this.addLog(
+            `🕺 <strong>Quảng Cáo Rick Roll:</strong> Bạn đã nghe Rick Astley hát đủ 15 giây và nhận thưởng <strong>+${AD_REWARD.toLocaleString()} xu</strong>!`,
+            'log-win'
+          );
+          this.syncCosmeticsInRoom();
+        }
+        if (countdownPill) {
+          countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +${AD_REWARD.toLocaleString()} XU VÀO VÍ!</strong>`;
+        }
+        if (skipBtn) {
+          skipBtn.textContent = `✅ Nhận +${AD_REWARD.toLocaleString()} Xu & Đóng QC`;
+          skipBtn.classList.add('ready-claim');
+        }
+        if (toastMsg) {
+          toastMsg.innerHTML = `🎁 <strong>Hoàn tất Quảng Cáo!</strong> Tài khoản của bạn đã được cộng thêm <strong>+${AD_REWARD.toLocaleString()} Xu</strong>!`;
+        }
+      }
+    }, 1000);
+  }
+
+  stopRickRollAd() {
+    clearInterval(this.adIntervalTimer);
+    const overlay = document.getElementById('rickroll-ad-overlay');
+    const videoEl = document.getElementById('rickroll-video');
+    const audioEl = document.getElementById('rickroll-audio');
+    if (videoEl) {
+      try {
+        videoEl.pause();
+      } catch (_) {}
+    }
+    if (audioEl) {
+      try {
+        audioEl.pause();
+      } catch (_) {}
+    }
+    overlay?.classList.add('hidden');
+    sfx.click();
+  }
+
   claimFreeBonus() {
     const me = this.getLocalPlayer();
     if (!me) return;
@@ -2365,6 +2521,26 @@ class TienLenGame {
     document.getElementById('btn-close-gacha-results')?.addEventListener('click', () => {
       document.getElementById('gacha-wish-overlay')?.classList.add('hidden');
       sfx.click();
+    });
+
+    document.getElementById('btn-top-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
+    document.getElementById('btn-lobby-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
+    document.getElementById('btn-shop-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
+
+    document.getElementById('btn-ad-skip-or-claim')?.addEventListener('click', () => {
+      if (this.adRemainingSec > 0 && !this.adRewardClaimed) {
+        const toastMsg = document.getElementById('ad-toast-msg');
+        if (toastMsg) {
+          toastMsg.innerHTML = `<span style="color:#fde047;font-weight:800;">😂 Không bỏ qua được đâu! Bạn vừa bị RICK ROLL — hãy nghe Rick Astley hát thêm ${this.adRemainingSec} giây nữa để nhận +8,000 Xu nhé!</span>`;
+        }
+        sfx.pass();
+        return;
+      }
+      this.stopRickRollAd();
+    });
+
+    document.getElementById('btn-ad-force-abandon')?.addEventListener('click', () => {
+      this.stopRickRollAd();
     });
 
     if (this.btnShop && this.modalShop) {

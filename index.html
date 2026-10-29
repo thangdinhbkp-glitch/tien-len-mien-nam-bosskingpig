@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="styles.css?v=12" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -32,6 +32,9 @@
         </button>
         <button class="shop-btn" id="btn-shop" title="Cầu Nguyện (Gacha Genshin Impact) mở khóa Kỹ Năng Nộ 5★, Decor Bài 4★ & Avatar 3★">
           🌠 Cầu Nguyện (Gacha)
+        </button>
+        <button class="ad-reward-btn" id="btn-top-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) để nhận ngay +8,000 Xu (5 Lượt Cầu Nguyện)!">
+          📺 Xem QC (+8,000 Xu)
         </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -229,6 +232,9 @@
             </div>
             <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Sảnh Cầu Nguyện Gacha Genshin Impact & Kho Đồ">
               🌠 Cầu Nguyện (Gacha)
+            </button>
+            <button class="ad-reward-btn" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay +8,000 Xu!">
+              📺 Xem QC (+8,000 Xu)
             </button>
             <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
               📖 Luật
@@ -531,6 +537,9 @@
             <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
               🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
             </button>
+            <button class="ad-reward-btn" id="btn-shop-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) nhận ngay +8,000 Xu (= 5 Lượt Cầu Nguyện!)">
+              📺 Xem Quảng Cáo Nhận +8,000 Xu
+            </button>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Xem thử Kỹ Năng Nộ 5★ Raiden Shogun!')">
@@ -576,6 +585,9 @@
             Số dư hiện tại: 🪙 <strong id="gacha-results-balance">20,000</strong> xu
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="ad-reward-btn" id="btn-results-watch-ad" onclick="window.tienLenGame.startRickRollAd()">
+              📺 Xem QC (+8,000 Xu)
+            </button>
             <button class="icon-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(1)">
               🌠 Cầu Nguyện Tiếp ×1 (1,600 Xu)
             </button>
@@ -584,6 +596,55 @@
             </button>
             <button class="primary-btn" id="btn-close-gacha-results">✅ Xác Nhận & Thu Nhận</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RICK ROLL REWARDED VIDEO AD OVERLAY (XEM QUẢNG CÁO NHẬN XU) -->
+    <div class="rickroll-ad-overlay hidden" id="rickroll-ad-overlay">
+      <div class="rickroll-ad-card">
+        <!-- Top Ad HUD Bar -->
+        <div class="ad-top-bar">
+          <div class="ad-sponsor-badge">
+            📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI RICK ASTLEY (FONTAINE TV)
+          </div>
+          <div class="ad-top-right">
+            <div class="ad-countdown-pill" id="ad-countdown-pill">
+              ⏳ Nhận +8,000 Xu sau: <strong>15s</strong>
+            </div>
+            <button class="ad-skip-btn" id="btn-ad-skip-or-claim">
+              🔒 Chờ 15s...
+            </button>
+          </div>
+        </div>
+
+        <!-- Video Stage -->
+        <div class="ad-video-stage">
+          <video class="rickroll-video" id="rickroll-video" src="rickroll.mp4" playsinline></video>
+          <img class="rickroll-gif-fallback hidden" id="rickroll-gif-fallback" src="rickroll.gif" alt="Rick Astley Dancing" />
+          <audio id="rickroll-audio" src="rickroll.mp3" preload="auto"></audio>
+
+          <div class="ad-rickroll-banner" id="ad-rickroll-banner">
+            🕺 <strong>BẠN ĐÃ BỊ RICK ROLL!</strong> Hãy thưởng thức giai điệu bất hủ <em>“Never Gonna Give You Up”</em> đủ 15 giây để nhận ngay <strong>+8,000 Xu</strong>! 🎤
+          </div>
+
+          <div class="ad-lyrics-sub" id="ad-lyrics-sub">
+            🎵 “We're no strangers to love ~ You know the rules and so do I...” 🎵
+          </div>
+        </div>
+
+        <!-- Ad Progress Bar & Footer -->
+        <div class="ad-progress-bar-bg">
+          <div class="ad-progress-bar-fill" id="ad-progress-fill" style="width:0%;"></div>
+        </div>
+
+        <div class="ad-bottom-bar">
+          <div class="ad-toast-msg" id="ad-toast-msg">
+            💡 Xem hết 15 giây quảng cáo sẽ được cộng tự động <strong>+8,000 Xu</strong> (tương đương <strong>5 Lượt Cầu Nguyện</strong>)!
+          </div>
+          <button class="clear-log-btn" id="btn-ad-force-abandon" title="Tắt quảng cáo sớm sẽ mất phần thưởng +8,000 Xu!">
+            ✕ Tắt sớm (Không nhận thưởng)
+          </button>
         </div>
       </div>
     </div>
@@ -606,6 +667,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=11"></script>
+  <script src="game.js?v=12"></script>
 </body>
 </html>

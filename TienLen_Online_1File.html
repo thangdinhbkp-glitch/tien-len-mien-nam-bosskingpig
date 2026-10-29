@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
@@ -8119,6 +8119,7 @@ class TienLenGame {
     this.mustPlay3Spade = false;
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
+    this.roundChoppableStack = [];
 
     // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
     this.raidenElectroMarkOwnerId = null;
@@ -8491,29 +8492,36 @@ class TienLenGame {
 
   applyProfileDataObject(data, today = this.getTodayKey()) {
     if (!data || typeof data !== 'object') return;
-    if (typeof data.coins === 'number') {
+    const incomingTime = Number(data.updatedAtMs) || 0;
+    const currentTime = Number(this.profileUpdatedAtMs) || 0;
+    const isNewerOrEqual = incomingTime >= currentTime;
+    if (incomingTime > currentTime) {
+      this.profileUpdatedAtMs = incomingTime;
+    }
+
+    if (typeof data.coins === 'number' && isNewerOrEqual) {
       this.savedCoins = data.coins;
     }
-    if (data.playerName) {
+    if (data.playerName && isNewerOrEqual) {
       this.savedPlayerName = this.resolveCleanPlayerName(data.playerName, data.accountUsername || this.currentAccountUsername);
     }
-    if (typeof data.betPerCard === 'number' && data.betPerCard >= 20) {
+    if (typeof data.betPerCard === 'number' && data.betPerCard >= 20 && isNewerOrEqual) {
       this.savedBetPerCard = data.betPerCard;
     }
-    if ([2, 3, 4].includes(Number(data.soloPlayerCount))) {
+    if ([2, 3, 4].includes(Number(data.soloPlayerCount)) && isNewerOrEqual) {
       this.savedSoloPlayerCount = Number(data.soloPlayerCount);
     }
-    if (data.arenaTheme) {
+    if (data.arenaTheme && isNewerOrEqual) {
       this.arenaTheme = data.arenaTheme;
     }
-    if (typeof data.autoRandomizeBots === 'boolean') {
+    if (typeof data.autoRandomizeBots === 'boolean' && isNewerOrEqual) {
       this.autoRandomizeBots = data.autoRandomizeBots;
     }
-    if (typeof data.gachaPity5 === 'number') this.gachaPity5 = Math.max(0, Math.min(89, data.gachaPity5));
-    if (typeof data.gachaPity4 === 'number') this.gachaPity4 = Math.max(0, Math.min(9, data.gachaPity4));
-    if (typeof data.gachaGuaranteed5 === 'boolean') this.gachaGuaranteed5 = data.gachaGuaranteed5;
-    if (typeof data.gachaGuaranteed4 === 'boolean') this.gachaGuaranteed4 = data.gachaGuaranteed4;
-    if (data.selectedBannerBurstId && GENSHIN_BURSTS.some((b) => b.id === data.selectedBannerBurstId)) {
+    if (typeof data.gachaPity5 === 'number' && isNewerOrEqual) this.gachaPity5 = Math.max(0, Math.min(89, data.gachaPity5));
+    if (typeof data.gachaPity4 === 'number' && isNewerOrEqual) this.gachaPity4 = Math.max(0, Math.min(9, data.gachaPity4));
+    if (typeof data.gachaGuaranteed5 === 'boolean' && isNewerOrEqual) this.gachaGuaranteed5 = data.gachaGuaranteed5;
+    if (typeof data.gachaGuaranteed4 === 'boolean' && isNewerOrEqual) this.gachaGuaranteed4 = data.gachaGuaranteed4;
+    if (data.selectedBannerBurstId && GENSHIN_BURSTS.some((b) => b.id === data.selectedBannerBurstId) && isNewerOrEqual) {
       this.selectedBannerBurstId = data.selectedBannerBurstId;
     }
     if (typeof data.totalWishes === 'number') this.totalWishes = Math.max(this.totalWishes || 0, data.totalWishes);
@@ -8528,7 +8536,11 @@ class TienLenGame {
       });
     }
     if (data.equippedSkin && this.unlockedSkins.has(data.equippedSkin)) {
-      this.equippedSkin = data.equippedSkin;
+      if (isNewerOrEqual || this.equippedSkin === 'classic') {
+        if (!(data.equippedSkin === 'classic' && this.equippedSkin !== 'classic' && incomingTime === 0)) {
+          this.equippedSkin = data.equippedSkin;
+        }
+      }
     }
     if (Array.isArray(data.unlockedAvatars)) {
       data.unlockedAvatars.forEach((id) => {
@@ -8538,7 +8550,11 @@ class TienLenGame {
       });
     }
     if (data.equippedAvatar && this.unlockedAvatars.has(data.equippedAvatar)) {
-      this.equippedAvatar = data.equippedAvatar;
+      if (isNewerOrEqual || this.equippedAvatar === 'default_player') {
+        if (!(data.equippedAvatar === 'default_player' && this.equippedAvatar !== 'default_player' && incomingTime === 0)) {
+          this.equippedAvatar = data.equippedAvatar;
+        }
+      }
     }
     if (Array.isArray(data.unlockedBursts)) {
       data.unlockedBursts.forEach((id) => {
@@ -8547,25 +8563,27 @@ class TienLenGame {
         }
       });
     }
-    if (data.equippedChopBurst && this.unlockedBursts.has(data.equippedChopBurst)) {
-      this.equippedChopBurst = data.equippedChopBurst;
+    if (isNewerOrEqual || !this.equippedActiveChar || this.equippedActiveChar === 'none') {
+      if (data.equippedChopBurst && this.unlockedBursts.has(data.equippedChopBurst)) {
+        this.equippedChopBurst = data.equippedChopBurst;
+      }
+      if (data.equippedWinBurst && this.unlockedBursts.has(data.equippedWinBurst)) {
+        this.equippedWinBurst = data.equippedWinBurst;
+      }
+      if (data.equippedActiveChar && this.unlockedBursts.has(data.equippedActiveChar)) {
+        this.equippedActiveChar = data.equippedActiveChar;
+      } else if (this.equippedChopBurst && this.unlockedBursts.has(this.equippedChopBurst)) {
+        this.equippedActiveChar = this.equippedChopBurst;
+      } else if (this.equippedWinBurst && this.unlockedBursts.has(this.equippedWinBurst)) {
+        this.equippedActiveChar = this.equippedWinBurst;
+      } else if (this.unlockedBursts.size > 0) {
+        this.equippedActiveChar = Array.from(this.unlockedBursts)[0];
+      } else {
+        this.equippedActiveChar = 'none';
+      }
+      this.equippedChopBurst = this.equippedActiveChar || 'none';
+      this.equippedWinBurst = this.equippedActiveChar || 'none';
     }
-    if (data.equippedWinBurst && this.unlockedBursts.has(data.equippedWinBurst)) {
-      this.equippedWinBurst = data.equippedWinBurst;
-    }
-    if (data.equippedActiveChar && this.unlockedBursts.has(data.equippedActiveChar)) {
-      this.equippedActiveChar = data.equippedActiveChar;
-    } else if (this.equippedChopBurst && this.unlockedBursts.has(this.equippedChopBurst)) {
-      this.equippedActiveChar = this.equippedChopBurst;
-    } else if (this.equippedWinBurst && this.unlockedBursts.has(this.equippedWinBurst)) {
-      this.equippedActiveChar = this.equippedWinBurst;
-    } else if (this.unlockedBursts.size > 0) {
-      this.equippedActiveChar = Array.from(this.unlockedBursts)[0];
-    } else {
-      this.equippedActiveChar = 'none';
-    }
-    this.equippedChopBurst = this.equippedActiveChar || 'none';
-    this.equippedWinBurst = this.equippedActiveChar || 'none';
     if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
     if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
     if (data.dailyQuestsDate === today && data.dailyQuestsState && typeof data.dailyQuestsState === 'object') {
@@ -8610,6 +8628,7 @@ class TienLenGame {
     this.dailyRecoveredOnLoad = false;
     this.dailyQuestsDate = today;
     this.dailyQuestsState = this.getDefaultDailyQuestsState();
+    this.profileUpdatedAtMs = 0;
   }
 
   loadShopProfile() {
@@ -8621,24 +8640,43 @@ class TienLenGame {
     try {
       const activeUser = (localStorage.getItem('tlmn_active_account_v1') || '').trim().toLowerCase();
       const accountsDb = this.loadAccountsDb();
-      if (activeUser && accountsDb[activeUser]) {
-        this.currentAccountUsername = activeUser;
-        if (accountsDb[activeUser].profile) {
-          this.applyProfileDataObject(accountsDb[activeUser].profile, today);
-        }
-      }
+      const candidates = [];
 
       const backups = this.readBackupPayloads();
-      backups.forEach((data) => {
+      backups.forEach((data, idx) => {
         if (!data || typeof data !== 'object') return;
         // Nếu đang đăng nhập tài khoản cụ thể, chỉ gộp backup nếu backup thuộc cùng tài khoản hoặc chưa gắn tài khoản
         if (
-          this.currentAccountUsername &&
+          activeUser &&
           data.accountUsername &&
-          data.accountUsername !== this.currentAccountUsername
+          data.accountUsername !== activeUser
         ) {
           return;
         }
+        // Ưu tiên localStorage (idx === 0) và window.name hơn cookie cũ chưa có updatedAtMs
+        const fallbackTime = idx === 1 ? 0 : 1;
+        candidates.push({
+          ...data,
+          updatedAtMs: Number(data.updatedAtMs) || fallbackTime,
+        });
+      });
+
+      if (activeUser && accountsDb[activeUser]) {
+        this.currentAccountUsername = activeUser;
+        if (accountsDb[activeUser].profile) {
+          candidates.push({
+            ...accountsDb[activeUser].profile,
+            updatedAtMs:
+              Number(accountsDb[activeUser].profile.updatedAtMs) ||
+              Number(accountsDb[activeUser].updatedAtMs) ||
+              2,
+          });
+        }
+      }
+
+      // Sắp xếp từ cũ đến mới để bản lưu mới nhất (localStorage / Account DB) luôn quyết định trang bị cuối cùng!
+      candidates.sort((a, b) => (Number(a.updatedAtMs) || 0) - (Number(b.updatedAtMs) || 0));
+      candidates.forEach((data) => {
         this.applyProfileDataObject(data, today);
       });
 
@@ -8810,6 +8848,7 @@ class TienLenGame {
         updatedAtMs,
         profile: {
           accountUsername: usernameKey,
+          updatedAtMs,
           coins,
           playerName: displayName,
           betPerCard: 100,
@@ -8981,14 +9020,42 @@ class TienLenGame {
         ? newer.gachaHistory || []
         : older.gachaHistory || [];
 
+    const resolvedSkin =
+      newer.equippedSkin && newer.equippedSkin !== 'classic' && mergedSkins.includes(newer.equippedSkin)
+        ? newer.equippedSkin
+        : older.equippedSkin && older.equippedSkin !== 'classic' && mergedSkins.includes(older.equippedSkin)
+          ? older.equippedSkin
+          : newer.equippedSkin || older.equippedSkin || 'classic';
+
+    const resolvedAvatar =
+      newer.equippedAvatar && newer.equippedAvatar !== 'default_player' && mergedAvatars.includes(newer.equippedAvatar)
+        ? newer.equippedAvatar
+        : older.equippedAvatar && older.equippedAvatar !== 'default_player' && mergedAvatars.includes(older.equippedAvatar)
+          ? older.equippedAvatar
+          : newer.equippedAvatar || older.equippedAvatar || 'default_player';
+
+    const newerChar = newer.equippedActiveChar || newer.equippedChopBurst || newer.equippedWinBurst || 'none';
+    const olderChar = older.equippedActiveChar || older.equippedChopBurst || older.equippedWinBurst || 'none';
+    const resolvedActiveChar =
+      newerChar && newerChar !== 'none' && mergedBursts.includes(newerChar)
+        ? newerChar
+        : olderChar && olderChar !== 'none' && mergedBursts.includes(olderChar)
+          ? olderChar
+          : 'none';
+
     return {
       ...older,
       ...newer,
       coins: typeof newer.coins === 'number' ? newer.coins : older.coins ?? INITIAL_COINS,
       totalWishes: Math.max(Number(newer.totalWishes) || 0, Number(older.totalWishes) || 0),
       unlockedSkins: mergedSkins,
+      equippedSkin: resolvedSkin,
       unlockedAvatars: mergedAvatars,
+      equippedAvatar: resolvedAvatar,
       unlockedBursts: mergedBursts,
+      equippedActiveChar: resolvedActiveChar,
+      equippedChopBurst: resolvedActiveChar,
+      equippedWinBurst: resolvedActiveChar,
       gachaHistory: mergedHistory,
     };
   }
@@ -9098,9 +9165,12 @@ class TienLenGame {
       });
 
       this.savedPlayerName = this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
+      const nowMs = Date.now();
+      this.profileUpdatedAtMs = nowMs;
 
       const payload = {
         accountUsername: this.currentAccountUsername || '',
+        updatedAtMs: nowMs,
         coins: this.savedCoins,
         playerName: this.savedPlayerName,
         betPerCard: this.betPerCard || 100,
@@ -9129,7 +9199,8 @@ class TienLenGame {
       };
       const jsonStr = JSON.stringify(payload);
       localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
-      const cookiePayload = { ...payload, gachaHistory: (this.gachaHistory || []).slice(0, 20) };
+      // Bỏ gachaHistory trong cookie để dung lượng cookie luôn < 1.2KB (không bao giờ vượt giới hạn 4KB của trình duyệt!)
+      const cookiePayload = { ...payload, gachaHistory: [] };
       document.cookie = `tlmn_vault_v9=${encodeURIComponent(JSON.stringify(cookiePayload))}; path=/; max-age=31536000; SameSite=Lax`;
       window.name = `TLMN_VAULT_V9:${jsonStr}`;
 
@@ -9138,7 +9209,7 @@ class TienLenGame {
         if (accountsDb[this.currentAccountUsername]) {
           accountsDb[this.currentAccountUsername].displayName = payload.playerName;
           accountsDb[this.currentAccountUsername].updatedAt = new Date().toLocaleString('vi-VN');
-          accountsDb[this.currentAccountUsername].updatedAtMs = Date.now();
+          accountsDb[this.currentAccountUsername].updatedAtMs = nowMs;
           accountsDb[this.currentAccountUsername].profile = payload;
           this.saveAccountsDb(accountsDb);
           this.scheduleCloudAccountSync();
@@ -10510,6 +10581,10 @@ class TienLenGame {
     this.equippedSkin = skinId;
     me.cardSkin = skinId;
     this.saveShopProfile();
+    this.saveActiveMatchSnapshot();
+    if (this.currentAccountUsername) {
+      this.pushAccountToCloud(this.currentAccountUsername);
+    }
     this.updateArenaBackdropCharacters();
     this.renderShopModal();
     this.renderAll();
@@ -10531,6 +10606,10 @@ class TienLenGame {
     this.equippedAvatar = avatarId;
     me.avatar = avatarId;
     this.saveShopProfile();
+    this.saveActiveMatchSnapshot();
+    if (this.currentAccountUsername) {
+      this.pushAccountToCloud(this.currentAccountUsername);
+    }
     this.updateArenaBackdropCharacters();
     this.renderShopModal();
     this.renderAll();
@@ -10563,6 +10642,10 @@ class TienLenGame {
     me.winBurst = burstId;
 
     this.saveShopProfile();
+    this.saveActiveMatchSnapshot();
+    if (this.currentAccountUsername) {
+      this.pushAccountToCloud(this.currentAccountUsername);
+    }
     this.updateArenaBackdropCharacters();
     this.renderShopModal();
     this.renderAll();
@@ -11662,6 +11745,7 @@ class TienLenGame {
         mustPlay3Spade: !!this.mustPlay3Spade,
         chopPot: this.chopPot || 0,
         lastChoppedPlayerId: this.lastChoppedPlayerId,
+        roundChoppableStack: Array.isArray(this.roundChoppableStack) ? this.roundChoppableStack : [],
         raidenElectroMarkOwnerId: this.raidenElectroMarkOwnerId ?? null,
         furinaReverseSuitRound: !!this.furinaReverseSuitRound,
         yaeForcePlayRound: !!this.yaeForcePlayRound,
@@ -11737,6 +11821,7 @@ class TienLenGame {
       this.mustPlay3Spade = !!snap.mustPlay3Spade;
       this.chopPot = snap.chopPot || 0;
       this.lastChoppedPlayerId = snap.lastChoppedPlayerId ?? null;
+      this.roundChoppableStack = Array.isArray(snap.roundChoppableStack) ? snap.roundChoppableStack : [];
       this.raidenElectroMarkOwnerId = snap.raidenElectroMarkOwnerId ?? null;
       this.furinaReverseSuitRound = !!snap.furinaReverseSuitRound;
       activeFurinaReverseSuit = this.furinaReverseSuitRound;
@@ -12336,6 +12421,9 @@ class TienLenGame {
       this.currentCombo = null;
       this.trickOwnerId = player.id;
       this.raidenSlashMustSingle = true;
+      this.chopPot = 0;
+      this.lastChoppedPlayerId = null;
+      this.roundChoppableStack = [];
       this.players.forEach((p) => {
         p.passed = false;
         p.declinedFourPairsCut = false;
@@ -12922,6 +13010,7 @@ class TienLenGame {
     this.mustPlay3Spade = false;
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
+    this.roundChoppableStack = [];
     this.lastSummaryData = null;
     this.lastBurstEffect = null;
     this.penaltyCardIdsByPlayer = [new Set(), new Set(), new Set(), new Set()];
@@ -13641,6 +13730,7 @@ class TienLenGame {
     this.hintIndex = 0;
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
+    this.roundChoppableStack = [];
 
     // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
     this.raidenElectroMarkOwnerId = null;
@@ -13785,6 +13875,26 @@ class TienLenGame {
     });
   }
 
+  getComboChopValue(combo, b = this.betPerCard || 100) {
+    if (!combo) return 0;
+    if (combo.type === COMBO_TYPES.SINGLE && combo.highRank === 12) {
+      return Math.round(b * (combo.highCard?.isRed ? 5 : 2.5));
+    }
+    if (combo.type === COMBO_TYPES.PAIR && combo.highRank === 12) {
+      return Math.round(b * 10);
+    }
+    if (combo.type === COMBO_TYPES.THREE_PAIRS) {
+      return Math.round(b * 7.5);
+    }
+    if (combo.type === COMBO_TYPES.FOUR_OF_A_KIND) {
+      return Math.round(b * 10);
+    }
+    if (combo.type === COMBO_TYPES.FOUR_PAIRS) {
+      return Math.round(b * 12.5);
+    }
+    return 0;
+  }
+
   canPlayerCutWithFourPairs(player) {
     if (!player || !player.active || player.declinedFourPairsCut || !this.currentCombo || player.hand.length < 8) {
       return false;
@@ -13924,57 +14034,74 @@ class TienLenGame {
       sfx.chop();
       const victim = this.players[this.trickOwnerId];
       const b = this.betPerCard || 100;
-      let chopValue = Math.round(b * 5);
-      if (this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank === 12) {
-        chopValue = Math.round(b * (this.currentCombo.highCard.isRed ? 5 : 2.5));
-      } else if (this.currentCombo.type === COMBO_TYPES.PAIR && this.currentCombo.highRank === 12) {
-        chopValue = Math.round(b * 10);
-      } else if (this.currentCombo.type === COMBO_TYPES.FOUR_OF_A_KIND) {
-        chopValue = Math.round(b * 10);
-      } else if (this.currentCombo.type === COMBO_TYPES.FOUR_PAIRS) {
-        chopValue = Math.round(b * 12.5);
-      } else {
-        chopValue = Math.round(b * 7.5);
+      const singleTargetVal = this.getComboChopValue(this.currentCombo, b) || Math.round(b * 7.5);
+
+      if (!Array.isArray(this.roundChoppableStack) || this.roundChoppableStack.length === 0) {
+        this.roundChoppableStack = [
+          {
+            playerId: victim.id,
+            playerName: victim.name,
+            label: this.currentCombo.label,
+            value: singleTargetVal,
+          },
+        ];
       }
+
+      // Cộng dồn toàn bộ các lớp Heo đè Heo / Đôi thông đè Đôi thông / Tứ quý đè Đôi thông trong vòng này!
+      const totalChopValue = this.roundChoppableStack.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+      const isStackedChop = this.roundChoppableStack.length > 1;
+      const stackedBreakdownStr = this.roundChoppableStack
+        .map((it) => `${it.label} (${it.value.toLocaleString()})`)
+        .join(' + ');
+      const targetDisplayLabel = isStackedChop
+        ? `${this.currentCombo.label} [Cộng dồn: ${stackedBreakdownStr}]`
+        : this.currentCombo.label;
 
       if (this.lastChoppedPlayerId !== null && this.chopPot > 0) {
         const prevVictim = this.players[this.lastChoppedPlayerId];
-        prevVictim.coins += this.chopPot;
-        victim.coins -= this.chopPot;
-        this.matchChopCoins[prevVictim.id] += this.chopPot;
-        this.matchChopCoins[victim.id] -= this.chopPot;
-        this.matchChopDetails[victim.id].push({
-          label: `💸 Đền chặt chồng (-${this.chopPot.toLocaleString()})`,
-          isSpecial: true,
-        });
+        if (prevVictim) {
+          prevVictim.coins += this.chopPot;
+          victim.coins -= this.chopPot;
+          this.matchChopCoins[prevVictim.id] += this.chopPot;
+          this.matchChopCoins[victim.id] -= this.chopPot;
+          this.matchChopDetails[prevVictim.id].push({
+            label: `🔄 Thoát nạn nhờ ${player.name} chặt đè (+${this.chopPot.toLocaleString()})`,
+            isGood: true,
+          });
+          this.matchChopDetails[victim.id].push({
+            label: `💸 Hoàn trả tiền chặt trước cho ${prevVictim.name} do bị chặt đè (-${this.chopPot.toLocaleString()})`,
+            isSpecial: true,
+          });
+        }
       }
 
-      this.chopPot += chopValue;
+      this.chopPot = totalChopValue;
       this.lastChoppedPlayerId = victim.id;
 
-      victim.coins -= chopValue;
-      player.coins += chopValue;
-      this.matchChopCoins[victim.id] -= chopValue;
-      this.matchChopCoins[player.id] += chopValue;
+      victim.coins -= totalChopValue;
+      player.coins += totalChopValue;
+      this.matchChopCoins[victim.id] -= totalChopValue;
+      this.matchChopCoins[player.id] += totalChopValue;
       this.matchChopDetails[victim.id].push({
-        label: `💸 Bị ${player.name} chặt ${this.currentCombo.label} (-${chopValue.toLocaleString()})`,
+        label: `💸 Bị ${player.name} ${isStackedChop ? 'chặt chồng ' : 'chặt '}${targetDisplayLabel} (-${totalChopValue.toLocaleString()})`,
         isSpecial: true,
       });
       this.matchChopDetails[player.id].push({
-        label: `💥 Chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue.toLocaleString()})`,
+        label: `💥 ${isStackedChop ? 'Chặt chồng ' : 'Chặt '}${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()})`,
         isGood: true,
       });
 
       const rx = this.getSpecialPlayReaction(player, combo);
       combo.reaction = rx;
       this.triggerArenaReactionFlash(rx);
-      const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue.toLocaleString()} xu)!`;
+      const chopTitleUpper = isStackedChop ? 'CHẶT CHỒNG' : 'CHẶT';
+      const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} ${chopTitleUpper.toLowerCase()} ${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()} xu)!`;
       const chopBurstId = this.getPlayerActiveCharId(player);
       this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
       this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
-      this.showComboBanner(`${rx.badge} • CHẶT +${chopValue.toLocaleString()} XU!`, rx.cssClass);
+      this.showComboBanner(`${rx.badge} • ${chopTitleUpper} +${totalChopValue.toLocaleString()} XU!`, rx.cssClass);
       this.addLog(
-        `💥 <strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> tung <strong>${combo.label}</strong> chặt <strong>${this.currentCombo.label}</strong> của <strong>${victim.name}</strong> (+${chopValue.toLocaleString()} xu)!`,
+        `💥 <strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> tung <strong>${combo.label}</strong> ${chopTitleUpper.toLowerCase()} <strong>${targetDisplayLabel}</strong> của <strong>${victim.name}</strong> (+${totalChopValue.toLocaleString()} xu)!`,
         'log-chop'
       );
       this.saveShopProfile();
@@ -14007,6 +14134,28 @@ class TienLenGame {
             .map((c) => `${c.rank}${c.suit}`)
             .join(' ')})`,
           'log-play'
+        );
+      }
+    }
+
+    // Lưu mọi bộ bài có giá trị chặt (Heo lẻ, Đôi Heo, 3 Đôi Thông, Tứ Quý, 4 Đôi Thông) vào nồi cộng dồn của vòng hiện tại!
+    const playedChopVal = this.getComboChopValue(combo, this.betPerCard || 100);
+    if (playedChopVal > 0) {
+      if (!Array.isArray(this.roundChoppableStack)) {
+        this.roundChoppableStack = [];
+      }
+      this.roundChoppableStack.push({
+        playerId: player.id,
+        playerName: player.name,
+        label: combo.label,
+        value: playedChopVal,
+      });
+      if (!beatCheck.isChop && this.roundChoppableStack.length > 1) {
+        const potNow = this.roundChoppableStack.reduce((s, it) => s + (Number(it.value) || 0), 0);
+        const stackText = this.roundChoppableStack.map((it) => `${it.label} (${it.value.toLocaleString()})`).join(' + ');
+        this.addLog(
+          `🔥 <strong>[Cộng Dồn Nồi Heo]</strong> <strong>${player.name}</strong> đè <strong>${combo.label}</strong>! Nếu bị chặt sẽ đền tổng nồi <strong>${potNow.toLocaleString()} xu</strong> [${stackText}]!`,
+          'log-chop'
         );
       }
     }
@@ -14148,6 +14297,7 @@ class TienLenGame {
     this.companionCardIds.clear();
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
+    this.roundChoppableStack = [];
 
     // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
     this.raidenElectroMarkOwnerId = null;

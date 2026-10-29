@@ -468,7 +468,7 @@ const CHARACTER_SKILLS = {
     charName: 'Raiden Shogun',
     icon: '⚡',
     name: 'Tịnh Thổ Cắt Vòng',
-    shortDesc: 'Khi còn ≥6 lá: Chém đứt Lá Lẻ/Đôi nhỏ (≤ J) trên bàn để mở vòng mới (nhịp mở vòng bắt buộc đánh 1 lá lẻ dưới Heo)',
+    shortDesc: 'Khi còn ≥6 lá: Chém đứt Lá Lẻ/Đôi nhỏ (≤ J) trên bàn để mở vòng mới và được đánh bộ bài hợp lệ bất kỳ',
   },
   furina: {
     id: 'furina',
@@ -5768,11 +5768,6 @@ class TienLenGame {
     const pills = [];
     const b = this.betPerCard || 100;
 
-    if (this.raidenSlashMustSingle) {
-      pills.push(
-        `<span class="round-skill-pill">⚡ Dư Chấn Tịnh Thổ: Nhịp mở vòng này Raiden chỉ được đánh 1 Lá Lẻ thường (dưới Heo)!</span>`
-      );
-    }
     if (this.furinaReverseSuitRound) {
       pills.push(
         `<span class="round-skill-pill">💧 Luật Sân Khấu Furina: Đảo ngược chất (♠&gt;♣&gt;♦&gt;♥) &amp; Cấm đánh Heo lẻ (2)</span>`
@@ -5851,13 +5846,6 @@ class TienLenGame {
         return {
           ok: false,
           reason: 'Chỉ được dùng Tịnh Thổ Cắt Vòng khi trên tay còn từ 6 lá bài trở lên (không dùng khi còn ≤ 5 lá cuối ván)!',
-        };
-      }
-      const hasNormalSingle = player.hand.some((c) => c.rankIndex < 12);
-      if (!hasNormalSingle) {
-        return {
-          ok: false,
-          reason: 'Cần có ít nhất 1 lá bài thường (dưới Heo) trên tay để đánh mở vòng sau khi cắt!',
         };
       }
       const canCutTable =
@@ -5955,7 +5943,9 @@ class TienLenGame {
       this.previousCombo = this.currentCombo;
       this.currentCombo = null;
       this.trickOwnerId = player.id;
-      this.raidenSlashMustSingle = true;
+      this.raidenSlashMustSingle = false;
+      this.selectedCardIds.clear();
+      this.companionCardIds.clear();
       this.chopPot = 0;
       this.lastChoppedPlayerId = null;
       this.roundChoppableStack = [];
@@ -5963,7 +5953,7 @@ class TienLenGame {
         p.passed = false;
         p.declinedFourPairsCut = false;
       });
-      skillSummary = `⚡ [Tịnh Thổ Cắt Vòng] ${player.name} chém đứt ${oldLabel} (≤ J) để mở vòng mới (bắt buộc đánh 1 lá lẻ dưới Heo)!`;
+      skillSummary = `⚡ [Tịnh Thổ Cắt Vòng] ${player.name} chém đứt ${oldLabel} (≤ J) để mở vòng mới và được đánh bộ bài bất kỳ!`;
     } else if (charId === 'furina') {
       this.furinaReverseSuitRound = true;
       activeFurinaReverseSuit = true;
@@ -7512,13 +7502,7 @@ class TienLenGame {
 
   playCombo(player, combo) {
     if (this.isGameOver || this.isBurstPlaying || !player || !player.active || this.currentTurn !== player.id) return false;
-    if (this.raidenSlashMustSingle && !this.currentCombo) {
-      if (combo.type !== COMBO_TYPES.SINGLE || combo.highRank >= 12) {
-        return false;
-      }
-      this.raidenSlashMustSingle = false;
-      this.renderRoundSkillStatusBar();
-    }
+    this.raidenSlashMustSingle = false;
     const beatCheck = canBeatCombo(combo, this.currentCombo);
     if (!beatCheck.ok) return false;
 
@@ -7909,13 +7893,6 @@ class TienLenGame {
       }
       if (usedSkill) {
         return;
-      }
-    }
-
-    if (this.raidenSlashMustSingle && !this.currentCombo) {
-      const singleMoves = validMoves.filter((m) => m.type === COMBO_TYPES.SINGLE && m.highRank < 12);
-      if (singleMoves.length > 0) {
-        validMoves = singleMoves;
       }
     }
 
@@ -8628,15 +8605,6 @@ class TienLenGame {
     if (human.passed && combo.type !== COMBO_TYPES.FOUR_PAIRS) {
       this.btnPlay.disabled = true;
       return;
-    }
-
-    if (this.raidenSlashMustSingle && !this.currentCombo) {
-      if (combo.type !== COMBO_TYPES.SINGLE || combo.highRank >= 12) {
-        this.btnPlay.disabled = true;
-        this.elSelectedPreview.textContent = '⚠️ Sau khi Cắt Vòng, nhịp mở vòng này chỉ được đánh 1 Lá Lẻ thường (dưới Heo)!';
-        this.elSelectedPreview.classList.add('invalid');
-        return;
-      }
     }
 
     const canBeat = canBeatCombo(combo, this.currentCombo);

@@ -6948,7 +6948,7 @@ const CHARACTER_SKILLS = {
     charName: 'Skirk',
     icon: '🌌',
     name: 'Khe Nứt Vực Sâu',
-    shortDesc: 'Tráo đổi 1 lá bài đang chọn (hoặc lá rác nhỏ nhất) với 1 lá bài ngẫu nhiên của đối thủ',
+    shortDesc: 'Tráo đổi 1 lá bài đang chọn (hoặc 1 lá ngẫu nhiên) với 1 lá bài ngẫu nhiên của 1 đối thủ ngẫu nhiên',
   },
   mavuika: {
     id: 'mavuika',
@@ -6969,7 +6969,7 @@ const CHARACTER_SKILLS = {
     charName: 'Yelan',
     icon: '🎲',
     name: 'Mạng Lưới Tình Báo',
-    shortDesc: 'Lật ngửa 3 lá bài của đối thủ nguy hiểm nhất trong 8 giây & báo cáo số Heo + Hàng',
+    shortDesc: 'Lật ngửa 3 lá bài ngẫu nhiên của 1 đối thủ ngẫu nhiên trong 8 giây & báo cáo số Heo + Hàng',
   },
   clorinde: {
     id: 'clorinde',
@@ -12029,24 +12029,13 @@ class TienLenGame {
 
   randomizeBotCharacters(notify = false) {
     if (!this.players || this.players.length < 4) return;
-    const fullRoster = this.getBotBurstRoster(); // 10 Nhân vật 5★ có Burst Animation riêng
-    const myCharId = this.getPlayerActiveCharId(this.getLocalPlayer());
-    const botRoster = fullRoster.filter((c) => c.id !== myCharId);
-    const pool = botRoster.length >= 3 ? botRoster : fullRoster;
-    const currentSeat2Char = this.queuedNextMatchBots?.[2]?.id || this.players[2]?.cardSkin || '';
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-
-    // Đảm bảo ghế đối diện (Ghế #2 trong Solo 1v1) luôn đổi sang nhân vật 5★ MỚI không trùng ván trước và không trùng người chơi!
-    let picked = [];
-    for (const c of shuffled) {
-      if (picked.length === 1 && c.id === currentSeat2Char && shuffled.length > 3) {
-        continue;
-      }
-      if (!picked.some((x) => x.id === c.id)) {
-        picked.push(c);
-      }
-      if (picked.length === 3) break;
+    const pool = [...this.getBotBurstRoster()]; // 10 Nhân vật 5★ có Burst Animation riêng (tỉ lệ đều nhau 100%, không ưu tiên con nào)
+    // Thuật toán trộn bài Fisher-Yates chuẩn xác 100% không thiên vị
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
     }
+    const picked = pool.slice(0, 3);
 
     if (this.isMidMatch()) {
       // Đang chơi giữa trận: Cho phép Random chọn trước nhân vật Bot cho VÁN TIẾP THEO mà không phá ván đang đánh!
@@ -12457,9 +12446,11 @@ class TienLenGame {
     const charId = check.charId;
     const sk = CHARACTER_SKILLS[charId] || CHARACTER_SKILLS.raiden;
     const b = this.betPerCard || 100;
-    const activeOpponents = this.players
-      .filter((p) => p.active && p.id !== player.id && p.finishRank === null && p.hand.length > 0)
-      .sort((a, c) => a.hand.length - c.hand.length);
+    const activeOpponents = this.players.filter(
+      (p) => p.active && p.id !== player.id && p.finishRank === null && p.hand.length > 0
+    );
+    const pickRandomItem = (arr) =>
+      Array.isArray(arr) && arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
 
     player.skillUsed = true;
 
@@ -12495,22 +12486,17 @@ class TienLenGame {
       activeFurinaReverseSuit = true;
       skillSummary = `💧 [Luật Sân Khấu Fontaine] ${player.name} đảo ngược chất (♠ > ♣ > ♦ > ♥) khi đè cùng số & CẤM đánh Heo lẻ (2) trong vòng này!`;
     } else if (charId === 'skirk') {
-      // Chọn ngẫu nhiên công bằng (tỉ lệ đều 1/N) giữa tất cả các đối thủ đang còn bài trên bàn
-      const target =
-        activeOpponents.length > 0
-          ? activeOpponents[Math.floor(Math.random() * activeOpponents.length)]
-          : null;
+      // Chọn ngẫu nhiên 100% công bằng (không ưu tiên bất kỳ đối thủ hay lá bài nào)
+      const target = pickRandomItem(activeOpponents);
       if (target && target.hand.length > 0 && player.hand.length > 0) {
         let myCard = null;
-        if (preferredCardIds && preferredCardIds.length > 0) {
+        if (!player.isBot && preferredCardIds && preferredCardIds.length > 0) {
           myCard = player.hand.find((c) => preferredCardIds.includes(c.id));
         }
         if (!myCard) {
-          const sortedMine = sortCardsAsc(player.hand);
-          myCard = sortedMine.find((c) => c.rankIndex < 11) || sortedMine[0];
+          myCard = pickRandomItem(player.hand);
         }
-        const oppIdx = Math.floor(Math.random() * target.hand.length);
-        const oppCard = target.hand[oppIdx];
+        const oppCard = pickRandomItem(target.hand);
 
         player.hand = player.hand.filter((c) => c.id !== myCard.id);
         target.hand = target.hand.filter((c) => c.id !== oppCard.id);
@@ -12533,17 +12519,12 @@ class TienLenGame {
       }
     } else if (charId === 'mavuika') {
       let targetCard = null;
-      if (preferredCardIds && preferredCardIds.length > 0) {
+      if (!player.isBot && preferredCardIds && preferredCardIds.length > 0) {
         targetCard = player.hand.find((c) => preferredCardIds.includes(c.id) && c.rankIndex <= 10);
       }
       if (!targetCard) {
-        const rankCounts = new Array(13).fill(0);
-        player.hand.forEach((c) => rankCounts[c.rankIndex]++);
         const forgeCandidates = player.hand.filter((c) => c.rankIndex <= 10);
-        // Ưu tiên rèn lá bài giúp ghép thành Đôi hoặc Sám cô ở bậc kế tiếp
-        targetCard =
-          forgeCandidates.find((c) => rankCounts[c.rankIndex] === 1 && rankCounts[c.rankIndex + 1] >= 1) ||
-          forgeCandidates[forgeCandidates.length - 1];
+        targetCard = pickRandomItem(forgeCandidates);
       }
       if (targetCard) {
         const oldLabel = `${targetCard.rank}${targetCard.suit}`;
@@ -12568,10 +12549,10 @@ class TienLenGame {
       this.yaeForcePlayRound = true;
       skillSummary = `🌸 [Hồ Ly Dụ Hoặc] ${player.name} yểm ấn Hồ Ly: Mọi đối thủ có bài đánh được BẮT BUỘC PHẢI ĐÁNH (khóa Bỏ lượt giấu Heo)!`;
     } else if (charId === 'yelan') {
-      const target = activeOpponents[0];
+      const target = pickRandomItem(activeOpponents);
       if (target) {
-        const sortedTarget = [...target.hand].sort((a, c) => c.value - a.value);
-        const revealed = sortedTarget.slice(0, Math.min(3, sortedTarget.length));
+        const shuffledHand = shuffleDeck([...target.hand]);
+        const revealed = sortCardsAsc(shuffledHand.slice(0, Math.min(3, shuffledHand.length)));
         this.yelanRevealedByPlayer[target.id] = {
           cards: revealed,
           expiresAt: Date.now() + 8500,
@@ -12586,18 +12567,19 @@ class TienLenGame {
         const struct = this.analyzeBotHandStructure(target.hand);
         const hasBomb = struct.bombRanks.size > 0;
         const revStr = revealed.map((c) => `${c.rank}${c.suit}`).join(' ');
-        skillSummary = `🎲 [Mạng Lưới Tình Báo] ${player.name} thấu thị ${target.name}: Lộ 3 lá lớn nhất [${revStr}] • Đang giữ ${twosCount} Heo & ${
+        skillSummary = `🎲 [Mạng Lưới Tình Báo] ${player.name} thấu thị ${target.name}: Lộ 3 lá ngẫu nhiên [${revStr}] • Đang giữ ${twosCount} Heo & ${
           hasBomb ? 'CÓ HÀNG 💣!' : '0 Hàng'
         }`;
       }
     } else if (charId === 'clorinde') {
+      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
       const target =
         (this.trickOwnerId !== null &&
           this.trickOwnerId !== player.id &&
           this.players[this.trickOwnerId]?.active &&
           this.players[this.trickOwnerId]?.finishRank === null &&
           this.players[this.trickOwnerId]) ||
-        activeOpponents[0];
+        pickRandomItem(unpassedOpps.length > 0 ? unpassedOpps : activeOpponents);
       if (target) {
         this.clorindeDuelPair = [player.id, target.id];
         this.players.forEach((p) => {
@@ -12608,15 +12590,8 @@ class TienLenGame {
         skillSummary = `⚡ [Thách Đấu Danh Dự] ${player.name} khóa vòng đấu thành Quyết Đấu 1v1 với ${target.name}!`;
       }
     } else if (charId === 'ayaka') {
-      let target = null;
-      for (let step = 1; step <= 3; step++) {
-        const cand = this.players[(player.id + step) % 4];
-        if (cand && cand.active && cand.finishRank === null && cand.hand.length > 0 && !cand.passed) {
-          target = cand;
-          break;
-        }
-      }
-      if (!target) target = activeOpponents[0];
+      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
+      const target = pickRandomItem(unpassedOpps.length > 0 ? unpassedOpps : activeOpponents);
       if (target) {
         this.ayakaFrozenPlayerId = target.id;
         skillSummary = `❄️ [Sương Hoa Phong Ấn] ${player.name} đóng băng ${target.name} khiến họ mất lượt kế tiếp trong vòng này!`;

@@ -4716,6 +4716,95 @@ body {
   filter: grayscale(30%);
 }
 
+.trick-reaction-float {
+  position: absolute;
+  top: -22px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1.5px solid #fde047;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75);
+  z-index: 25;
+  pointer-events: none;
+  animation: genshinReactionPop 1.05s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.trick-reaction-float.reaction-vaporize {
+  background: linear-gradient(135deg, #ea580c, #0284c7);
+  border-color: #fef08a;
+  box-shadow: 0 0 18px rgba(234, 88, 12, 0.85), 0 0 14px rgba(56, 189, 248, 0.75);
+}
+.trick-reaction-float.reaction-melt {
+  background: linear-gradient(135deg, #dc2626, #06b6d4);
+  border-color: #fde047;
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.85), 0 0 14px rgba(103, 232, 249, 0.75);
+}
+.trick-reaction-float.reaction-overloaded {
+  background: linear-gradient(135deg, #dc2626, #9333ea);
+  border-color: #f0abfc;
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.85), 0 0 14px rgba(168, 85, 247, 0.85);
+}
+.trick-reaction-float.reaction-electrocharged {
+  background: linear-gradient(135deg, #7e22ce, #0284c7);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 18px rgba(126, 34, 206, 0.85), 0 0 14px rgba(56, 189, 248, 0.8);
+}
+.trick-reaction-float.reaction-frozen {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  border-color: #e0f2fe;
+  box-shadow: 0 0 18px rgba(14, 165, 233, 0.85), 0 0 14px rgba(186, 230, 253, 0.85);
+}
+.trick-reaction-float.reaction-superconduct {
+  background: linear-gradient(135deg, #6d28d9, #0891b2);
+  border-color: #a5f3fc;
+  box-shadow: 0 0 18px rgba(109, 40, 217, 0.85), 0 0 14px rgba(103, 232, 249, 0.8);
+}
+.trick-reaction-float.reaction-crystallize {
+  background: linear-gradient(135deg, #b45309, #eab308);
+  border-color: #fef08a;
+  box-shadow: 0 0 18px rgba(234, 179, 8, 0.85);
+}
+.trick-reaction-float.reaction-aggravate {
+  background: linear-gradient(135deg, #15803d, #7e22ce);
+  border-color: #86efac;
+  box-shadow: 0 0 18px rgba(22, 163, 74, 0.85);
+}
+.trick-reaction-float.reaction-burning {
+  background: linear-gradient(135deg, #15803d, #dc2626);
+  border-color: #fde047;
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.85);
+}
+.trick-reaction-float.reaction-bloom {
+  background: linear-gradient(135deg, #059669, #0284c7);
+  border-color: #6ee7b7;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.85);
+}
+
+@keyframes genshinReactionPop {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.45);
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.12);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(-16px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.92);
+  }
+}
+
 </style>
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
@@ -10781,6 +10870,7 @@ class TienLenGame {
       });
 
       const rx = this.getSpecialPlayReaction(player, combo);
+      combo.reaction = rx;
       const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue.toLocaleString()} xu)!`;
       const chopBurstId = player.chopBurst || 'none';
       this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
@@ -10803,8 +10893,9 @@ class TienLenGame {
         combo.type === COMBO_TYPES.TRIPLE;
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      if (isUltra || (combo.highRank === 12 && combo.length >= 1)) {
+      if (isHeavy) {
         const rx = this.getSpecialPlayReaction(player, combo);
+        combo.reaction = rx;
         this.showComboBanner(`${rx.badge} • ${combo.label.toUpperCase()}!`, rx.cssClass);
         this.addLog(
           `<strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> đánh <strong>${combo.label}</strong> (${combo.cards
@@ -11970,12 +12061,16 @@ class TienLenGame {
       const vec = fromVectors[visualSlot] || fromVectors[0];
 
       if (isNewPlay) {
+        const rx = isHeavy
+          ? this.currentCombo.reaction || this.getSpecialPlayReaction(owner, this.currentCombo)
+          : null;
         const fxWrap = document.createElement('div');
-        fxWrap.className = `trick-impact-fx impact-${impactTier}`;
+        fxWrap.className = `trick-impact-fx impact-${impactTier} ${rx ? rx.cssClass : ''}`;
         fxWrap.innerHTML = `
           <div class="trick-flash-core"></div>
           <div class="trick-shockwave-ring"></div>
           ${isHeavy ? '<div class="trick-slash-line"></div>' : ''}
+          ${rx ? `<div class="trick-reaction-float ${rx.cssClass}">${rx.shortName}</div>` : ''}
         `;
         this.elCurrentTrick.appendChild(fxWrap);
 

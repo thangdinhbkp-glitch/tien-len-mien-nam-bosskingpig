@@ -5269,6 +5269,7 @@ class TienLenGame {
       });
 
       const rx = this.getSpecialPlayReaction(player, combo);
+      combo.reaction = rx;
       const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue.toLocaleString()} xu)!`;
       const chopBurstId = player.chopBurst || 'none';
       this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
@@ -5291,8 +5292,9 @@ class TienLenGame {
         combo.type === COMBO_TYPES.TRIPLE;
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      if (isUltra || (combo.highRank === 12 && combo.length >= 1)) {
+      if (isHeavy) {
         const rx = this.getSpecialPlayReaction(player, combo);
+        combo.reaction = rx;
         this.showComboBanner(`${rx.badge} • ${combo.label.toUpperCase()}!`, rx.cssClass);
         this.addLog(
           `<strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> đánh <strong>${combo.label}</strong> (${combo.cards
@@ -6458,12 +6460,16 @@ class TienLenGame {
       const vec = fromVectors[visualSlot] || fromVectors[0];
 
       if (isNewPlay) {
+        const rx = isHeavy
+          ? this.currentCombo.reaction || this.getSpecialPlayReaction(owner, this.currentCombo)
+          : null;
         const fxWrap = document.createElement('div');
-        fxWrap.className = `trick-impact-fx impact-${impactTier}`;
+        fxWrap.className = `trick-impact-fx impact-${impactTier} ${rx ? rx.cssClass : ''}`;
         fxWrap.innerHTML = `
           <div class="trick-flash-core"></div>
           <div class="trick-shockwave-ring"></div>
           ${isHeavy ? '<div class="trick-slash-line"></div>' : ''}
+          ${rx ? `<div class="trick-reaction-float ${rx.cssClass}">${rx.shortName}</div>` : ''}
         `;
         this.elCurrentTrick.appendChild(fxWrap);
 

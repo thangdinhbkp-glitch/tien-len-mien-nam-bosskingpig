@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=14" />
+  <link rel="stylesheet" href="styles.css?v=15" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -39,6 +39,12 @@
         <button class="ad-reward-btn" id="btn-top-watch-ad" title="Xem Video Quảng Cáo Rick Roll (15 giây) để nhận ngay 1 Roll (+1,600 Xu)!">
           📺 Xem QC (+1 Roll)
         </button>
+        <button class="icon-btn anime-theme-btn" id="btn-arena-theme" title="Đổi Chủ Đề Sân Đấu Anime (Inazuma / Fontaine / Vực Sâu / Natlan / Băng Tuyết)">
+          🌸 Sân: <span id="arena-theme-label">Inazuma ⚡</span>
+        </button>
+        <button class="icon-btn anime-theme-btn" id="btn-top-random-bots" title="Random ngẫu nhiên nhân vật Bot Genshin (29 nhân vật Fanart)">
+          🎲 Đổi Nhân Vật Bot
+        </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
         </button>
@@ -62,7 +68,31 @@
 
     <!-- Main Casino Table + Log Sidebar -->
     <main class="table-wrapper">
-      <div class="casino-table">
+      <div class="casino-table arena-theme-inazuma" id="casino-table">
+        <!-- LỚP TRANG TRÍ SÂN ĐẤU ANIME GENSHIN IMPACT (CHARACTER ART, VÒNG MA PHÁP & HOA ANH ĐÀO) -->
+        <div class="anime-arena-backdrop">
+          <div class="arena-char-art arena-char-left" id="arena-char-left" style="background-image:url('fanart/raiden.jpg')"></div>
+          <div class="arena-char-art arena-char-right" id="arena-char-right" style="background-image:url('fanart/yaemiko.jpg')"></div>
+          <div class="anime-magic-circle">
+            <svg viewBox="0 0 400 400" width="100%" height="100%">
+              <circle cx="200" cy="200" r="186" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="10 6" opacity="0.55" />
+              <circle cx="200" cy="200" r="158" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.45" />
+              <circle cx="200" cy="200" r="118" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 8" opacity="0.4" />
+              <polygon points="200,22 242,142 368,142 266,216 305,338 200,262 95,338 134,216 32,142 158,142" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.35" />
+              <polygon points="200,378 158,258 32,258 134,184 95,62 200,138 305,62 266,184 368,258 242,258" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.25" />
+            </svg>
+          </div>
+          <div class="anime-floating-petals">
+            <span class="anime-petal p1">🌸</span>
+            <span class="anime-petal p2">✨</span>
+            <span class="anime-petal p3">🌸</span>
+            <span class="anime-petal p4">✦</span>
+            <span class="anime-petal p5">🌸</span>
+            <span class="anime-petal p6">✨</span>
+            <span class="anime-petal p7">🌸</span>
+            <span class="anime-petal p8">✦</span>
+          </div>
+        </div>
         <div class="table-felt-pattern"></div>
 
         <!-- ROW 1: TOP SEAT (Visual Slot 2 - Across from local player) -->
@@ -250,6 +280,32 @@
         </div>
 
         <div class="modal-body wifi-body home-lobby-body">
+          <!-- ANIME HERO BANNER & CHỌN CHỦ ĐỀ BÀN ĐẤU ANIME -->
+          <div class="lobby-anime-showcase" id="lobby-anime-showcase">
+            <div class="lobby-anime-art-strip">
+              <img src="fanart/raiden.jpg" alt="Raiden Shogun" class="lobby-strip-img" />
+              <img src="fanart/furina.jpg" alt="Furina" class="lobby-strip-img" />
+              <img src="fanart/mavuika.jpg" alt="Mavuika" class="lobby-strip-img" />
+              <img src="fanart/skirk.jpg" alt="Skirk" class="lobby-strip-img" />
+              <img src="fanart/columbina.jpg" alt="Columbina" class="lobby-strip-img" />
+              <img src="fanart/hutao.jpg" alt="Hu Tao" class="lobby-strip-img" />
+              <img src="fanart/navia.jpg" alt="Navia" class="lobby-strip-img" />
+            </div>
+            <div class="lobby-anime-overlay">
+              <div class="lobby-anime-badge">🌸 SẢNH ĐẤU ANIME TEYVAT • 29 NHÂN VẬT FANART</div>
+              <div class="lobby-anime-theme-bar">
+                <span class="theme-bar-label">🎨 Chọn Bàn Đấu Anime:</span>
+                <div class="arena-theme-pills" id="lobby-arena-theme-pills">
+                  <button class="arena-pill active" data-theme="inazuma" onclick="window.tienLenGame.selectArenaTheme('inazuma')">⚡ Inazuma</button>
+                  <button class="arena-pill" data-theme="fontaine" onclick="window.tienLenGame.selectArenaTheme('fontaine')">💧 Fontaine</button>
+                  <button class="arena-pill" data-theme="abyss" onclick="window.tienLenGame.selectArenaTheme('abyss')">🌌 Vực Sâu</button>
+                  <button class="arena-pill" data-theme="natlan" onclick="window.tienLenGame.selectArenaTheme('natlan')">🔥 Natlan</button>
+                  <button class="arena-pill" data-theme="cryo" onclick="window.tienLenGame.selectArenaTheme('cryo')">❄️ Băng Hoa</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Hàng 1: Nhập Tên & Chọn 1 trong 2 Chế Độ -->
           <div class="lobby-top-row">
             <div class="lobby-name-box">
@@ -310,20 +366,36 @@
                 <div class="bot-count-card" id="bot-count-2" onclick="window.tienLenGame.selectSoloPlayerCount(2)">
                   <div class="bot-count-badge">SOLO 1v1</div>
                   <div class="bot-count-title">⚔️ 2 Người (1 vs 1 Bot)</div>
-                  <div class="bot-count-desc">Đấu tay đôi trực diện với <strong>Bot Raiden Shogun ⚡</strong></div>
+                  <div class="bot-count-desc" id="bot-desc-2">Đấu tay đôi trực diện với <strong>1 Nhân Vật Bot Ngẫu Nhiên 🎲</strong></div>
                 </div>
 
                 <div class="bot-count-card" id="bot-count-3" onclick="window.tienLenGame.selectSoloPlayerCount(3)">
                   <div class="bot-count-badge">TAM HÙNG</div>
                   <div class="bot-count-title">🔥 3 Người (1 vs 2 Bot)</div>
-                  <div class="bot-count-desc">Đấu cùng <strong>Bot Furina 💧</strong> & <strong>Bot Raiden Shogun ⚡</strong></div>
+                  <div class="bot-count-desc" id="bot-desc-3">Đấu cùng <strong>2 Nhân Vật Bot Genshin 🎲</strong></div>
                 </div>
 
                 <div class="bot-count-card active" id="bot-count-4" onclick="window.tienLenGame.selectSoloPlayerCount(4)">
                   <div class="bot-count-badge">ĐỦ BÀN</div>
                   <div class="bot-count-title">👑 4 Người (1 vs 3 Bot)</div>
-                  <div class="bot-count-desc">Đủ 4 nhà: <strong>Furina 💧</strong> • <strong>Raiden ⚡</strong> • <strong>Skirk 🌌</strong></div>
+                  <div class="bot-count-desc" id="bot-desc-4">Đủ 4 nhà cùng <strong>3 Nhân Vật Bot Genshin 🎲</strong></div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Thanh Random Nhân Vật Bot (29 Nhân Vật Genshin Fanart) -->
+            <div class="bot-random-bar" id="bot-random-bar">
+              <div class="bot-lineup-avatars" id="bot-lineup-avatars">
+                <!-- Populated dynamically by renderBotLineupPreview() -->
+              </div>
+              <div class="bot-random-controls">
+                <button class="tool-btn anime-random-bot-btn" id="btn-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)">
+                  🎲 Random Đối Thủ Bot Khác (29 Nhân Vật)
+                </button>
+                <label class="bot-auto-random-toggle" title="Tự động đổi ngẫu nhiên nhân vật Bot sau mỗi ván bài mới">
+                  <input type="checkbox" id="chk-auto-random-bots" checked onchange="window.tienLenGame.toggleAutoRandomBots(this.checked)" />
+                  <span>Tự động random Bot mỗi ván</span>
+                </label>
               </div>
             </div>
 
@@ -718,6 +790,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=14"></script>
+  <script src="game.js?v=15"></script>
 </body>
 </html>

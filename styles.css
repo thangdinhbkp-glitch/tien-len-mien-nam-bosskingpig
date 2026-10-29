@@ -4110,3 +4110,511 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================================
+   ANIME WAITING SCREEN (SẢNH CHỜ) & ANIME GAME TABLE (BÀN ĐẤU GENSHIN IMPACT)
+   ============================================================================ */
+
+/* Top Bar Anime Theme Button */
+.anime-theme-btn {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(236, 72, 153, 0.3)) !important;
+  border: 1.5px solid rgba(244, 114, 182, 0.65) !important;
+  color: #fdf2f8 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 12px rgba(236, 72, 153, 0.3);
+}
+.anime-theme-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(236, 72, 153, 0.5);
+  border-color: #fbcfe8 !important;
+}
+
+/* 1. ANIME GAME TABLE BACKDROP & 5 ELEMENTAL ARENA THEMES */
+.casino-table {
+  position: relative;
+  overflow: hidden;
+  transition: background 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
+}
+
+/* Default & Inazuma Electro Sakura Theme */
+.casino-table,
+.casino-table.arena-theme-inazuma {
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(168, 85, 247, 0.32) 0%, rgba(88, 28, 135, 0.55) 45%, rgba(19, 10, 38, 0.96) 100%);
+  border-color: #c084fc;
+  box-shadow:
+    inset 0 0 80px rgba(192, 132, 252, 0.25),
+    0 20px 55px rgba(0, 0, 0, 0.72),
+    0 0 0 5px rgba(126, 34, 206, 0.45);
+}
+
+/* Fontaine Hydro Opera Theme */
+.casino-table.arena-theme-fontaine {
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(56, 189, 248, 0.32) 0%, rgba(12, 74, 110, 0.62) 48%, rgba(7, 22, 44, 0.96) 100%);
+  border-color: #38bdf8;
+  box-shadow:
+    inset 0 0 80px rgba(56, 189, 248, 0.26),
+    0 20px 55px rgba(0, 0, 0, 0.72),
+    0 0 0 5px rgba(2, 132, 199, 0.45);
+}
+
+/* Abyss Starry Cosmos Theme */
+.casino-table.arena-theme-abyss {
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(99, 102, 241, 0.32) 0%, rgba(30, 27, 75, 0.75) 48%, rgba(6, 7, 24, 0.98) 100%);
+  border-color: #818cf8;
+  box-shadow:
+    inset 0 0 90px rgba(129, 140, 248, 0.28),
+    0 20px 55px rgba(0, 0, 0, 0.78),
+    0 0 0 5px rgba(79, 70, 229, 0.48);
+}
+
+/* Natlan Pyro Flame Arena Theme */
+.casino-table.arena-theme-natlan {
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(251, 146, 60, 0.32) 0%, rgba(124, 45, 18, 0.65) 48%, rgba(28, 10, 8, 0.96) 100%);
+  border-color: #fb923c;
+  box-shadow:
+    inset 0 0 80px rgba(251, 146, 60, 0.25),
+    0 20px 55px rgba(0, 0, 0, 0.72),
+    0 0 0 5px rgba(234, 88, 12, 0.45);
+}
+
+/* Cryo Celestial Frost Theme */
+.casino-table.arena-theme-cryo {
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(103, 232, 249, 0.3) 0%, rgba(21, 94, 117, 0.6) 48%, rgba(8, 28, 42, 0.96) 100%);
+  border-color: #67e8f9;
+  box-shadow:
+    inset 0 0 80px rgba(103, 232, 249, 0.25),
+    0 20px 55px rgba(0, 0, 0, 0.72),
+    0 0 0 5px rgba(6, 182, 212, 0.45);
+}
+
+/* Anime Backdrop Layer inside Table */
+.anime-arena-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.arena-char-art {
+  position: absolute;
+  top: 50%;
+  width: 39%;
+  height: 92%;
+  transform: translateY(-50%);
+  background-size: cover;
+  background-position: center top;
+  opacity: 0.22;
+  filter: saturate(1.25) contrast(1.08);
+  transition: background-image 0.5s ease, opacity 0.4s ease;
+}
+
+.arena-char-left {
+  left: -2%;
+  background-image: url('fanart/raiden.jpg');
+  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.45) 60%, transparent 100%);
+  mask-image: linear-gradient(90deg, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.45) 60%, transparent 100%);
+}
+
+.arena-char-right {
+  right: -2%;
+  background-image: url('fanart/furina.jpg');
+  -webkit-mask-image: linear-gradient(270deg, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.45) 60%, transparent 100%);
+  mask-image: linear-gradient(270deg, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.45) 60%, transparent 100%);
+}
+
+/* Spinning Celestial Anime Magic Circle SVG */
+.anime-magic-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(500px, 68vmin);
+  height: min(500px, 68vmin);
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
+  animation: spinAnimeMagicCircle 48s linear infinite;
+  filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.35));
+}
+
+@keyframes spinAnimeMagicCircle {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Floating Sakura Petals & Anime Starlight Particles */
+.anime-floating-petals {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.anime-floating-petals span {
+  position: absolute;
+  font-size: 16px;
+  opacity: 0.55;
+  animation: floatAnimePetal 11s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(244, 114, 182, 0.7));
+}
+
+.anime-floating-petals span:nth-child(1) { top: 14%; left: 16%; animation-delay: 0s; animation-duration: 9s; }
+.anime-floating-petals span:nth-child(2) { top: 22%; right: 18%; animation-delay: 1.5s; animation-duration: 11s; }
+.anime-floating-petals span:nth-child(3) { bottom: 20%; left: 22%; animation-delay: 3s; animation-duration: 10s; }
+.anime-floating-petals span:nth-child(4) { bottom: 26%; right: 15%; animation-delay: 2s; animation-duration: 12s; }
+.anime-floating-petals span:nth-child(5) { top: 44%; left: 8%; animation-delay: 4s; animation-duration: 9.5s; }
+.anime-floating-petals span:nth-child(6) { top: 38%; right: 9%; animation-delay: 2.5s; animation-duration: 10.5s; }
+.anime-floating-petals span:nth-child(7) { top: 12%; left: 48%; animation-delay: 1s; animation-duration: 11.5s; }
+.anime-floating-petals span:nth-child(8) { bottom: 14%; right: 44%; animation-delay: 3.5s; animation-duration: 10s; }
+
+@keyframes floatAnimePetal {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(0.95);
+    opacity: 0.38;
+  }
+  50% {
+    transform: translate(14px, -16px) rotate(24deg) scale(1.18);
+    opacity: 0.82;
+  }
+}
+
+/* Enhance Table Inner Rim & Player Cards with Anime Glass Glow */
+.table-inner-rim {
+  border: 1.5px solid rgba(251, 191, 36, 0.32);
+  box-shadow: inset 0 0 42px rgba(168, 85, 247, 0.16);
+}
+
+.player-card-panel {
+  background: linear-gradient(145deg, rgba(20, 14, 42, 0.88), rgba(11, 20, 38, 0.92));
+  border: 1.5px solid rgba(192, 132, 252, 0.42);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), inset 0 0 16px rgba(192, 132, 252, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.player-seat.active-turn .player-card-panel {
+  border-color: #fbbf24;
+  box-shadow:
+    0 0 24px rgba(251, 191, 36, 0.65),
+    0 0 42px rgba(168, 85, 247, 0.45),
+    inset 0 0 18px rgba(251, 191, 36, 0.22);
+}
+
+/* 2. ANIME WAITING SCREEN / HOME LOBBY DECORATION */
+.home-lobby-backdrop {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(168, 85, 247, 0.35), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.3), transparent 55%),
+    rgba(7, 9, 22, 0.86) !important;
+  backdrop-filter: blur(10px);
+}
+
+.home-lobby-card {
+  position: relative;
+  background:
+    linear-gradient(160deg, rgba(22, 16, 48, 0.96) 0%, rgba(12, 21, 42, 0.97) 55%, rgba(28, 14, 44, 0.97) 100%) !important;
+  border: 2px solid rgba(244, 114, 182, 0.65) !important;
+  box-shadow:
+    0 24px 68px rgba(0, 0, 0, 0.85),
+    0 0 40px rgba(168, 85, 247, 0.38),
+    inset 0 0 32px rgba(244, 114, 182, 0.12) !important;
+}
+
+.home-lobby-header {
+  background: linear-gradient(90deg, rgba(88, 28, 135, 0.65), rgba(30, 58, 138, 0.55), rgba(131, 24, 67, 0.65));
+  border-bottom: 1.5px solid rgba(244, 114, 182, 0.45);
+}
+
+/* Anime Character Fanart Showcase Strip in Lobby */
+.lobby-anime-showcase {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid rgba(251, 191, 36, 0.6);
+  height: 112px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55);
+  flex-shrink: 0;
+}
+
+.lobby-anime-art-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  width: 100%;
+  height: 100%;
+}
+
+.lobby-strip-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  filter: saturate(1.25) contrast(1.08);
+  transition: transform 0.35s ease;
+}
+
+.lobby-anime-showcase:hover .lobby-strip-img {
+  transform: scale(1.05);
+}
+
+.lobby-anime-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 10, 35, 0.25) 0%, rgba(12, 10, 30, 0.88) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 14px;
+}
+
+.lobby-anime-badge {
+  align-self: flex-start;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.9), rgba(139, 92, 246, 0.9));
+  border: 1px solid #fbcfe8;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 11px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 3px 12px rgba(236, 72, 153, 0.45);
+}
+
+.lobby-anime-theme-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.theme-bar-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #fde68a;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+.arena-theme-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.arena-pill {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #e2e8f0;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 4px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.arena-pill:hover {
+  border-color: #f472b6;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.arena-pill.active {
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  border-color: #fde68a;
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(236, 72, 153, 0.55);
+}
+
+/* 3. RANDOM BOT CHARACTER BAR IN LOBBY */
+.bot-random-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, rgba(46, 16, 101, 0.55), rgba(15, 23, 42, 0.85));
+  border: 1.5px solid rgba(192, 132, 252, 0.45);
+  border-radius: 12px;
+  padding: 9px 13px;
+}
+
+.bot-lineup-avatars {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bot-lineup-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1.5px solid rgba(251, 191, 36, 0.55);
+  border-radius: 999px;
+  padding: 4px 11px 4px 5px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+}
+
+.bot-lineup-chip img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #fbbf24;
+}
+
+.bot-lineup-chip-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.bot-lineup-chip-seat {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #c084fc;
+  text-transform: uppercase;
+}
+
+.bot-lineup-chip-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.bot-random-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.anime-random-bot-btn {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+  border: 1.5px solid #fde68a !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  padding: 7px 14px !important;
+  border-radius: 9px !important;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  transition: all 0.18s ease;
+}
+
+.anime-random-bot-btn:hover {
+  transform: translateY(-1px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+.bot-auto-random-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.bot-auto-random-toggle input {
+  accent-color: #ec4899;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* 4. FULL GACHA HISTORY FILTER BAR & SCROLLABLE TABLE */
+.gacha-history-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.gacha-history-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.gacha-filter-btn {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: #cbd5e1;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.gacha-filter-btn:hover {
+  border-color: #fbbf24;
+  color: #fff;
+}
+
+.gacha-filter-btn.active {
+  background: linear-gradient(135deg, #f59e0b, #8b5cf6);
+  border-color: #fef08a;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+}
+
+.gacha-history-list.full-history-scroll {
+  max-height: 370px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.gacha-pity-curve-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.gacha-pity-step-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gacha-pity-step-card.current-zone {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(88, 28, 135, 0.5));
+  border: 1.5px solid #fbbf24;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.35);
+}
+
+.gacha-pity-step-range {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.gacha-pity-step-rate {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fde68a;
+}
+
+.gacha-pity-step-desc {
+  font-size: 10.5px;
+  color: #cbd5e1;
+}

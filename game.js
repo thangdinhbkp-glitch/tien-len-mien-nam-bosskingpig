@@ -1108,6 +1108,8 @@ class TienLenGame {
     this.botTimer = null;
 
     this.bindDOM();
+    this.applyArenaThemeUI();
+    this.randomizeBotCharacters(false);
     this.renderSoloPlayerCountUI();
     this.renderBetTiers();
     this.renderLobbyModal();
@@ -1331,6 +1333,9 @@ class TienLenGame {
     this.selectedBannerBurstId = 'raiden';
     this.totalWishes = 0;
     this.gachaHistory = [];
+    this.gachaHistoryFilter = 'all';
+    this.arenaTheme = 'inazuma';
+    this.autoRandomizeBots = true;
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
     this.dailyRecoveredOnLoad = false;
@@ -1353,6 +1358,12 @@ class TienLenGame {
         if ([2, 3, 4].includes(Number(data.soloPlayerCount))) {
           this.savedSoloPlayerCount = Number(data.soloPlayerCount);
         }
+        if (data.arenaTheme) {
+          this.arenaTheme = data.arenaTheme;
+        }
+        if (typeof data.autoRandomizeBots === 'boolean') {
+          this.autoRandomizeBots = data.autoRandomizeBots;
+        }
         if (typeof data.gachaPity5 === 'number') this.gachaPity5 = Math.max(0, Math.min(89, data.gachaPity5));
         if (typeof data.gachaPity4 === 'number') this.gachaPity4 = Math.max(0, Math.min(9, data.gachaPity4));
         if (typeof data.gachaGuaranteed5 === 'boolean') this.gachaGuaranteed5 = data.gachaGuaranteed5;
@@ -1360,8 +1371,10 @@ class TienLenGame {
         if (data.selectedBannerBurstId && GENSHIN_BURSTS.some((b) => b.id === data.selectedBannerBurstId)) {
           this.selectedBannerBurstId = data.selectedBannerBurstId;
         }
-        if (typeof data.totalWishes === 'number') this.totalWishes = data.totalWishes;
-        if (Array.isArray(data.gachaHistory)) this.gachaHistory = data.gachaHistory.slice(0, 40);
+        if (typeof data.totalWishes === 'number') this.totalWishes = Math.max(this.totalWishes || 0, data.totalWishes);
+        if (Array.isArray(data.gachaHistory) && data.gachaHistory.length >= this.gachaHistory.length) {
+          this.gachaHistory = data.gachaHistory.slice(0, 5000);
+        }
         if (Array.isArray(data.unlockedSkins)) {
           data.unlockedSkins.forEach((id) => {
             if (ANIME_CARD_SKINS.some((s) => s.id === id)) {
@@ -1482,6 +1495,8 @@ class TienLenGame {
         playerName: this.savedPlayerName || 'Thắng',
         betPerCard: this.betPerCard || 100,
         soloPlayerCount: this.soloPlayerCount || 4,
+        arenaTheme: this.arenaTheme || 'inazuma',
+        autoRandomizeBots: this.autoRandomizeBots !== false,
         unlockedSkins: Array.from(this.unlockedSkins),
         equippedSkin: this.equippedSkin,
         unlockedAvatars: Array.from(this.unlockedAvatars),
@@ -1495,7 +1510,7 @@ class TienLenGame {
         gachaGuaranteed4: !!this.gachaGuaranteed4,
         selectedBannerBurstId: this.selectedBannerBurstId || 'raiden',
         totalWishes: this.totalWishes || 0,
-        gachaHistory: (this.gachaHistory || []).slice(0, 40),
+        gachaHistory: (this.gachaHistory || []).slice(0, 5000),
         lastDailyDate: this.lastDailyDate || today,
         dailyReliefUsed: this.dailyReliefUsed || 0,
         dailyQuestsDate: this.dailyQuestsDate || today,
@@ -1503,7 +1518,8 @@ class TienLenGame {
       };
       const jsonStr = JSON.stringify(payload);
       localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
-      document.cookie = `tlmn_vault_v9=${encodeURIComponent(jsonStr)}; path=/; max-age=31536000; SameSite=Lax`;
+      const cookiePayload = { ...payload, gachaHistory: (this.gachaHistory || []).slice(0, 20) };
+      document.cookie = `tlmn_vault_v9=${encodeURIComponent(JSON.stringify(cookiePayload))}; path=/; max-age=31536000; SameSite=Lax`;
       window.name = `TLMN_VAULT_V9:${jsonStr}`;
 
       const lobbyBal = document.getElementById('lobby-balance-display');
@@ -1552,9 +1568,20 @@ class TienLenGame {
   // - Trùng đồ: Tự động quy đổi Tinh Huy / Tinh Trần hoàn trả Xu (+600 / +3,200 / +16,000 Xu)
   // ============================================================================
   get5StarDropChance(pullNum5) {
-    if (pullNum5 <= 73) return 0.006; // 0.6% cơ bản từ lượt 1 -> 73
-    if (pullNum5 >= 90) return 1.0;   // 100% Bảo hiểm cứng ở lượt 90
-    return Math.min(1.0, 0.006 + (pullNum5 - 73) * 0.06); // Soft Pity: tăng +6% mỗi lượt từ lượt 74
+    const p = Math.max(1, Number(pullNum5) || 1);
+    if (p >= 90) return 1.0; // 100% Bảo hiểm cứng (Hard Pity) ở lượt 90
+    if (p <= 73) {
+      // Tăng dần nhẹ theo mỗi lượt roll từ 1 -> 73: bắt đầu 0.60% ở lượt 1, tăng +0.04% mỗi lượt (đạt 3.48% ở lượt 73)
+      return 0.006 + (p - 1) * 0.0004;
+    }
+    // Soft Pity (Bảo hiểm mềm) từ lượt 74 -> 89: nhảy vọt +6% mỗi lượt (từ 9.5% ở lượt 74 lên 99.5% ở lượt 89)
+    return Math.min(0.995, 0.035 + (p - 73) * 0.06);
+  }
+
+  setGachaHistoryFilter(filterVal = 'all') {
+    this.gachaHistoryFilter = filterVal;
+    sfx.click();
+    this.renderShopModal();
   }
 
   get4StarDropChance(pullNum4) {
@@ -1647,6 +1674,8 @@ class TienLenGame {
       }
 
       const result = {
+        pullNo: this.totalWishes,
+        timeStr: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         star: 5,
         category: 'burst',
         typeLabel: '🎬 KỸ NĂNG NỘ 5★',
@@ -1659,7 +1688,7 @@ class TienLenGame {
         rateNote,
       };
       this.gachaHistory.unshift(result);
-      this.gachaHistory = this.gachaHistory.slice(0, 40);
+      if (this.gachaHistory.length > 5000) this.gachaHistory.length = 5000;
       return result;
     }
 
@@ -1695,6 +1724,8 @@ class TienLenGame {
       }
 
       const result = {
+        pullNo: this.totalWishes,
+        timeStr: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         star: 4,
         category: 'skin',
         typeLabel: '🃏 DECOR BÀI 4★',
@@ -1707,7 +1738,7 @@ class TienLenGame {
         rateNote,
       };
       this.gachaHistory.unshift(result);
-      this.gachaHistory = this.gachaHistory.slice(0, 40);
+      if (this.gachaHistory.length > 5000) this.gachaHistory.length = 5000;
       return result;
     }
 
@@ -1725,6 +1756,8 @@ class TienLenGame {
     }
 
     const result = {
+      pullNo: this.totalWishes,
+      timeStr: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       star: 3,
       category: 'avatar',
       typeLabel: '🖼️ AVATAR 3★',
@@ -1737,7 +1770,7 @@ class TienLenGame {
       rateNote: '3★ Tiêu chuẩn',
     };
     this.gachaHistory.unshift(result);
-    this.gachaHistory = this.gachaHistory.slice(0, 40);
+    if (this.gachaHistory.length > 5000) this.gachaHistory.length = 5000;
     return result;
   }
 
@@ -2017,7 +2050,7 @@ class TienLenGame {
                   <div class="gacha-pity-bar-fill gold" style="width:${pity5Pct}%;"></div>
                 </div>
                 <div class="gacha-pity-sub">
-                  <span>Tỷ lệ nổ lượt kế (#${nextPull5}): <strong>${curChance5}%</strong> ${nextPull5 >= 74 ? '🔥 (Đang trong vùng Soft Pity +6%/lượt!)' : '(Soft Pity từ lượt 74)'}</span>
+                  <span>Tỷ lệ nổ lượt kế (#${nextPull5}): <strong>${curChance5}%</strong> ${nextPull5 >= 74 ? '🔥 (Soft Pity +6%/lượt!)' : '(Tăng dần mỗi lượt + Soft Pity từ 74)'}</span>
                   <span>Còn tối đa <strong>${90 - (this.gachaPity5 || 0)}</strong> lượt</span>
                 </div>
               </div>
@@ -2053,6 +2086,11 @@ class TienLenGame {
               <button class="gacha-wish-btn wish-10x" onclick="window.tienLenGame.performWish(10)">
                 <span class="gacha-wish-btn-title">🌟 Cầu Nguyện ×10</span>
                 <span class="gacha-wish-btn-cost">🪙 ${WISH_COST_TEN.toLocaleString()} Xu • Đảm bảo ≥ 1 món 4★+</span>
+              </button>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;">
+              <button class="tool-btn" style="width:100%;padding:7px 12px;font-weight:800;" onclick="window.tienLenGame.switchShopTab('history')">
+                📜 Xem Toàn Bộ Lịch Sử Roll (${(this.gachaHistory || []).length} lượt) & Bảng Tỷ Lệ Tăng Dần
               </button>
             </div>
           </div>
@@ -2207,47 +2245,104 @@ class TienLenGame {
       }).join('');
     }
 
-    // 5. RENDER TAB LỊCH SỬ CẦU NGUYỆN & PHÂN TÍCH CƠ CHẾ GACHA GENSHIN
+    // 5. RENDER TAB TOÀN BỘ LỊCH SỬ CẦU NGUYỆN & BẢNG TỶ LỆ TĂNG DẦN THEO SỐ ROLL
     const historyPanel = document.getElementById('shop-history-panel');
     if (historyPanel) {
+      const allHistory = this.gachaHistory || [];
+      const curFilter = this.gachaHistoryFilter || 'all';
+      const count5 = allHistory.filter((h) => h.star === 5).length;
+      const count4 = allHistory.filter((h) => h.star === 4).length;
+      const count3 = allHistory.filter((h) => h.star === 3).length;
+
+      const filteredHistory =
+        curFilter === '5'
+          ? allHistory.filter((h) => h.star === 5)
+          : curFilter === '4'
+          ? allHistory.filter((h) => h.star === 4)
+          : curFilter === '3'
+          ? allHistory.filter((h) => h.star === 3)
+          : allHistory;
+
+      const totalLen = allHistory.length;
       const historyItemsHtml =
-        !this.gachaHistory || this.gachaHistory.length === 0
-          ? `<div style="color:#94a3b8;font-size:13px;padding:12px 0;">Chưa có lịch sử Cầu Nguyện. Hãy thử vận may ở tab 🌠 Sảnh Cầu Nguyện nhé!</div>`
-          : this.gachaHistory
-              .map((h, i) => {
+        filteredHistory.length === 0
+          ? `<div style="color:#94a3b8;font-size:13px;padding:12px 0;">Chưa có lịch sử Cầu Nguyện ở mục lọc này. Hãy thử vận may ở tab 🌠 Sảnh Cầu Nguyện nhé!</div>`
+          : filteredHistory
+              .map((h) => {
+                const idxInAll = allHistory.indexOf(h);
+                const rollNo = h.pullNo || Math.max(1, (this.totalWishes || totalLen) - idxInAll);
                 const color = h.star === 5 ? '#fde047' : h.star === 4 ? '#d8b4fe' : '#93c5fd';
+                const timeBadge = h.timeStr ? ` • 🕒 ${h.timeStr}` : '';
                 return `
                   <div class="gacha-history-item">
                     <div>
-                      <strong style="color:${color};">[${h.star}★] ${h.name}</strong>
-                      <div style="font-size:11px;color:#94a3b8;">${h.typeLabel} • ${h.rateNote} (Pity: ${h.pityUsed})</div>
+                      <strong style="color:${color};">#${rollNo} • [${h.star}★] ${h.name}</strong>
+                      <div style="font-size:11px;color:#94a3b8;">${h.typeLabel} • ${h.rateNote} (Pity: ${h.pityUsed})${timeBadge}</div>
                     </div>
                     <div style="text-align:right;font-weight:800;font-size:11.5px;color:${h.isNew ? '#34d399' : '#fbbf24'};">
-                      ${h.isNew ? '✨ MỚI' : `♻️ +${h.refund.toLocaleString()} Xu`}
+                      ${h.isNew ? '✨ MỚI' : `♻️ +${(h.refund || 0).toLocaleString()} Xu`}
                     </div>
                   </div>
                 `;
               })
               .join('');
 
+      const nextP5 = (this.gachaPity5 || 0) + 1;
+      const nextChanceStr = (this.get5StarDropChance(nextP5) * 100).toFixed(2);
+
       historyPanel.innerHTML = `
         <div class="gacha-rules-card">
-          <h3>📖 Phân Tích Chi Tiết Cơ Chế Gacha Banner Nhân Vật Genshin Impact</h3>
+          <h3>📈 Cơ Chế Tăng Tỷ Lệ Nổ 5★ Khi Roll Càng Nhiều (Tăng Dần + Soft Pity + Hard Pity)</h3>
           <div style="font-size:12.5px;color:#e2e8f0;line-height:1.55;display:flex;flex-direction:column;gap:6px;">
-            <div>• <strong>⭐⭐⭐⭐⭐ 5 Sao — Hiệu Ứng Kỹ Năng Nộ (10 Nhân Vật):</strong> Tỷ lệ cơ bản <strong>0.6%</strong> (lượt 1–73). Từ lượt <strong>74 (Soft Pity / Bảo hiểm mềm)</strong>, mỗi lượt tăng thêm <strong>+6%</strong> xác suất. Lượt thứ <strong>90 (Hard Pity)</strong> chắc chắn <strong>100% nổ 5★</strong>!</div>
-            <div>• <strong>☯️ Cơ chế 50/50, Capturing Radiance & Đại Bảo Hiểm:</strong> Khi nổ 5★, có <strong>55%</strong> trúng ngay Nhân Vật 5★ UP đang chọn trên Banner. Nếu lệch sang 5★ khác, lần nổ 5★ kế tiếp được <strong>🔥 Đại Bảo Hiểm 100% trúng Nhân Vật UP</strong>!</div>
-            <div>• <strong>⭐⭐⭐⭐ 4 Sao — Decor / Skin Bài Fanart (29 Bộ Bài):</strong> Tỷ lệ cơ bản <strong>5.1%</strong> (lượt 1–8), lượt 9 vọt lên <strong>56.1%</strong> và lượt <strong>10 chắc chắn 100% nổ ≥ 4★</strong> (Kèm bảo hiểm 50/50 cho 3 bộ bài 4★ Rate-Up trên Banner).</div>
-            <div>• <strong>⭐⭐⭐ 3 Sao — Avatar Fanart Nhân Vật (29 Avatar):</strong> Rơi ở các lượt còn lại (<strong>94.3%</strong> cơ bản).</div>
-            <div>• <strong>♻️ Cơ chế Trùng Đồ Hoàn Trả Xu (Tinh Huy / Tinh Trần):</strong>
-              <br/>— Trùng <strong>3★ Avatar</strong>: Hoàn trả <strong>+${DUPLICATE_REFUND_COINS[3].toLocaleString()} Xu</strong>
-              <br/>— Trùng <strong>4★ Decor Bài</strong>: Hoàn trả <strong>+${DUPLICATE_REFUND_COINS[4].toLocaleString()} Xu</strong>
-              <br/>— Trùng <strong>5★ Kỹ Năng Nộ</strong>: Hoàn trả <strong>+${DUPLICATE_REFUND_COINS[5].toLocaleString()} Xu</strong>
+            <div>• <strong>Không phải đợi tới đúng 90 mới nổ!</strong> Tỷ lệ nổ 5★ <strong>tăng dần sau mỗi lượt bạn roll</strong> và bùng nổ cực mạnh từ lượt 74 (Soft Pity):</div>
+            <div class="gacha-pity-curve-grid">
+              <div class="gacha-pity-step-card ${nextP5 <= 30 ? 'current-zone' : ''}">
+                <span class="gacha-pity-step-range">Lượt Roll 1 ➔ 30</span>
+                <span class="gacha-pity-step-rate">0.60% ➔ 1.76%</span>
+                <span class="gacha-pity-step-desc">Tăng nhẹ +0.04% sau mỗi lượt roll (Có thể nổ sớm!)</span>
+              </div>
+              <div class="gacha-pity-step-card ${nextP5 >= 31 && nextP5 <= 73 ? 'current-zone' : ''}">
+                <span class="gacha-pity-step-range">Lượt Roll 31 ➔ 73</span>
+                <span class="gacha-pity-step-rate">1.80% ➔ 3.48%</span>
+                <span class="gacha-pity-step-desc">Tích lũy vận khí trước ngưỡng Bảo Hiểm Mềm</span>
+              </div>
+              <div class="gacha-pity-step-card ${nextP5 >= 74 && nextP5 <= 89 ? 'current-zone' : ''}">
+                <span class="gacha-pity-step-range">🔥 Lượt 74 ➔ 89 (Soft Pity)</span>
+                <span class="gacha-pity-step-rate">9.5% ➔ 99.5%</span>
+                <span class="gacha-pity-step-desc">Tăng vọt <strong>+6% mỗi lượt</strong> (Đa số nổ vàng ở lượt 75–82!)</span>
+              </div>
+              <div class="gacha-pity-step-card ${nextP5 >= 90 ? 'current-zone' : ''}">
+                <span class="gacha-pity-step-range">👑 Lượt 90 (Hard Pity)</span>
+                <span class="gacha-pity-step-rate">100.00%</span>
+                <span class="gacha-pity-step-desc">Bảo hiểm cứng: Chắc chắn 100% nổ 5★!</span>
+              </div>
             </div>
+            <div style="margin-top:4px;color:#fde68a;font-weight:700;">
+              🎯 Trạng thái Pity hiện tại của bạn: Đang ở lượt <strong>#${nextP5}/90</strong> ➔ Xác suất nổ 5★ ngay lượt kế tiếp là <strong>${nextChanceStr}%</strong>!
+            </div>
+            <div>• <strong>☯️ Cơ chế 50/50 & Đại Bảo Hiểm:</strong> Khi nổ 5★, có <strong>55%</strong> trúng ngay Nhân Vật 5★ UP đang chọn. Nếu lệch, lần nổ 5★ kế tiếp được <strong>🔥 Đại Bảo Hiểm 100% trúng UP</strong>!</div>
+            <div>• <strong>⭐⭐⭐⭐ 4 Sao (Decor Bài):</strong> Lượt 1–8: <strong>5.1%</strong> • Lượt 9 (Soft Pity): <strong>56.1%</strong> • Lượt 10: <strong>100% nổ ≥ 4★</strong>.</div>
           </div>
         </div>
         <div class="gacha-log-card">
-          <h3>📜 Lịch Sử 40 Lượt Cầu Nguyện Gần Nhất</h3>
-          <div class="gacha-history-list">${historyItemsHtml}</div>
+          <div class="gacha-history-filter-bar">
+            <h3 style="margin:0;">📜 Toàn Bộ Lịch Sử Cầu Nguyện (Đã lưu ${allHistory.length.toLocaleString()} lượt • Tổng: ${(this.totalWishes || allHistory.length).toLocaleString()} Roll)</h3>
+            <div class="gacha-history-filters">
+              <button class="gacha-filter-btn ${curFilter === 'all' ? 'active' : ''}" onclick="window.tienLenGame.setGachaHistoryFilter('all')">
+                Tất cả (${allHistory.length})
+              </button>
+              <button class="gacha-filter-btn ${curFilter === '5' ? 'active' : ''}" onclick="window.tienLenGame.setGachaHistoryFilter('5')">
+                ⭐⭐⭐⭐⭐ 5★ (${count5})
+              </button>
+              <button class="gacha-filter-btn ${curFilter === '4' ? 'active' : ''}" onclick="window.tienLenGame.setGachaHistoryFilter('4')">
+                ⭐⭐⭐⭐ 4★ (${count4})
+              </button>
+              <button class="gacha-filter-btn ${curFilter === '3' ? 'active' : ''}" onclick="window.tienLenGame.setGachaHistoryFilter('3')">
+                ⭐⭐⭐ 3★ (${count3})
+              </button>
+            </div>
+          </div>
+          <div class="gacha-history-list full-history-scroll">${historyItemsHtml}</div>
         </div>
       `;
     }
@@ -2907,6 +3002,23 @@ class TienLenGame {
 
     this.renderDailyQuestsUI();
 
+    document.getElementById('btn-arena-theme')?.addEventListener('click', () => {
+      this.cycleArenaTheme();
+    });
+
+    document.getElementById('btn-top-random-bots')?.addEventListener('click', () => {
+      if (this.isMultiplayer && !this.isHost) {
+        alert('Chỉ Chủ phòng mới có thể đổi nhân vật Bot!');
+        return;
+      }
+      this.randomizeBotCharacters(true);
+    });
+
+    const autoRandomChk = document.getElementById('chk-auto-random-bots');
+    if (autoRandomChk) {
+      autoRandomChk.checked = this.autoRandomizeBots !== false;
+    }
+
     this.btnPlay.addEventListener('click', () => this.onHumanPlay());
     this.btnPass.addEventListener('click', () => this.onHumanPass());
     this.btnSort.addEventListener('click', () => this.toggleSortMode());
@@ -2926,6 +3038,7 @@ class TienLenGame {
         document.getElementById('share-link-input').value = this.getShareableRoomUrl(this.roomId);
       }
       this.modalWifi.classList.remove('hidden');
+      this.renderSoloPlayerCountUI();
       this.renderBetTiers();
       this.renderLobbyModal();
       sfx.click();
@@ -2933,9 +3046,16 @@ class TienLenGame {
 
     document.getElementById('btn-close-wifi').addEventListener('click', () => {
       this.modalWifi.classList.add('hidden');
-      if (!this.isMultiplayer && !this.isGameOver) {
-        clearTimeout(this.botTimer);
-        this.promptCurrentTurn();
+      if (!this.isMultiplayer) {
+        const curActiveCount = this.players.filter((p) => p.active).length;
+        if (curActiveCount !== (this.soloPlayerCount || 4)) {
+          this.switchToSoloBotMode();
+          return;
+        }
+        if (!this.isGameOver) {
+          clearTimeout(this.botTimer);
+          this.promptCurrentTurn();
+        }
       }
     });
 
@@ -2971,8 +3091,8 @@ class TienLenGame {
     });
 
     document.getElementById('btn-solo-bot-mode').addEventListener('click', () => {
-      this.switchToSoloBotMode();
       this.modalWifi.classList.add('hidden');
+      this.switchToSoloBotMode();
     });
 
     document.getElementById('btn-start-wifi-match').addEventListener('click', () => {
@@ -3129,16 +3249,143 @@ class TienLenGame {
     this.renderBetTiers();
   }
 
+  // ============================================================================
+  // ANIME ARENA THEME & RANDOM BOT CHARACTER SYSTEM (29 NHÂN VẬT GENSHIN)
+  // ============================================================================
+  selectArenaTheme(themeId) {
+    const validThemes = ['inazuma', 'fontaine', 'abyss', 'natlan', 'cryo'];
+    this.arenaTheme = validThemes.includes(themeId) ? themeId : 'inazuma';
+    sfx.click();
+    this.applyArenaThemeUI();
+    this.saveShopProfile();
+  }
+
+  cycleArenaTheme() {
+    const order = ['inazuma', 'fontaine', 'abyss', 'natlan', 'cryo'];
+    const idx = order.indexOf(this.arenaTheme || 'inazuma');
+    const next = order[(idx + 1) % order.length];
+    this.selectArenaTheme(next);
+  }
+
+  applyArenaThemeUI() {
+    const themeLabels = {
+      inazuma: 'Inazuma ⚡',
+      fontaine: 'Fontaine 💧',
+      abyss: 'Vực Sâu 🌌',
+      natlan: 'Natlan 🔥',
+      cryo: 'Băng Hoa ❄️',
+    };
+    const cur = this.arenaTheme || 'inazuma';
+    const tableEl = document.getElementById('casino-table');
+    if (tableEl) {
+      tableEl.classList.remove(
+        'arena-theme-inazuma',
+        'arena-theme-fontaine',
+        'arena-theme-abyss',
+        'arena-theme-natlan',
+        'arena-theme-cryo'
+      );
+      tableEl.classList.add(`arena-theme-${cur}`);
+    }
+    const labelEl = document.getElementById('arena-theme-label');
+    if (labelEl) {
+      labelEl.textContent = themeLabels[cur] || 'Inazuma ⚡';
+    }
+    document.querySelectorAll('.arena-pill').forEach((btn) => {
+      btn.classList.toggle('active', btn.getAttribute('data-theme') === cur);
+    });
+  }
+
+  getCharacterBurstForBot(charId) {
+    if (GENSHIN_BURSTS.some((b) => b.id === charId)) return charId;
+    const pool = GENSHIN_BURSTS.map((b) => b.id);
+    let hash = 0;
+    for (let i = 0; i < charId.length; i++) hash = (hash * 31 + charId.charCodeAt(i)) >>> 0;
+    return pool[hash % pool.length] || 'raiden';
+  }
+
+  toggleAutoRandomBots(checked) {
+    this.autoRandomizeBots = !!checked;
+    sfx.click();
+    this.saveShopProfile();
+  }
+
+  randomizeBotCharacters(notify = false) {
+    if (!this.players || this.players.length < 4) return;
+    const currentSeat2Char = this.players[2]?.cardSkin || '';
+    const shuffled = [...GENSHIN_FANART_ROSTER].sort(() => Math.random() - 0.5);
+
+    // Đảm bảo ghế đối diện (Ghế #2 trong Solo 1v1) luôn đổi sang nhân vật MỚI không trùng ván trước!
+    let picked = [];
+    for (const c of shuffled) {
+      if (picked.length === 1 && c.id === currentSeat2Char && shuffled.length > 3) {
+        continue;
+      }
+      if (!picked.some((x) => x.id === c.id)) {
+        picked.push(c);
+      }
+      if (picked.length === 3) break;
+    }
+
+    [1, 2, 3].forEach((seatIdx, idx) => {
+      const p = this.players[seatIdx];
+      const ch = picked[idx] || GENSHIN_FANART_ROSTER[idx];
+      if (!p || !ch) return;
+      if (!this.isMultiplayer || p.isBot) {
+        const shortName = ch.name.split('(')[0].trim();
+        p.name = `Bot ${shortName} ${ch.crest}`;
+        p.avatar = ch.id;
+        p.cardSkin = ch.id;
+        const burstId = this.getCharacterBurstForBot(ch.id);
+        p.chopBurst = burstId;
+        p.winBurst = burstId;
+      }
+    });
+
+    this.updateArenaBackdropCharacters();
+    this.renderSoloPlayerCountUI();
+    this.renderSeats();
+    if (this.isMultiplayer && this.isHost) {
+      this.renderLobbyModal();
+      this.broadcastState();
+    }
+
+    if (notify) {
+      sfx.click();
+      const activeBots = this.players.filter((p, i) => i > 0 && p.active && p.isBot);
+      const names = (activeBots.length > 0 ? activeBots : [this.players[2]])
+        .map((b) => `<strong>${b.name}</strong>`)
+        .join(', ');
+      this.addLog(`🎲 <strong>Đổi Nhân Vật Đối Thủ Bot:</strong> Bàn đấu hiện tại gồm ${names}!`, 'log-win');
+    }
+  }
+
+  updateArenaBackdropCharacters() {
+    const leftArt = document.getElementById('arena-char-left');
+    const rightArt = document.getElementById('arena-char-right');
+    if (!this.players || this.players.length < 4) return;
+
+    const mySkin = this.players[this.mySeatId]?.cardSkin;
+    const leftCharId =
+      mySkin && mySkin !== 'classic'
+        ? mySkin
+        : this.players[1]?.active
+        ? this.players[1].cardSkin
+        : 'raiden';
+    const rightCharId = this.players[2]?.cardSkin || 'furina';
+
+    if (leftArt) {
+      leftArt.style.backgroundImage = `url('fanart/${leftCharId}.jpg')`;
+    }
+    if (rightArt) {
+      rightArt.style.backgroundImage = `url('fanart/${rightCharId}.jpg')`;
+    }
+  }
+
   selectSoloPlayerCount(count) {
     const validCount = [2, 3, 4].includes(Number(count)) ? Number(count) : 4;
     this.soloPlayerCount = validCount;
     this.savedSoloPlayerCount = validCount;
-
-    if (!this.isMultiplayer && this.players && this.players.length === 4) {
-      this.players[1].active = validCount >= 3;
-      this.players[2].active = true;
-      this.players[3].active = validCount === 4;
-    }
 
     const modeLabel = document.getElementById('selected-mode-label');
     if (modeLabel && this.selectedLobbyMode === 'bot') {
@@ -3158,17 +3405,47 @@ class TienLenGame {
       if (card) card.classList.toggle('active', n === count);
     });
 
+    const b1 = this.players?.[1]?.name || 'Bot Furina 💧';
+    const b2 = this.players?.[2]?.name || 'Bot Raiden ⚡';
+    const b3 = this.players?.[3]?.name || 'Bot Skirk 🌌';
+
+    const desc2 = document.getElementById('bot-desc-2');
+    if (desc2) desc2.innerHTML = `Đấu tay đôi trực diện với <strong>${b2}</strong>`;
+    const desc3 = document.getElementById('bot-desc-3');
+    if (desc3) desc3.innerHTML = `Đấu cùng <strong>${b1}</strong> & <strong>${b2}</strong>`;
+    const desc4 = document.getElementById('bot-desc-4');
+    if (desc4) desc4.innerHTML = `Đủ 4 nhà: <strong>${b1}</strong> • <strong>${b2}</strong> • <strong>${b3}</strong>`;
+
+    const lineupEl = document.getElementById('bot-lineup-avatars');
+    if (lineupEl && this.players) {
+      const activeIndices = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+      const seatLabels = { 1: 'Ghế Trái', 2: 'Ghế Đối Diện (1v1)', 3: 'Ghế Phải' };
+      lineupEl.innerHTML = activeIndices
+        .map((idx) => {
+          const p = this.players[idx];
+          if (!p) return '';
+          const charId = p.cardSkin || 'raiden';
+          return `
+            <div class="bot-lineup-chip">
+              <img src="fanart/${charId}.jpg" alt="${p.name}" />
+              <div class="bot-lineup-chip-info">
+                <span class="bot-lineup-chip-seat">${seatLabels[idx]}</span>
+                <span class="bot-lineup-chip-name">${p.name}</span>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
     const previewEl = document.getElementById('bot-opponents-preview');
     if (previewEl) {
       if (count === 2) {
-        previewEl.innerHTML =
-          '<strong>⚔️ Bàn 2 Người (Solo 1v1 Bot):</strong> Bạn đấu tay đôi trực diện với <strong>Bot Raiden Shogun ⚡</strong> (Ngồi đối diện)';
+        previewEl.innerHTML = `<strong>⚔️ Bàn 2 Người (Solo 1v1 Bot):</strong> Bạn đấu tay đôi trực diện với <strong>${b2}</strong> (Có thể bấm 🎲 Random để đổi nhân vật khác!)`;
       } else if (count === 3) {
-        previewEl.innerHTML =
-          '<strong>🔥 Bàn 3 Người (Tam Hùng 1v2 Bot):</strong> Bạn đấu với <strong>Bot Furina 💧</strong> (Trái) & <strong>Bot Raiden Shogun ⚡</strong> (Đối diện)';
+        previewEl.innerHTML = `<strong>🔥 Bàn 3 Người (Tam Hùng 1v2 Bot):</strong> Bạn đấu với <strong>${b1}</strong> (Trái) & <strong>${b2}</strong> (Đối diện)`;
       } else {
-        previewEl.innerHTML =
-          '<strong>👑 Bàn 4 Người (Đủ Bàn 1v3 Bot):</strong> Bạn đấu với <strong>Bot Furina 💧</strong>, <strong>Bot Raiden Shogun ⚡</strong> & <strong>Bot Skirk 🌌</strong>';
+        previewEl.innerHTML = `<strong>👑 Bàn 4 Người (Đủ Bàn 1v3 Bot):</strong> Bạn đấu với <strong>${b1}</strong>, <strong>${b2}</strong> & <strong>${b3}</strong>`;
       }
     }
   }
@@ -3394,17 +3671,28 @@ class TienLenGame {
     this.isHost = true;
     this.roomId = null;
     this.mySeatId = 0;
+    this.modalWifi?.classList.add('hidden');
 
     const myName = document.getElementById('input-player-name')?.value.trim() || this.savedPlayerName || 'Thắng';
     const botBankroll = Math.max(INITIAL_COINS, (this.betPerCard || 100) * 500);
     const count = this.soloPlayerCount || 4;
 
+    const prevB1 = this.players?.[1];
+    const prevB2 = this.players?.[2];
+    const prevB3 = this.players?.[3];
+
     this.players = [
       { id: 0, name: myName, avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: count >= 3, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: count === 4, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 1, name: prevB1?.name || 'Bot Furina 💧', avatar: prevB1?.avatar || 'furina', cardSkin: prevB1?.cardSkin || 'furina', chopBurst: prevB1?.chopBurst || 'furina', winBurst: prevB1?.winBurst || 'furina', isBot: true, active: count >= 3, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: prevB2?.name || 'Bot Raiden ⚡', avatar: prevB2?.avatar || 'raiden', cardSkin: prevB2?.cardSkin || 'raiden', chopBurst: prevB2?.chopBurst || 'raiden', winBurst: prevB2?.winBurst || 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: prevB3?.name || 'Bot Skirk 🌌', avatar: prevB3?.avatar || 'skirk', cardSkin: prevB3?.cardSkin || 'skirk', chopBurst: prevB3?.chopBurst || 'skirk', winBurst: prevB3?.winBurst || 'skirk', isBot: true, active: count === 4, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
     ];
+
+    if (this.autoRandomizeBots !== false) {
+      this.randomizeBotCharacters(false);
+    } else {
+      this.updateArenaBackdropCharacters();
+    }
 
     document.getElementById('wifi-status-label').textContent = `Đấu Bot (${count} Người) / Đổi Cược`;
     document.getElementById('wifi-room-box').classList.add('hidden');
@@ -3829,18 +4117,22 @@ class TienLenGame {
 
   toggleBotInLobby(seatIdx, addBot) {
     if (!this.isHost || seatIdx <= 0 || seatIdx > 3) return;
-    const botNames = ['', 'Bot Furina', 'Bot Raiden Shogun', 'Bot Skirk'];
-    const botSkins = ['', 'furina', 'raiden', 'skirk'];
-    const botBursts = ['', 'furina', 'raiden', 'skirk'];
     const p = this.players[seatIdx];
     if (addBot) {
+      const usedSkins = new Set(this.players.map((pl) => pl.cardSkin));
+      const available = GENSHIN_FANART_ROSTER.filter((c) => !usedSkins.has(c.id));
+      const pick =
+        available[Math.floor(Math.random() * available.length)] ||
+        GENSHIN_FANART_ROSTER[seatIdx % GENSHIN_FANART_ROSTER.length];
+      const shortName = pick.name.split('(')[0].trim();
+      const burstId = this.getCharacterBurstForBot(pick.id);
       p.active = true;
       p.isBot = true;
-      p.name = botNames[seatIdx];
-      p.avatar = BOT_ANIME_AVATARS[seatIdx];
-      p.cardSkin = botSkins[seatIdx];
-      p.chopBurst = botBursts[seatIdx];
-      p.winBurst = botBursts[seatIdx];
+      p.name = `Bot ${shortName} ${pick.crest}`;
+      p.avatar = pick.id;
+      p.cardSkin = pick.id;
+      p.chopBurst = burstId;
+      p.winBurst = burstId;
       p.coins = Math.max(INITIAL_COINS, (this.betPerCard || 100) * 500);
       p.clientId = null;
     } else {
@@ -3887,6 +4179,13 @@ class TienLenGame {
     clearTimeout(this.botTimer);
     this.modalSummary.classList.add('hidden');
     this.btnShowSummary.classList.add('hidden');
+
+    if (!this.isMultiplayer && !resetHistory && this.autoRandomizeBots !== false) {
+      this.randomizeBotCharacters(false);
+    } else {
+      this.updateArenaBackdropCharacters();
+    }
+
     this.updateBetBadges();
 
     const activePlayers = this.getActivePlayers();
@@ -3914,6 +4213,7 @@ class TienLenGame {
         p.hand = [];
       }
       p.passed = false;
+      p.declinedFourPairsCut = false;
       p.finishRank = null;
     });
 
@@ -4059,15 +4359,23 @@ class TienLenGame {
   }
 
   canPlayerCutWithFourPairs(player) {
-    if (!player.active || !this.currentCombo || player.hand.length < 8) return false;
+    if (!player || !player.active || player.declinedFourPairsCut || !this.currentCombo || player.hand.length < 8) {
+      return false;
+    }
     const moves = getValidMoves(player.hand, this.currentCombo, false, true);
     return moves.length > 0;
   }
 
   promptCurrentTurn() {
+    clearTimeout(this.botTimer);
     if (this.isGameOver) return;
 
     const currentPlayer = this.players[this.currentTurn];
+    if (!currentPlayer || !currentPlayer.active) {
+      this.advanceTurn();
+      return;
+    }
+
     this.renderAll();
 
     if (this.isMultiplayer && !this.isHost) {
@@ -4077,9 +4385,16 @@ class TienLenGame {
     if (currentPlayer.isBot) {
       this.elTurnBanner.textContent = `⏳ Đang đợi ${currentPlayer.name} suy nghĩ...`;
       if (!this.isMultiplayer && this.modalWifi && !this.modalWifi.classList.contains('hidden')) {
+        // Nếu Sảnh Chờ đang mở thì tự động kiểm tra lại sau 450ms để ngay khi đóng Sảnh Chờ là Bot đánh liền!
+        this.botTimer = setTimeout(() => this.promptCurrentTurn(), 450);
         return;
       }
-      this.botTimer = setTimeout(() => this.executeBotTurn(currentPlayer), this.botDelay);
+      const turnPlayerId = currentPlayer.id;
+      this.botTimer = setTimeout(() => {
+        if (!this.isGameOver && this.currentTurn === turnPlayerId) {
+          this.executeBotTurn(this.players[turnPlayerId]);
+        }
+      }, this.botDelay);
     } else if (currentPlayer.id === this.mySeatId) {
       if (!this.currentCombo) {
         this.elTurnBanner.textContent = '👉 Lượt của bạn mở vòng mới! Bạn được đánh bộ bất kỳ.';
@@ -4095,9 +4410,11 @@ class TienLenGame {
   }
 
   playCombo(player, combo) {
+    if (this.isGameOver || !player || !player.active || this.currentTurn !== player.id) return false;
     const beatCheck = canBeatCombo(combo, this.currentCombo);
     if (!beatCheck.ok) return false;
 
+    clearTimeout(this.botTimer);
     const playedIds = new Set(combo.cards.map((c) => c.id));
     player.hand = player.hand.filter((c) => !playedIds.has(c.id));
 
@@ -4201,9 +4518,13 @@ class TienLenGame {
     this.previousCombo = this.currentCombo;
     this.currentCombo = combo;
     this.trickOwnerId = player.id;
+    this.currentTurn = player.id;
     this.mustPlay3Spade = false;
     this.hintIndex = 0;
     player.passed = false;
+    this.players.forEach((p) => {
+      p.declinedFourPairsCut = false;
+    });
 
     // Kiểm tra người chơi vừa hết bài -> NHẤT ĂN TẤT (WIN LUÔN)
     if (player.hand.length === 0) {
@@ -4239,7 +4560,14 @@ class TienLenGame {
   }
 
   passTurn(player) {
+    if (this.isGameOver || !player || !player.active || this.currentTurn !== player.id || !this.currentCombo) {
+      return;
+    }
+    clearTimeout(this.botTimer);
     sfx.pass();
+    if (player.passed) {
+      player.declinedFourPairsCut = true;
+    }
     player.passed = true;
     this.addLog(`<em>${player.name} bỏ lượt.</em>`, 'log-pass');
     this.advanceTurn();
@@ -4265,6 +4593,7 @@ class TienLenGame {
 
     for (let step = 1; step <= 4; step++) {
       const nextId = (this.currentTurn + step) % 4;
+      if (nextId === this.trickOwnerId) continue;
       const nextPlayer = this.players[nextId];
       if (!nextPlayer.active || nextPlayer.finishRank !== null) continue;
       if (!nextPlayer.passed || this.canPlayerCutWithFourPairs(nextPlayer)) {
@@ -4278,7 +4607,10 @@ class TienLenGame {
   }
 
   startNewRoundAfterAllPass() {
-    this.players.forEach((p) => (p.passed = false));
+    this.players.forEach((p) => {
+      p.passed = false;
+      p.declinedFourPairsCut = false;
+    });
     this.currentCombo = null;
     this.previousCombo = null;
     this.selectedCardIds.clear();
@@ -4287,11 +4619,12 @@ class TienLenGame {
     this.lastChoppedPlayerId = null;
 
     let leaderId = this.trickOwnerId;
-    const owner = this.players[leaderId];
+    const owner = leaderId !== null ? this.players[leaderId] : null;
 
     if (!owner || !owner.active || owner.finishRank !== null) {
+      const startFrom = leaderId !== null ? leaderId : this.currentTurn;
       for (let step = 1; step <= 4; step++) {
-        const candidateId = (leaderId + step) % 4;
+        const candidateId = (startFrom + step) % 4;
         if (this.players[candidateId].active && this.players[candidateId].finishRank === null) {
           leaderId = candidateId;
           break;
@@ -4307,26 +4640,39 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // BOT AI DECISION ENGINE
+  // BOT AI DECISION ENGINE (GIỮ HÀNG TỨ QUÝ / ĐÔI THÔNG & ĐÁNH LẺ DỤ HEO!)
   // ============================================================================
   executeBotTurn(bot) {
-    if (this.isGameOver) return;
+    if (this.isGameOver || !bot || !bot.active || this.currentTurn !== bot.id) return;
 
     const onlyFourPairs = bot.passed && this.canPlayerCutWithFourPairs(bot);
     const validMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, onlyFourPairs);
 
     if (validMoves.length === 0) {
-      this.passTurn(bot);
+      if (this.currentCombo) {
+        this.passTurn(bot);
+      } else if (bot.hand.length > 0) {
+        // Phòng hộ tuyệt đối khi mở vòng mới: luôn đánh lá nhỏ nhất nếu bộ lọc trả rỗng
+        const fallbackSingle = classifyCombo([bot.hand[0]]);
+        if (fallbackSingle) this.playCombo(bot, fallbackSingle);
+      }
       return;
     }
 
     if (!this.currentCombo) {
-      const chosen = this.chooseBotLeadMove(bot, validMoves);
+      let chosen = null;
+      try {
+        chosen = this.chooseBotLeadMove(bot, validMoves);
+      } catch (_) {}
+      if (!chosen) chosen = validMoves[0];
       this.playCombo(bot, chosen);
       return;
     }
 
-    const chosen = this.chooseBotResponseMove(bot, validMoves);
+    let chosen = null;
+    try {
+      chosen = this.chooseBotResponseMove(bot, validMoves);
+    } catch (_) {}
     if (chosen) {
       this.playCombo(bot, chosen);
     } else {
@@ -4443,7 +4789,7 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // ĐỌC TÌNH HÌNH BÀN BÀI CHO BOT AI (THẤY SẮP THUA PHẢI XÉ BỘ RA ĐÁNH CỨU VÁN!)
+  // ĐỌC TÌNH HÌNH BÀN BÀI & CHIẾN THUẬT GIỮ HÀNG DỤ HEO CHO BOT AI
   // ============================================================================
   analyzeBotTableSituation(bot, struct) {
     const activeOpponents = this.players.filter(
@@ -4460,15 +4806,45 @@ class TienLenGame {
     const hasTwos = bot.hand.some((c) => c.rankIndex === 12);
     const has3Spade = bot.hand.some((c) => c.value === 0);
     const hasBombs = struct.bombRanks.size > 0;
+    const hasQuadOrFourPairs =
+      struct.rankCounts.some((cnt, r) => r < 12 && cnt === 4) ||
+      (() => {
+        let streak = 0;
+        for (let r = 0; r <= 11; r++) {
+          if (struct.rankCounts[r] >= 2) {
+            streak++;
+            if (streak >= 4) return true;
+          } else {
+            streak = 0;
+          }
+        }
+        return false;
+      })();
+
+    // Đếm số Heo (quân 2) còn nằm trên tay các đối thủ (chưa đánh ra bàn)
+    let opponentTwosCount = 0;
+    let opponentHasPairOfTwos = false;
+    activeOpponents.forEach((p) => {
+      const twos = p.hand.filter((c) => c.rankIndex === 12).length;
+      opponentTwosCount += twos;
+      if (twos >= 2) opponentHasPairOfTwos = true;
+    });
+
+    // CHIẾN THUẬT RÌNH CHẶT HEO (GIỮ HÀNG & ĐÁNH LẺ DỤ HEO):
+    // Nếu Bot đang có Hàng (Tứ Quý / 3-4 Đôi Thông) VÀ đối thủ vẫn còn giữ Heo trên tay:
+    // -> TUYỆT ĐỐI KHÔNG tự đánh Hàng ra bàn trống và KHÔNG xé Hàng! Phải đánh lẻ (hoặc đôi) để dụ đối thủ ra Heo!
+    const shouldHoldBombToBaitHeo = hasBombs && opponentTwosCount > 0;
 
     // 1. Nguy cơ bị CÓNG (Còn nguyên 13 lá phạt gấp đôi 26x + thối toàn bộ Heo/Hàng):
     const isCongRisk = bot.hand.length === 13 && minOpponentCards <= 10;
 
-    // 2. Nguy cơ THỐI HEO / THỐI HÀNG / THỐI 3♠ khi đối thủ đã xuống <= 7 lá:
-    const hasRotDanger = (hasTwos || has3Spade || hasBombs) && minOpponentCards <= 7;
+    // 2. Nguy cơ THỐI HEO / THỐI 3♠ khi đối thủ đã xuống <= 7 lá (hoặc Thối Hàng CHỈ KHI đối thủ đã hết sạch Heo):
+    const bombRotDanger = hasBombs && opponentTwosCount === 0 && minOpponentCards <= 5;
+    const hasRotDanger =
+      ((hasTwos || has3Spade) && minOpponentCards <= 7) || bombRotDanger;
 
     // 3. Thấy mình SẮP THUA (Đối thủ còn <= 6 lá, hoặc người cầm cái còn <= 7 lá, hoặc mình tụt lại >= 5 lá):
-    // Lúc này giữ Đôi / Sảnh trên tay chẳng để làm gì vì đối thủ 1-2 nhịp nữa là Về Nhất đếm lá!
+    // Lúc này phải xé Đôi / Sảnh thường ra đánh, NHƯNG nếu đang có Hàng chờ chặt Heo thì vẫn giữ nguyên Hàng!
     const isLosingSoon =
       isCongRisk ||
       hasRotDanger ||
@@ -4477,7 +4853,6 @@ class TienLenGame {
       cardDeficit >= 5;
 
     // 4. Báo động đỏ TỬ CHIẾN (Đối thủ còn <= 4 lá hoặc người cầm cái còn <= 4 lá):
-    // Phải xé TẤT CẢ mọi bộ (kể cả Sảnh, Đôi, Sám, Đôi Thông, Tứ Quý) để chặn đứng đối thủ!
     const isCriticalEndgame =
       minOpponentCards <= 4 ||
       ownerCards <= 4 ||
@@ -4490,6 +4865,10 @@ class TienLenGame {
       hasTwos,
       has3Spade,
       hasBombs,
+      hasQuadOrFourPairs,
+      opponentTwosCount,
+      opponentHasPairOfTwos,
+      shouldHoldBombToBaitHeo,
       isCongRisk,
       hasRotDanger,
       isLosingSoon,
@@ -4498,35 +4877,78 @@ class TienLenGame {
   }
 
   chooseBotLeadMove(bot, validMoves) {
-    // 1. Nếu có bộ đánh 1 phát hết bài luôn -> Đánh ngay!
+    // 1. Nếu có bộ đánh 1 phát hết sạch bài trên tay luôn (VD: chỉ còn đúng 4 lá Tứ Quý) -> Đánh thắng ngay!
     const instantWin = validMoves.find((m) => m.length === bot.hand.length);
     if (instantWin) return instantWin;
 
     const struct = this.analyzeBotHandStructure(bot.hand);
     const sit = this.analyzeBotTableSituation(bot, struct);
 
-    // 2. Khi đối thủ còn <= 5 lá mà Bot đang ôm Hàng (Tứ Quý / 3-4 Đôi Thông) chưa có dịp chặt:
-    // Giữ lại coi chừng THỐI HÀNG phạt cực nặng -> Cho phép xả nguyên bộ Hàng ra bàn để chạy 4-8 lá!
-    const nonBombMoves = validMoves.filter((m) => !m.isBomb);
-    const allowLeadBomb = sit.minOpponentCards <= 5 || bot.hand.length <= 6;
-    const pool = !allowLeadBomb && nonBombMoves.length > 0 ? nonBombMoves : validMoves;
+    // 2. NGUYÊN TẮC VÀNG KHI CẦM HÀNG (TỨ QUÝ / 3-4 ĐÔI THÔNG):
+    // - Nếu đối thủ VẪN CÒN HEO (sit.opponentTwosCount > 0): TUYỆT ĐỐI KHÔNG đánh Tứ Quý / Đôi Thông ra bàn trống!
+    //   Và TUYỆT ĐỐI KHÔNG xé lẻ quân trong Tứ Quý / Đôi Thông! Phải giữ nguyên Hàng và đánh LẺ để DỤ HEO đối thủ!
+    // - Chỉ khi toàn bộ 4 quân Heo đã ra hết (sit.opponentTwosCount === 0) và sắp hết ván (minOpponentCards <= 4)
+    //   thì mới xả Hàng ra bàn để chạy lá tránh Thối Hàng!
+    const allowLeadBomb =
+      sit.opponentTwosCount === 0 && (sit.minOpponentCards <= 4 || bot.hand.length <= 5);
 
-    // Hệ số bảo vệ bộ khi cầm cái: nếu sắp thua thì giảm mạnh để ưu tiên xả nhiều lá / chạy bài thối
+    const safeNonBombMoves = validMoves.filter((m) => {
+      if (m.isBomb) return false;
+      const touchesBomb = m.cards.some((c) => struct.bombRanks.has(c.rankIndex));
+      return !touchesBomb;
+    });
+    const nonBombMoves = validMoves.filter((m) => !m.isBomb);
+
+    let pool = validMoves;
+    if (!allowLeadBomb) {
+      if (safeNonBombMoves.length > 0) {
+        pool = safeNonBombMoves;
+      } else if (nonBombMoves.length > 0) {
+        pool = nonBombMoves;
+      }
+    }
+
+    // Hệ số bảo vệ bộ thường (Đôi / Sảnh) khi cầm cái:
     const breakWeight = sit.isCriticalEndgame ? 0.25 : sit.isLosingSoon ? 0.55 : 1.25;
 
     const scored = pool.map((move) => {
       let score = 0;
       const breakCost = this.evaluateMoveBreakCost(move, struct);
+      const touchesBomb = !move.isBomb && move.cards.some((c) => struct.bombRanks.has(c.rankIndex));
       const contains3Spade = move.cards.some((c) => c.value === 0);
       const twosCount = move.cards.filter((c) => c.rankIndex === 12).length;
 
-      score -= breakCost * breakWeight;
+      // Bảo vệ tuyệt đối Tứ Quý / Đôi Thông không bao giờ bị xé khi mở vòng
+      if (touchesBomb) {
+        score -= 2500;
+      } else {
+        score -= breakCost * breakWeight;
+      }
 
-      // Ưu tiên đánh các bộ xả được nhiều lá cùng lúc
+      // CHIẾN THUẬT ĐÁNH LẺ DỤ HEO KHI ĐANG ÔM TỨ QUÝ / ĐÔI THÔNG:
+      if (sit.shouldHoldBombToBaitHeo && !touchesBomb && !move.isBomb) {
+        if (move.type === COMBO_TYPES.SINGLE && move.highRank < 12) {
+          // Ưu tiên số 1: Đánh bài LẺ (nhất là các quân tầm trung-khá 7..A) để ép đối thủ phải tung Heo (2) ra đỡ!
+          score += 95;
+          if (move.highRank >= 4 && move.highRank <= 11) {
+            score += 32 + move.highRank * 3.5; // Quân lẻ mồi câu áp lực cao buộc đối thủ ra Heo!
+          }
+        } else if (
+          move.type === COMBO_TYPES.PAIR &&
+          move.highRank < 12 &&
+          sit.hasQuadOrFourPairs &&
+          sit.opponentHasPairOfTwos
+        ) {
+          // Nếu cầm Tứ Quý / 4 Đôi Thông và đối thủ có Đôi Heo: có thể đánh Đôi mồi câu Đôi Heo!
+          score += 75;
+        }
+      }
+
+      // Ưu tiên đánh các bộ xả được nhiều lá cùng lúc (khi không bận câu Heo)
       if (move.isBomb && allowLeadBomb) {
-        score += 85 + move.length * 12; // Xả Hàng thoát Thối Hàng + chạy 4-8 lá!
+        score += 95 + move.length * 12; // Chỉ xả Hàng khi đối thủ đã hết sạch Heo!
       } else if (move.type === COMBO_TYPES.STRAIGHT) {
-        score += 56 + move.length * 10;
+        score += (sit.shouldHoldBombToBaitHeo ? 28 : 56) + move.length * 10;
       } else if (move.type === COMBO_TYPES.TRIPLE) {
         score += 46;
       } else if (move.type === COMBO_TYPES.PAIR) {
@@ -4539,7 +4961,7 @@ class TienLenGame {
       }
 
       // Chạy 3♠ ngay khi có cơ hội kẻo bị phạt Thối 3♠ (5x mức cược)
-      if (contains3Spade) {
+      if (contains3Spade && !touchesBomb) {
         score += sit.minOpponentCards <= 8 ? 95 : 40;
       }
 
@@ -4549,22 +4971,24 @@ class TienLenGame {
       }
 
       // ĐỌC TÌNH HÌNH ĐỐI THỦ KHI MỞ VÒNG:
-      if (sit.minOpponentCards === 1) {
-        // Đối thủ chỉ còn 1 lá: Tuyệt đối ưu tiên đánh Bộ >= 2 lá (Đôi/Sám/Sảnh)!
-        // Nếu bắt buộc đánh lẻ thì phải đánh từ quân LỚN NHẤT xuống (kể cả phải xé bộ!) để khóa chết đối thủ!
+      if (sit.minOpponentCards === 1 && !sit.shouldHoldBombToBaitHeo) {
+        // Đối thủ chỉ còn 1 lá (và không phải thế câu Heo): ưu tiên đánh Bộ >= 2 lá hoặc đánh quân lẻ lớn nhất!
         if (move.length >= 2) {
           score += 120 + move.length * 10;
         } else {
           score += move.highValue * 2.2 - 40;
         }
-      } else if (sit.minOpponentCards <= 3) {
-        // Đối thủ còn 2-3 lá: Ưu tiên Sảnh dài / Sám hoặc đánh bài lớn áp đảo, xả tối đa số lá để giảm phạt
+      } else if (sit.minOpponentCards <= 3 && !sit.shouldHoldBombToBaitHeo) {
         score += move.length * 18 + move.highValue * 0.45;
-      } else {
-        // Bình thường: Ra bài nhỏ trước, giữ bài lớn điều nhịp
+      } else if (!sit.shouldHoldBombToBaitHeo) {
         score -= move.highValue * 0.85;
         if (move.highRank === 12 && bot.hand.length > 3) {
           score -= 75;
+        }
+      } else {
+        // Khi đang câu Heo: không đánh Heo của chính mình ra trước
+        if (move.highRank === 12 && bot.hand.length > 3) {
+          score -= 95;
         }
       }
 
@@ -4580,7 +5004,7 @@ class TienLenGame {
     const instantWin = validMoves.find((m) => m.length === bot.hand.length);
     if (instantWin) return instantWin;
 
-    // 2. Nếu có Hàng chặt được Heo / Đôi Heo / Hàng -> Chặt ngay ăn thưởng!
+    // 2. Nếu đối thủ vừa sập bẫy tung Heo / Đôi Heo / Hàng -> TUNG TỨ QUÝ / ĐÔI THÔNG CHẶT NGAY LẬP TỨC!
     const chopMoves = validMoves.filter((m) => canBeatCombo(m, this.currentCombo).isChop);
     if (chopMoves.length > 0) {
       chopMoves.sort((a, b) => a.highValue - b.highValue);
@@ -4590,26 +5014,51 @@ class TienLenGame {
     const struct = this.analyzeBotHandStructure(bot.hand);
     const sit = this.analyzeBotTableSituation(bot, struct);
 
-    // Trọng số phạt khi Xé Bộ (breakWeight):
-    // - Khi an toàn đầu ván: breakWeight = 1.0 (Ưu tiên giữ nguyên Đôi, Sảnh, Sám, Hàng).
-    // - Khi thấy SẮP THUA (isLosingSoon): giảm breakWeight xuống 0.18 -> Nếu có bài lẻ tự nhiên thì đánh trước,
-    //   nhưng nếu không có thì XÉ NGAY Đôi / Sảnh / Hàng ra đánh chứ tuyệt đối không ôm bài chịu chết!
-    // - Khi BÁO ĐỘNG ĐỎ (isCriticalEndgame): breakWeight = 0.05 -> Bất chấp xé mọi bộ để chặn bằng được đối thủ!
+    // 3. KHI ĐANG ÔM TỨ QUÝ / ĐÔI THÔNG RÌNH CHẶT HEO (sit.shouldHoldBombToBaitHeo):
+    // Nếu trên bàn đang đánh LẺ (hoặc Đôi) thường và Bot có quân ngoài Hàng chặn được -> Đè mạnh để ép đối thủ phải ra Heo!
+    if (
+      sit.shouldHoldBombToBaitHeo &&
+      this.currentCombo &&
+      this.currentCombo.highRank < 12 &&
+      (this.currentCombo.type === COMBO_TYPES.SINGLE ||
+        (this.currentCombo.type === COMBO_TYPES.PAIR && sit.hasQuadOrFourPairs))
+    ) {
+      const baitResponses = validMoves.filter((m) => {
+        if (m.isBomb) return false;
+        const touchesBomb = m.cards.some((c) => struct.bombRanks.has(c.rankIndex));
+        return !touchesBomb && m.highRank < 12;
+      });
+      if (baitResponses.length > 0) {
+        // Chọn quân đủ lớn (ưu tiên không xé bộ trước, nếu phải xé đôi thường cũng chấp nhận để ép Heo!)
+        baitResponses.sort((a, b) => {
+          const costA = this.evaluateMoveBreakCost(a, struct) * 0.35 + a.highValue;
+          const costB = this.evaluateMoveBreakCost(b, struct) * 0.35 + b.highValue;
+          return costA - costB;
+        });
+        return baitResponses[0];
+      }
+    }
+
+    // Trọng số phạt khi Xé Bộ thường (Đôi, Sảnh, Sám):
     const breakWeight = sit.isCriticalEndgame ? 0.05 : sit.isLosingSoon ? 0.18 : 1.0;
 
     const candidates = validMoves.map((move) => {
       const breakCost = this.evaluateMoveBreakCost(move, struct);
+      const touchesBomb = !move.isBomb && move.cards.some((c) => struct.bombRanks.has(c.rankIndex));
       const isTwo = move.highRank === 12;
       const containsTwo = move.cards.some((c) => c.rankIndex === 12);
       const remainingAfter = bot.hand.length - move.length;
       const nearFinishBonus = remainingAfter <= 1 ? -95 : remainingAfter === 2 ? -45 : 0;
+
+      // Bảo vệ Tứ Quý / Đôi Thông: nếu đối thủ còn Heo thì phạt cực nặng nước đi làm gãy Hàng
+      const bombProtectPenalty =
+        touchesBomb && (sit.shouldHoldBombToBaitHeo || sit.minOpponentCards > 1) ? 2000 : 0;
 
       // Nếu đang có nguy cơ Thối Heo (đối thủ <= 6 lá mà mình ôm Heo), ưu tiên quăng Heo ra cướp cái & chạy Heo!
       const rotEscapeBonus =
         containsTwo && sit.minOpponentCards <= 6 ? -55 : 0;
 
       // Nếu đối thủ hoặc người cầm cái chỉ còn <= 2 lá (nguy cơ về đích ngay lượt sau):
-      // Không đánh rón rén lá nhỏ nữa mà ưu tiên đánh lá/bộ LỚN để cướp cái dứt điểm!
       let cardValueTerm = move.highValue * 1.3;
       if (sit.minOpponentCards <= 2 || sit.ownerCards <= 2) {
         cardValueTerm = -move.highValue * 1.1; // Ưu tiên quân lớn đè chết đối thủ!
@@ -4620,36 +5069,41 @@ class TienLenGame {
 
       const totalCost =
         breakCost * breakWeight +
+        bombProtectPenalty +
         cardValueTerm +
         holdTwoPenalty +
         nearFinishBonus +
         rotEscapeBonus;
 
-      return { move, breakCost, totalCost };
+      return { move, breakCost, touchesBomb, totalCost };
     });
 
     candidates.sort((a, b) => a.totalCost - b.totalCost);
     const best = candidates[0];
 
-    // 3. QUYẾT ĐỊNH ĐÁNH HAY BỎ LƯỢT DỰA TRÊN ĐỌC TÌNH HÌNH BÀN BÀI:
-    // (A) KHI THẤY MÌNH SẮP THUA / NGUY CƠ CÓNG / NGUY CƠ THỐI BÀI / ĐỐI THỦ CÒN ÍT LÁ:
-    // -> TUYỆT ĐỐI KHÔNG BỎ LƯỢT! Phải xé Đôi, xé Sảnh, xé Sám, thậm chí xé cả Đôi Thông / Tứ Quý ra đánh!
+    // Tuyệt đối không tự xé Tứ Quý / Đôi Thông để đỡ bài thường khi đối thủ vẫn còn Heo!
+    if (best.touchesBomb && sit.shouldHoldBombToBaitHeo) {
+      return null;
+    }
+
+    // 4. QUYẾT ĐỊNH ĐÁNH HAY BỎ LƯỢT DỰA TRÊN ĐỌC TÌNH HÌNH BÀN BÀI:
+    // (A) KHI BÁO ĐỘNG ĐỎ TỬ CHIẾN (Đối thủ <= 4 lá):
+    // Xé mọi Đôi / Sảnh / Sám để chặn đối thủ (và chỉ xé Hàng nếu đối thủ đã hết sạch Heo!)
     if (sit.isCriticalEndgame) {
-      return best.move; // Tử chiến: Xé bất cứ bộ nào (kể cả Hàng) để chặn đối thủ!
+      if (best.touchesBomb && sit.opponentTwosCount > 0) return null;
+      return best.move;
     }
 
     if (sit.isLosingSoon) {
       // Sắp thua: Xé Đôi, xé Sảnh, xé Sám, đánh Heo thoải mái để cướp cái và xả lá!
-      // Chỉ giữ lại Hàng nếu đối thủ đang đánh còn nhiều bài (> 5 lá) và mình không có nguy cơ Cóng
-      if (best.breakCost >= 400 && sit.ownerCards > 5 && sit.minOpponentCards > 4 && !sit.isCongRisk) {
+      if (best.touchesBomb) {
         return null;
       }
       return best.move;
     }
 
     // (B) KHI BÀN BÀI ĐANG AN TOÀN (Đầu ván, mọi đối thủ còn >= 7 lá, Bot đã thoát Cóng):
-    // -> Lúc này mới giữ bộ đẹp (Không xé Hàng, không xé Đôi/Sảnh để đỡ bài lẻ nhỏ)
-    if (best.breakCost >= 400) {
+    if (best.touchesBomb || best.breakCost >= 400) {
       return null;
     }
 

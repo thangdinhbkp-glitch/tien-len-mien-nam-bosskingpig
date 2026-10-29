@@ -17,45 +17,92 @@ const DAILY_RECOVERY_COINS = 5000;
 const MAX_DAILY_RELIEF_CLAIMS = 3;
 
 // ============================================================================
+// 5 MỨC CƯỢC BÀN BÀI (ÁP DỤNG CHO CẢ CHẾ ĐỘ ĐẤU VỚI BOT & ĐẤU VỚI NGƯỜI)
+// ============================================================================
+const BET_TIERS = [
+  {
+    id: 'tap_su',
+    name: 'Bàn Tập Sự',
+    icon: '🌱',
+    betPerCard: 100,
+    minCoins: 0,
+    desc: 'Cóng: 2,600 • Heo đỏ: 500',
+  },
+  {
+    id: 'tinh_anh',
+    name: 'Bàn Tinh Anh',
+    icon: '⚔️',
+    betPerCard: 500,
+    minCoins: 5000,
+    desc: 'Cóng: 13,000 • Heo đỏ: 2,500',
+  },
+  {
+    id: 'cao_thu',
+    name: 'Bàn Cao Thủ',
+    icon: '💎',
+    betPerCard: 2000,
+    minCoins: 15000,
+    desc: 'Cóng: 52,000 • Heo đỏ: 10,000',
+  },
+  {
+    id: 'dai_gia',
+    name: 'Bàn Đại Gia',
+    icon: '👑',
+    betPerCard: 10000,
+    minCoins: 50000,
+    desc: 'Cóng: 260,000 • Heo đỏ: 50,000',
+  },
+  {
+    id: 'than_thoai',
+    name: 'Bàn Thần Thoại',
+    icon: '🌌',
+    betPerCard: 50000,
+    minCoins: 200000,
+    desc: 'Cóng: 1,300,000 • Heo đỏ: 250,000',
+  },
+];
+
+// ============================================================================
 // GENSHIN IMPACT FANART CATALOG (29 CHARACTERS) & ELEMENTAL BURST ANIMATIONS
+// Giá bán được nâng cao để người chơi mới (vốn 20,000 Xu) phải thắng cược mới mua được!
 // ============================================================================
 const GENSHIN_FANART_ROSTER = [
-  { id: 'hutao', name: 'Hu Tao (Đường Chủ Vãng Sinh)', desc: 'Fanart Đường chủ Vãng Sinh Đường tinh nghịch (Mặc định miễn phí).', price: 0, crest: '🦋' },
-  { id: 'zibai', name: 'Zibai (Tiên Nhân Bạch Mã)', desc: '[Hiếm] Fanart Tiên Nhân Zibai thanh tao của vùng đất Liyue.', price: 2500, crest: '🐎' },
-  { id: 'citlali', name: 'Citlali (Bà Ngoại Itztli)', desc: '[Hiếm] Fanart đại pháp sư bộ tộc Chủ Nhân Gió Đêm Natlan.', price: 3000, crest: '❄️' },
-  { id: 'clorinde', name: 'Clorinde (Đấu Sĩ Đại Diện)', desc: '[Sử Thi] Fanart nữ kiếm sĩ Lôi nguyên tố bất bại của Fontaine.', price: 4500, crest: '⚡' },
-  { id: 'columbina', name: 'Columbina (Thiếu Nữ Fatui #3)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 3 của Fatui đầy bí ẩn.', price: 6500, crest: '🕊️' },
-  { id: 'escoffier', name: 'Escoffier (Siêu Đầu Bếp Fontaine)', desc: '[Hiếm] Fanart thiên tài ẩm thực Băng nguyên tố của Fontaine.', price: 3500, crest: '🍰' },
-  { id: 'eula', name: 'Eula (Kỵ Sĩ Sóng Nước)', desc: '[Sử Thi] Fanart Đội trưởng Đội Du Kích Kỵ Sĩ Đoàn Tây Phong.', price: 4000, crest: '❄️' },
-  { id: 'furina', name: 'Furina (Thủy Thần Fontaine)', desc: '[Huyền Thoại] Fanart ngôi sao sân khấu Epiclese rực rỡ hào quang.', price: 6500, crest: '💧' },
-  { id: 'ganyu', name: 'Ganyu (Tuần Lộc Ánh Trăng)', desc: '[Sử Thi] Fanart tổng thư ký Nguyệt Hải Đình dịu dàng.', price: 4000, crest: '🏹' },
-  { id: 'ayaka', name: 'Kamisato Ayaka (Bạch Hạc Sương Hoa)', desc: '[Sử Thi] Fanart đại tiểu thư Hiệp Hội Yashiro kiêu sa.', price: 4500, crest: '❄️' },
-  { id: 'lauma', name: 'Lauma (Nữ Tu Sương Giá)', desc: '[Hiếm] Fanart thiếu nữ huyền bí mang sức mạnh cổ đại.', price: 2800, crest: '✨' },
-  { id: 'linnea', name: 'Linnea (Ảo Thuật Gia Tinh Linh)', desc: '[Hiếm] Fanart thiếu nữ tinh linh duyên dáng và sắc sảo.', price: 2800, crest: '🎩' },
-  { id: 'mavuika', name: 'Mavuika (Hỏa Thần Natlan)', desc: '[Thần Thoại] Fanart Hỏa Thần rực cháy dẫn lối chiến thắng bất bại.', price: 8500, crest: '🔥' },
-  { id: 'mualani', name: 'Mualani (Hướng Dẫn Viên Suối Nước)', desc: '[Hiếm] Fanart cô nàng lướt sóng năng động của Cư Dân Suối Nước.', price: 3200, crest: '🦈' },
-  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Fanart đại tiểu thư Pháo Hồng Hoa rạng rỡ.', price: 4200, crest: '☂️' },
-  { id: 'nefer', name: 'Nefer (Nữ Hoàng Sa Mạc)', desc: '[Hiếm] Fanart vẻ đẹp quyến rũ và quyền lực vùng cát vàng.', price: 3000, crest: '🌙' },
-  { id: 'odette', name: 'Odette (Thiên Nga Băng Giá)', desc: '[Hiếm] Fanart vũ công thiên nga mang vẻ đẹp quý tộc.', price: 3000, crest: '🦢' },
-  { id: 'raiden', name: 'Raiden Shogun (Lôi Thần Vĩnh Hằng)', desc: '[Thần Thoại] Fanart Chúa tể sấm sét Inazuma — Vô Tưởng Nhất Đao.', price: 9000, crest: '⚡' },
-  { id: 'sandrone', name: 'Sandrone (Marionette Fatui #7)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 7 của Fatui & cỗ máy cổ.', price: 5500, crest: '⚙️' },
-  { id: 'kokomi', name: 'Sangonomiya Kokomi (Thánh Pháp Sư)', desc: '[Sử Thi] Fanart quân sư tối cao đảo Watatsumi.', price: 4000, crest: '🫧' },
-  { id: 'shenhe', name: 'Shenhe (Cô Thần Hàn Sương)', desc: '[Sử Thi] Fanart đệ tử tiên nhân mang khí chất thoát tục.', price: 4500, crest: '❄️' },
-  { id: 'skirk', name: 'Skirk (Kiếm Khách Vực Sâu)', desc: '[Thần Thoại] Fanart nữ kiếm khách bí ẩn ngự trị Tinh Không Vực Sâu.', price: 10000, crest: '🌌' },
-  { id: 'varesa', name: 'Varesa (Đấu Sĩ Lôi Đình)', desc: '[Sử Thi] Fanart nữ chiến binh tràn đầy năng lượng vùng Natlan.', price: 3800, crest: '⚡' },
-  { id: 'vesna', name: 'Vesna (Nữ Thần Tuyết Xuân)', desc: '[Huyền Thoại] Fanart tuyệt sắc giai nhân xứ sở băng tuyết.', price: 5000, crest: '❄️' },
-  { id: 'vodyanitsa', name: 'Vodyanitsa (Nữ Hoàng Băng Giá)', desc: '[Thần Thoại] Fanart Băng Hoàng tối cao ngự trị cung điện mùa đông.', price: 9500, crest: '👑' },
-  { id: 'xilonen', name: 'Xilonen (Thợ Rèn Tên Cổ)', desc: '[Sử Thi] Fanart bậc thầy chế tác Tên Cổ của bộ tộc Đứa Con Tiếng Vang.', price: 4800, crest: '🐆' },
-  { id: 'yaemiko', name: 'Yae Miko (Guuji Đền Narukami)', desc: '[Huyền Thoại] Fanart Guuji Yae Miko quyến rũ dưới tán anh đào.', price: 5500, crest: '🌸' },
-  { id: 'yelan', name: 'Yelan (Lan Sinh U Cốc)', desc: '[Huyền Thoại] Fanart thần bài tình báo bí ẩn của Liyue.', price: 5200, crest: '🎲' },
-  { id: 'yoimiya', name: 'Yoimiya (Nữ Hoàng Lễ Hội Hè)', desc: '[Sử Thi] Fanart chủ tiệm pháo hoa Naganohara rực rỡ.', price: 3800, crest: '🎆' },
+  { id: 'zibai', name: 'Zibai (Tiên Nhân Bạch Mã)', desc: '[Hiếm] Fanart Tiên Nhân Zibai thanh tao của vùng đất Liyue.', avatarPrice: 45000, skinPrice: 75000, crest: '🐎' },
+  { id: 'lauma', name: 'Lauma (Nữ Tu Sương Giá)', desc: '[Hiếm] Fanart thiếu nữ huyền bí mang sức mạnh cổ đại.', avatarPrice: 48000, skinPrice: 80000, crest: '✨' },
+  { id: 'linnea', name: 'Linnea (Ảo Thuật Gia Tinh Linh)', desc: '[Hiếm] Fanart thiếu nữ tinh linh duyên dáng và sắc sảo.', avatarPrice: 48000, skinPrice: 80000, crest: '🎩' },
+  { id: 'citlali', name: 'Citlali (Bà Ngoại Itztli)', desc: '[Hiếm] Fanart đại pháp sư bộ tộc Chủ Nhân Gió Đêm Natlan.', avatarPrice: 55000, skinPrice: 90000, crest: '❄️' },
+  { id: 'nefer', name: 'Nefer (Nữ Hoàng Sa Mạc)', desc: '[Hiếm] Fanart vẻ đẹp quyến rũ và quyền lực vùng cát vàng.', avatarPrice: 55000, skinPrice: 90000, crest: '🌙' },
+  { id: 'odette', name: 'Odette (Thiên Nga Băng Giá)', desc: '[Hiếm] Fanart vũ công thiên nga mang vẻ đẹp quý tộc.', avatarPrice: 55000, skinPrice: 90000, crest: '🦢' },
+  { id: 'mualani', name: 'Mualani (Hướng Dẫn Viên Suối Nước)', desc: '[Hiếm] Fanart cô nàng lướt sóng năng động của Cư Dân Suối Nước.', avatarPrice: 60000, skinPrice: 95000, crest: '🦈' },
+  { id: 'escoffier', name: 'Escoffier (Siêu Đầu Bếp Fontaine)', desc: '[Hiếm] Fanart thiên tài ẩm thực Băng nguyên tố của Fontaine.', avatarPrice: 65000, skinPrice: 105000, crest: '🍰' },
+  { id: 'varesa', name: 'Varesa (Đấu Sĩ Lôi Đình)', desc: '[Sử Thi] Fanart nữ chiến binh tràn đầy năng lượng vùng Natlan.', avatarPrice: 75000, skinPrice: 125000, crest: '⚡' },
+  { id: 'yoimiya', name: 'Yoimiya (Nữ Hoàng Lễ Hội Hè)', desc: '[Sử Thi] Fanart chủ tiệm pháo hoa Naganohara rực rỡ.', avatarPrice: 80000, skinPrice: 135000, crest: '🎆' },
+  { id: 'eula', name: 'Eula (Kỵ Sĩ Sóng Nước)', desc: '[Sử Thi] Fanart Đội trưởng Đội Du Kích Kỵ Sĩ Đoàn Tây Phong.', avatarPrice: 85000, skinPrice: 145000, crest: '❄️' },
+  { id: 'ganyu', name: 'Ganyu (Tuần Lộc Ánh Trăng)', desc: '[Sử Thi] Fanart tổng thư ký Nguyệt Hải Đình dịu dàng.', avatarPrice: 85000, skinPrice: 145000, crest: '🏹' },
+  { id: 'kokomi', name: 'Sangonomiya Kokomi (Thánh Pháp Sư)', desc: '[Sử Thi] Fanart quân sư tối cao đảo Watatsumi.', avatarPrice: 85000, skinPrice: 145000, crest: '🫧' },
+  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Fanart đại tiểu thư Pháo Hồng Hoa rạng rỡ.', avatarPrice: 90000, skinPrice: 155000, crest: '☂️' },
+  { id: 'shenhe', name: 'Shenhe (Cô Thần Hàn Sương)', desc: '[Sử Thi] Fanart đệ tử tiên nhân mang khí chất thoát tục.', avatarPrice: 95000, skinPrice: 165000, crest: '❄️' },
+  { id: 'ayaka', name: 'Kamisato Ayaka (Bạch Hạc Sương Hoa)', desc: '[Sử Thi] Fanart đại tiểu thư Hiệp Hội Yashiro kiêu sa.', avatarPrice: 100000, skinPrice: 175000, crest: '❄️' },
+  { id: 'clorinde', name: 'Clorinde (Đấu Sĩ Đại Diện)', desc: '[Sử Thi] Fanart nữ kiếm sĩ Lôi nguyên tố bất bại của Fontaine.', avatarPrice: 105000, skinPrice: 180000, crest: '⚡' },
+  { id: 'xilonen', name: 'Xilonen (Thợ Rèn Tên Cổ)', desc: '[Sử Thi] Fanart bậc thầy chế tác Tên Cổ của bộ tộc Đứa Con Tiếng Vang.', avatarPrice: 110000, skinPrice: 185000, crest: '🐆' },
+  { id: 'hutao', name: 'Hu Tao (Đường Chủ Vãng Sinh)', desc: '[Sử Thi] Fanart Đường chủ Vãng Sinh Đường tinh nghịch.', avatarPrice: 115000, skinPrice: 195000, crest: '🦋' },
+  { id: 'vesna', name: 'Vesna (Nữ Thần Tuyết Xuân)', desc: '[Huyền Thoại] Fanart tuyệt sắc giai nhân xứ sở băng tuyết.', avatarPrice: 135000, skinPrice: 220000, crest: '❄️' },
+  { id: 'yelan', name: 'Yelan (Lan Sinh U Cốc)', desc: '[Huyền Thoại] Fanart thần bài tình báo bí ẩn của Liyue.', avatarPrice: 145000, skinPrice: 240000, crest: '🎲' },
+  { id: 'sandrone', name: 'Sandrone (Marionette Fatui #7)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 7 của Fatui & cỗ máy cổ.', avatarPrice: 155000, skinPrice: 255000, crest: '⚙️' },
+  { id: 'yaemiko', name: 'Yae Miko (Guuji Đền Narukami)', desc: '[Huyền Thoại] Fanart Guuji Yae Miko quyến rũ dưới tán anh đào.', avatarPrice: 165000, skinPrice: 275000, crest: '🌸' },
+  { id: 'columbina', name: 'Columbina (Thiếu Nữ Fatui #3)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 3 của Fatui đầy bí ẩn.', avatarPrice: 180000, skinPrice: 300000, crest: '🕊️' },
+  { id: 'furina', name: 'Furina (Thủy Thần Fontaine)', desc: '[Thần Thoại] Fanart ngôi sao sân khấu Epiclese rực rỡ hào quang.', avatarPrice: 200000, skinPrice: 350000, crest: '💧' },
+  { id: 'mavuika', name: 'Mavuika (Hỏa Thần Natlan)', desc: '[Thần Thoại] Fanart Hỏa Thần rực cháy dẫn lối chiến thắng bất bại.', avatarPrice: 220000, skinPrice: 380000, crest: '🔥' },
+  { id: 'vodyanitsa', name: 'Vodyanitsa (Nữ Hoàng Băng Giá)', desc: '[Thần Thoại] Fanart Băng Hoàng tối cao ngự trị cung điện mùa đông.', avatarPrice: 230000, skinPrice: 400000, crest: '👑' },
+  { id: 'raiden', name: 'Raiden Shogun (Lôi Thần Vĩnh Hằng)', desc: '[Thần Thoại] Fanart Chúa tể sấm sét Inazuma — Vô Tưởng Nhất Đao.', avatarPrice: 240000, skinPrice: 420000, crest: '⚡' },
+  { id: 'skirk', name: 'Skirk (Kiếm Khách Vực Sâu)', desc: '[Thần Thoại] Fanart nữ kiếm khách bí ẩn ngự trị Tinh Không Vực Sâu.', avatarPrice: 250000, skinPrice: 450000, crest: '🌌' },
 ];
 
 const ANIME_CARD_SKINS = [
   {
     id: 'classic',
-    name: 'Cổ Điển Hoàng Gia',
-    desc: 'Bộ bài truyền thống sắc nét, sang trọng (Mặc định).',
+    name: 'Cổ Điển Hoàng Gia (Mặc định)',
+    desc: 'Bộ bài truyền thống miễn phí dành cho người chơi mới.',
     price: 0,
     crest: '',
     imgUrl: '',
@@ -64,27 +111,149 @@ const ANIME_CARD_SKINS = [
     id: c.id,
     name: `Bài Fanart: ${c.name}`,
     desc: c.desc,
-    price: c.price === 0 ? 1500 : c.price,
+    price: c.skinPrice,
     crest: c.crest,
     imgUrl: `fanart/${c.id}.jpg`,
   })),
 ];
 
-const ANIME_AVATARS = GENSHIN_FANART_ROSTER.map((c) => ({
-  id: c.id,
-  name: c.name,
-  desc: c.desc,
-  price: c.price,
-  imgUrl: `fanart/${c.id}.jpg`,
-}));
+const ANIME_AVATARS = [
+  {
+    id: 'default_player',
+    name: 'Bài Thủ Tân Binh (Mặc định)',
+    desc: 'Avatar mặc định miễn phí khi mới vào sòng bài.',
+    price: 0,
+    emoji: '😎',
+    imgUrl: '',
+  },
+  ...GENSHIN_FANART_ROSTER.map((c) => ({
+    id: c.id,
+    name: c.name,
+    desc: c.desc,
+    price: c.avatarPrice,
+    imgUrl: `fanart/${c.id}.jpg`,
+  })),
+];
 
 // Danh mục 10 Hiệu Ứng Kỹ Năng Nộ (Elemental Burst Animations) bán bằng Xu trong Shop
 const GENSHIN_BURSTS = [
   {
+    id: 'hutao',
+    name: 'Hu Tao — An Thần Bí Pháp',
+    desc: '[Sử Thi] Đường chủ Vãng Sinh Đường vung hồn ma Boo Tao quét sạch bàn bài.',
+    price: 250000,
+    gifUrl: 'hutao_burst.gif',
+    mp4Url: '',
+    remoteGif: 'hutao_burst.gif',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '🦋 KỸ NĂNG NỘ • HU TAO (SPIRIT SOOTHER)',
+    title: 'VÃNG SINH ĐƯỜNG: AN THẦN BÍ PHÁP',
+    quote: '“Khách Quý Lên Đường Bình An Nhé ~!”',
+  },
+  {
+    id: 'eula',
+    name: 'Eula — Thanh Kiếm Sóng Nước',
+    desc: '[Sử Thi] Kỵ Sĩ Sóng Nước triệu hồi Kiếm Ánh Sáng phát nổ sát thương cực đại.',
+    price: 260000,
+    gifUrl: 'eula_burst.gif',
+    mp4Url: '',
+    remoteGif: 'eula_burst.gif',
+    theme: 'theme-cryo',
+    sfxType: 'skirk',
+    tag: '❄️ KỸ NĂNG NỘ • EULA (GLACIAL ILLUMINATION)',
+    title: 'TÂY PHONG KIẾM THUẬT: KIẾM SÓNG NƯỚC',
+    quote: '“Mối Thù Này — Ta Sẽ Khắc Ghi Gấp Bội!”',
+  },
+  {
+    id: 'ayaka',
+    name: 'Kamisato Ayaka — Soumetsu',
+    desc: '[Sử Thi] Bạch Hạc Sương Hoa triệu hồi lốc xoáy băng hoa cắt nát mọi quân bài.',
+    price: 300000,
+    gifUrl: 'ayaka_burst.gif',
+    mp4Url: '',
+    remoteGif: 'ayaka_burst.gif',
+    theme: 'theme-cryo',
+    sfxType: 'skirk',
+    tag: '❄️ KỸ NĂNG NỘ • KAMISATO AYAKA (SOUMETSU)',
+    title: 'KAMISATO LƯU: BÃO TUYẾT SƯƠNG HOA',
+    quote: '“Tuyết Hoa Rơi Xuống — Đóng Băng Vĩnh Viễn!”',
+  },
+  {
+    id: 'clorinde',
+    name: 'Clorinde — Ánh Chớp Tàn Đêm',
+    desc: '[Sử Thi] Đấu sĩ đại diện Fontaine tung liên hoàn kiếm và súng chớp nhoáng.',
+    price: 340000,
+    gifUrl: 'clorinde_burst.gif',
+    mp4Url: '',
+    remoteGif: 'clorinde_burst.gif',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '⚡ KỸ NĂNG NỘ • CLORINDE (LAST LIGHTFALL)',
+    title: 'PHÁN QUYẾT: ÁNH CHỚP TÀN ĐÊM',
+    quote: '“Danh Dự Đấu Sĩ — Kết Liễu Trong Chớp Mắt!”',
+  },
+  {
+    id: 'yelan',
+    name: 'Yelan — Xúc Xắc Toan Tính',
+    desc: '[Huyền Thoại] Thần bài Liyue tung xúc xắc Linh Lung định đoạt ván cược.',
+    price: 400000,
+    gifUrl: 'yelan_burst.gif',
+    mp4Url: '',
+    remoteGif: 'yelan_burst.gif',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '🎲 KỸ NĂNG NỘ • YELAN (DEPTH-CLARION DICE)',
+    title: 'THẦN BÀI LIYUE: XÚC XẮC TOAN TÍNH',
+    quote: '“Ván Cược Này — Phần Thắng Thuộc Về Ta!”',
+  },
+  {
+    id: 'yaemiko',
+    name: 'Yae Miko — Thiên Hồ Lôi Phạt',
+    desc: '[Huyền Thoại] Guuji Đền Narukami giáng sấm sét Thiên Hồ hủy diệt từ chín tầng mây.',
+    price: 450000,
+    gifUrl: 'yae_burst.gif',
+    mp4Url: '',
+    remoteGif: 'yae_burst.gif',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '🌸 KỸ NĂNG NỘ • YAE MIKO (TENKO KENSHIN)',
+    title: 'ĐẠI BÍ PHÁP: THIÊN HỒ LÔI PHẠT',
+    quote: '“Sấm Sét Narukami — Hóa Thành Tro Bụi Đi!”',
+  },
+  {
+    id: 'furina',
+    name: 'Furina — Vạn Dân Reo Hò',
+    desc: '[Thần Thoại] Thủy Thần Fontaine mở màn đại nhạc kịch sân khấu Epiclese.',
+    price: 550000,
+    gifUrl: 'furina_burst.gif',
+    mp4Url: '',
+    remoteGif: 'furina_burst.gif',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '💧 KỸ NĂNG NỘ • FURINA (LET THE PEOPLE REJOICE)',
+    title: 'ĐẠI NHẠC KỊCH: VẠN DÂN REO HÒ',
+    quote: '“Hãy Để Thế Gian Cùng Ca Vang Chiến Thắng!”',
+  },
+  {
+    id: 'mavuika',
+    name: 'Mavuika — Bầu Trời Rực Cháy',
+    desc: '[Thần Thoại] Hỏa Thần Natlan bùng nổ đại dương rực lửa thiêu rụi mọi đối thủ.',
+    price: 650000,
+    gifUrl: 'mavuika_burst.gif',
+    mp4Url: '',
+    remoteGif: 'mavuika_burst.gif',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '🔥 KỸ NĂNG NỘ • MAVUIKA (HOUR OF BURNING SKIES)',
+    title: 'THỜI KHẮC BẦU TRỜI RỰC CHÁY',
+    quote: '“Ngọn Lửa Vĩnh Cửu Natlan — Thiêu Rụi Tất Cả!”',
+  },
+  {
     id: 'raiden',
     name: 'Raiden Shogun — Mộng Tưởng Chân Thuyết',
-    desc: '[Mặc định Chặt Heo] Vô Tưởng Nhất Đao chém rách không gian bằng sấm sét tím Vĩnh Hằng.',
-    price: 0,
+    desc: '[Thần Thoại] Vô Tưởng Nhất Đao chém rách không gian bằng sấm sét tím Vĩnh Hằng.',
+    price: 750000,
     gifUrl: 'raiden_burst.gif',
     mp4Url: 'raiden_burst.mp4',
     remoteGif: 'https://media.tenor.com/umRS1zU3OUsAAAAM/raiden-baal.gif',
@@ -97,8 +266,8 @@ const GENSHIN_BURSTS = [
   {
     id: 'skirk',
     name: 'Skirk — Phá Toái Tinh Không',
-    desc: '[Mặc định Về Nhất] Tuyệt kỹ Vực Sâu triệu hồi hố đen Tinh Không nuốt chửng bàn bài.',
-    price: 0,
+    desc: '[Thần Thoại] Tuyệt kỹ Vực Sâu triệu hồi hố đen Tinh Không nuốt chửng bàn bài.',
+    price: 800000,
     gifUrl: 'skirk_burst.gif',
     mp4Url: 'skirk_burst.mp4',
     remoteGif: 'https://media.tenor.com/vrLe2zvzqNYAAAAM/genshin-genshin-impact.gif',
@@ -107,118 +276,6 @@ const GENSHIN_BURSTS = [
     tag: '🌌 KỸ NĂNG NỘ • SKIRK (ABYSSAL STARSHATTER)',
     title: 'TUYỆT KỸ VỰC SÂU: PHÁ TOÁI TINH KHÔNG',
     quote: '“Vạn Vật Quy Hư Vô — Nhất Ăn Tất!”',
-  },
-  {
-    id: 'mavuika',
-    name: 'Mavuika — Bầu Trời Rực Cháy',
-    desc: '[Thần Thoại] Hỏa Thần Natlan bùng nổ đại dương rực lửa thiêu rụi mọi đối thủ.',
-    price: 7500,
-    gifUrl: 'mavuika_burst.gif',
-    mp4Url: '',
-    remoteGif: 'mavuika_burst.gif',
-    theme: 'theme-pyro',
-    sfxType: 'raiden',
-    tag: '🔥 KỸ NĂNG NỘ • MAVUIKA (HOUR OF BURNING SKIES)',
-    title: 'THỜI KHẮC BẦU TRỜI RỰC CHÁY',
-    quote: '“Ngọn Lửa Vĩnh Cửu Natlan — Thiêu Rụi Tất Cả!”',
-  },
-  {
-    id: 'furina',
-    name: 'Furina — Vạn Dân Reo Hò',
-    desc: '[Huyền Thoại] Thủy Thần Fontaine mở màn đại nhạc kịch sân khấu Epiclese.',
-    price: 6500,
-    gifUrl: 'furina_burst.gif',
-    mp4Url: '',
-    remoteGif: 'furina_burst.gif',
-    theme: 'theme-hydro',
-    sfxType: 'skirk',
-    tag: '💧 KỸ NĂNG NỘ • FURINA (LET THE PEOPLE REJOICE)',
-    title: 'ĐẠI NHẠC KỊCH: VẠN DÂN REO HÒ',
-    quote: '“Hãy Để Thế Gian Cùng Ca Vang Chiến Thắng!”',
-  },
-  {
-    id: 'clorinde',
-    name: 'Clorinde — Ánh Chớp Tàn Đêm',
-    desc: '[Sử Thi] Đấu sĩ đại diện Fontaine tung liên hoàn kiếm và súng chớp nhoáng.',
-    price: 5500,
-    gifUrl: 'clorinde_burst.gif',
-    mp4Url: '',
-    remoteGif: 'clorinde_burst.gif',
-    theme: 'theme-electro',
-    sfxType: 'raiden',
-    tag: '⚡ KỸ NĂNG NỘ • CLORINDE (LAST LIGHTFALL)',
-    title: 'PHÁN QUYẾT: ÁNH CHỚP TÀN ĐÊM',
-    quote: '“Danh Dự Đấu Sĩ — Kết Liễu Trong Chớp Mắt!”',
-  },
-  {
-    id: 'hutao',
-    name: 'Hu Tao — An Thần Bí Pháp',
-    desc: '[Sử Thi] Đường chủ Vãng Sinh Đường vung hồn ma Boo Tao quét sạch bàn bài.',
-    price: 4500,
-    gifUrl: 'hutao_burst.gif',
-    mp4Url: '',
-    remoteGif: 'hutao_burst.gif',
-    theme: 'theme-pyro',
-    sfxType: 'raiden',
-    tag: '🦋 KỸ NĂNG NỘ • HU TAO (SPIRIT SOOTHER)',
-    title: 'VÃNG SINH ĐƯỜNG: AN THẦN BÍ PHÁP',
-    quote: '“Khách Quý Lên Đường Bình An Nhé ~!”',
-  },
-  {
-    id: 'ayaka',
-    name: 'Kamisato Ayaka — Soumetsu',
-    desc: '[Sử Thi] Bạch Hạc Sương Hoa triệu hồi lốc xoáy băng hoa cắt nát mọi quân bài.',
-    price: 5000,
-    gifUrl: 'ayaka_burst.gif',
-    mp4Url: '',
-    remoteGif: 'ayaka_burst.gif',
-    theme: 'theme-cryo',
-    sfxType: 'skirk',
-    tag: '❄️ KỸ NĂNG NỘ • KAMISATO AYAKA (SOUMETSU)',
-    title: 'KAMISATO LƯU: BÃO TUYẾT SƯƠNG HOA',
-    quote: '“Tuyết Hoa Rơi Xuống — Đóng Băng Vĩnh Viễn!”',
-  },
-  {
-    id: 'yaemiko',
-    name: 'Yae Miko — Thiên Hồ Lôi Phạt',
-    desc: '[Huyền Thoại] Guuji Đền Narukami giáng sấm sét Thiên Hồ hủy diệt từ chín tầng mây.',
-    price: 6000,
-    gifUrl: 'yae_burst.gif',
-    mp4Url: '',
-    remoteGif: 'yae_burst.gif',
-    theme: 'theme-electro',
-    sfxType: 'raiden',
-    tag: '🌸 KỸ NĂNG NỘ • YAE MIKO (TENKO KENSHIN)',
-    title: 'ĐẠI BÍ PHÁP: THIÊN HỒ LÔI PHẠT',
-    quote: '“Sấm Sét Narukami — Hóa Thành Tro Bụi Đi!”',
-  },
-  {
-    id: 'yelan',
-    name: 'Yelan — Xúc Xắc Toan Tính',
-    desc: '[Huyền Thoại] Thần bài Liyue tung xúc xắc Linh Lung định đoạt ván cược.',
-    price: 5500,
-    gifUrl: 'yelan_burst.gif',
-    mp4Url: '',
-    remoteGif: 'yelan_burst.gif',
-    theme: 'theme-hydro',
-    sfxType: 'skirk',
-    tag: '🎲 KỸ NĂNG NỘ • YELAN (DEPTH-CLARION DICE)',
-    title: 'THẦN BÀI LIYUE: XÚC XẮC TOAN TÍNH',
-    quote: '“Ván Cược Này — Phần Thắng Thuộc Về Ta!”',
-  },
-  {
-    id: 'eula',
-    name: 'Eula — Thanh Kiếm Sóng Nước',
-    desc: '[Sử Thi] Kỵ Sĩ Sóng Nước triệu hồi Kiếm Ánh Sáng phát nổ sát thương cực đại.',
-    price: 4500,
-    gifUrl: 'eula_burst.gif',
-    mp4Url: '',
-    remoteGif: 'eula_burst.gif',
-    theme: 'theme-cryo',
-    sfxType: 'skirk',
-    tag: '❄️ KỸ NĂNG NỘ • EULA (GLACIAL ILLUMINATION)',
-    title: 'TÂY PHONG KIẾM THUẬT: KIẾM SÓNG NƯỚC',
-    quote: '“Mối Thù Này — Ta Sẽ Khắc Ghi Gấp Bội!”',
   },
 ];
 
@@ -229,7 +286,7 @@ const BOT_ANIME_AVATARS = {
 };
 
 const LEGACY_ID_MAP = {
-  default_cool: 'hutao',
+  default_cool: 'default_player',
   sakura_miko: 'yaemiko',
   uchiha_sharingan: 'clorinde',
   gojo_infinity: 'furina',
@@ -244,6 +301,12 @@ const LEGACY_ID_MAP = {
 };
 
 function getAvatarHtml(avatarIdOrEmoji) {
+  if (!avatarIdOrEmoji || avatarIdOrEmoji === 'default_player' || avatarIdOrEmoji === '😎') {
+    return `<span style="font-size:1.35em;line-height:1;">😎</span>`;
+  }
+  if (['🐯', '🦊', '🐼'].includes(avatarIdOrEmoji)) {
+    return `<span style="font-size:1.35em;line-height:1;">${avatarIdOrEmoji}</span>`;
+  }
   const mappedId = LEGACY_ID_MAP[avatarIdOrEmoji] || avatarIdOrEmoji;
   const found = ANIME_AVATARS.find((a) => a.id === mappedId);
   if (found && found.imgUrl) {
@@ -252,7 +315,7 @@ function getAvatarHtml(avatarIdOrEmoji) {
   if (typeof mappedId === 'string' && (mappedId.startsWith('http') || mappedId.startsWith('fanart/'))) {
     return `<img class="anime-avatar-img" src="${mappedId}" alt="Genshin Fanart Avatar" referrerpolicy="no-referrer" />`;
   }
-  return `<img class="anime-avatar-img" src="fanart/hutao.jpg" alt="Hu Tao" />`;
+  return `<span style="font-size:1.35em;line-height:1;">😎</span>`;
 }
 
 function getCardSkinMeta(skinId) {
@@ -261,6 +324,7 @@ function getCardSkinMeta(skinId) {
 }
 
 function getBurstMeta(burstId) {
+  if (!burstId || burstId === 'none') return null;
   return GENSHIN_BURSTS.find((b) => b.id === burstId) || GENSHIN_BURSTS[0];
 }
 
@@ -776,35 +840,38 @@ function getValidMoves(
   });
 }
 
-function analyzeLoserHand(hand, wonBy3Spade = false) {
+function analyzeLoserHand(hand, wonBy3Spade = false, betPerCard = 100) {
+  const b = Math.max(20, Math.round(Number(betPerCard) || 100));
   const sorted = sortCardsAsc(hand);
   const penaltyCardIds = new Set();
   const breakdown = [];
   let totalPenalty = 0;
 
   if (sorted.length === 13) {
-    totalPenalty += 520;
-    breakdown.push({ label: 'Cóng 13 lá (-520)', isSpecial: true });
+    const congCost = b * 26;
+    totalPenalty += congCost;
+    breakdown.push({ label: `Cóng 13 lá (-${congCost.toLocaleString()})`, isSpecial: true });
   } else if (sorted.length > 0) {
-    const leafCost = sorted.length * 20;
+    const leafCost = sorted.length * b;
     totalPenalty += leafCost;
-    breakdown.push({ label: `${sorted.length} lá (-${leafCost})`, isSpecial: false });
+    breakdown.push({ label: `${sorted.length} lá (-${leafCost.toLocaleString()})`, isSpecial: false });
   }
 
   const threeSpade = sorted.find((c) => c.value === 0);
   if (threeSpade) {
-    totalPenalty += 100;
+    const pen3 = Math.round(b * 5);
+    totalPenalty += pen3;
     penaltyCardIds.add(threeSpade.id);
-    breakdown.push({ label: 'Thối 3♠ (-100)', isSpecial: true });
+    breakdown.push({ label: `Thối 3♠ (-${pen3.toLocaleString()})`, isSpecial: true });
   }
 
   sorted.forEach((c) => {
     if (c.rankIndex === 12) {
-      const pen = c.isRed ? 100 : 50;
+      const pen = Math.round(b * (c.isRed ? 5 : 2.5));
       totalPenalty += pen;
       penaltyCardIds.add(c.id);
       breakdown.push({
-        label: `Thối Heo ${c.isRed ? 'đỏ' : 'đen'} 2${c.suit} (-${pen})`,
+        label: `Thối Heo ${c.isRed ? 'đỏ' : 'đen'} 2${c.suit} (-${pen.toLocaleString()})`,
         isSpecial: true,
       });
     }
@@ -815,9 +882,13 @@ function analyzeLoserHand(hand, wonBy3Spade = false) {
 
   for (let r = 0; r <= 11; r++) {
     if (byRank[r].length === 4) {
-      totalPenalty += 200;
+      const penQuad = Math.round(b * 10);
+      totalPenalty += penQuad;
       byRank[r].forEach((c) => penaltyCardIds.add(c.id));
-      breakdown.push({ label: `Thối Tứ quý ${RANKS[r]} (-200)`, isSpecial: true });
+      breakdown.push({
+        label: `Thối Tứ quý ${RANKS[r]} (-${penQuad.toLocaleString()})`,
+        isSpecial: true,
+      });
     }
   }
 
@@ -829,25 +900,34 @@ function analyzeLoserHand(hand, wonBy3Spade = false) {
       runLen++;
     } else {
       if (runLen >= 4) {
-        totalPenalty += 250;
+        const pen4P = Math.round(b * 12.5);
+        totalPenalty += pen4P;
         for (let k = runStart; k < runStart + runLen; k++) {
           byRank[k].slice(0, 2).forEach((c) => penaltyCardIds.add(c.id));
         }
-        breakdown.push({ label: 'Thối 4 đôi thông (-250)', isSpecial: true });
+        breakdown.push({
+          label: `Thối 4 đôi thông (-${pen4P.toLocaleString()})`,
+          isSpecial: true,
+        });
       } else if (runLen === 3) {
-        totalPenalty += 150;
+        const pen3P = Math.round(b * 7.5);
+        totalPenalty += pen3P;
         for (let k = runStart; k < runStart + 3; k++) {
           byRank[k].slice(0, 2).forEach((c) => penaltyCardIds.add(c.id));
         }
-        breakdown.push({ label: 'Thối 3 đôi thông (-150)', isSpecial: true });
+        breakdown.push({
+          label: `Thối 3 đôi thông (-${pen3P.toLocaleString()})`,
+          isSpecial: true,
+        });
       }
       runLen = 0;
     }
   }
 
   if (wonBy3Spade) {
-    totalPenalty += 150;
-    breakdown.push({ label: 'Bị đút 3♠ cuối (-150)', isSpecial: true });
+    const penDut = Math.round(b * 7.5);
+    totalPenalty += penDut;
+    breakdown.push({ label: `Bị đút 3♠ cuối (-${penDut.toLocaleString()})`, isSpecial: true });
   }
 
   return {
@@ -878,11 +958,16 @@ class TienLenGame {
   constructor() {
     this.loadShopProfile();
 
+    // Chế độ ở Màn Hình Chờ ('bot' | 'human') & Mức cược hiện tại (Xu / lá)
+    this.selectedLobbyMode = 'bot';
+    this.betPerCard = this.savedBetPerCard || 100;
+
+    const botBankroll = Math.max(INITIAL_COINS, this.betPerCard * 500);
     this.players = [
-      { id: 0, name: 'Bạn', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 0, name: this.savedPlayerName || 'Thắng', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
+      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
     ];
 
     // Multiplayer state (Giữ cố định clientId trong localStorage để F5 không bị mất ghế hoặc reset đồ)
@@ -938,6 +1023,8 @@ class TienLenGame {
     this.botTimer = null;
 
     this.bindDOM();
+    this.renderBetTiers();
+    this.renderLobbyModal();
     this.detectLanInfoAndUrlRoom();
     this.fetchLiveAnimeImages();
     this.startNewMatch(true);
@@ -952,9 +1039,11 @@ class TienLenGame {
   fetchLiveAnimeImages() {
     // Tải trước (Preload) GIF Kỹ Năng Nộ & Fanart đang trang bị để phát tức thì
     try {
+      const bChop = getBurstMeta(this.equippedChopBurst);
+      const bWin = getBurstMeta(this.equippedWinBurst);
       const preloadList = [
-        getBurstMeta(this.equippedChopBurst).gifUrl,
-        getBurstMeta(this.equippedWinBurst).gifUrl,
+        bChop ? bChop.gifUrl : '',
+        bWin ? bWin.gifUrl : '',
         getCardSkinMeta(this.equippedSkin).imgUrl,
         ...Object.values(BOT_ANIME_AVATARS),
       ].filter(Boolean);
@@ -967,13 +1056,20 @@ class TienLenGame {
   }
 
   triggerGenshinBurst(burstId, detailText, onDoneCallback = null) {
+    if (!burstId || burstId === 'none') {
+      if (onDoneCallback) {
+        setTimeout(onDoneCallback, 450);
+      }
+      return;
+    }
+
     const overlay = document.getElementById('genshin-burst-overlay');
-    if (!overlay) {
+    const burstMeta = getBurstMeta(burstId);
+    if (!overlay || !burstMeta) {
       if (onDoneCallback) onDoneCallback();
       return;
     }
 
-    const burstMeta = getBurstMeta(burstId);
     const videoEl = document.getElementById('burst-video');
     const imgEl = document.getElementById('burst-character-img');
     const chakraEl = document.getElementById('burst-chakra-ring');
@@ -1103,21 +1199,18 @@ class TienLenGame {
   readBackupPayloads() {
     const list = [];
     try {
-      const keys = ['tlmn_genshin_vault_v1', 'tlmn_anime_profile_v2', 'tlmn_anime_profile_v1'];
-      keys.forEach((k) => {
-        const raw = localStorage.getItem(k);
-        if (raw) list.push(JSON.parse(raw));
-      });
+      const raw = localStorage.getItem('tlmn_genshin_vault_v9');
+      if (raw) list.push(JSON.parse(raw));
     } catch (_) {}
     try {
-      const match = document.cookie.match(/(?:^|;\s*)tlmn_vault=([^;]+)/);
+      const match = document.cookie.match(/(?:^|;\s*)tlmn_vault_v9=([^;]+)/);
       if (match && match[1]) {
         list.push(JSON.parse(decodeURIComponent(match[1])));
       }
     } catch (_) {}
     try {
-      if (window.name && window.name.startsWith('TLMN_VAULT:')) {
-        list.push(JSON.parse(window.name.slice('TLMN_VAULT:'.length)));
+      if (window.name && window.name.startsWith('TLMN_VAULT_V9:')) {
+        list.push(JSON.parse(window.name.slice('TLMN_VAULT_V9:'.length)));
       }
     } catch (_) {}
     return list;
@@ -1125,55 +1218,53 @@ class TienLenGame {
 
   loadShopProfile() {
     const today = this.getTodayKey();
-    this.savedCoins = INITIAL_COINS; // Cấp sẵn 20,000 xu (~100 ván thắng thua)
+    // Người chơi mới bắt đầu với 20,000 Xu và chỉ có Bộ bài Cổ Điển + Avatar Tân Binh (phải cày Xu mới mua được đồ!)
+    this.savedCoins = INITIAL_COINS;
+    this.savedPlayerName = 'Thắng';
+    this.savedBetPerCard = 100;
     this.unlockedSkins = new Set(['classic']);
     this.equippedSkin = 'classic';
-    this.unlockedAvatars = new Set(['hutao']);
-    this.equippedAvatar = 'hutao';
-    this.unlockedBursts = new Set(['raiden', 'skirk']);
-    this.equippedChopBurst = 'raiden';
-    this.equippedWinBurst = 'skirk';
+    this.unlockedAvatars = new Set(['default_player']);
+    this.equippedAvatar = 'default_player';
+    this.unlockedBursts = new Set();
+    this.equippedChopBurst = 'none';
+    this.equippedWinBurst = 'none';
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
     this.dailyRecoveredOnLoad = false;
-    this.compensationV8 = false;
 
     try {
       const backups = this.readBackupPayloads();
       backups.forEach((data) => {
         if (!data || typeof data !== 'object') return;
-        if (typeof data.coins === 'number' && data.coins > this.savedCoins) {
+        if (typeof data.coins === 'number') {
           this.savedCoins = data.coins;
+        }
+        if (data.playerName) {
+          this.savedPlayerName = data.playerName;
+        }
+        if (typeof data.betPerCard === 'number' && data.betPerCard >= 20) {
+          this.savedBetPerCard = data.betPerCard;
         }
         if (Array.isArray(data.unlockedSkins)) {
           data.unlockedSkins.forEach((id) => {
-            const mapped = LEGACY_ID_MAP[id] || id;
-            if (ANIME_CARD_SKINS.some((s) => s.id === mapped)) {
-              this.unlockedSkins.add(mapped);
+            if (ANIME_CARD_SKINS.some((s) => s.id === id)) {
+              this.unlockedSkins.add(id);
             }
           });
         }
-        if (data.equippedSkin && this.equippedSkin === 'classic') {
-          const mapped = LEGACY_ID_MAP[data.equippedSkin] || data.equippedSkin;
-          if (ANIME_CARD_SKINS.some((s) => s.id === mapped)) {
-            this.equippedSkin = mapped;
-            this.unlockedSkins.add(mapped);
-          }
+        if (data.equippedSkin && this.unlockedSkins.has(data.equippedSkin)) {
+          this.equippedSkin = data.equippedSkin;
         }
         if (Array.isArray(data.unlockedAvatars)) {
           data.unlockedAvatars.forEach((id) => {
-            const mapped = LEGACY_ID_MAP[id] || id;
-            if (ANIME_AVATARS.some((a) => a.id === mapped)) {
-              this.unlockedAvatars.add(mapped);
+            if (ANIME_AVATARS.some((a) => a.id === id)) {
+              this.unlockedAvatars.add(id);
             }
           });
         }
-        if (data.equippedAvatar && this.equippedAvatar === 'hutao') {
-          const mapped = LEGACY_ID_MAP[data.equippedAvatar] || data.equippedAvatar;
-          if (ANIME_AVATARS.some((a) => a.id === mapped)) {
-            this.equippedAvatar = mapped;
-            this.unlockedAvatars.add(mapped);
-          }
+        if (data.equippedAvatar && this.unlockedAvatars.has(data.equippedAvatar)) {
+          this.equippedAvatar = data.equippedAvatar;
         }
         if (Array.isArray(data.unlockedBursts)) {
           data.unlockedBursts.forEach((id) => {
@@ -1182,44 +1273,15 @@ class TienLenGame {
             }
           });
         }
-        if (data.equippedChopBurst && this.equippedChopBurst === 'raiden') {
-          if (GENSHIN_BURSTS.some((b) => b.id === data.equippedChopBurst)) {
-            this.equippedChopBurst = data.equippedChopBurst;
-            this.unlockedBursts.add(data.equippedChopBurst);
-          }
+        if (data.equippedChopBurst && this.unlockedBursts.has(data.equippedChopBurst)) {
+          this.equippedChopBurst = data.equippedChopBurst;
         }
-        if (data.equippedWinBurst && this.equippedWinBurst === 'skirk') {
-          if (GENSHIN_BURSTS.some((b) => b.id === data.equippedWinBurst)) {
-            this.equippedWinBurst = data.equippedWinBurst;
-            this.unlockedBursts.add(data.equippedWinBurst);
-          }
+        if (data.equippedWinBurst && this.unlockedBursts.has(data.equippedWinBurst)) {
+          this.equippedWinBurst = data.equippedWinBurst;
         }
         if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
         if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
-        if (data.compensationV8) this.compensationV8 = true;
       });
-
-      // Nếu có dữ liệu xu thấp hơn 20k từ bản đầu tiên, giữ đúng xu người chơi đang có nếu đã nhận đền bù
-      if (backups.length > 0 && typeof backups[0].coins === 'number') {
-        this.savedCoins = backups[0].coins;
-      }
-
-      // Đền bù 1 lần duy nhất cho đợt cập nhật 29 nhân vật Fanart:
-      // Tặng lại +50,000 Xu & mở khóa sẵn các bộ Skin/Avatar/Nộ chủ lực để không bị mất đồ đã mua trước đó!
-      if (!this.compensationV8) {
-        this.compensationV8 = true;
-        this.savedCoins = Math.max(this.savedCoins, INITIAL_COINS) + 50000;
-        ['raiden', 'skirk', 'furina', 'mavuika', 'hutao', 'yaemiko', 'clorinde', 'yelan'].forEach((id) => {
-          this.unlockedSkins.add(id);
-          this.unlockedAvatars.add(id);
-        });
-        ['raiden', 'skirk', 'mavuika', 'furina'].forEach((bId) => {
-          this.unlockedBursts.add(bId);
-        });
-        if (this.equippedSkin === 'classic') {
-          this.equippedSkin = 'raiden';
-        }
-      }
 
       // Nếu bước sang ngày mới: tự động hồi +5,000 xu và reset lượt cứu trợ trong ngày
       if (this.lastDailyDate !== today) {
@@ -1240,7 +1302,6 @@ class TienLenGame {
 
   saveShopProfile() {
     try {
-      // Chỉ cập nhật số xu từ ghế của mình khi chắc chắn ghế đó là của mình (tránh bị ghi đè khi mới vào phòng WiFi)
       if (this.players) {
         const me = this.getLocalPlayer();
         const isTrulyMe =
@@ -1252,64 +1313,52 @@ class TienLenGame {
         }
       }
 
-      // Luôn gộp (Union) với dữ liệu cũ trong kho lưu trữ để KHÔNG BAO GIỜ bị mất vật phẩm đã mở khóa
+      // Gộp (Union) với dữ liệu v9 đã lưu để không bao giờ mất đồ đã mua
       const backups = this.readBackupPayloads();
       backups.forEach((old) => {
         if (!old || typeof old !== 'object') return;
         if (Array.isArray(old.unlockedSkins)) {
-          old.unlockedSkins.forEach((id) => this.unlockedSkins.add(LEGACY_ID_MAP[id] || id));
+          old.unlockedSkins.forEach((id) => this.unlockedSkins.add(id));
         }
         if (Array.isArray(old.unlockedAvatars)) {
-          old.unlockedAvatars.forEach((id) => this.unlockedAvatars.add(LEGACY_ID_MAP[id] || id));
+          old.unlockedAvatars.forEach((id) => this.unlockedAvatars.add(id));
         }
         if (Array.isArray(old.unlockedBursts)) {
           old.unlockedBursts.forEach((id) => this.unlockedBursts.add(id));
         }
       });
 
+      const nameInput = document.getElementById('input-player-name');
+      if (nameInput && nameInput.value.trim()) {
+        this.savedPlayerName = nameInput.value.trim();
+      }
+
       const payload = {
         coins: this.savedCoins,
+        playerName: this.savedPlayerName || 'Thắng',
+        betPerCard: this.betPerCard || 100,
         unlockedSkins: Array.from(this.unlockedSkins),
         equippedSkin: this.equippedSkin,
         unlockedAvatars: Array.from(this.unlockedAvatars),
         equippedAvatar: this.equippedAvatar,
-        unlockedBursts: Array.from(this.unlockedBursts || ['raiden', 'skirk']),
-        equippedChopBurst: this.equippedChopBurst || 'raiden',
-        equippedWinBurst: this.equippedWinBurst || 'skirk',
+        unlockedBursts: Array.from(this.unlockedBursts),
+        equippedChopBurst: this.equippedChopBurst || 'none',
+        equippedWinBurst: this.equippedWinBurst || 'none',
         lastDailyDate: this.lastDailyDate || this.getTodayKey(),
         dailyReliefUsed: this.dailyReliefUsed || 0,
-        compensationV8: !!this.compensationV8,
       };
       const jsonStr = JSON.stringify(payload);
-      localStorage.setItem('tlmn_genshin_vault_v1', jsonStr);
-      localStorage.setItem('tlmn_anime_profile_v2', jsonStr);
-      document.cookie = `tlmn_vault=${encodeURIComponent(jsonStr)}; path=/; max-age=31536000; SameSite=Lax`;
-      window.name = `TLMN_VAULT:${jsonStr}`;
+      localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
+      document.cookie = `tlmn_vault_v9=${encodeURIComponent(jsonStr)}; path=/; max-age=31536000; SameSite=Lax`;
+      window.name = `TLMN_VAULT_V9:${jsonStr}`;
+
+      const lobbyBal = document.getElementById('lobby-balance-display');
+      if (lobbyBal) lobbyBal.textContent = this.savedCoins.toLocaleString();
     } catch (_) {}
   }
 
-  unlockAllShopItems() {
-    const me = this.getLocalPlayer();
-    ANIME_CARD_SKINS.forEach((s) => this.unlockedSkins.add(s.id));
-    ANIME_AVATARS.forEach((a) => this.unlockedAvatars.add(a.id));
-    GENSHIN_BURSTS.forEach((b) => this.unlockedBursts.add(b.id));
-    if (me) {
-      me.coins = Math.max(me.coins, 50000);
-      this.savedCoins = me.coins;
-    }
-    sfx.win();
-    this.saveShopProfile();
-    this.renderShopModal();
-    this.renderAll();
-    this.syncCosmeticsInRoom();
-    this.addLog(
-      '🔓 <strong>Đã khôi phục & mở khóa toàn bộ 29 Skin Bài Fanart, 29 Avatar và 10 Kỹ Năng Nộ!</strong>',
-      'log-win'
-    );
-  }
-
   checkAndTriggerAutoRelief() {
-    // Tự động hồi vốn nếu bất kỳ người chơi hoặc Bot nào cạn tiền (< 300 xu) sau ván bài
+    // Tự động hồi vốn nếu người chơi hoặc Bot cạn tiền sau ván bài
     const today = this.getTodayKey();
     if (this.lastDailyDate !== today) {
       this.lastDailyDate = today;
@@ -1318,7 +1367,16 @@ class TienLenGame {
 
     this.players.forEach((p) => {
       if (!p.active) return;
-      if (p.coins < 300) {
+      if (p.isBot) {
+        const minBotCoins = Math.max(INITIAL_COINS, this.betPerCard * 80);
+        if (p.coins < this.betPerCard * 15) {
+          p.coins = Math.max(0, p.coins) + minBotCoins;
+          this.addLog(
+            `🤖 <strong>${p.name}</strong> vừa nạp thêm <strong>+${minBotCoins.toLocaleString()} xu</strong> từ Ngân Hàng Fontaine để tiếp tục đấu cược lớn!`,
+            'log-play'
+          );
+        }
+      } else if (p.coins < 500) {
         p.coins = Math.max(0, p.coins) + DAILY_RECOVERY_COINS;
         if (p.id === this.mySeatId) {
           this.dailyReliefUsed = Math.min(MAX_DAILY_RELIEF_CLAIMS, this.dailyReliefUsed + 1);
@@ -1337,6 +1395,10 @@ class TienLenGame {
     const balanceEl = document.getElementById('shop-balance');
     if (balanceEl && me) {
       balanceEl.textContent = me.coins.toLocaleString();
+    }
+    const lobbyBal = document.getElementById('lobby-balance-display');
+    if (lobbyBal && me) {
+      lobbyBal.textContent = me.coins.toLocaleString();
     }
 
     const bonusBtn = document.getElementById('btn-claim-bonus');
@@ -1435,10 +1497,14 @@ class TienLenGame {
           btnLabel = `🔒 Cần ${av.price.toLocaleString()} xu`;
         }
 
+        const previewHtml = av.imgUrl
+          ? `<img class="anime-avatar-img" src="${av.imgUrl}" alt="${av.name}" loading="lazy" referrerpolicy="no-referrer" />`
+          : `<span style="font-size:38px;">${av.emoji || '😎'}</span>`;
+
         return `
           <div class="shop-item-card ${equipped ? 'equipped' : ''}">
             <div class="shop-avatar-preview-wrap">
-              <img class="anime-avatar-img" src="${av.imgUrl}" alt="${av.name}" loading="lazy" referrerpolicy="no-referrer" />
+              ${previewHtml}
             </div>
             <div class="shop-item-title">${av.name}</div>
             <div class="shop-item-desc">${av.desc}</div>
@@ -1678,6 +1744,46 @@ class TienLenGame {
     this.modalWifi = document.getElementById('wifi-modal');
     this.modalShop = document.getElementById('shop-modal');
 
+    const nameInput = document.getElementById('input-player-name');
+    if (nameInput) {
+      nameInput.value = this.savedPlayerName || 'Thắng';
+      nameInput.addEventListener('change', () => {
+        const val = nameInput.value.trim() || 'Thắng';
+        this.savedPlayerName = val;
+        const me = this.getLocalPlayer();
+        if (me) me.name = val;
+        this.saveShopProfile();
+        this.renderSeats();
+        this.renderLobbyModal();
+      });
+    }
+
+    document.getElementById('btn-lobby-open-shop')?.addEventListener('click', () => {
+      this.renderShopModal();
+      this.modalShop.classList.remove('hidden');
+      sfx.click();
+    });
+
+    document.getElementById('btn-lobby-open-rules')?.addEventListener('click', () => {
+      this.modalRules.classList.remove('hidden');
+      sfx.click();
+    });
+
+    document.getElementById('btn-apply-custom-bet')?.addEventListener('click', () => {
+      const inp = document.getElementById('input-custom-bet');
+      if (!inp) return;
+      const raw = Math.max(20, Math.round(Number(inp.value) || 100));
+      this.selectBetTier(raw, true);
+    });
+
+    document.getElementById('btn-summary-change-bet')?.addEventListener('click', () => {
+      this.modalSummary.classList.add('hidden');
+      this.modalWifi.classList.remove('hidden');
+      this.renderBetTiers();
+      this.renderLobbyModal();
+      sfx.click();
+    });
+
     if (this.btnShop && this.modalShop) {
       this.btnShop.addEventListener('click', () => {
         this.renderShopModal();
@@ -1740,12 +1846,17 @@ class TienLenGame {
         document.getElementById('share-link-input').value = this.getShareableRoomUrl(this.roomId);
       }
       this.modalWifi.classList.remove('hidden');
+      this.renderBetTiers();
       this.renderLobbyModal();
       sfx.click();
     });
 
     document.getElementById('btn-close-wifi').addEventListener('click', () => {
       this.modalWifi.classList.add('hidden');
+      if (!this.isMultiplayer && !this.isGameOver) {
+        clearTimeout(this.botTimer);
+        this.promptCurrentTurn();
+      }
     });
 
     document.getElementById('btn-create-room').addEventListener('click', () => {
@@ -1898,6 +2009,152 @@ class TienLenGame {
   }
 
   // ============================================================================
+  // HOME LOBBY SCREEN: MODE SELECTION (1. BOT / 2. HUMAN) & BET TIER SELECTION
+  // ============================================================================
+  getCurrentBetTierMeta(betVal = this.betPerCard) {
+    const found = BET_TIERS.find((t) => t.betPerCard === betVal);
+    if (found) return found;
+    return {
+      id: 'custom',
+      name: 'Bàn Tự Chọn',
+      icon: '🎲',
+      betPerCard: betVal,
+      minCoins: 0,
+      desc: `Cóng: ${(betVal * 26).toLocaleString()} • Heo đỏ: ${(betVal * 5).toLocaleString()}`,
+    };
+  }
+
+  selectLobbyMode(mode) {
+    this.selectedLobbyMode = mode === 'human' ? 'human' : 'bot';
+    const cardBot = document.getElementById('mode-card-bot');
+    const cardHuman = document.getElementById('mode-card-human');
+    const panelBot = document.getElementById('lobby-bot-panel');
+    const panelHuman = document.getElementById('lobby-human-panel');
+    const modeLabel = document.getElementById('selected-mode-label');
+
+    cardBot?.classList.toggle('active', this.selectedLobbyMode === 'bot');
+    cardHuman?.classList.toggle('active', this.selectedLobbyMode === 'human');
+    panelBot?.classList.toggle('hidden', this.selectedLobbyMode !== 'bot');
+    panelHuman?.classList.toggle('hidden', this.selectedLobbyMode !== 'human');
+
+    if (modeLabel) {
+      modeLabel.textContent =
+        this.selectedLobbyMode === 'bot'
+          ? 'Chế độ 1: Đấu Với Bot (Solo 1v3)'
+          : 'Chế độ 2: Đấu Với Người (2 – 4 Người)';
+    }
+
+    sfx.click();
+    this.renderBetTiers();
+  }
+
+  selectBetTier(betVal, isCustom = false) {
+    const me = this.getLocalPlayer();
+    const myCoins = me ? me.coins : this.savedCoins;
+    const tier = BET_TIERS.find((t) => t.betPerCard === betVal);
+
+    if (!isCustom && tier && tier.minCoins > myCoins) {
+      alert(
+        `🔒 "${tier.name} (${tier.betPerCard.toLocaleString()} Xu/lá)" yêu cầu tối thiểu ${tier.minCoins.toLocaleString()} Xu trong ví!\n💡 Hiện bạn đang có ${myCoins.toLocaleString()} Xu — hãy đánh thắng ở các bàn thấp hơn trước để tích lũy vốn nhé!`
+      );
+      return;
+    }
+
+    this.betPerCard = Math.max(20, Math.round(Number(betVal) || 100));
+    this.savedBetPerCard = this.betPerCard;
+    const customInput = document.getElementById('input-custom-bet');
+    if (customInput) customInput.value = this.betPerCard;
+
+    // Nếu đang ở bàn Bot hoặc đang làm Chủ phòng WiFi, cập nhật mức cược ngay
+    if (!this.isMultiplayer) {
+      const botBankroll = Math.max(INITIAL_COINS, this.betPerCard * 500);
+      this.players.forEach((p) => {
+        if (p.isBot && p.coins < botBankroll) p.coins = botBankroll;
+      });
+    } else if (this.isHost) {
+      this.broadcastState();
+    }
+
+    sfx.click();
+    this.saveShopProfile();
+    this.renderBetTiers();
+    this.updateBetBadges();
+  }
+
+  updateBetBadges() {
+    const b = this.betPerCard || 100;
+    const tierMeta = this.getCurrentBetTierMeta(b);
+    const topBadge = document.getElementById('current-bet-badge');
+    if (topBadge) {
+      topBadge.textContent = `${tierMeta.icon} ${tierMeta.name} • ${b.toLocaleString()} xu/lá`;
+    }
+    const roomBetEl = document.getElementById('display-room-bet');
+    if (roomBetEl) {
+      roomBetEl.textContent = `${tierMeta.name} (${b.toLocaleString()} Xu/lá)`;
+    }
+    const sumHeader = document.getElementById('summary-bet-col-header');
+    if (sumHeader) {
+      sumHeader.textContent = `Chi tiết tính tiền (${b.toLocaleString()} xu/lá + Phạt)`;
+    }
+    const botBtn = document.getElementById('btn-solo-bot-mode');
+    if (botBtn) {
+      botBtn.textContent = `⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (${tierMeta.name}: ${b.toLocaleString()} Xu/lá)`;
+    }
+    const createRoomBtn = document.getElementById('btn-create-room');
+    if (createRoomBtn) {
+      createRoomBtn.textContent = `🏠 Tạo Phòng Đấu Với Người (${tierMeta.name}: ${b.toLocaleString()} Xu/lá)`;
+    }
+  }
+
+  renderBetTiers() {
+    const grid = document.getElementById('bet-tiers-grid');
+    const preview = document.getElementById('bet-rules-preview');
+    const me = this.getLocalPlayer();
+    const myCoins = me ? me.coins : this.savedCoins;
+    const lobbyBal = document.getElementById('lobby-balance-display');
+    if (lobbyBal) lobbyBal.textContent = myCoins.toLocaleString();
+
+    if (grid) {
+      grid.innerHTML = BET_TIERS.map((t) => {
+        const isSelected = this.betPerCard === t.betPerCard;
+        const isLocked = myCoins < t.minCoins;
+        const reqText =
+          t.minCoins === 0
+            ? '✅ Mở tự do'
+            : isLocked
+            ? `🔒 Cần ${t.minCoins.toLocaleString()} Xu`
+            : `✅ Tối thiểu ${t.minCoins.toLocaleString()} Xu`;
+
+        return `
+          <div class="bet-tier-card ${isSelected ? 'active' : ''} ${
+          isLocked ? 'locked-tier' : ''
+        }" onclick="window.tienLenGame.selectBetTier(${t.betPerCard})">
+            <div class="bet-tier-icon">${t.icon}</div>
+            <div class="bet-tier-name">${t.name}</div>
+            <div class="bet-tier-amount">${t.betPerCard.toLocaleString()} Xu / lá</div>
+            <div class="bet-tier-sub">${t.desc}</div>
+            <div class="bet-tier-req">${reqText}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    const b = this.betPerCard || 100;
+    if (preview) {
+      preview.innerHTML = `
+        <span class="bet-rule-chip">🃏 Đếm lá: <strong>${b.toLocaleString()} xu/lá</strong></span>
+        <span class="bet-rule-chip">🥶 Cóng 13 lá: <strong>${(b * 26).toLocaleString()} xu</strong></span>
+        <span class="bet-rule-chip">🐷 Heo đen / đỏ: <strong>${Math.round(b * 2.5).toLocaleString()} / ${(b * 5).toLocaleString()} xu</strong></span>
+        <span class="bet-rule-chip">💣 3 Đôi thông / Tứ quý / 4 Đôi thông: <strong>${Math.round(b * 7.5).toLocaleString()} / ${(b * 10).toLocaleString()} / ${Math.round(b * 12.5).toLocaleString()} xu</strong></span>
+        <span class="bet-rule-chip">♠️ Đút 3♠: <strong>${Math.round(b * 7.5).toLocaleString()} xu</strong></span>
+        <span class="bet-rule-chip">👑 Tới trắng: <strong>${(b * 15).toLocaleString()} xu</strong></span>
+      `;
+    }
+
+    this.updateBetBadges();
+  }
+
+  // ============================================================================
   // WIFI MULTIPLAYER & PEERJS / LAN SYNC
   // ============================================================================
   isStaticCloudHost() {
@@ -1924,9 +2181,12 @@ class TienLenGame {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
     if (roomParam) {
+      this.selectLobbyMode('human');
       document.getElementById('input-room-code').value = roomParam.toUpperCase();
       document.getElementById('input-player-name').value =
-        'Người chơi ' + Math.floor(10 + Math.random() * 89);
+        this.savedPlayerName && this.savedPlayerName !== 'Thắng'
+          ? this.savedPlayerName
+          : 'Người chơi ' + Math.floor(10 + Math.random() * 89);
       this.modalWifi.classList.remove('hidden');
       this.renderLobbyModal();
     }
@@ -1960,6 +2220,7 @@ class TienLenGame {
     document.getElementById('share-link-input').value = this.getShareableRoomUrl(code);
     document.getElementById('wifi-room-box').classList.remove('hidden');
 
+    this.updateBetBadges();
     this.initHostPeer(code);
     this.broadcastState();
     this.pollTimer = setInterval(() => this.pollRoomAsHost(), 350);
@@ -2005,15 +2266,19 @@ class TienLenGame {
     this.roomId = null;
     this.mySeatId = 0;
 
+    const myName = document.getElementById('input-player-name')?.value.trim() || this.savedPlayerName || 'Thắng';
+    const botBankroll = Math.max(INITIAL_COINS, (this.betPerCard || 100) * 500);
+
     this.players = [
-      { id: 0, name: 'Bạn', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 0, name: myName, avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
+      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
     ];
 
-    document.getElementById('wifi-status-label').textContent = 'Tạo phòng';
+    document.getElementById('wifi-status-label').textContent = 'Đấu Bot / Đổi Cược';
     document.getElementById('wifi-room-box').classList.add('hidden');
+    this.updateBetBadges();
     this.startNewMatch(true);
   }
 
@@ -2116,6 +2381,7 @@ class TienLenGame {
   serializeRoomState() {
     return {
       roomId: this.roomId,
+      betPerCard: this.betPerCard || 100,
       matchCount: this.matchCount,
       lastWinnerId: this.lastWinnerId,
       currentTurn: this.currentTurn,
@@ -2138,8 +2404,8 @@ class TienLenGame {
         name: p.name,
         avatar: p.avatar,
         cardSkin: p.cardSkin || 'classic',
-        chopBurst: p.chopBurst || 'raiden',
-        winBurst: p.winBurst || 'skirk',
+        chopBurst: p.chopBurst || 'none',
+        winBurst: p.winBurst || 'none',
         isBot: p.isBot,
         active: p.active,
         hand: p.hand,
@@ -2270,6 +2536,10 @@ class TienLenGame {
   }
 
   applySyncedStateOnGuest(state) {
+    if (typeof state.betPerCard === 'number' && state.betPerCard >= 20) {
+      this.betPerCard = state.betPerCard;
+      this.updateBetBadges();
+    }
     this.matchCount = state.matchCount || 1;
     this.currentTurn = state.currentTurn || 0;
     this.currentCombo = state.currentCombo || null;
@@ -2295,7 +2565,7 @@ class TienLenGame {
     if (state.firstTurnBadgeText) {
       this.elFirstTurnBadge.textContent = state.firstTurnBadgeText;
     }
-    this.elMatchInfo.textContent = `Ván #${this.matchCount} • Phòng WiFi ${this.roomId}`;
+    this.elMatchInfo.textContent = `Ván #${this.matchCount} • Phòng ${this.roomId} • Cược ${this.betPerCard.toLocaleString()} xu/lá`;
 
     if (this.currentTurn === this.mySeatId && !this.isGameOver) {
       this.elTurnBanner.textContent = this.currentCombo
@@ -2319,7 +2589,7 @@ class TienLenGame {
     if (state.lastBurstEffect && state.lastBurstEffect.id !== this.lastShownBurstId) {
       this.lastShownBurstId = state.lastBurstEffect.id;
       const burst = state.lastBurstEffect;
-      const bId = burst.burstId || burst.type || 'raiden';
+      const bId = burst.burstId || burst.type || 'none';
       if (!burst.isWin) {
         this.triggerGenshinBurst(bId, burst.detail);
       } else {
@@ -2361,6 +2631,7 @@ class TienLenGame {
   }
 
   renderLobbyModal() {
+    this.renderBetTiers();
     const grid = document.getElementById('lobby-seats-grid');
     if (!grid) return;
 
@@ -2372,11 +2643,11 @@ class TienLenGame {
       startBtn.disabled = activePlayers.length < 2;
       startBtn.textContent =
         activePlayers.length >= 2
-          ? `🃏 Bắt Đầu Chia Bài (${activePlayers.length} người)`
+          ? `🃏 Bắt Đầu Chia Bài (${activePlayers.length} người • Cược ${this.betPerCard.toLocaleString()} Xu/lá)`
           : '⏳ Đang chờ ít nhất 2 người...';
     } else if (this.isMultiplayer && !this.isHost) {
       startBtn.disabled = true;
-      startBtn.textContent = '⏳ Chờ Chủ phòng bắt đầu ván bài...';
+      startBtn.textContent = `⏳ Chờ Chủ phòng bắt đầu (Cược ${this.betPerCard.toLocaleString()} Xu/lá)...`;
     } else {
       startBtn.disabled = true;
       startBtn.textContent = 'Hãy bấm "Tạo Phòng Mới" trước';
@@ -2434,6 +2705,7 @@ class TienLenGame {
       p.cardSkin = botSkins[seatIdx];
       p.chopBurst = botBursts[seatIdx];
       p.winBurst = botBursts[seatIdx];
+      p.coins = Math.max(INITIAL_COINS, (this.betPerCard || 100) * 500);
       p.clientId = null;
     } else {
       p.active = false;
@@ -2479,6 +2751,7 @@ class TienLenGame {
     clearTimeout(this.botTimer);
     this.modalSummary.classList.add('hidden');
     this.btnShowSummary.classList.add('hidden');
+    this.updateBetBadges();
 
     const activePlayers = this.getActivePlayers();
     if (activePlayers.length < 2) {
@@ -2523,14 +2796,15 @@ class TienLenGame {
     this.lastChoppedPlayerId = null;
     this.isGameOver = false;
 
+    const b = this.betPerCard || 100;
+    const tierMeta = this.getCurrentBetTierMeta(b);
     this.elGameLog.innerHTML = '';
     this.elMatchInfo.textContent = this.isMultiplayer
-      ? `Ván #${this.matchCount} • Phòng WiFi ${this.roomId} (${activePlayers.length} người)`
-      : `Ván #${this.matchCount} • Luật Đếm Lá (Nhất Ăn Tất)`;
+      ? `Ván #${this.matchCount} • Phòng ${this.roomId} (${activePlayers.length} người) • Cược ${b.toLocaleString()} xu/lá`
+      : `Ván #${this.matchCount} • ${tierMeta.name} (${b.toLocaleString()} xu/lá • Nhất Ăn Tất)`;
 
     const isFirstMatch = this.lastWinnerId === null || !this.players[this.lastWinnerId]?.active;
     if (isFirstMatch) {
-      // Tìm người có quân bài nhỏ nhất trên bàn (ưu tiên 3♠) để đi trước
       let lowestPlayer = activePlayers[0];
       let lowestCardVal = 999;
       activePlayers.forEach((p) => {
@@ -2549,7 +2823,7 @@ class TienLenGame {
         ? `♠️ Ván đầu: ${lowestPlayer.name} có 3♠ đi trước`
         : `♠️ Ván đầu: ${lowestPlayer.name} có bài nhỏ nhất đi trước`;
       this.addLog(
-        `<strong>Ván #${this.matchCount} (${activePlayers.length} người)</strong> bắt đầu! <strong>${lowestPlayer.name}</strong> đi trước.`,
+        `<strong>Ván #${this.matchCount} (${tierMeta.name}: ${b.toLocaleString()} xu/lá)</strong> bắt đầu! <strong>${lowestPlayer.name}</strong> đi trước.`,
         'log-win'
       );
     } else {
@@ -2557,7 +2831,7 @@ class TienLenGame {
       this.mustPlay3Spade = false;
       this.elFirstTurnBadge.textContent = `👑 Chủ bàn: ${this.players[this.currentTurn].name} đi trước`;
       this.addLog(
-        `<strong>Ván #${this.matchCount}</strong> bắt đầu! <strong>${this.players[this.currentTurn].name}</strong> (Về Nhất ván trước) đi trước.`,
+        `<strong>Ván #${this.matchCount} (${b.toLocaleString()} xu/lá)</strong> bắt đầu! <strong>${this.players[this.currentTurn].name}</strong> (Về Nhất ván trước) đi trước.`,
         'log-win'
       );
     }
@@ -2586,6 +2860,8 @@ class TienLenGame {
     this.isGameOver = true;
     this.btnShowSummary.classList.remove('hidden');
     const winner = this.players[winnerId];
+    const b = this.betPerCard || 100;
+    const baseToiTrang = Math.round(b * 15);
     sfx.win();
     this.showComboBanner(`🎉 TỚI TRẮNG: ${reason.toUpperCase()}!`);
     this.addLog(
@@ -2603,16 +2879,16 @@ class TienLenGame {
         p.finishRank = 1;
       } else {
         p.finishRank = 2;
-        const analysis = analyzeLoserHand(p.hand, false);
-        const specialOnly =
-          analysis.totalPenalty - (p.hand.length === 13 ? 520 : p.hand.length * 20);
-        const loss = 300 + Math.max(0, specialOnly);
+        const analysis = analyzeLoserHand(p.hand, false, b);
+        const leafBase = p.hand.length === 13 ? b * 26 : p.hand.length * b;
+        const specialOnly = analysis.totalPenalty - leafBase;
+        const loss = baseToiTrang + Math.max(0, specialOnly);
         coinChanges[p.id] = -loss;
         p.coins -= loss;
         totalWon += loss;
         this.penaltyCardIdsByPlayer[p.id] = analysis.penaltyCardIds;
         detailsByPlayer[p.id] = [
-          { label: 'Bị Tới Trắng (-300)', isSpecial: true },
+          { label: `Bị Tới Trắng (-${baseToiTrang.toLocaleString()})`, isSpecial: true },
           ...analysis.breakdown.slice(1),
         ];
       }
@@ -2621,14 +2897,14 @@ class TienLenGame {
     coinChanges[winnerId] = totalWon;
     winner.coins += totalWon;
     detailsByPlayer[winnerId] = [
-      { label: `Tới trắng: ${reason} (+${totalWon})`, isGood: true },
+      { label: `Tới trắng: ${reason} (+${totalWon.toLocaleString()})`, isGood: true },
     ];
 
     this.lastWinnerId = winnerId;
-    const bannerTitle = `🎉 ${winner.name} TỚI TRẮNG (${reason}) - ĂN TRỌN +${totalWon} XU!`;
+    const bannerTitle = `🎉 ${winner.name} TỚI TRẮNG (${reason}) - ĂN TRỌN +${totalWon.toLocaleString()} XU!`;
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
-    const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon} Xu!`;
-    const winBurstId = winner.winBurst || 'skirk';
+    const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon.toLocaleString()} Xu!`;
+    const winBurstId = winner.winBurst || 'none';
     this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: burstDetail };
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
@@ -2660,6 +2936,9 @@ class TienLenGame {
 
     if (currentPlayer.isBot) {
       this.elTurnBanner.textContent = `⏳ Đang đợi ${currentPlayer.name} suy nghĩ...`;
+      if (!this.isMultiplayer && this.modalWifi && !this.modalWifi.classList.contains('hidden')) {
+        return;
+      }
       this.botTimer = setTimeout(() => this.executeBotTurn(currentPlayer), this.botDelay);
     } else if (currentPlayer.id === this.mySeatId) {
       if (!this.currentCombo) {
@@ -2690,13 +2969,18 @@ class TienLenGame {
     ) {
       sfx.chop();
       const victim = this.players[this.trickOwnerId];
-      let chopValue = 100;
+      const b = this.betPerCard || 100;
+      let chopValue = Math.round(b * 5);
       if (this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank === 12) {
-        chopValue = this.currentCombo.highCard.isRed ? 100 : 50;
+        chopValue = Math.round(b * (this.currentCombo.highCard.isRed ? 5 : 2.5));
       } else if (this.currentCombo.type === COMBO_TYPES.PAIR && this.currentCombo.highRank === 12) {
-        chopValue = 200;
+        chopValue = Math.round(b * 10);
+      } else if (this.currentCombo.type === COMBO_TYPES.FOUR_OF_A_KIND) {
+        chopValue = Math.round(b * 10);
+      } else if (this.currentCombo.type === COMBO_TYPES.FOUR_PAIRS) {
+        chopValue = Math.round(b * 12.5);
       } else {
-        chopValue = 150;
+        chopValue = Math.round(b * 7.5);
       }
 
       if (this.lastChoppedPlayerId !== null && this.chopPot > 0) {
@@ -2706,7 +2990,7 @@ class TienLenGame {
         this.matchChopCoins[prevVictim.id] += this.chopPot;
         this.matchChopCoins[victim.id] -= this.chopPot;
         this.matchChopDetails[victim.id].push({
-          label: `💸 Đền chặt chồng (-${this.chopPot})`,
+          label: `💸 Đền chặt chồng (-${this.chopPot.toLocaleString()})`,
           isSpecial: true,
         });
       }
@@ -2719,21 +3003,21 @@ class TienLenGame {
       this.matchChopCoins[victim.id] -= chopValue;
       this.matchChopCoins[player.id] += chopValue;
       this.matchChopDetails[victim.id].push({
-        label: `💸 Bị ${player.name} chặt ${this.currentCombo.label} (-${chopValue})`,
+        label: `💸 Bị ${player.name} chặt ${this.currentCombo.label} (-${chopValue.toLocaleString()})`,
         isSpecial: true,
       });
       this.matchChopDetails[player.id].push({
-        label: `💥 Chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue})`,
+        label: `💥 Chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue.toLocaleString()})`,
         isGood: true,
       });
 
-      const chopBurstDetail = `⚡ ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue} xu)!`;
-      const chopBurstId = player.chopBurst || 'raiden';
+      const chopBurstDetail = `⚡ ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue.toLocaleString()} xu)!`;
+      const chopBurstId = player.chopBurst || 'none';
       this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
       this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
-      this.showComboBanner(`💥 CHẶT HEO/HÀNG! +${chopValue} XU`);
+      this.showComboBanner(`💥 CHẶT HEO/HÀNG! +${chopValue.toLocaleString()} XU`);
       this.addLog(
-        `💥 <strong>${player.name}</strong> tung <strong>${combo.label}</strong> chặt <strong>${this.currentCombo.label}</strong> của <strong>${victim.name}</strong> (+${chopValue} xu)!`,
+        `💥 <strong>${player.name}</strong> tung <strong>${combo.label}</strong> chặt <strong>${this.currentCombo.label}</strong> của <strong>${victim.name}</strong> (+${chopValue.toLocaleString()} xu)!`,
         'log-chop'
       );
       this.saveShopProfile();
@@ -3217,6 +3501,7 @@ class TienLenGame {
     clearTimeout(this.botTimer);
 
     const winner = this.players[winnerId];
+    const b = this.betPerCard || 100;
     const coinChanges = [0, 0, 0, 0];
     const detailsByPlayer = [[], [], [], []];
     let totalWinnerGain = 0;
@@ -3224,7 +3509,7 @@ class TienLenGame {
     this.players.forEach((p) => {
       if (!p.active || p.id === winnerId) return;
 
-      const analysis = analyzeLoserHand(p.hand, wonBy3Spade);
+      const analysis = analyzeLoserHand(p.hand, wonBy3Spade, b);
       const loss = analysis.totalPenalty;
       this.penaltyCardIdsByPlayer[p.id] = analysis.penaltyCardIds;
       detailsByPlayer[p.id] = [...this.matchChopDetails[p.id], ...analysis.breakdown];
@@ -3233,11 +3518,11 @@ class TienLenGame {
       coinChanges[p.id] = this.matchChopCoins[p.id] - loss;
       totalWinnerGain += loss;
 
-      const detailText = analysis.breakdown.map((b) => b.label).join(', ');
+      const detailText = analysis.breakdown.map((item) => item.label).join(', ');
       this.addLog(
         `🃏 <strong>${p.name}</strong> lật bài (${p.hand
           .map((c) => `${c.rank}${c.suit}`)
-          .join(' ')}): ${detailText} ➔ <strong>-${loss} xu</strong>`,
+          .join(' ')}): ${detailText} ➔ <strong>-${loss.toLocaleString()} xu</strong>`,
         'log-chop'
       );
     });
@@ -3248,23 +3533,23 @@ class TienLenGame {
       ...this.matchChopDetails[winnerId],
       {
         label: wonBy3Spade
-          ? `👑 Đút 3♠ Về Nhất (+${totalWinnerGain} xu)`
-          : `🏆 Về Nhất ăn tất (+${totalWinnerGain} xu)`,
+          ? `👑 Đút 3♠ Về Nhất (+${totalWinnerGain.toLocaleString()} xu)`
+          : `🏆 Về Nhất ăn tất (+${totalWinnerGain.toLocaleString()} xu)`,
         isGood: true,
       },
     ];
 
     this.lastWinnerId = winnerId;
-    this.elTurnBanner.textContent = `🏁 ${winner.name} Về Nhất (+${totalWinnerGain} xu)! Đã lật bài toàn bàn.`;
+    this.elTurnBanner.textContent = `🏁 ${winner.name} Về Nhất (+${totalWinnerGain.toLocaleString()} xu)! Đã lật bài toàn bàn.`;
 
     const bannerTitle = wonBy3Spade
-      ? `👑 ${winner.name.toUpperCase()} ĐÚT 3 BÍCH VỀ NHẤT — ĂN TRỌN +${totalWinnerGain} XU!`
-      : `🏆 ${winner.name.toUpperCase()} VỀ NHẤT — ĂN TRỌN +${totalWinnerGain} XU!`;
+      ? `👑 ${winner.name.toUpperCase()} ĐÚT 3 BÍCH VỀ NHẤT — ĂN TRỌN +${totalWinnerGain.toLocaleString()} XU!`
+      : `🏆 ${winner.name.toUpperCase()} VỀ NHẤT — ĂN TRỌN +${totalWinnerGain.toLocaleString()} XU!`;
 
     const winBurstDetail = wonBy3Spade
-      ? `👑 ${winner.name} Đút 3♠ Về Nhất • +${totalWinnerGain} Xu!`
-      : `🏆 ${winner.name} Về Nhất Ăn Tất • +${totalWinnerGain} Xu!`;
-    const winBurstId = winner.winBurst || 'skirk';
+      ? `👑 ${winner.name} Đút 3♠ Về Nhất • +${totalWinnerGain.toLocaleString()} Xu!`
+      : `🏆 ${winner.name} Về Nhất Ăn Tất • +${totalWinnerGain.toLocaleString()} Xu!`;
+    const winBurstId = winner.winBurst || 'none';
     this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: winBurstDetail };
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     this.checkAndTriggerAutoRelief();
@@ -3283,6 +3568,7 @@ class TienLenGame {
   showSummaryModal(coinChanges, detailsByPlayer, bannerText) {
     const tbody = document.getElementById('summary-tbody');
     const banner = document.getElementById('toi-trang-banner');
+    this.updateBetBadges();
 
     if (bannerText) {
       banner.textContent = bannerText;
@@ -3302,7 +3588,7 @@ class TienLenGame {
       .map((p) => {
         const isWinner = p.finishRank === 1;
         const delta = coinChanges[p.id];
-        const deltaStr = delta >= 0 ? `+${delta}` : `${delta}`;
+        const deltaStr = delta >= 0 ? `+${delta.toLocaleString()}` : `${delta.toLocaleString()}`;
         const deltaClass = delta >= 0 ? 'coin-plus' : 'coin-minus';
         const penSet = this.penaltyCardIdsByPlayer[p.id] || new Set();
 

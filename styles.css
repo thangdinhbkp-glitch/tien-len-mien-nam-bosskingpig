@@ -2501,3 +2501,402 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================================
+   HOME LOBBY SCREEN (CHỌN 2 CHẾ ĐỘ: 1. ĐẤU VỚI BOT / 2. ĐẤU VỚI NGƯỜI + CHỌN MỨC CƯỢC)
+   ============================================================================ */
+.home-lobby-backdrop {
+  background: radial-gradient(circle at 50% 20%, rgba(16, 40, 56, 0.96) 0%, rgba(6, 12, 18, 0.98) 100%);
+  backdrop-filter: blur(14px);
+  z-index: 120;
+}
+
+.home-lobby-card {
+  width: min(1040px, 96vw);
+  max-height: 93vh;
+  max-height: 93dvh;
+  border: 2px solid rgba(255, 209, 102, 0.45);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.85),
+    0 0 40px rgba(245, 158, 11, 0.16);
+}
+
+.home-lobby-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lobby-profile-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lobby-coin-pill {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.14));
+  border: 1.5px solid #fbbf24;
+  color: #fde68a;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.25);
+}
+
+.lobby-coin-pill strong {
+  color: #fff;
+  font-size: 15px;
+}
+
+.home-lobby-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+}
+
+.lobby-top-row {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.lobby-name-box {
+  background: rgba(15, 29, 40, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.lobby-name-box label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fde68a;
+}
+
+.lobby-name-box input {
+  width: 100%;
+  background: rgba(6, 13, 19, 0.9);
+  border: 1.5px solid rgba(255, 209, 102, 0.45);
+  border-radius: 9px;
+  padding: 9px 12px;
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 700;
+  outline: none;
+}
+
+.lobby-name-box input:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
+}
+
+.lobby-mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mode-select-card {
+  position: relative;
+  background: linear-gradient(145deg, rgba(17, 34, 48, 0.9), rgba(10, 21, 30, 0.92));
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mode-select-card:hover {
+  border-color: rgba(251, 191, 36, 0.65);
+  transform: translateY(-2px);
+}
+
+.mode-select-card.active {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.22), rgba(16, 48, 38, 0.92));
+  border-color: #fbbf24;
+  box-shadow:
+    0 8px 24px rgba(245, 158, 11, 0.26),
+    inset 0 0 18px rgba(251, 191, 36, 0.14);
+}
+
+.mode-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid #fbbf24;
+  color: #fde68a;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
+.mode-badge-online {
+  background: rgba(14, 165, 233, 0.24);
+  border-color: #38bdf8;
+  color: #bae6fd;
+}
+
+.mode-card-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mode-card-icon {
+  font-size: 34px;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
+}
+
+.mode-card-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 3px;
+}
+
+.mode-card-desc {
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.35;
+}
+
+/* BET TIERS SECTION */
+.lobby-bet-section {
+  background: rgba(11, 22, 31, 0.9);
+  border: 1.5px solid rgba(230, 184, 92, 0.32);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.lobby-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #fde68a;
+}
+
+.custom-bet-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.custom-bet-inline input {
+  width: 95px;
+  background: rgba(6, 13, 19, 0.95);
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: 7px;
+  padding: 5px 8px;
+  color: #fde68a;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.bet-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.bet-tier-card {
+  position: relative;
+  background: linear-gradient(160deg, rgba(20, 37, 50, 0.92), rgba(11, 21, 30, 0.95));
+  border: 1.5px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  padding: 11px 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.bet-tier-card:hover {
+  border-color: rgba(251, 191, 36, 0.65);
+  transform: translateY(-2px);
+}
+
+.bet-tier-card.active {
+  background: linear-gradient(160deg, rgba(245, 158, 11, 0.28), rgba(16, 56, 40, 0.95));
+  border: 2px solid #fbbf24;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+}
+
+.bet-tier-card.locked-tier {
+  opacity: 0.62;
+  border-style: dashed;
+}
+
+.bet-tier-icon {
+  font-size: 22px;
+}
+
+.bet-tier-name {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.bet-tier-amount {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fbbf24;
+}
+
+.bet-tier-sub {
+  font-size: 10.5px;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.bet-tier-req {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #cbd5e1;
+}
+
+.bet-tier-card.locked-tier .bet-tier-req {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.bet-rules-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(6, 15, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  color: #e2e8f0;
+}
+
+.bet-rule-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 3px 9px;
+  border-radius: 7px;
+  font-weight: 600;
+}
+
+.bet-rule-chip strong {
+  color: #fde68a;
+}
+
+/* ACTION PANELS FOR BOT VS HUMAN */
+.lobby-action-panel {
+  background: rgba(14, 28, 38, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+#lobby-human-panel {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.bot-mode-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13.5px;
+}
+
+.bot-mode-sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.lobby-big-cta {
+  font-size: 15px;
+  padding: 12px 26px;
+  border-radius: 11px;
+  box-shadow: 0 6px 22px rgba(245, 158, 11, 0.45);
+}
+
+.human-mode-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.human-create-box,
+.human-join-box {
+  background: rgba(8, 18, 26, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.human-box-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fde68a;
+}
+
+.human-box-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+@media (max-width: 900px) {
+  .lobby-top-row {
+    grid-template-columns: 1fr;
+  }
+  .lobby-mode-selector {
+    grid-template-columns: 1fr;
+  }
+  .bet-tiers-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .human-mode-actions-row {
+    grid-template-columns: 1fr;
+  }
+}

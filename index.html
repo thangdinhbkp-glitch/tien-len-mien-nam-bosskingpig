@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -21,11 +21,14 @@
       </div>
 
       <div class="top-controls">
+        <div class="rule-badge" id="current-bet-badge" title="Mức cược hiện tại của bàn">
+          💰 Bàn Tập Sự • 100 xu/lá
+        </div>
         <div class="rule-badge" id="first-turn-badge" title="Quy định lượt đầu">
           ♠️ Ván đầu: Ai có 3♠ đi trước
         </div>
-        <button class="wifi-btn" id="btn-wifi" title="Tạo phòng hoặc gửi link chơi qua WiFi (2-4 người)">
-          📶 Chơi WiFi (<span id="wifi-status-label">Tạo phòng</span>)
+        <button class="wifi-btn" id="btn-wifi" title="Mở Màn Hình Chờ để chọn Chế Độ (Đấu Bot / Đấu Người) & Mức Cược">
+          🏠 Sảnh Chờ (<span id="wifi-status-label">Chọn Chế Độ / Cược</span>)
         </button>
         <button class="shop-btn" id="btn-shop" title="Mua trang trí bài Genshin Impact & Avatar bằng Xu">
           🛍️ Shop Genshin
@@ -212,77 +215,157 @@
       </aside>
     </main>
 
-    <!-- WiFi Multiplayer Lobby Modal -->
-    <div class="modal-backdrop hidden" id="wifi-modal">
-      <div class="modal-card wifi-card">
-        <div class="modal-header">
-          <div>
-            <h2>📶 CHƠI QUA WIFI CÙNG BẠN BÈ (2 – 4 NGƯỜI)</h2>
-            <p>Gửi link cho bạn bè cùng mạng WiFi (hoặc nhập Mã phòng) để vào bàn</p>
+    <!-- MÀN HÌNH CHỜ CHÍNH (CHỌN 2 CHẾ ĐỘ: 1. ĐẤU VỚI BOT / 2. ĐẤU VỚI NGƯỜI + CHỌN MỨC CƯỢC) -->
+    <div class="modal-backdrop home-lobby-backdrop" id="wifi-modal">
+      <div class="modal-card wifi-card home-lobby-card">
+        <div class="modal-header home-lobby-header">
+          <div class="lobby-brand-title">
+            <h2>🃏 SẢNH CHỜ TIẾN LÊN MIỀN NAM • GENSHIN EDITION</h2>
+            <p>Chọn Chế Độ Chơi (1. Đấu Với Bot • 2. Đấu Với Người) và Chọn Mức Cược để vào bàn!</p>
           </div>
-          <button class="close-modal-btn" id="btn-close-wifi">✕</button>
+          <div class="lobby-profile-bar">
+            <div class="lobby-coin-pill" title="Số dư Xu hiện tại của bạn">
+              🪙 <strong id="lobby-balance-display">20,000</strong> Xu
+            </div>
+            <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Cửa Hàng mua Skin Bài, Avatar & Kỹ Năng Nộ">
+              🛍️ Shop Genshin
+            </button>
+            <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
+              📖 Luật
+            </button>
+            <button class="close-modal-btn" id="btn-close-wifi" title="Đóng Sảnh Chờ để quay lại bàn đang đánh">✕</button>
+          </div>
         </div>
 
-        <div class="modal-body wifi-body">
-          <!-- Step 1: Name & Create/Join -->
-          <div class="wifi-setup-row">
-            <div class="input-group">
-              <label>Tên hiển thị của bạn:</label>
+        <div class="modal-body wifi-body home-lobby-body">
+          <!-- Hàng 1: Nhập Tên & Chọn 1 trong 2 Chế Độ -->
+          <div class="lobby-top-row">
+            <div class="lobby-name-box">
+              <label>👤 Tên hiển thị của bạn trên bàn:</label>
               <input type="text" id="input-player-name" value="Thắng" maxlength="18" placeholder="Nhập tên của bạn..." />
             </div>
 
-            <div class="input-group">
-              <label>Mã phòng (nếu vào phòng bạn bè):</label>
-              <div class="join-row">
-                <input type="text" id="input-room-code" maxlength="8" placeholder="VD: 8888" />
-                <button class="icon-btn" id="btn-join-room">🚀 Vào Phòng</button>
+            <div class="lobby-mode-selector">
+              <div class="mode-select-card active" id="mode-card-bot" onclick="window.tienLenGame.selectLobbyMode('bot')">
+                <div class="mode-card-badge">CHẾ ĐỘ 1</div>
+                <div class="mode-card-main">
+                  <span class="mode-card-icon">🤖</span>
+                  <div>
+                    <div class="mode-card-title">1. ĐẤU VỚI BOT (Solo AI)</div>
+                    <div class="mode-card-desc">Đánh 1v3 cùng Bot Raiden, Skirk & Furina • Chia bài ngay lập tức</div>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div class="create-group">
-              <button class="primary-btn" id="btn-create-room">
-                🏠 Tạo Phòng Mới (Làm Chủ Bàn)
-              </button>
-            </div>
-          </div>
-
-          <!-- Step 2: Active Room Info & Share Link -->
-          <div class="wifi-room-box hidden" id="wifi-room-box">
-            <div class="share-banner">
-              <div class="share-left">
-                <div class="room-code-pill">
-                  MÃ PHÒNG: <strong id="display-room-code">----</strong>
-                </div>
-                <div class="share-url-wrap">
-                  <span>🔗 Link gửi bạn bè:</span>
-                  <input type="text" id="share-link-input" readonly />
-                  <button class="primary-btn btn-sm" id="btn-copy-link">📋 Copy Link</button>
-                </div>
-                <div class="share-hint" id="share-hint-text">
-                  💡 Bạn bè cùng WiFi chỉ cần mở link trên bằng điện thoại hoặc laptop là vào thẳng bàn của bạn!
+              <div class="mode-select-card" id="mode-card-human" onclick="window.tienLenGame.selectLobbyMode('human')">
+                <div class="mode-card-badge mode-badge-online">CHẾ ĐỘ 2</div>
+                <div class="mode-card-main">
+                  <span class="mode-card-icon">👥</span>
+                  <div>
+                    <div class="mode-card-title">2. ĐẤU VỚI NGƯỜI (2 – 4 Người)</div>
+                    <div class="mode-card-desc">Tạo phòng làm Chủ bàn hoặc nhập Mã phòng / gửi Link rủ bạn bè</div>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- 4 Seats List (Minimum 2 players, Max 4 players) -->
-            <div class="lobby-seats-header">
-              <span>👥 Danh sách ghế trong bàn (<strong id="lobby-player-count">1</strong>/4 người • Tối thiểu 2 người để bắt đầu)</span>
-              <button class="clear-log-btn" id="btn-leave-room">Rời phòng (Về đánh với Bot)</button>
+          <!-- Hàng 2: Chọn Mức Cược (Áp dụng cho cả Chế độ 1: Đấu Bot & Chế độ 2: Đấu Người) -->
+          <div class="lobby-bet-section">
+            <div class="lobby-section-header">
+              <span>💰 CHỌN MỨC CƯỢC BÀN BÀI (<strong id="selected-mode-label">Chế độ 1: Đấu Với Bot</strong>)</span>
+              <div class="custom-bet-inline">
+                <label for="input-custom-bet">Hoặc tự nhập mức cược (Xu/lá):</label>
+                <input type="number" id="input-custom-bet" min="20" step="20" value="100" />
+                <button class="tool-btn" id="btn-apply-custom-bet">Áp dụng</button>
+              </div>
             </div>
 
-            <div class="lobby-seats-grid" id="lobby-seats-grid">
-              <!-- Populated dynamically -->
+            <div class="bet-tiers-grid" id="bet-tiers-grid">
+              <!-- Populated dynamically by renderBetTiers() -->
+            </div>
+
+            <div class="bet-rules-preview" id="bet-rules-preview">
+              <!-- Populated dynamically with exact penalty amounts for selected bet -->
             </div>
           </div>
-        </div>
 
-        <div class="modal-footer summary-footer">
-          <button class="icon-btn" id="btn-solo-bot-mode">
-            🤖 Chơi Offline 1 mình với 3 Bot
-          </button>
-          <button class="primary-btn btn-lg" id="btn-start-wifi-match" disabled>
-            🃏 Bắt Đầu Chia Bài (Cần ít nhất 2 người)
-          </button>
+          <!-- Hàng 3A: Khung Hành Động Chế Độ 1 (Đấu Với Bot) -->
+          <div class="lobby-action-panel" id="lobby-bot-panel">
+            <div class="bot-mode-summary">
+              <div>
+                <strong>🤖 Đối thủ trên bàn:</strong> Bot Raiden Shogun ⚡ • Bot Skirk 🌌 • Bot Furina 💧
+              </div>
+              <div class="bot-mode-sub">
+                💡 Thắng ván bài ở bàn cược càng cao càng nhận được nhiều Xu để mua 29 Skin Bài Fanart, 29 Avatar & 10 Kỹ Năng Nộ!
+              </div>
+            </div>
+            <button class="primary-btn btn-lg lobby-big-cta" id="btn-solo-bot-mode">
+              ⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (Cược: 100 Xu/lá)
+            </button>
+          </div>
+
+          <!-- Hàng 3B: Khung Hành Động Chế Độ 2 (Đấu Với Người) -->
+          <div class="lobby-action-panel hidden" id="lobby-human-panel">
+            <div class="human-mode-actions-row">
+              <div class="human-create-box">
+                <div class="human-box-title">🏠 Lựa chọn 1: Tạo Phòng Mới (Làm Chủ Bàn)</div>
+                <div class="human-box-desc">Tạo phòng với mức cược bạn đã chọn ở trên và lấy Link / Mã phòng gửi bạn bè:</div>
+                <button class="primary-btn btn-lg" id="btn-create-room">
+                  🏠 Tạo Phòng Đấu Với Người (Theo Mức Cược Đang Chọn)
+                </button>
+              </div>
+
+              <div class="human-join-box">
+                <div class="human-box-title">🚀 Lựa chọn 2: Vào Phòng Của Bạn Bè</div>
+                <div class="human-box-desc">Nhập Mã phòng 4 chữ số do bạn bè gửi để vào bàn (tự động nhận mức cược của chủ phòng):</div>
+                <div class="join-row">
+                  <input type="text" id="input-room-code" maxlength="8" placeholder="Nhập Mã phòng (VD: 8888)" />
+                  <button class="primary-btn" id="btn-join-room">🚀 Vào Phòng Ngay</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Khung Phòng Chờ Đang Hoạt Động (Hiện khi đã Tạo Phòng hoặc Vào Phòng) -->
+            <div class="wifi-room-box hidden" id="wifi-room-box">
+              <div class="share-banner">
+                <div class="share-left">
+                  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <div class="room-code-pill">
+                      MÃ PHÒNG: <strong id="display-room-code">----</strong>
+                    </div>
+                    <div class="room-code-pill" style="background:rgba(245,158,11,0.18);border-color:#fbbf24;color:#fde68a;">
+                      MỨC CƯỢC PHÒNG: <strong id="display-room-bet">100 Xu/lá</strong>
+                    </div>
+                  </div>
+                  <div class="share-url-wrap">
+                    <span>🔗 Link gửi bạn bè:</span>
+                    <input type="text" id="share-link-input" readonly />
+                    <button class="primary-btn btn-sm" id="btn-copy-link">📋 Copy Link</button>
+                  </div>
+                  <div class="share-hint" id="share-hint-text">
+                    💡 Bạn bè chỉ cần mở Link trên hoặc nhập Mã phòng 4 số là vào thẳng bàn của bạn!
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4 Seats List (Minimum 2 players, Max 4 players) -->
+              <div class="lobby-seats-header">
+                <span>👥 Danh sách ghế trong phòng (<strong id="lobby-player-count">1</strong>/4 người • Tối thiểu 2 người để bắt đầu)</span>
+                <button class="clear-log-btn" id="btn-leave-room">✕ Rời phòng</button>
+              </div>
+
+              <div class="lobby-seats-grid" id="lobby-seats-grid">
+                <!-- Populated dynamically -->
+              </div>
+
+              <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                <button class="primary-btn btn-lg lobby-big-cta" id="btn-start-wifi-match" disabled>
+                  🃏 Bắt Đầu Chia Bài (Cần ít nhất 2 người)
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -305,7 +388,7 @@
                 <th>Kết quả</th>
                 <th>Người chơi</th>
                 <th>Bài còn lại (Show bài)</th>
-                <th>Chi tiết tính tiền (20 xu/lá + Phạt)</th>
+                <th id="summary-bet-col-header">Chi tiết tính tiền (Đếm lá + Phạt)</th>
                 <th>Thay đổi Xu</th>
                 <th>Tổng Xu</th>
               </tr>
@@ -314,9 +397,14 @@
           </table>
         </div>
         <div class="modal-footer summary-footer">
-          <button class="icon-btn" id="btn-peek-table">
-            👁️ Xem bài trên bàn
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="icon-btn" id="btn-peek-table">
+              👁️ Xem bài trên bàn
+            </button>
+            <button class="icon-btn" id="btn-summary-change-bet">
+              🏠 Đổi Chế Độ / Đổi Mức Cược
+            </button>
+          </div>
           <button class="primary-btn btn-lg" id="btn-next-round">
             🃏 Chia Ván Tiếp Theo
           </button>
@@ -333,40 +421,32 @@
         </div>
         <div class="modal-body rules-content">
           <div class="rule-section">
-            <h3>1. Nhất Ăn Tất (Đếm Lá) & Chơi WiFi 2–4 Người</h3>
+            <h3>1. Nhất Ăn Tất (Đếm Lá) & Chọn Mức Cược Bàn Bài</h3>
             <p>
-              • Hỗ trợ từ <strong>2 đến 4 người chơi</strong> qua WiFi hoặc đánh với Bot.<br/>
+              • Hỗ trợ <strong>2 Chế độ</strong>: <strong>Đấu Với Bot (1v3)</strong> hoặc <strong>Đấu Với Người (2–4 người)</strong>, mỗi chế độ được tùy chọn <strong>Mức cược (X xu / lá)</strong>.<br/>
               • Ngay khi có <strong>1 người đánh hết bài trước tiên (Về Nhất)</strong>, ván bài lập tức kết thúc!<br/>
-              • Toàn bộ người chơi còn lại phải <strong>lật ngửa bài trên tay (Show bài)</strong> để đếm lá và tính phạt nộp cho người Về Nhất:<br/>
-              &nbsp;&nbsp;– <strong>Mỗi lá bài còn lại:</strong> Phạt <strong>20 xu / lá</strong>.<br/>
-              &nbsp;&nbsp;– <strong>Cóng (Còn nguyên 13 lá chưa đánh lá nào):</strong> Phạt gấp đôi số lá = <strong>520 xu</strong> (+ tiền thối Heo/Hàng/3♠ nếu có).
+              • Toàn bộ người chơi còn lại phải <strong>lật ngửa bài trên tay (Show bài)</strong> để đếm lá và tính phạt theo mức cược bàn:<br/>
+              &nbsp;&nbsp;– <strong>Mỗi lá bài còn lại:</strong> Phạt <strong>1x mức cược / lá</strong>.<br/>
+              &nbsp;&nbsp;– <strong>Cóng (Còn nguyên 13 lá):</strong> Phạt gấp đôi số lá = <strong>26x mức cược</strong> (+ tiền thối Heo/Hàng/3♠ nếu có).
             </p>
           </div>
           <div class="rule-section">
-            <h3>2. Luật Phạt Thối Bài (Khi người khác đã Về Nhất)</h3>
+            <h3>2. Tỷ Lệ Phạt Thối Bài & Chặt Heo/Hàng (Nhân theo Mức Cược/lá)</h3>
             <p>
-              Nếu lúc ván bài kết thúc, người thua còn ngâm các quân bài đặc biệt trên tay sẽ bị phạt cộng thêm:<br/>
-              • <strong>Thối 3 Bích (3♠):</strong> Phạt thêm <strong>100 xu</strong>.<br/>
-              • <strong>Thối Heo đen (2♠, 2♣):</strong> Phạt thêm <strong>50 xu / cây</strong>.<br/>
-              • <strong>Thối Heo đỏ (2♦, 2♥):</strong> Phạt thêm <strong>100 xu / cây</strong>.<br/>
-              • <strong>Thối 3 đôi thông:</strong> Phạt thêm <strong>150 xu</strong>.<br/>
-              • <strong>Thối Tứ quý:</strong> Phạt thêm <strong>200 xu</strong>.<br/>
-              • <strong>Thối 4 đôi thông:</strong> Phạt thêm <strong>250 xu</strong>.
+              Mọi khoản thưởng Chặt và phạt Thối đều nhân tự động theo <strong>Mức cược / lá</strong> của bàn:<br/>
+              • <strong>Thối 3 Bích (3♠):</strong> Phạt thêm <strong>5x mức cược</strong>.<br/>
+              • <strong>Thối / Chặt Heo đen (2♠, 2♣):</strong> <strong>2.5x mức cược / cây</strong>.<br/>
+              • <strong>Thối / Chặt Heo đỏ (2♦, 2♥):</strong> <strong>5x mức cược / cây</strong> (Đôi Heo: <strong>10x mức cược</strong>).<br/>
+              • <strong>Thối / Chặt 3 đôi thông:</strong> <strong>7.5x mức cược</strong>.<br/>
+              • <strong>Thối / Chặt Tứ quý:</strong> <strong>10x mức cược</strong>.<br/>
+              • <strong>Thối / Chặt 4 đôi thông:</strong> <strong>12.5x mức cược</strong>.
             </p>
           </div>
           <div class="rule-section">
-            <h3>3. Luật Đút 3 Bích (Đánh 3♠ cuối cùng Về Nhất)</h3>
+            <h3>3. Luật Đút 3 Bích & Tới Trắng</h3>
             <p>
-              • Nếu người Về Nhất đánh <strong>nước bài cuối cùng có chứa quân 3♠ (Đút 3 Bích)</strong> để hết bài, tất cả người thua mỗi người bị phạt thêm <strong>150 xu</strong> cộng vào tiền thắng cho người Về Nhất!
-            </p>
-          </div>
-          <div class="rule-section">
-            <h3>4. Luật Chặt Heo/Hàng & Tới Trắng</h3>
-            <p>
-              • <strong>3 đôi thông:</strong> Chặt 1 Heo hoặc 3 đôi thông nhỏ hơn.<br/>
-              • <strong>Tứ quý:</strong> Chặt 1 Heo, Đôi Heo, 3 đôi thông hoặc Tứ quý nhỏ hơn.<br/>
-              • <strong>4 đôi thông:</strong> Chặt 1 Heo, Đôi Heo, 3 đôi thông, Tứ quý và 4 đôi thông nhỏ hơn (chặt không cần vòng).<br/>
-              • <strong>Tới Trắng:</strong> Sảnh Rồng, Tứ quý Heo, 6 đôi, 5/6 đôi thông, hoặc Tứ quý 3 ván đầu (Mỗi nhà thua nộp 300 xu + tiền thối bài).
+              • <strong>Đút 3 Bích (Đánh 3♠ cuối cùng Về Nhất):</strong> Mỗi nhà thua bị phạt thêm <strong>7.5x mức cược</strong>.<br/>
+              • <strong>Tới Trắng (Sảnh Rồng, Tứ quý Heo, 6 đôi, 5/6 đôi thông, Tứ quý 3 ván đầu):</strong> Mỗi nhà thua nộp <strong>15x mức cược</strong> + tiền thối bài.
             </p>
           </div>
         </div>
@@ -382,7 +462,7 @@
         <div class="modal-header">
           <div>
             <h2>🛍️ CỬA HÀNG GENSHIN FANART & KỸ NĂNG NỘ</h2>
-            <p>Dùng xu thắng ván bài để mua Fanart Bài, Avatar Fanart (29 nhân vật) & Hiệu ứng Kỹ Năng Nộ (Burst Animation)</p>
+            <p>Thắng các bàn cược cao để tích lũy Xu mở khóa 29 Skin Bài Fanart, 29 Avatar & 10 Kỹ Năng Nộ (Burst Animation)</p>
           </div>
           <div class="shop-header-right">
             <div class="shop-balance-pill">
@@ -415,16 +495,13 @@
             <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
               🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
             </button>
-            <button class="icon-btn" onclick="window.tienLenGame.unlockAllShopItems()" title="Khôi phục và mở khóa toàn bộ 29 Skin Bài, 29 Avatar & 10 Kỹ Năng Nộ">
-              🔓 Mở Khóa Full Shop (+100k Xu)
-            </button>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Biểu diễn Kỹ Năng Nộ Raiden Shogun (Chặt Heo/Hàng)!')">
-              ⚡ Test Nộ Raiden
+            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Xem thử Kỹ Năng Nộ Raiden Shogun (Chặt Heo/Hàng)!')">
+              ⚡ Xem Thử Nộ Raiden
             </button>
-            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('skirk', '🌌 Biểu diễn Kỹ Năng Nộ Skirk (Về Nhất Ăn Tất)!')">
-              🌌 Test Nộ Skirk
+            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('skirk', '🌌 Xem thử Kỹ Năng Nộ Skirk (Về Nhất Ăn Tất)!')">
+              🌌 Xem Thử Nộ Skirk
             </button>
             <button class="primary-btn" id="btn-ok-shop">Đóng Cửa Hàng</button>
           </div>
@@ -450,6 +527,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=8"></script>
+  <script src="game.js?v=9"></script>
 </body>
 </html>

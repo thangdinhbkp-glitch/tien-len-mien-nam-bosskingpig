@@ -2828,8 +2828,72 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
+}
+
+.bot-count-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bot-count-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.bot-count-card {
+  position: relative;
+  background: linear-gradient(150deg, rgba(20, 38, 52, 0.92), rgba(10, 20, 29, 0.96));
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  border-radius: 11px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bot-count-card:hover {
+  border-color: rgba(52, 211, 153, 0.7);
+  transform: translateY(-2px);
+}
+
+.bot-count-card.active {
+  background: linear-gradient(150deg, rgba(16, 185, 129, 0.28), rgba(13, 46, 39, 0.95));
+  border: 2px solid #34d399;
+  box-shadow: 0 5px 16px rgba(16, 185, 129, 0.3);
+}
+
+.bot-count-badge {
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.2);
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  color: #a7f3d0;
+}
+
+.bot-count-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.bot-count-desc {
+  font-size: 11.5px;
+  color: #cbd5e1;
+  line-height: 1.3;
 }
 
 #lobby-human-panel {
@@ -2895,6 +2959,9 @@ body {
   }
   .bet-tiers-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .bot-count-grid {
+    grid-template-columns: 1fr;
   }
   .human-mode-actions-row {
     grid-template-columns: 1fr;

@@ -67,35 +67,35 @@ const BET_TIERS = [
 // Giá bán được nâng cao để người chơi mới (vốn 20,000 Xu) phải thắng cược mới mua được!
 // ============================================================================
 const GENSHIN_FANART_ROSTER = [
-  { id: 'zibai', name: 'Zibai (Tiên Nhân Bạch Mã)', desc: '[Hiếm] Fanart Tiên Nhân Zibai thanh tao của vùng đất Liyue.', avatarPrice: 45000, skinPrice: 75000, crest: '🐎' },
-  { id: 'lauma', name: 'Lauma (Nữ Tu Sương Giá)', desc: '[Hiếm] Fanart thiếu nữ huyền bí mang sức mạnh cổ đại.', avatarPrice: 48000, skinPrice: 80000, crest: '✨' },
-  { id: 'linnea', name: 'Linnea (Ảo Thuật Gia Tinh Linh)', desc: '[Hiếm] Fanart thiếu nữ tinh linh duyên dáng và sắc sảo.', avatarPrice: 48000, skinPrice: 80000, crest: '🎩' },
-  { id: 'citlali', name: 'Citlali (Bà Ngoại Itztli)', desc: '[Hiếm] Fanart đại pháp sư bộ tộc Chủ Nhân Gió Đêm Natlan.', avatarPrice: 55000, skinPrice: 90000, crest: '❄️' },
-  { id: 'nefer', name: 'Nefer (Nữ Hoàng Sa Mạc)', desc: '[Hiếm] Fanart vẻ đẹp quyến rũ và quyền lực vùng cát vàng.', avatarPrice: 55000, skinPrice: 90000, crest: '🌙' },
-  { id: 'odette', name: 'Odette (Thiên Nga Băng Giá)', desc: '[Hiếm] Fanart vũ công thiên nga mang vẻ đẹp quý tộc.', avatarPrice: 55000, skinPrice: 90000, crest: '🦢' },
-  { id: 'mualani', name: 'Mualani (Hướng Dẫn Viên Suối Nước)', desc: '[Hiếm] Fanart cô nàng lướt sóng năng động của Cư Dân Suối Nước.', avatarPrice: 60000, skinPrice: 95000, crest: '🦈' },
-  { id: 'escoffier', name: 'Escoffier (Siêu Đầu Bếp Fontaine)', desc: '[Hiếm] Fanart thiên tài ẩm thực Băng nguyên tố của Fontaine.', avatarPrice: 65000, skinPrice: 105000, crest: '🍰' },
-  { id: 'varesa', name: 'Varesa (Đấu Sĩ Lôi Đình)', desc: '[Sử Thi] Fanart nữ chiến binh tràn đầy năng lượng vùng Natlan.', avatarPrice: 75000, skinPrice: 125000, crest: '⚡' },
-  { id: 'yoimiya', name: 'Yoimiya (Nữ Hoàng Lễ Hội Hè)', desc: '[Sử Thi] Fanart chủ tiệm pháo hoa Naganohara rực rỡ.', avatarPrice: 80000, skinPrice: 135000, crest: '🎆' },
-  { id: 'eula', name: 'Eula (Kỵ Sĩ Sóng Nước)', desc: '[Sử Thi] Fanart Đội trưởng Đội Du Kích Kỵ Sĩ Đoàn Tây Phong.', avatarPrice: 85000, skinPrice: 145000, crest: '❄️' },
-  { id: 'ganyu', name: 'Ganyu (Tuần Lộc Ánh Trăng)', desc: '[Sử Thi] Fanart tổng thư ký Nguyệt Hải Đình dịu dàng.', avatarPrice: 85000, skinPrice: 145000, crest: '🏹' },
-  { id: 'kokomi', name: 'Sangonomiya Kokomi (Thánh Pháp Sư)', desc: '[Sử Thi] Fanart quân sư tối cao đảo Watatsumi.', avatarPrice: 85000, skinPrice: 145000, crest: '🫧' },
-  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Fanart đại tiểu thư Pháo Hồng Hoa rạng rỡ.', avatarPrice: 90000, skinPrice: 155000, crest: '☂️' },
-  { id: 'shenhe', name: 'Shenhe (Cô Thần Hàn Sương)', desc: '[Sử Thi] Fanart đệ tử tiên nhân mang khí chất thoát tục.', avatarPrice: 95000, skinPrice: 165000, crest: '❄️' },
-  { id: 'ayaka', name: 'Kamisato Ayaka (Bạch Hạc Sương Hoa)', desc: '[Sử Thi] Fanart đại tiểu thư Hiệp Hội Yashiro kiêu sa.', avatarPrice: 100000, skinPrice: 175000, crest: '❄️' },
-  { id: 'clorinde', name: 'Clorinde (Đấu Sĩ Đại Diện)', desc: '[Sử Thi] Fanart nữ kiếm sĩ Lôi nguyên tố bất bại của Fontaine.', avatarPrice: 105000, skinPrice: 180000, crest: '⚡' },
-  { id: 'xilonen', name: 'Xilonen (Thợ Rèn Tên Cổ)', desc: '[Sử Thi] Fanart bậc thầy chế tác Tên Cổ của bộ tộc Đứa Con Tiếng Vang.', avatarPrice: 110000, skinPrice: 185000, crest: '🐆' },
-  { id: 'hutao', name: 'Hu Tao (Đường Chủ Vãng Sinh)', desc: '[Sử Thi] Fanart Đường chủ Vãng Sinh Đường tinh nghịch.', avatarPrice: 115000, skinPrice: 195000, crest: '🦋' },
-  { id: 'vesna', name: 'Vesna (Nữ Thần Tuyết Xuân)', desc: '[Huyền Thoại] Fanart tuyệt sắc giai nhân xứ sở băng tuyết.', avatarPrice: 135000, skinPrice: 220000, crest: '❄️' },
-  { id: 'yelan', name: 'Yelan (Lan Sinh U Cốc)', desc: '[Huyền Thoại] Fanart thần bài tình báo bí ẩn của Liyue.', avatarPrice: 145000, skinPrice: 240000, crest: '🎲' },
-  { id: 'sandrone', name: 'Sandrone (Marionette Fatui #7)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 7 của Fatui & cỗ máy cổ.', avatarPrice: 155000, skinPrice: 255000, crest: '⚙️' },
-  { id: 'yaemiko', name: 'Yae Miko (Guuji Đền Narukami)', desc: '[Huyền Thoại] Fanart Guuji Yae Miko quyến rũ dưới tán anh đào.', avatarPrice: 165000, skinPrice: 275000, crest: '🌸' },
-  { id: 'columbina', name: 'Columbina (Thiếu Nữ Fatui #3)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 3 của Fatui đầy bí ẩn.', avatarPrice: 180000, skinPrice: 300000, crest: '🕊️' },
-  { id: 'furina', name: 'Furina (Thủy Thần Fontaine)', desc: '[Thần Thoại] Fanart ngôi sao sân khấu Epiclese rực rỡ hào quang.', avatarPrice: 200000, skinPrice: 350000, crest: '💧' },
-  { id: 'mavuika', name: 'Mavuika (Hỏa Thần Natlan)', desc: '[Thần Thoại] Fanart Hỏa Thần rực cháy dẫn lối chiến thắng bất bại.', avatarPrice: 220000, skinPrice: 380000, crest: '🔥' },
-  { id: 'vodyanitsa', name: 'Vodyanitsa (Nữ Hoàng Băng Giá)', desc: '[Thần Thoại] Fanart Băng Hoàng tối cao ngự trị cung điện mùa đông.', avatarPrice: 230000, skinPrice: 400000, crest: '👑' },
-  { id: 'raiden', name: 'Raiden Shogun (Lôi Thần Vĩnh Hằng)', desc: '[Thần Thoại] Fanart Chúa tể sấm sét Inazuma — Vô Tưởng Nhất Đao.', avatarPrice: 240000, skinPrice: 420000, crest: '⚡' },
-  { id: 'skirk', name: 'Skirk (Kiếm Khách Vực Sâu)', desc: '[Thần Thoại] Fanart nữ kiếm khách bí ẩn ngự trị Tinh Không Vực Sâu.', avatarPrice: 250000, skinPrice: 450000, crest: '🌌' },
+  { id: 'zibai', name: 'Zibai (Tiên Nhân Bạch Mã)', desc: '[Hiếm] Fanart Tiên Nhân Zibai thanh tao của vùng đất Liyue.', avatarPrice: 22000, skinPrice: 30000, crest: '🐎' },
+  { id: 'lauma', name: 'Lauma (Nữ Tu Sương Giá)', desc: '[Hiếm] Fanart thiếu nữ huyền bí mang sức mạnh cổ đại.', avatarPrice: 23000, skinPrice: 32000, crest: '✨' },
+  { id: 'linnea', name: 'Linnea (Ảo Thuật Gia Tinh Linh)', desc: '[Hiếm] Fanart thiếu nữ tinh linh duyên dáng và sắc sảo.', avatarPrice: 23000, skinPrice: 32000, crest: '🎩' },
+  { id: 'citlali', name: 'Citlali (Bà Ngoại Itztli)', desc: '[Hiếm] Fanart đại pháp sư bộ tộc Chủ Nhân Gió Đêm Natlan.', avatarPrice: 25000, skinPrice: 35000, crest: '❄️' },
+  { id: 'nefer', name: 'Nefer (Nữ Hoàng Sa Mạc)', desc: '[Hiếm] Fanart vẻ đẹp quyến rũ và quyền lực vùng cát vàng.', avatarPrice: 25000, skinPrice: 35000, crest: '🌙' },
+  { id: 'odette', name: 'Odette (Thiên Nga Băng Giá)', desc: '[Hiếm] Fanart vũ công thiên nga mang vẻ đẹp quý tộc.', avatarPrice: 25000, skinPrice: 35000, crest: '🦢' },
+  { id: 'mualani', name: 'Mualani (Hướng Dẫn Viên Suối Nước)', desc: '[Hiếm] Fanart cô nàng lướt sóng năng động của Cư Dân Suối Nước.', avatarPrice: 26000, skinPrice: 38000, crest: '🦈' },
+  { id: 'escoffier', name: 'Escoffier (Siêu Đầu Bếp Fontaine)', desc: '[Hiếm] Fanart thiên tài ẩm thực Băng nguyên tố của Fontaine.', avatarPrice: 28000, skinPrice: 40000, crest: '🍰' },
+  { id: 'varesa', name: 'Varesa (Đấu Sĩ Lôi Đình)', desc: '[Sử Thi] Fanart nữ chiến binh tràn đầy năng lượng vùng Natlan.', avatarPrice: 32000, skinPrice: 45000, crest: '⚡' },
+  { id: 'yoimiya', name: 'Yoimiya (Nữ Hoàng Lễ Hội Hè)', desc: '[Sử Thi] Fanart chủ tiệm pháo hoa Naganohara rực rỡ.', avatarPrice: 34000, skinPrice: 48000, crest: '🎆' },
+  { id: 'eula', name: 'Eula (Kỵ Sĩ Sóng Nước)', desc: '[Sử Thi] Fanart Đội trưởng Đội Du Kích Kỵ Sĩ Đoàn Tây Phong.', avatarPrice: 35000, skinPrice: 50000, crest: '❄️' },
+  { id: 'ganyu', name: 'Ganyu (Tuần Lộc Ánh Trăng)', desc: '[Sử Thi] Fanart tổng thư ký Nguyệt Hải Đình dịu dàng.', avatarPrice: 35000, skinPrice: 50000, crest: '🏹' },
+  { id: 'kokomi', name: 'Sangonomiya Kokomi (Thánh Pháp Sư)', desc: '[Sử Thi] Fanart quân sư tối cao đảo Watatsumi.', avatarPrice: 35000, skinPrice: 50000, crest: '🫧' },
+  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Fanart đại tiểu thư Pháo Hồng Hoa rạng rỡ.', avatarPrice: 38000, skinPrice: 54000, crest: '☂️' },
+  { id: 'shenhe', name: 'Shenhe (Cô Thần Hàn Sương)', desc: '[Sử Thi] Fanart đệ tử tiên nhân mang khí chất thoát tục.', avatarPrice: 40000, skinPrice: 56000, crest: '❄️' },
+  { id: 'ayaka', name: 'Kamisato Ayaka (Bạch Hạc Sương Hoa)', desc: '[Sử Thi] Fanart đại tiểu thư Hiệp Hội Yashiro kiêu sa.', avatarPrice: 42000, skinPrice: 60000, crest: '❄️' },
+  { id: 'clorinde', name: 'Clorinde (Đấu Sĩ Đại Diện)', desc: '[Sử Thi] Fanart nữ kiếm sĩ Lôi nguyên tố bất bại của Fontaine.', avatarPrice: 43000, skinPrice: 62000, crest: '⚡' },
+  { id: 'xilonen', name: 'Xilonen (Thợ Rèn Tên Cổ)', desc: '[Sử Thi] Fanart bậc thầy chế tác Tên Cổ của bộ tộc Đứa Con Tiếng Vang.', avatarPrice: 44000, skinPrice: 65000, crest: '🐆' },
+  { id: 'hutao', name: 'Hu Tao (Đường Chủ Vãng Sinh)', desc: '[Sử Thi] Fanart Đường chủ Vãng Sinh Đường tinh nghịch.', avatarPrice: 45000, skinPrice: 68000, crest: '🦋' },
+  { id: 'vesna', name: 'Vesna (Nữ Thần Tuyết Xuân)', desc: '[Huyền Thoại] Fanart tuyệt sắc giai nhân xứ sở băng tuyết.', avatarPrice: 50000, skinPrice: 75000, crest: '❄️' },
+  { id: 'yelan', name: 'Yelan (Lan Sinh U Cốc)', desc: '[Huyền Thoại] Fanart thần bài tình báo bí ẩn của Liyue.', avatarPrice: 55000, skinPrice: 80000, crest: '🎲' },
+  { id: 'sandrone', name: 'Sandrone (Marionette Fatui #7)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 7 của Fatui & cỗ máy cổ.', avatarPrice: 58000, skinPrice: 85000, crest: '⚙️' },
+  { id: 'yaemiko', name: 'Yae Miko (Guuji Đền Narukami)', desc: '[Huyền Thoại] Fanart Guuji Yae Miko quyến rũ dưới tán anh đào.', avatarPrice: 60000, skinPrice: 90000, crest: '🌸' },
+  { id: 'columbina', name: 'Columbina (Thiếu Nữ Fatui #3)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 3 của Fatui đầy bí ẩn.', avatarPrice: 65000, skinPrice: 95000, crest: '🕊️' },
+  { id: 'furina', name: 'Furina (Thủy Thần Fontaine)', desc: '[Thần Thoại] Fanart ngôi sao sân khấu Epiclese rực rỡ hào quang.', avatarPrice: 70000, skinPrice: 105000, crest: '💧' },
+  { id: 'mavuika', name: 'Mavuika (Hỏa Thần Natlan)', desc: '[Thần Thoại] Fanart Hỏa Thần rực cháy dẫn lối chiến thắng bất bại.', avatarPrice: 75000, skinPrice: 115000, crest: '🔥' },
+  { id: 'vodyanitsa', name: 'Vodyanitsa (Nữ Hoàng Băng Giá)', desc: '[Thần Thoại] Fanart Băng Hoàng tối cao ngự trị cung điện mùa đông.', avatarPrice: 78000, skinPrice: 120000, crest: '👑' },
+  { id: 'raiden', name: 'Raiden Shogun (Lôi Thần Vĩnh Hằng)', desc: '[Thần Thoại] Fanart Chúa tể sấm sét Inazuma — Vô Tưởng Nhất Đao.', avatarPrice: 80000, skinPrice: 125000, crest: '⚡' },
+  { id: 'skirk', name: 'Skirk (Kiếm Khách Vực Sâu)', desc: '[Thần Thoại] Fanart nữ kiếm khách bí ẩn ngự trị Tinh Không Vực Sâu.', avatarPrice: 85000, skinPrice: 130000, crest: '🌌' },
 ];
 
 const ANIME_CARD_SKINS = [
@@ -141,7 +141,7 @@ const GENSHIN_BURSTS = [
     id: 'hutao',
     name: 'Hu Tao — An Thần Bí Pháp',
     desc: '[Sử Thi] Đường chủ Vãng Sinh Đường vung hồn ma Boo Tao quét sạch bàn bài.',
-    price: 250000,
+    price: 80000,
     gifUrl: 'hutao_burst.gif',
     mp4Url: '',
     remoteGif: 'hutao_burst.gif',
@@ -155,7 +155,7 @@ const GENSHIN_BURSTS = [
     id: 'eula',
     name: 'Eula — Thanh Kiếm Sóng Nước',
     desc: '[Sử Thi] Kỵ Sĩ Sóng Nước triệu hồi Kiếm Ánh Sáng phát nổ sát thương cực đại.',
-    price: 260000,
+    price: 85000,
     gifUrl: 'eula_burst.gif',
     mp4Url: '',
     remoteGif: 'eula_burst.gif',
@@ -169,7 +169,7 @@ const GENSHIN_BURSTS = [
     id: 'ayaka',
     name: 'Kamisato Ayaka — Soumetsu',
     desc: '[Sử Thi] Bạch Hạc Sương Hoa triệu hồi lốc xoáy băng hoa cắt nát mọi quân bài.',
-    price: 300000,
+    price: 95000,
     gifUrl: 'ayaka_burst.gif',
     mp4Url: '',
     remoteGif: 'ayaka_burst.gif',
@@ -183,7 +183,7 @@ const GENSHIN_BURSTS = [
     id: 'clorinde',
     name: 'Clorinde — Ánh Chớp Tàn Đêm',
     desc: '[Sử Thi] Đấu sĩ đại diện Fontaine tung liên hoàn kiếm và súng chớp nhoáng.',
-    price: 340000,
+    price: 105000,
     gifUrl: 'clorinde_burst.gif',
     mp4Url: '',
     remoteGif: 'clorinde_burst.gif',
@@ -197,7 +197,7 @@ const GENSHIN_BURSTS = [
     id: 'yelan',
     name: 'Yelan — Xúc Xắc Toan Tính',
     desc: '[Huyền Thoại] Thần bài Liyue tung xúc xắc Linh Lung định đoạt ván cược.',
-    price: 400000,
+    price: 120000,
     gifUrl: 'yelan_burst.gif',
     mp4Url: '',
     remoteGif: 'yelan_burst.gif',
@@ -211,7 +211,7 @@ const GENSHIN_BURSTS = [
     id: 'yaemiko',
     name: 'Yae Miko — Thiên Hồ Lôi Phạt',
     desc: '[Huyền Thoại] Guuji Đền Narukami giáng sấm sét Thiên Hồ hủy diệt từ chín tầng mây.',
-    price: 450000,
+    price: 135000,
     gifUrl: 'yae_burst.gif',
     mp4Url: '',
     remoteGif: 'yae_burst.gif',
@@ -225,7 +225,7 @@ const GENSHIN_BURSTS = [
     id: 'furina',
     name: 'Furina — Vạn Dân Reo Hò',
     desc: '[Thần Thoại] Thủy Thần Fontaine mở màn đại nhạc kịch sân khấu Epiclese.',
-    price: 550000,
+    price: 150000,
     gifUrl: 'furina_burst.gif',
     mp4Url: '',
     remoteGif: 'furina_burst.gif',
@@ -239,7 +239,7 @@ const GENSHIN_BURSTS = [
     id: 'mavuika',
     name: 'Mavuika — Bầu Trời Rực Cháy',
     desc: '[Thần Thoại] Hỏa Thần Natlan bùng nổ đại dương rực lửa thiêu rụi mọi đối thủ.',
-    price: 650000,
+    price: 165000,
     gifUrl: 'mavuika_burst.gif',
     mp4Url: '',
     remoteGif: 'mavuika_burst.gif',
@@ -253,7 +253,7 @@ const GENSHIN_BURSTS = [
     id: 'raiden',
     name: 'Raiden Shogun — Mộng Tưởng Chân Thuyết',
     desc: '[Thần Thoại] Vô Tưởng Nhất Đao chém rách không gian bằng sấm sét tím Vĩnh Hằng.',
-    price: 750000,
+    price: 180000,
     gifUrl: 'raiden_burst.gif',
     mp4Url: 'raiden_burst.mp4',
     remoteGif: 'https://media.tenor.com/umRS1zU3OUsAAAAM/raiden-baal.gif',
@@ -267,7 +267,7 @@ const GENSHIN_BURSTS = [
     id: 'skirk',
     name: 'Skirk — Phá Toái Tinh Không',
     desc: '[Thần Thoại] Tuyệt kỹ Vực Sâu triệu hồi hố đen Tinh Không nuốt chửng bàn bài.',
-    price: 800000,
+    price: 190000,
     gifUrl: 'skirk_burst.gif',
     mp4Url: 'skirk_burst.mp4',
     remoteGif: 'https://media.tenor.com/vrLe2zvzqNYAAAAM/genshin-genshin-impact.gif',
@@ -280,9 +280,9 @@ const GENSHIN_BURSTS = [
 ];
 
 const BOT_ANIME_AVATARS = {
-  1: 'fanart/raiden.jpg',
-  2: 'fanart/skirk.jpg',
-  3: 'fanart/furina.jpg',
+  1: 'fanart/furina.jpg',
+  2: 'fanart/raiden.jpg',
+  3: 'fanart/skirk.jpg',
 };
 
 const LEGACY_ID_MAP = {
@@ -958,16 +958,17 @@ class TienLenGame {
   constructor() {
     this.loadShopProfile();
 
-    // Chế độ ở Màn Hình Chờ ('bot' | 'human') & Mức cược hiện tại (Xu / lá)
+    // Chế độ ở Màn Hình Chờ ('bot' | 'human'), Số người bàn Bot (2, 3, 4) & Mức cược hiện tại (Xu / lá)
     this.selectedLobbyMode = 'bot';
+    this.soloPlayerCount = this.savedSoloPlayerCount || 4;
     this.betPerCard = this.savedBetPerCard || 100;
 
     const botBankroll = Math.max(INITIAL_COINS, this.betPerCard * 500);
     this.players = [
       { id: 0, name: this.savedPlayerName || 'Thắng', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 1, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: this.soloPlayerCount >= 3, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: this.soloPlayerCount === 4, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
     ];
 
     // Multiplayer state (Giữ cố định clientId trong localStorage để F5 không bị mất ghế hoặc reset đồ)
@@ -1023,6 +1024,7 @@ class TienLenGame {
     this.botTimer = null;
 
     this.bindDOM();
+    this.renderSoloPlayerCountUI();
     this.renderBetTiers();
     this.renderLobbyModal();
     this.detectLanInfoAndUrlRoom();
@@ -1222,6 +1224,7 @@ class TienLenGame {
     this.savedCoins = INITIAL_COINS;
     this.savedPlayerName = 'Thắng';
     this.savedBetPerCard = 100;
+    this.savedSoloPlayerCount = 4;
     this.unlockedSkins = new Set(['classic']);
     this.equippedSkin = 'classic';
     this.unlockedAvatars = new Set(['default_player']);
@@ -1245,6 +1248,9 @@ class TienLenGame {
         }
         if (typeof data.betPerCard === 'number' && data.betPerCard >= 20) {
           this.savedBetPerCard = data.betPerCard;
+        }
+        if ([2, 3, 4].includes(Number(data.soloPlayerCount))) {
+          this.savedSoloPlayerCount = Number(data.soloPlayerCount);
         }
         if (Array.isArray(data.unlockedSkins)) {
           data.unlockedSkins.forEach((id) => {
@@ -1337,6 +1343,7 @@ class TienLenGame {
         coins: this.savedCoins,
         playerName: this.savedPlayerName || 'Thắng',
         betPerCard: this.betPerCard || 100,
+        soloPlayerCount: this.soloPlayerCount || 4,
         unlockedSkins: Array.from(this.unlockedSkins),
         equippedSkin: this.equippedSkin,
         unlockedAvatars: Array.from(this.unlockedAvatars),
@@ -2040,12 +2047,57 @@ class TienLenGame {
     if (modeLabel) {
       modeLabel.textContent =
         this.selectedLobbyMode === 'bot'
-          ? 'Chế độ 1: Đấu Với Bot (Solo 1v3)'
+          ? `Chế độ 1: Đấu Với Bot (${this.soloPlayerCount || 4} Người)`
           : 'Chế độ 2: Đấu Với Người (2 – 4 Người)';
     }
 
     sfx.click();
+    this.renderSoloPlayerCountUI();
     this.renderBetTiers();
+  }
+
+  selectSoloPlayerCount(count) {
+    const validCount = [2, 3, 4].includes(Number(count)) ? Number(count) : 4;
+    this.soloPlayerCount = validCount;
+    this.savedSoloPlayerCount = validCount;
+
+    if (!this.isMultiplayer && this.players && this.players.length === 4) {
+      this.players[1].active = validCount >= 3;
+      this.players[2].active = true;
+      this.players[3].active = validCount === 4;
+    }
+
+    const modeLabel = document.getElementById('selected-mode-label');
+    if (modeLabel && this.selectedLobbyMode === 'bot') {
+      modeLabel.textContent = `Chế độ 1: Đấu Với Bot (${validCount} Người)`;
+    }
+
+    sfx.click();
+    this.saveShopProfile();
+    this.renderSoloPlayerCountUI();
+    this.updateBetBadges();
+  }
+
+  renderSoloPlayerCountUI() {
+    const count = this.soloPlayerCount || 4;
+    [2, 3, 4].forEach((n) => {
+      const card = document.getElementById(`bot-count-${n}`);
+      if (card) card.classList.toggle('active', n === count);
+    });
+
+    const previewEl = document.getElementById('bot-opponents-preview');
+    if (previewEl) {
+      if (count === 2) {
+        previewEl.innerHTML =
+          '<strong>⚔️ Bàn 2 Người (Solo 1v1 Bot):</strong> Bạn đấu tay đôi trực diện với <strong>Bot Raiden Shogun ⚡</strong> (Ngồi đối diện)';
+      } else if (count === 3) {
+        previewEl.innerHTML =
+          '<strong>🔥 Bàn 3 Người (Tam Hùng 1v2 Bot):</strong> Bạn đấu với <strong>Bot Furina 💧</strong> (Trái) & <strong>Bot Raiden Shogun ⚡</strong> (Đối diện)';
+      } else {
+        previewEl.innerHTML =
+          '<strong>👑 Bàn 4 Người (Đủ Bàn 1v3 Bot):</strong> Bạn đấu với <strong>Bot Furina 💧</strong>, <strong>Bot Raiden Shogun ⚡</strong> & <strong>Bot Skirk 🌌</strong>';
+      }
+    }
   }
 
   selectBetTier(betVal, isCustom = false) {
@@ -2083,10 +2135,14 @@ class TienLenGame {
 
   updateBetBadges() {
     const b = this.betPerCard || 100;
+    const count = this.soloPlayerCount || 4;
     const tierMeta = this.getCurrentBetTierMeta(b);
     const topBadge = document.getElementById('current-bet-badge');
     if (topBadge) {
-      topBadge.textContent = `${tierMeta.icon} ${tierMeta.name} • ${b.toLocaleString()} xu/lá`;
+      const modeTag = this.isMultiplayer
+        ? `${this.getActivePlayers().length} Người`
+        : `${count} Người (1v${count - 1} Bot)`;
+      topBadge.textContent = `${tierMeta.icon} ${tierMeta.name} (${modeTag}) • ${b.toLocaleString()} xu/lá`;
     }
     const roomBetEl = document.getElementById('display-room-bet');
     if (roomBetEl) {
@@ -2098,7 +2154,7 @@ class TienLenGame {
     }
     const botBtn = document.getElementById('btn-solo-bot-mode');
     if (botBtn) {
-      botBtn.textContent = `⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (${tierMeta.name}: ${b.toLocaleString()} Xu/lá)`;
+      botBtn.textContent = `⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (Bàn ${count} Người • ${tierMeta.name}: ${b.toLocaleString()} Xu/lá)`;
     }
     const createRoomBtn = document.getElementById('btn-create-room');
     if (createRoomBtn) {
@@ -2268,15 +2324,16 @@ class TienLenGame {
 
     const myName = document.getElementById('input-player-name')?.value.trim() || this.savedPlayerName || 'Thắng';
     const botBankroll = Math.max(INITIAL_COINS, (this.betPerCard || 100) * 500);
+    const count = this.soloPlayerCount || 4;
 
     this.players = [
       { id: 0, name: myName, avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 1, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: count >= 3, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: count === 4, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
     ];
 
-    document.getElementById('wifi-status-label').textContent = 'Đấu Bot / Đổi Cược';
+    document.getElementById('wifi-status-label').textContent = `Đấu Bot (${count} Người) / Đổi Cược`;
     document.getElementById('wifi-room-box').classList.add('hidden');
     this.updateBetBadges();
     this.startNewMatch(true);
@@ -2693,9 +2750,9 @@ class TienLenGame {
 
   toggleBotInLobby(seatIdx, addBot) {
     if (!this.isHost || seatIdx <= 0 || seatIdx > 3) return;
-    const botNames = ['', 'Bot Raiden Shogun', 'Bot Skirk', 'Bot Furina'];
-    const botSkins = ['', 'raiden', 'skirk', 'furina'];
-    const botBursts = ['', 'raiden', 'skirk', 'furina'];
+    const botNames = ['', 'Bot Furina', 'Bot Raiden Shogun', 'Bot Skirk'];
+    const botSkins = ['', 'furina', 'raiden', 'skirk'];
+    const botBursts = ['', 'furina', 'raiden', 'skirk'];
     const p = this.players[seatIdx];
     if (addBot) {
       p.active = true;
@@ -2801,7 +2858,7 @@ class TienLenGame {
     this.elGameLog.innerHTML = '';
     this.elMatchInfo.textContent = this.isMultiplayer
       ? `Ván #${this.matchCount} • Phòng ${this.roomId} (${activePlayers.length} người) • Cược ${b.toLocaleString()} xu/lá`
-      : `Ván #${this.matchCount} • ${tierMeta.name} (${b.toLocaleString()} xu/lá • Nhất Ăn Tất)`;
+      : `Ván #${this.matchCount} • Bàn ${activePlayers.length} Người • ${tierMeta.name} (${b.toLocaleString()} xu/lá)`;
 
     const isFirstMatch = this.lastWinnerId === null || !this.players[this.lastWinnerId]?.active;
     if (isFirstMatch) {

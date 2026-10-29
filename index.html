@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=9" />
+  <link rel="stylesheet" href="styles.css?v=10" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -251,8 +251,8 @@
                 <div class="mode-card-main">
                   <span class="mode-card-icon">🤖</span>
                   <div>
-                    <div class="mode-card-title">1. ĐẤU VỚI BOT (Solo AI)</div>
-                    <div class="mode-card-desc">Đánh 1v3 cùng Bot Raiden, Skirk & Furina • Chia bài ngay lập tức</div>
+                    <div class="mode-card-title">1. ĐẤU VỚI BOT (2, 3 hoặc 4 Người)</div>
+                    <div class="mode-card-desc">Chọn bàn Solo 2 Người (1v1), 3 Người (1v2) hoặc 4 Người (1v3) cùng Bot Genshin</div>
                   </div>
                 </div>
               </div>
@@ -290,18 +290,41 @@
             </div>
           </div>
 
-          <!-- Hàng 3A: Khung Hành Động Chế Độ 1 (Đấu Với Bot) -->
+          <!-- Hàng 3A: Khung Hành Động Chế Độ 1 (Đấu Với Bot: Chọn 2, 3 hoặc 4 Người) -->
           <div class="lobby-action-panel" id="lobby-bot-panel">
+            <div class="bot-count-section">
+              <div class="lobby-section-label">👥 CHỌN SỐ NGƯỜI TRONG BÀN ĐẤU VỚI BOT:</div>
+              <div class="bot-count-grid" id="bot-count-grid">
+                <div class="bot-count-card" id="bot-count-2" onclick="window.tienLenGame.selectSoloPlayerCount(2)">
+                  <div class="bot-count-badge">SOLO 1v1</div>
+                  <div class="bot-count-title">⚔️ 2 Người (1 vs 1 Bot)</div>
+                  <div class="bot-count-desc">Đấu tay đôi trực diện với <strong>Bot Raiden Shogun ⚡</strong></div>
+                </div>
+
+                <div class="bot-count-card" id="bot-count-3" onclick="window.tienLenGame.selectSoloPlayerCount(3)">
+                  <div class="bot-count-badge">TAM HÙNG</div>
+                  <div class="bot-count-title">🔥 3 Người (1 vs 2 Bot)</div>
+                  <div class="bot-count-desc">Đấu cùng <strong>Bot Furina 💧</strong> & <strong>Bot Raiden Shogun ⚡</strong></div>
+                </div>
+
+                <div class="bot-count-card active" id="bot-count-4" onclick="window.tienLenGame.selectSoloPlayerCount(4)">
+                  <div class="bot-count-badge">ĐỦ BÀN</div>
+                  <div class="bot-count-title">👑 4 Người (1 vs 3 Bot)</div>
+                  <div class="bot-count-desc">Đủ 4 nhà: <strong>Furina 💧</strong> • <strong>Raiden ⚡</strong> • <strong>Skirk 🌌</strong></div>
+                </div>
+              </div>
+            </div>
+
             <div class="bot-mode-summary">
-              <div>
-                <strong>🤖 Đối thủ trên bàn:</strong> Bot Raiden Shogun ⚡ • Bot Skirk 🌌 • Bot Furina 💧
+              <div id="bot-opponents-preview">
+                <strong>🤖 Bàn 4 Người (1v3 Bot):</strong> Bạn đấu với Bot Furina 💧, Bot Raiden Shogun ⚡ & Bot Skirk 🌌
               </div>
               <div class="bot-mode-sub">
-                💡 Thắng ván bài ở bàn cược càng cao càng nhận được nhiều Xu để mua 29 Skin Bài Fanart, 29 Avatar & 10 Kỹ Năng Nộ!
+                💡 Thắng ván bài nhận Xu mua 29 Skin Bài Fanart (từ 30k Xu), 29 Avatar (từ 22k Xu) & 10 Kỹ Năng Nộ (từ 80k Xu)!
               </div>
             </div>
             <button class="primary-btn btn-lg lobby-big-cta" id="btn-solo-bot-mode">
-              ⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (Cược: 100 Xu/lá)
+              ⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (4 Người • Cược: 100 Xu/lá)
             </button>
           </div>
 
@@ -527,6 +550,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=9"></script>
+  <script src="game.js?v=10"></script>
 </body>
 </html>

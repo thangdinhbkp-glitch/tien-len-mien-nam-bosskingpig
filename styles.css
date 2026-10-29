@@ -4805,64 +4805,148 @@ body {
    3. HIỆU ỨNG ĐỒ HỌA PHẢN ỨNG NGUYÊN TỐ (.reaction-vfx-stage & .arena-reaction-screen-fx)
    ============================================================================ */
 
-/* 1. Ô RIÊNG GHI TÊN NHÂN VẬT ĐANG XÀI BÊN CẠNH NAME TAG (.seat-char-box) */
+/* 1. Ô RIÊNG GHI TÊN NHÂN VẬT ĐANG XÀI BÊN CẠNH NAME TAG (.seat-char-box) & Bố Cục 1 Hàng Gọn Gàng */
+.top-bar {
+  height: auto !important;
+  min-height: 44px;
+  padding: 4px 10px !important;
+  gap: 8px;
+}
+
+.brand {
+  flex-shrink: 0;
+  gap: 7px !important;
+}
+
+.brand h1 {
+  font-size: 14px !important;
+  white-space: nowrap;
+}
+
+.subtitle {
+  font-size: 10.5px !important;
+  white-space: nowrap;
+}
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 4px !important;
+}
+
+.top-controls .rule-badge,
+.top-controls .wifi-btn,
+.top-controls .shop-btn,
+.top-controls .quest-top-btn,
+.top-controls .ad-reward-btn,
+.top-controls .icon-btn,
+.top-controls .primary-btn {
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  white-space: nowrap;
+}
+
+.player-action-bar {
+  flex-wrap: nowrap !important;
+  padding: 4px 8px !important;
+  gap: 6px !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.player-action-bar .human-panel {
+  padding: 3px 8px !important;
+  gap: 6px !important;
+}
+
+.player-action-bar .tool-btn {
+  padding: 5px 8px !important;
+  font-size: 11.5px !important;
+}
+
+.player-action-bar .selected-combo-preview {
+  font-size: 11.5px !important;
+  padding: 4px 10px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.clickable-avatar {
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.clickable-avatar:hover {
+  transform: scale(1.08);
+  filter: brightness(1.15) drop-shadow(0 0 8px rgba(250, 204, 21, 0.7));
+}
+
 .seat-header-row {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
   justify-content: center;
 }
 
 .seat-header-row.seat-side-stack {
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 4px;
 }
 
 .seat-header-row.human-header-row {
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .seat-char-box {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 10px 5px 6px;
-  border-radius: 12px;
+  gap: 6px;
+  padding: 3px 8px 3px 5px;
+  border-radius: 10px;
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 27, 75, 0.88));
   border: 1.5px solid rgba(192, 132, 252, 0.65);
   box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.55),
-    0 0 12px rgba(168, 85, 247, 0.28);
-  transition: transform 0.22s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  min-width: 148px;
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(168, 85, 247, 0.25);
+  transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.seat-char-box:hover {
+  transform: translateY(-1px) scale(1.03);
+  border-color: #fde047 !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.65), 0 0 14px rgba(250, 204, 21, 0.55) !important;
 }
 
 .seat-char-box.human-char-box {
-  border-width: 2px;
+  border-width: 1.5px;
   background: linear-gradient(135deg, rgba(46, 16, 101, 0.92), rgba(15, 23, 42, 0.95));
-  box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.65),
-    0 0 16px rgba(250, 204, 21, 0.35);
 }
 
 .seat-char-box.elem-electro {
   border-color: rgba(192, 132, 252, 0.82);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 12px rgba(192, 132, 252, 0.35);
 }
 .seat-char-box.elem-hydro {
   border-color: rgba(56, 189, 248, 0.82);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 12px rgba(56, 189, 248, 0.35);
 }
 .seat-char-box.elem-pyro {
   border-color: rgba(251, 146, 60, 0.85);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 12px rgba(251, 146, 60, 0.35);
 }
 .seat-char-box.elem-cryo {
   border-color: rgba(103, 232, 249, 0.85);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 12px rgba(103, 232, 249, 0.35);
+}
+.seat-char-box.elem-none {
+  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.82);
 }
 
 .seat-char-box.char-skill-flash {
@@ -4872,13 +4956,13 @@ body {
 }
 
 .seat-char-thumb {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
   object-fit: cover;
   object-position: center 18%;
   border: 1.5px solid rgba(250, 204, 21, 0.85);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
   flex-shrink: 0;
 }
 
@@ -4886,21 +4970,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  line-height: 1.18;
+  line-height: 1.15;
   text-align: left;
 }
 
-.seat-char-role {
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.6px;
-  color: #fde047;
-  text-transform: uppercase;
-  opacity: 0.92;
-}
-
 .seat-char-name {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   color: #f8fafc;
   white-space: nowrap;
@@ -4908,15 +4983,79 @@ body {
 }
 
 .seat-char-skill {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
-  color: #cbd5e1;
+  color: #fde68a;
   white-space: nowrap;
 }
 
 .seat-char-skill.used {
   color: #94a3b8;
   text-decoration: line-through;
+}
+
+/* Modal Chi Tiết Kỹ Năng Nhân Vật Khi Bấm Vào Ảnh Đại Diện */
+.char-detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(30, 27, 75, 0.92), rgba(15, 23, 42, 0.95));
+  border: 1.5px solid rgba(250, 204, 21, 0.55);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.char-detail-art {
+  width: 76px;
+  height: 76px;
+  border-radius: 12px;
+  object-fit: cover;
+  object-position: center 18%;
+  border: 2px solid #fde047;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+  flex-shrink: 0;
+}
+
+.char-detail-skill-box {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(192, 132, 252, 0.45);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.char-detail-roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.char-detail-roster-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.char-detail-roster-item:hover {
+  border-color: #fde047;
+  background: rgba(30, 27, 75, 0.88);
+}
+
+.char-detail-roster-item.active-char {
+  border: 1.5px solid #fde047;
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.72), rgba(15, 23, 42, 0.92));
+}
+
+.char-detail-roster-item.locked-char {
+  opacity: 0.65;
 }
 
 /* 2. CHARACTER SKILL WIDGET & ROUND STATUS PILLS */

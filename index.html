@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=21" />
+  <link rel="stylesheet" href="styles.css?v=22" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -104,7 +104,7 @@
           <div class="player-seat seat-top" id="seat-2">
             <div class="seat-header-row">
               <div class="player-card-panel">
-                <div class="avatar-wrap">
+                <div class="avatar-wrap clickable-avatar" onclick="window.tienLenGame.openPlayerSkillInspect(2)" title="Bấm vào ảnh đại diện để xem chi tiết Kỹ Năng nhân vật đang xài">
                   <div class="avatar" id="avatar-2">🦊</div>
                   <div class="turn-ring"></div>
                   <div class="rank-badge hidden" id="rank-2"></div>
@@ -120,11 +120,10 @@
                   </div>
                 </div>
               </div>
-              <!-- Ô RIÊNG GHI TÊN NHÂN VẬT NGƯỜI CHƠI ĐANG XÀI -->
-              <div class="seat-char-box elem-electro" id="char-box-2" title="Nhân vật & Kỹ năng Nộ / Chiến thuật đang sử dụng">
+              <!-- Ô RIÊNG GHI TÊN NHÂN VẬT NGƯỜI CHƠI ĐANG XÀI (BẤM ĐỂ XEM CHI TIẾT KỸ NĂNG) -->
+              <div class="seat-char-box elem-electro" id="char-box-2" onclick="window.tienLenGame.openPlayerSkillInspect(2)" title="Bấm để xem chi tiết Kỹ Năng nhân vật đang xài">
                 <img class="seat-char-thumb" id="char-thumb-2" src="fanart/raiden.jpg" alt="Raiden Shogun" />
                 <div class="seat-char-info">
-                  <div class="seat-char-role">NHÂN VẬT ĐANG XÀI</div>
                   <div class="seat-char-name" id="char-name-2">⚡ Raiden Shogun</div>
                   <div class="seat-char-skill" id="char-skill-2">Tịnh Thổ Cắt Vòng • 1/1</div>
                 </div>
@@ -140,7 +139,7 @@
           <div class="player-seat seat-left" id="seat-1">
             <div class="seat-header-row seat-side-stack">
               <div class="player-card-panel">
-                <div class="avatar-wrap">
+                <div class="avatar-wrap clickable-avatar" onclick="window.tienLenGame.openPlayerSkillInspect(1)" title="Bấm vào ảnh đại diện để xem chi tiết Kỹ Năng nhân vật đang xài">
                   <div class="avatar" id="avatar-1">🐯</div>
                   <div class="turn-ring"></div>
                   <div class="rank-badge hidden" id="rank-1"></div>
@@ -157,12 +156,11 @@
                 </div>
               </div>
               <!-- Ô RIÊNG GHI TÊN NHÂN VẬT NGƯỜI CHƠI ĐANG XÀI -->
-              <div class="seat-char-box elem-hydro" id="char-box-1" title="Nhân vật & Kỹ năng Nộ / Chiến thuật đang sử dụng">
+              <div class="seat-char-box elem-hydro" id="char-box-1" onclick="window.tienLenGame.openPlayerSkillInspect(1)" title="Bấm để xem chi tiết Kỹ Năng nhân vật đang xài">
                 <img class="seat-char-thumb" id="char-thumb-1" src="fanart/furina.jpg" alt="Furina" />
                 <div class="seat-char-info">
-                  <div class="seat-char-role">NHÂN VẬT ĐANG XÀI</div>
                   <div class="seat-char-name" id="char-name-1">💧 Furina</div>
-                  <div class="seat-char-skill" id="char-skill-1">Luật Fontaine • 1/1</div>
+                  <div class="seat-char-skill" id="char-skill-1">Luật Sân Khấu • 1/1</div>
                 </div>
               </div>
             </div>
@@ -193,7 +191,7 @@
           <div class="player-seat seat-right" id="seat-3">
             <div class="seat-header-row seat-side-stack">
               <div class="player-card-panel">
-                <div class="avatar-wrap">
+                <div class="avatar-wrap clickable-avatar" onclick="window.tienLenGame.openPlayerSkillInspect(3)" title="Bấm vào ảnh đại diện để xem chi tiết Kỹ Năng nhân vật đang xài">
                   <div class="avatar" id="avatar-3">🐼</div>
                   <div class="turn-ring"></div>
                   <div class="rank-badge hidden" id="rank-3"></div>
@@ -210,10 +208,9 @@
                 </div>
               </div>
               <!-- Ô RIÊNG GHI TÊN NHÂN VẬT NGƯỜI CHƠI ĐANG XÀI -->
-              <div class="seat-char-box elem-hydro" id="char-box-3" title="Nhân vật & Kỹ năng Nộ / Chiến thuật đang sử dụng">
+              <div class="seat-char-box elem-hydro" id="char-box-3" onclick="window.tienLenGame.openPlayerSkillInspect(3)" title="Bấm để xem chi tiết Kỹ Năng nhân vật đang xài">
                 <img class="seat-char-thumb" id="char-thumb-3" src="fanart/skirk.jpg" alt="Skirk" />
                 <div class="seat-char-info">
-                  <div class="seat-char-role">NHÂN VẬT ĐANG XÀI</div>
                   <div class="seat-char-name" id="char-name-3">🌌 Skirk</div>
                   <div class="seat-char-skill" id="char-skill-3">Khe Nứt Vực Sâu • 1/1</div>
                 </div>
@@ -229,7 +226,7 @@
           <div class="player-action-bar">
             <div class="seat-header-row human-header-row">
               <div class="player-card-panel human-panel">
-                <div class="avatar-wrap">
+                <div class="avatar-wrap clickable-avatar" onclick="window.tienLenGame.openPlayerSkillInspect(0)" title="Bấm vào ảnh đại diện để xem chi tiết Kỹ Năng & đổi Nhân Vật 5★ đang xài">
                   <div class="avatar human-avatar" id="avatar-0">😎</div>
                   <div class="turn-ring"></div>
                   <div class="rank-badge hidden" id="rank-0"></div>
@@ -247,11 +244,10 @@
                   </div>
                 </div>
               </div>
-              <!-- Ô RIÊNG BÊN CẠNH NAME TAG GHI TÊN NHÂN VẬT BẠN ĐANG XÀI -->
-              <div class="seat-char-box human-char-box elem-electro" id="char-box-0" title="Nhân vật bạn đang xài (Dùng chung cho Kỹ Năng Chiến Thuật, Hoạt Ảnh Chặt Heo & Về Nhất)">
+              <!-- Ô RIÊNG BÊN CẠNH NAME TAG GHI TÊN NHÂN VẬT BẠN ĐANG XÀI (BẤM ĐỂ XEM CHI TIẾT & ĐỔI NHÂN VẬT 5★) -->
+              <div class="seat-char-box human-char-box elem-electro" id="char-box-0" onclick="window.tienLenGame.openPlayerSkillInspect(0)" title="Bấm để xem chi tiết Kỹ Năng & đổi Nhân Vật 5★ bạn đang sở hữu">
                 <img class="seat-char-thumb" id="char-thumb-0" src="fanart/raiden.jpg" alt="Raiden Shogun" />
                 <div class="seat-char-info">
-                  <div class="seat-char-role">NHÂN VẬT ĐANG XÀI</div>
                   <div class="seat-char-name" id="char-name-0">⚡ Raiden Shogun</div>
                   <div class="seat-char-skill" id="char-skill-0">Tịnh Thổ Cắt Vòng • 1/1</div>
                 </div>
@@ -268,23 +264,9 @@
               <button class="tool-btn hint-btn" id="btn-hint" title="Gợi ý bộ bài đánh được (Phím H)">
                 💡 Gợi ý
               </button>
-              <div class="char-skill-widget" id="char-skill-widget">
-                <select class="char-skill-select" id="select-char-skill" title="Chọn nhân vật 5★ xuất chiến dưới chân bạn (Đổi tự do giữa các ván hoặc theo trang bị Nộ)">
-                  <option value="raiden">⚡ Raiden: Cắt Vòng / Lôi Ấn</option>
-                  <option value="furina">💧 Furina: Đảo Chất &amp; Cấm Heo Lẻ</option>
-                  <option value="skirk">🌌 Skirk: Tráo Bài Vực Sâu</option>
-                  <option value="mavuika">🔥 Mavuika: Rèn Bài +1 Bậc ♥</option>
-                  <option value="yaemiko">🌸 Yae Miko: Ép Đánh (Cấm Nhịn)</option>
-                  <option value="yelan">🎲 Yelan: Thấu Thị 3 Lá &amp; Quét Heo</option>
-                  <option value="clorinde">⚡ Clorinde: Quyết Đấu 1v1</option>
-                  <option value="ayaka">❄️ Ayaka: Đóng Băng 1 Lượt</option>
-                  <option value="hutao">🦋 Hu Tao: Bùa Thuế Chặn Bài</option>
-                  <option value="eula">❄️ Eula: Chém Giảm 2 Bậc Bài Bàn</option>
-                </select>
-                <button class="tool-btn char-skill-btn" id="btn-char-skill" title="Kích hoạt Kỹ Năng Chiến Thuật của nhân vật dưới chân bạn (1 lần / ván — Phím E)">
-                  🔮 Kỹ Năng [E]
-                </button>
-              </div>
+              <button class="tool-btn char-skill-btn" id="btn-char-skill" title="Kích hoạt Kỹ Năng Chiến Thuật của nhân vật 5★ bạn đang xài (1 lần / ván — Phím E)">
+                🔮 <span id="char-skill-btn-label">Kỹ Năng [E]</span>
+              </button>
             </div>
 
             <div class="selected-combo-preview" id="selected-combo-preview">
@@ -842,6 +824,21 @@
       </div>
     </div>
 
+    <!-- MODAL XEM CHI TIẾT KỸ NĂNG NHÂN VẬT ĐANG XÀI KHI BẤM VÀO ẢNH ĐẠI DIỆN / Ô NHÂN VẬT -->
+    <div class="modal-backdrop hidden" id="char-skill-detail-modal">
+      <div class="modal-card" style="max-width: 680px;">
+        <div class="modal-header">
+          <h2 id="char-detail-modal-title">⚡ CHI TIẾT NHÂN VẬT &amp; KỸ NĂNG ĐANG XÀI</h2>
+          <button class="close-btn" id="btn-close-char-detail">✕</button>
+        </div>
+        <div class="modal-body" id="char-detail-modal-body" style="max-height: 72vh; overflow-y: auto;"></div>
+        <div class="modal-footer">
+          <button class="shop-btn" id="btn-char-detail-open-gacha">🌠 Mở Sảnh Cầu Nguyện (Săn Nộ 5★)</button>
+          <button class="primary-btn" id="btn-ok-char-detail">Đã hiểu</button>
+        </div>
+      </div>
+    </div>
+
     <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC VIDEO + VOICE ANIMATION OVERLAY -->
     <div class="genshin-burst-overlay hidden" id="genshin-burst-overlay">
       <div class="burst-bg-fx" id="burst-bg-fx"></div>
@@ -861,6 +858,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=21"></script>
+  <script src="game.js?v=22"></script>
 </body>
 </html>

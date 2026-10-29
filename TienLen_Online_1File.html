@@ -8512,7 +8512,116 @@ class TienLenGame {
     }
   }
 
+  // ============================================================================
+  // SMART HAND-STRUCTURE ANALYZER FOR BOT AI (KHÔNG XÉ LẺ ĐÔI / SẢNH / HÀNG)
+  // ============================================================================
+  analyzeBotHandStructure(hand) {
+    const rankCounts = new Array(13).fill(0);
+    hand.forEach((c) => rankCounts[c.rankIndex]++);
+
+    // 1. Nhận diện các quân nằm trong HÀNG (Tứ Quý hoặc 3-4 Đôi Thông) cần bảo vệ tuyệt đối
+    const bombRanks = new Set();
+    for (let r = 0; r < 13; r++) {
+      if (rankCounts[r] === 4) bombRanks.add(r);
+    }
+    let pairStreak = [];
+    for (let r = 0; r <= 11; r++) {
+      if (rankCounts[r] >= 2) {
+        pairStreak.push(r);
+      } else {
+        if (pairStreak.length >= 3) pairStreak.forEach((pr) => bombRanks.add(pr));
+        pairStreak = [];
+      }
+    }
+    if (pairStreak.length >= 3) pairStreak.forEach((pr) => bombRanks.add(pr));
+
+    // 2. Nhận diện các mắt xích SẢNH (3..A): nếu rút hết quân ở rank này làm đứt chuỗi >= 3 lá
+    const criticalStraightRanks = new Set();
+    let run = [];
+    const flushRun = (seq) => {
+      if (seq.length < 3) return;
+      seq.forEach((r, idx) => {
+        const leftLen = idx;
+        const rightLen = seq.length - 1 - idx;
+        // Nếu bỏ mắt xích r mà phần bên trái hoặc bên phải bị cụt (< 3 lá) -> làm gãy sảnh!
+        if ((leftLen > 0 && leftLen < 3) || (rightLen > 0 && rightLen < 3) || seq.length === 3) {
+          criticalStraightRanks.add(r);
+        }
+      });
+    };
+    for (let r = 0; r <= 11; r++) {
+      if (rankCounts[r] >= 1) {
+        run.push(r);
+      } else {
+        flushRun(run);
+        run = [];
+      }
+    }
+    flushRun(run);
+
+    return { rankCounts, bombRanks, criticalStraightRanks };
+  }
+
+  evaluateMoveBreakCost(move, struct) {
+    const { rankCounts, bombRanks, criticalStraightRanks } = struct;
+    let breakCost = 0;
+
+    // 1. Nếu nước đi KHÔNG phải là tung Hàng (Bom) mà lại lấy bài trong Tứ Quý / 3-4 Đôi Thông -> Phạt cực nặng!
+    if (!move.isBomb) {
+      const touchesBomb = move.cards.some((c) => bombRanks.has(c.rankIndex));
+      if (touchesBomb) {
+        breakCost += 480;
+      }
+    }
+
+    // 2. Nếu đánh LẺ (SINGLE): kiểm tra xem có đang xé Đôi, xé Sám Cô hay rút gãy Sảnh không
+    if (move.type === COMBO_TYPES.SINGLE) {
+      const r = move.cards[0].rankIndex;
+      if (rankCounts[r] === 2) {
+        // Xé Đôi ra đánh lẻ (trừ Đôi Heo khi cần thiết vẫn hạn chế xé)
+        breakCost += r === 12 ? 65 : 125;
+      } else if (rankCounts[r] === 3) {
+        // Xé Sám Cô ra đánh lẻ
+        breakCost += 140;
+      }
+      // Nếu chỉ có đúng 1 lá ở rank này và nó là mắt xích sống còn của Sảnh -> Xé Sảnh!
+      if (rankCounts[r] === 1 && criticalStraightRanks.has(r)) {
+        breakCost += 135;
+      }
+    }
+
+    // 3. Nếu đánh ĐÔI (PAIR): kiểm tra xem có làm gãy Sám Cô hoặc làm đứt Sảnh không
+    else if (move.type === COMBO_TYPES.PAIR) {
+      const r = move.cards[0].rankIndex;
+      if (rankCounts[r] === 3) {
+        breakCost += 95;
+      }
+      if (rankCounts[r] === 2 && criticalStraightRanks.has(r)) {
+        breakCost += 110;
+      }
+    }
+
+    // 4. Nếu đánh SẢNH (STRAIGHT): kiểm tra xem sảnh này có phá nát nhiều Đôi/Sám trên tay không
+    else if (move.type === COMBO_TYPES.STRAIGHT) {
+      let brokenPairs = 0;
+      move.cards.forEach((c) => {
+        const r = c.rankIndex;
+        if (rankCounts[r] === 2) brokenPairs++;
+        else if (rankCounts[r] === 3) brokenPairs += 1.5;
+      });
+      // Nếu sảnh ngắn (3-4 lá) mà lại phá từ 2 Đôi trở lên thì lỗ bộ
+      if (brokenPairs >= 2 && move.length <= 4) {
+        breakCost += brokenPairs * 55;
+      } else if (brokenPairs === 1 && move.length === 3) {
+        breakCost += 35;
+      }
+    }
+
+    return breakCost;
+  }
+
   chooseBotLeadMove(bot, validMoves) {
+    // Nếu có bộ đánh 1 phát hết bài luôn -> Đánh ngay!
     const instantWin = validMoves.find((m) => m.length === bot.hand.length);
     if (instantWin) return instantWin;
 
@@ -8522,30 +8631,47 @@ class TienLenGame {
         .map((p) => p.hand.length)
     );
 
+    const struct = this.analyzeBotHandStructure(bot.hand);
     const nonBombMoves = validMoves.filter((m) => !m.isBomb);
     const pool = nonBombMoves.length > 0 ? nonBombMoves : validMoves;
 
     const scored = pool.map((move) => {
       let score = 0;
+      const breakCost = this.evaluateMoveBreakCost(move, struct);
       const contains3Spade = move.cards.some((c) => c.value === 0);
 
-      if (move.type === COMBO_TYPES.STRAIGHT) score += 45 + move.length * 7;
-      else if (move.type === COMBO_TYPES.TRIPLE) score += 38;
-      else if (move.type === COMBO_TYPES.PAIR) score += 28;
-      else if (move.type === COMBO_TYPES.SINGLE) score += 15;
+      // Trừ điểm nặng nếu nước mở vòng tự làm hỏng Đôi / Sảnh / Hàng của chính mình
+      score -= breakCost * 1.25;
+
+      if (move.type === COMBO_TYPES.STRAIGHT) score += 52 + move.length * 8;
+      else if (move.type === COMBO_TYPES.TRIPLE) score += 42;
+      else if (move.type === COMBO_TYPES.PAIR) score += 34;
+      else if (move.type === COMBO_TYPES.SINGLE) {
+        score += 22;
+        // Nếu là quân lẻ cô lập thực sự (rác) -> Ưu tiên tống khứ sớm!
+        if (breakCost === 0 && move.highRank < 11) {
+          score += 26;
+        }
+      }
 
       if (contains3Spade && minOpponentCards <= 6) {
         score += 45;
       }
 
-      if (minOpponentCards === 1 && move.type === COMBO_TYPES.SINGLE) {
-        score += move.highValue * 0.6;
+      // Nếu đối thủ chỉ còn 1 lá: Tuyệt đối ưu tiên đánh Bộ (Đôi/Sảnh), nếu đánh lẻ phải đánh quân lớn nhất!
+      if (minOpponentCards === 1) {
+        if (move.type === COMBO_TYPES.SINGLE) {
+          score += move.highValue * 0.9 - 25;
+        } else {
+          score += 35;
+        }
       } else {
-        score -= move.highValue * 0.8;
+        // Bình thường: Ưu tiên ra bài nhỏ trước, giữ bài lớn (A, 2) lại điều nhịp
+        score -= move.highValue * 0.85;
       }
 
       if (move.highRank === 12 && bot.hand.length > 3) {
-        score -= 60;
+        score -= 75;
       }
 
       return { move, score };
@@ -8556,9 +8682,11 @@ class TienLenGame {
   }
 
   chooseBotResponseMove(bot, validMoves) {
+    // 1. Nếu đánh 1 nước hết bài Về Nhất luôn -> Đánh ngay lập tức!
     const instantWin = validMoves.find((m) => m.length === bot.hand.length);
     if (instantWin) return instantWin;
 
+    // 2. Nếu có Hàng chặt được Heo / Đôi Heo / Hàng -> Chặt ngay ăn thưởng!
     const chopMoves = validMoves.filter((m) => canBeatCombo(m, this.currentCombo).isChop);
     if (chopMoves.length > 0) {
       chopMoves.sort((a, b) => a.highValue - b.highValue);
@@ -8566,33 +8694,66 @@ class TienLenGame {
     }
 
     const owner = this.players[this.trickOwnerId];
-    const ownerLowCards = owner && owner.hand.length <= 3;
+    const minOpponentCards = Math.min(
+      ...this.players
+        .filter((p) => p.active && p.id !== bot.id && p.finishRank === null)
+        .map((p) => p.hand.length)
+    );
+    const ownerDanger = owner && owner.hand.length <= 2;
+    const tableEmergency = ownerDanger || minOpponentCards <= 2;
 
-    const quadRanks = new Set();
-    const rankCounts = new Array(13).fill(0);
-    bot.hand.forEach((c) => rankCounts[c.rankIndex]++);
-    rankCounts.forEach((cnt, r) => {
-      if (cnt === 4) quadRanks.add(r);
+    const struct = this.analyzeBotHandStructure(bot.hand);
+
+    // Chấm điểm từng nước đỡ: kết hợp giữa độ lớn quân bài và chi phí "Xé Bộ" (breakCost)
+    const candidates = validMoves.map((move) => {
+      const breakCost = this.evaluateMoveBreakCost(move, struct);
+      const isTwo = move.highRank === 12;
+      // Nếu đánh nước này mà trên tay chỉ còn 1 bộ duy nhất -> Rất đáng đánh để cướp cái!
+      const remainingAfter = bot.hand.length - move.length;
+      const nearFinishBonus = remainingAfter <= 1 ? -70 : remainingAfter === 2 ? -30 : 0;
+
+      const totalCost =
+        breakCost +
+        move.highValue * 1.35 +
+        (isTwo && bot.hand.length > 4 ? 48 : 0) +
+        nearFinishBonus;
+
+      return { move, breakCost, totalCost };
     });
 
-    let safeMoves = validMoves.filter(
-      (m) => m.isBomb || !m.cards.some((c) => quadRanks.has(c.rankIndex))
-    );
-    if (safeMoves.length === 0) safeMoves = validMoves;
+    candidates.sort((a, b) => a.totalCost - b.totalCost);
+    const best = candidates[0];
 
-    safeMoves.sort((a, b) => a.highValue - b.highValue);
-    const smallest = safeMoves[0];
+    // 3. QUY TẮC GIỮ BỘ & BỎ LƯỢT CHIẾN THUẬT (Khi bàn chưa vào tình trạng nguy hiểm):
+    if (!tableEmergency) {
+      // (a) Tuyệt đối KHÔNG xé Hàng (Tứ Quý / 3-4 Đôi Thông) ra đỡ bài thường
+      if (best.breakCost >= 400) {
+        return null;
+      }
 
-    if (
-      smallest.highRank === 12 &&
-      this.currentCombo.highRank <= 8 &&
-      bot.hand.length > 6 &&
-      !ownerLowCards
-    ) {
-      return null;
+      // (b) Nếu nước đỡ tốt nhất buộc phải XÉ ĐÔI / XÉ SẢNH / XÉ SÁM (breakCost >= 90)
+      // và trên tay Bot vẫn còn từ 4 lá trở lên -> Nhịn Bỏ Lượt để bảo toàn Đôi và Sảnh!
+      if (best.breakCost >= 90 && bot.hand.length >= 4 && (!owner || owner.hand.length >= 4)) {
+        return null;
+      }
+
+      // (c) Giữ Heo (2): Không phung phí Heo hoặc Đôi Heo sớm khi bài dưới bàn còn nhỏ (<= J)
+      if (
+        best.move.highRank === 12 &&
+        this.currentCombo.highRank <= 8 &&
+        bot.hand.length > 5 &&
+        (!owner || owner.hand.length >= 4)
+      ) {
+        return null;
+      }
+    } else {
+      // Ngay cả khi khẩn cấp, vẫn không tự phá Hàng nếu đối thủ đang đánh không phải người sắp hết bài
+      if (!ownerDanger && best.breakCost >= 400) {
+        return null;
+      }
     }
 
-    return smallest;
+    return best.move;
   }
 
   // ============================================================================

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
@@ -2916,9 +2916,14 @@ body {
         </div>
 
         <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
-          <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
-            🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
+              🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
+            </button>
+            <button class="icon-btn" onclick="window.tienLenGame.unlockAllShopItems()" title="Khôi phục và mở khóa toàn bộ 29 Skin Bài, 29 Avatar & 10 Kỹ Năng Nộ">
+              🔓 Mở Khóa Full Shop (+100k Xu)
+            </button>
+          </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Biểu diễn Kỹ Năng Nộ Raiden Shogun (Chặt Heo/Hàng)!')">
               ⚡ Test Nộ Raiden
@@ -3838,11 +3843,20 @@ class TienLenGame {
       { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
     ];
 
-    // Multiplayer state
+    // Multiplayer state (Giữ cố định clientId trong localStorage để F5 không bị mất ghế hoặc reset đồ)
     this.isMultiplayer = false;
     this.isHost = true;
     this.roomId = null;
-    this.myClientId = 'client_' + Math.random().toString(36).substring(2, 10);
+    try {
+      let savedCid = localStorage.getItem('tlmn_client_id');
+      if (!savedCid) {
+        savedCid = 'client_' + Math.random().toString(36).substring(2, 10);
+        localStorage.setItem('tlmn_client_id', savedCid);
+      }
+      this.myClientId = savedCid;
+    } catch (_) {
+      this.myClientId = 'client_' + Math.random().toString(36).substring(2, 10);
+    }
     this.mySeatId = 0;
     this.lanServerIp = '192.168.85.102';
     this.lanServerPort = 8080;
@@ -4044,6 +4058,29 @@ class TienLenGame {
     ).padStart(2, '0')}`;
   }
 
+  readBackupPayloads() {
+    const list = [];
+    try {
+      const keys = ['tlmn_genshin_vault_v1', 'tlmn_anime_profile_v2', 'tlmn_anime_profile_v1'];
+      keys.forEach((k) => {
+        const raw = localStorage.getItem(k);
+        if (raw) list.push(JSON.parse(raw));
+      });
+    } catch (_) {}
+    try {
+      const match = document.cookie.match(/(?:^|;\s*)tlmn_vault=([^;]+)/);
+      if (match && match[1]) {
+        list.push(JSON.parse(decodeURIComponent(match[1])));
+      }
+    } catch (_) {}
+    try {
+      if (window.name && window.name.startsWith('TLMN_VAULT:')) {
+        list.push(JSON.parse(window.name.slice('TLMN_VAULT:'.length)));
+      }
+    } catch (_) {}
+    return list;
+  }
+
   loadShopProfile() {
     const today = this.getTodayKey();
     this.savedCoins = INITIAL_COINS; // Cấp sẵn 20,000 xu (~100 ván thắng thua)
@@ -4057,76 +4094,137 @@ class TienLenGame {
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
     this.dailyRecoveredOnLoad = false;
+    this.compensationV8 = false;
 
     try {
-      const rawV2 = localStorage.getItem('tlmn_anime_profile_v2');
-      const rawV1 = localStorage.getItem('tlmn_anime_profile_v1');
-
-      if (rawV2) {
-        const data = JSON.parse(rawV2);
-        if (typeof data.coins === 'number') this.savedCoins = data.coins;
+      const backups = this.readBackupPayloads();
+      backups.forEach((data) => {
+        if (!data || typeof data !== 'object') return;
+        if (typeof data.coins === 'number' && data.coins > this.savedCoins) {
+          this.savedCoins = data.coins;
+        }
         if (Array.isArray(data.unlockedSkins)) {
-          const mappedSkins = data.unlockedSkins.map((id) => LEGACY_ID_MAP[id] || id);
-          this.unlockedSkins = new Set(['classic', ...mappedSkins]);
+          data.unlockedSkins.forEach((id) => {
+            const mapped = LEGACY_ID_MAP[id] || id;
+            if (ANIME_CARD_SKINS.some((s) => s.id === mapped)) {
+              this.unlockedSkins.add(mapped);
+            }
+          });
         }
-        if (data.equippedSkin) {
-          this.equippedSkin = LEGACY_ID_MAP[data.equippedSkin] || data.equippedSkin;
-        }
-        if (Array.isArray(data.unlockedAvatars)) {
-          const mappedAvatars = data.unlockedAvatars.map((id) => LEGACY_ID_MAP[id] || id);
-          this.unlockedAvatars = new Set(['hutao', ...mappedAvatars]);
-        }
-        if (data.equippedAvatar) {
-          this.equippedAvatar = LEGACY_ID_MAP[data.equippedAvatar] || data.equippedAvatar;
-        }
-        if (Array.isArray(data.unlockedBursts)) {
-          this.unlockedBursts = new Set(['raiden', 'skirk', ...data.unlockedBursts]);
-        }
-        if (data.equippedChopBurst) this.equippedChopBurst = data.equippedChopBurst;
-        if (data.equippedWinBurst) this.equippedWinBurst = data.equippedWinBurst;
-        if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
-        if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
-
-        // Nếu bước sang ngày mới: tự động hồi +5,000 xu và reset lượt cứu trợ trong ngày
-        if (this.lastDailyDate !== today) {
-          this.lastDailyDate = today;
-          this.dailyReliefUsed = 0;
-          if (this.savedCoins < INITIAL_COINS) {
-            this.savedCoins = Math.min(INITIAL_COINS, this.savedCoins + DAILY_RECOVERY_COINS);
-            this.dailyRecoveredOnLoad = true;
-          } else {
-            this.savedCoins += Math.floor(DAILY_RECOVERY_COINS / 2);
-            this.dailyRecoveredOnLoad = true;
+        if (data.equippedSkin && this.equippedSkin === 'classic') {
+          const mapped = LEGACY_ID_MAP[data.equippedSkin] || data.equippedSkin;
+          if (ANIME_CARD_SKINS.some((s) => s.id === mapped)) {
+            this.equippedSkin = mapped;
+            this.unlockedSkins.add(mapped);
           }
         }
-      } else if (rawV1) {
-        const dataV1 = JSON.parse(rawV1);
-        if (Array.isArray(dataV1.unlockedSkins)) {
-          const mappedSkins = dataV1.unlockedSkins.map((id) => LEGACY_ID_MAP[id] || id);
-          this.unlockedSkins = new Set(['classic', ...mappedSkins]);
+        if (Array.isArray(data.unlockedAvatars)) {
+          data.unlockedAvatars.forEach((id) => {
+            const mapped = LEGACY_ID_MAP[id] || id;
+            if (ANIME_AVATARS.some((a) => a.id === mapped)) {
+              this.unlockedAvatars.add(mapped);
+            }
+          });
         }
-        if (dataV1.equippedSkin) {
-          this.equippedSkin = LEGACY_ID_MAP[dataV1.equippedSkin] || dataV1.equippedSkin;
+        if (data.equippedAvatar && this.equippedAvatar === 'hutao') {
+          const mapped = LEGACY_ID_MAP[data.equippedAvatar] || data.equippedAvatar;
+          if (ANIME_AVATARS.some((a) => a.id === mapped)) {
+            this.equippedAvatar = mapped;
+            this.unlockedAvatars.add(mapped);
+          }
         }
-        if (Array.isArray(dataV1.unlockedAvatars)) {
-          const mappedAvatars = dataV1.unlockedAvatars.map((id) => LEGACY_ID_MAP[id] || id);
-          this.unlockedAvatars = new Set(['hutao', ...mappedAvatars]);
+        if (Array.isArray(data.unlockedBursts)) {
+          data.unlockedBursts.forEach((id) => {
+            if (GENSHIN_BURSTS.some((b) => b.id === id)) {
+              this.unlockedBursts.add(id);
+            }
+          });
         }
-        if (dataV1.equippedAvatar) {
-          this.equippedAvatar = LEGACY_ID_MAP[dataV1.equippedAvatar] || dataV1.equippedAvatar;
+        if (data.equippedChopBurst && this.equippedChopBurst === 'raiden') {
+          if (GENSHIN_BURSTS.some((b) => b.id === data.equippedChopBurst)) {
+            this.equippedChopBurst = data.equippedChopBurst;
+            this.unlockedBursts.add(data.equippedChopBurst);
+          }
         }
-        this.savedCoins = INITIAL_COINS;
+        if (data.equippedWinBurst && this.equippedWinBurst === 'skirk') {
+          if (GENSHIN_BURSTS.some((b) => b.id === data.equippedWinBurst)) {
+            this.equippedWinBurst = data.equippedWinBurst;
+            this.unlockedBursts.add(data.equippedWinBurst);
+          }
+        }
+        if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
+        if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
+        if (data.compensationV8) this.compensationV8 = true;
+      });
+
+      // Nếu có dữ liệu xu thấp hơn 20k từ bản đầu tiên, giữ đúng xu người chơi đang có nếu đã nhận đền bù
+      if (backups.length > 0 && typeof backups[0].coins === 'number') {
+        this.savedCoins = backups[0].coins;
       }
+
+      // Đền bù 1 lần duy nhất cho đợt cập nhật 29 nhân vật Fanart:
+      // Tặng lại +50,000 Xu & mở khóa sẵn các bộ Skin/Avatar/Nộ chủ lực để không bị mất đồ đã mua trước đó!
+      if (!this.compensationV8) {
+        this.compensationV8 = true;
+        this.savedCoins = Math.max(this.savedCoins, INITIAL_COINS) + 50000;
+        ['raiden', 'skirk', 'furina', 'mavuika', 'hutao', 'yaemiko', 'clorinde', 'yelan'].forEach((id) => {
+          this.unlockedSkins.add(id);
+          this.unlockedAvatars.add(id);
+        });
+        ['raiden', 'skirk', 'mavuika', 'furina'].forEach((bId) => {
+          this.unlockedBursts.add(bId);
+        });
+        if (this.equippedSkin === 'classic') {
+          this.equippedSkin = 'raiden';
+        }
+      }
+
+      // Nếu bước sang ngày mới: tự động hồi +5,000 xu và reset lượt cứu trợ trong ngày
+      if (this.lastDailyDate !== today) {
+        this.lastDailyDate = today;
+        this.dailyReliefUsed = 0;
+        if (this.savedCoins < INITIAL_COINS) {
+          this.savedCoins = Math.min(INITIAL_COINS, this.savedCoins + DAILY_RECOVERY_COINS);
+          this.dailyRecoveredOnLoad = true;
+        } else {
+          this.savedCoins += Math.floor(DAILY_RECOVERY_COINS / 2);
+          this.dailyRecoveredOnLoad = true;
+        }
+      }
+
       this.saveShopProfile();
     } catch (_) {}
   }
 
   saveShopProfile() {
     try {
-      const me = this.players ? this.getLocalPlayer() : null;
-      if (me) {
-        this.savedCoins = me.coins;
+      // Chỉ cập nhật số xu từ ghế của mình khi chắc chắn ghế đó là của mình (tránh bị ghi đè khi mới vào phòng WiFi)
+      if (this.players) {
+        const me = this.getLocalPlayer();
+        const isTrulyMe =
+          !this.isMultiplayer ||
+          (me && me.clientId === this.myClientId) ||
+          (this.isHost && this.mySeatId === 0);
+        if (me && isTrulyMe && typeof me.coins === 'number') {
+          this.savedCoins = me.coins;
+        }
       }
+
+      // Luôn gộp (Union) với dữ liệu cũ trong kho lưu trữ để KHÔNG BAO GIỜ bị mất vật phẩm đã mở khóa
+      const backups = this.readBackupPayloads();
+      backups.forEach((old) => {
+        if (!old || typeof old !== 'object') return;
+        if (Array.isArray(old.unlockedSkins)) {
+          old.unlockedSkins.forEach((id) => this.unlockedSkins.add(LEGACY_ID_MAP[id] || id));
+        }
+        if (Array.isArray(old.unlockedAvatars)) {
+          old.unlockedAvatars.forEach((id) => this.unlockedAvatars.add(LEGACY_ID_MAP[id] || id));
+        }
+        if (Array.isArray(old.unlockedBursts)) {
+          old.unlockedBursts.forEach((id) => this.unlockedBursts.add(id));
+        }
+      });
+
       const payload = {
         coins: this.savedCoins,
         unlockedSkins: Array.from(this.unlockedSkins),
@@ -4138,9 +4236,34 @@ class TienLenGame {
         equippedWinBurst: this.equippedWinBurst || 'skirk',
         lastDailyDate: this.lastDailyDate || this.getTodayKey(),
         dailyReliefUsed: this.dailyReliefUsed || 0,
+        compensationV8: !!this.compensationV8,
       };
-      localStorage.setItem('tlmn_anime_profile_v2', JSON.stringify(payload));
+      const jsonStr = JSON.stringify(payload);
+      localStorage.setItem('tlmn_genshin_vault_v1', jsonStr);
+      localStorage.setItem('tlmn_anime_profile_v2', jsonStr);
+      document.cookie = `tlmn_vault=${encodeURIComponent(jsonStr)}; path=/; max-age=31536000; SameSite=Lax`;
+      window.name = `TLMN_VAULT:${jsonStr}`;
     } catch (_) {}
+  }
+
+  unlockAllShopItems() {
+    const me = this.getLocalPlayer();
+    ANIME_CARD_SKINS.forEach((s) => this.unlockedSkins.add(s.id));
+    ANIME_AVATARS.forEach((a) => this.unlockedAvatars.add(a.id));
+    GENSHIN_BURSTS.forEach((b) => this.unlockedBursts.add(b.id));
+    if (me) {
+      me.coins = Math.max(me.coins, 50000);
+      this.savedCoins = me.coins;
+    }
+    sfx.win();
+    this.saveShopProfile();
+    this.renderShopModal();
+    this.renderAll();
+    this.syncCosmeticsInRoom();
+    this.addLog(
+      '🔓 <strong>Đã khôi phục & mở khóa toàn bộ 29 Skin Bài Fanart, 29 Avatar và 10 Kỹ Năng Nộ!</strong>',
+      'log-win'
+    );
   }
 
   checkAndTriggerAutoRelief() {

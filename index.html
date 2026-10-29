@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=7" />
+  <link rel="stylesheet" href="styles.css?v=8" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -411,9 +411,14 @@
         </div>
 
         <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
-          <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
-            🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
+              🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
+            </button>
+            <button class="icon-btn" onclick="window.tienLenGame.unlockAllShopItems()" title="Khôi phục và mở khóa toàn bộ 29 Skin Bài, 29 Avatar & 10 Kỹ Năng Nộ">
+              🔓 Mở Khóa Full Shop (+100k Xu)
+            </button>
+          </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Biểu diễn Kỹ Năng Nộ Raiden Shogun (Chặt Heo/Hàng)!')">
               ⚡ Test Nộ Raiden
@@ -445,6 +450,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=7"></script>
+  <script src="game.js?v=8"></script>
 </body>
 </html>

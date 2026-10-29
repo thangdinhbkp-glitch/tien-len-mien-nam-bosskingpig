@@ -1664,6 +1664,7 @@ class TienLenGame {
     this.ayakaFrozenPlayerId = null;
     this.hutaoTaxOwnerId = null;
     this.eulaNextPlayBoost = false;
+    this.mavuikaSelectingCard = false;
     this.yelanRevealedByPlayer = {};
 
     this.selectedCardIds = new Set();
@@ -1687,6 +1688,7 @@ class TienLenGame {
     this.botTimer = null;
     this.endMatchDelayTimer = null;
     this.queuedNextMatchBots = null;
+    this.mavuikaSelectingCard = false;
 
     this.bindDOM();
     sfx.onTrackChanged = () => this.syncBGMButtonsUI();
@@ -5987,6 +5989,31 @@ class TienLenGame {
       alert(`⚠️ Chưa thể kích hoạt Kỹ Năng: ${check.reason}`);
       return;
     }
+
+    if (check.charId === 'mavuika') {
+      const selectedCards = this.getSelectedCards();
+      const singleForgeable =
+        selectedCards.length === 1 && selectedCards[0].rankIndex <= 10 ? selectedCards[0] : null;
+      if (!singleForgeable) {
+        if (this.mavuikaSelectingCard) {
+          this.mavuikaSelectingCard = false;
+          sfx.click();
+          this.renderHumanHand();
+          this.updateHumanActionButtons();
+          return;
+        }
+        this.mavuikaSelectingCard = true;
+        this.selectedCardIds.clear();
+        this.companionCardIds.clear();
+        sfx.click();
+        this.showComboBanner('🔥 BẤM CHỌN 1 LÁ BÀI (3 ➔ K) TRÊN TAY ĐỂ NÂNG +1 BẬC!');
+        this.renderHumanHand();
+        this.updateHumanActionButtons();
+        return;
+      }
+      this.mavuikaSelectingCard = false;
+    }
+
     if (this.isMultiplayer && !this.isHost) {
       const selectedIds = Array.from(this.selectedCardIds);
       this.selectedCardIds.clear();
@@ -6647,6 +6674,7 @@ class TienLenGame {
     this.ayakaFrozenPlayerId = null;
     this.hutaoTaxOwnerId = null;
     this.eulaNextPlayBoost = false;
+    this.mavuikaSelectingCard = false;
     this.yelanRevealedByPlayer = {};
     this.logsData = [];
     if (this.elGameLog) this.elGameLog.innerHTML = '';
@@ -7379,6 +7407,7 @@ class TienLenGame {
     this.ayakaFrozenPlayerId = null;
     this.hutaoTaxOwnerId = null;
     this.eulaNextPlayBoost = false;
+    this.mavuikaSelectingCard = false;
     this.yelanRevealedByPlayer = {};
     this.isGameOver = false;
     this.updateArenaBackdropCharacters();
@@ -7948,6 +7977,7 @@ class TienLenGame {
     this.ayakaFrozenPlayerId = null;
     this.hutaoTaxOwnerId = null;
     this.eulaNextPlayBoost = false;
+    this.mavuikaSelectingCard = false;
     this.yelanRevealedByPlayer = {};
     this.renderRoundSkillStatusBar();
 
@@ -8493,6 +8523,29 @@ class TienLenGame {
     const clickedCard = human.hand.find((c) => c.id === cardId);
     if (!clickedCard) return;
 
+    // Chế độ Chọn 1 Lá Bài để Rèn (+1 bậc ♥) của Mavuika
+    if (this.mavuikaSelectingCard) {
+      if (clickedCard.rankIndex > 10) {
+        sfx.pass();
+        this.showComboBanner('⚠️ CHỈ CHỌN ĐƯỢC LÁ BÀI TỪ 3 ĐẾN K (KHÔNG RÈN ĐƯỢC A HOẶC 2)!');
+        return;
+      }
+      this.mavuikaSelectingCard = false;
+      this.selectedCardIds = new Set([clickedCard.id]);
+      this.companionCardIds.clear();
+      if (this.isMultiplayer && !this.isHost) {
+        this.sendClientEvent({
+          type: 'USE_CHAR_SKILL',
+          clientId: this.myClientId,
+          charId: 'mavuika',
+          selectedIds: [clickedCard.id],
+        });
+        return;
+      }
+      this.useCharacterSkill(human, [clickedCard.id]);
+      return;
+    }
+
     // 1. NẾU MÌNH LÀ NGƯỜI ĐI TRƯỚC (MỞ VÒNG MỚI): đánh lẻ khi chọn 1 lá
     if (!this.currentCombo) {
       this.companionCardIds.clear();
@@ -8578,6 +8631,7 @@ class TienLenGame {
   }
 
   clearSelection() {
+    this.mavuikaSelectingCard = false;
     this.selectedCardIds.clear();
     this.companionCardIds.clear();
     sfx.click();
@@ -8647,9 +8701,20 @@ class TienLenGame {
           '🔒 Bạn phải sở hữu Hoạt Ảnh Kỹ Năng Nộ 5★ (tại Sảnh Cầu Nguyện) mới được sử dụng Kỹ Năng của nhân vật đó!';
       } else {
         if (this.elCharSkillLabel) {
-          this.elCharSkillLabel.textContent = human.skillUsed
-            ? `${skill.icon} Đã dùng`
-            : `${skill.icon} ${skill.name} [E]`;
+          if (human.skillUsed) {
+            this.elCharSkillLabel.textContent = `${skill.icon} Đã dùng`;
+          } else if (charId === 'mavuika' && this.mavuikaSelectingCard) {
+            this.elCharSkillLabel.textContent = '🔥 Bấm 1 lá (3➔K) trên tay (Hủy [E])';
+          } else if (
+            charId === 'mavuika' &&
+            selectedCards.length === 1 &&
+            selectedCards[0].rankIndex <= 10
+          ) {
+            const c = selectedCards[0];
+            this.elCharSkillLabel.textContent = `🔥 Rèn ${c.rank}${c.suit} ➔ ${RANKS[c.rankIndex + 1]}♥ [E]`;
+          } else {
+            this.elCharSkillLabel.textContent = `${skill.icon} ${skill.name} [E]`;
+          }
         }
         this.btnCharSkill.disabled = !skillCheck.ok;
         this.btnCharSkill.classList.toggle('skill-ready', !!skillCheck.ok);
@@ -8660,7 +8725,11 @@ class TienLenGame {
       }
     }
 
-    if (selectedCards.length === 0) {
+    if (this.mavuikaSelectingCard) {
+      this.elSelectedPreview.textContent =
+        '🔥 THÁNH HỎA RÈN BÀI: Hãy bấm trực tiếp vào 1 lá bài (từ 3 đến K) trên tay bạn để nâng lên +1 bậc (chất Cơ ♥)!';
+      this.elSelectedPreview.classList.remove('invalid');
+    } else if (selectedCards.length === 0) {
       this.elSelectedPreview.textContent = 'Chọn bài để đánh';
       this.elSelectedPreview.classList.remove('invalid');
     } else if (!combo) {

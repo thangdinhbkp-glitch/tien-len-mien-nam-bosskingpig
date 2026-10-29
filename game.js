@@ -71,6 +71,46 @@ const BET_TIERS = [
 // ============================================================================
 const WISH_COST_SINGLE = 1600; // 1,600 Xu / 1 Lượt Cầu Nguyện (tương ứng 160 Nguyên Thạch)
 const WISH_COST_TEN = 16000;   // 16,000 Xu / 10 Lượt Cầu Nguyện
+const AD_REWARD_COINS = 1600;  // Xem Quảng Cáo Rick Roll nhận đúng 1 Roll (= 1,600 Xu)
+const DAILY_QUEST_REWARD_ROLLS = 2.5; // Mỗi nhiệm vụ hàng ngày nhận 2.5 Roll
+const DAILY_QUEST_REWARD_COINS = 4000; // 2.5 Roll × 1,600 Xu = 4,000 Xu / nhiệm vụ (4 NV = 10 Roll = 16,000 Xu)
+
+// 4 Nhiệm Vụ Ủy Thác Hàng Ngày (Hiệp Hội Nhà Mạo Hiểm Genshin Impact)
+const DAILY_QUESTS_CONFIG = [
+  {
+    id: 'play_matches',
+    icon: '🃏',
+    title: 'Ủy Thác 1: Khởi Động Sòng Bài',
+    desc: 'Hoàn thành 3 ván bài Tiến Lên bất kỳ (Đấu với Bot hoặc Đấu với Người)',
+    target: 3,
+    unit: 'ván',
+  },
+  {
+    id: 'win_matches',
+    icon: '🏆',
+    title: 'Ủy Thác 2: Bá Chủ Bàn Cược',
+    desc: 'Giành chiến thắng (Về Nhất hoặc Tới Trắng) 2 ván bài trong ngày',
+    target: 2,
+    unit: 'ván thắng',
+  },
+  {
+    id: 'play_combos',
+    icon: '🔥',
+    title: 'Ủy Thác 3: Xả Bộ Liên Hoàn',
+    desc: 'Đánh ra 8 bộ bài ghép (Đôi, Sám Cô, Sảnh hoặc Đôi Thông / Tứ Quý)',
+    target: 8,
+    unit: 'bộ bài',
+  },
+  {
+    id: 'play_power',
+    icon: '⚡',
+    title: 'Ủy Thác 4: Uy Lực Heo & Hàng',
+    desc: 'Đánh ra 3 quân Heo (2) hoặc thực hiện pha Chặt Heo / Hàng thành công',
+    target: 3,
+    unit: 'lần',
+  },
+];
+
 const DUPLICATE_REFUND_COINS = {
   3: 600,   // Trùng Avatar 3★ -> Hoàn +600 Xu
   4: 3200,  // Trùng Decor Bài 4★ -> Hoàn +3,200 Xu (= 2 lượt Cầu Nguyện!)
@@ -1262,6 +1302,14 @@ class TienLenGame {
     return list;
   }
 
+  getDefaultDailyQuestsState() {
+    const obj = {};
+    DAILY_QUESTS_CONFIG.forEach((q) => {
+      obj[q.id] = { progress: 0, claimed: false };
+    });
+    return obj;
+  }
+
   loadShopProfile() {
     const today = this.getTodayKey();
     // Người chơi mới bắt đầu với 20,000 Xu và chỉ có Bộ bài Cổ Điển + Avatar Tân Binh (phải cày Xu mới mua được đồ!)
@@ -1286,6 +1334,8 @@ class TienLenGame {
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
     this.dailyRecoveredOnLoad = false;
+    this.dailyQuestsDate = today;
+    this.dailyQuestsState = this.getDefaultDailyQuestsState();
 
     try {
       const backups = this.readBackupPayloads();
@@ -1347,17 +1397,27 @@ class TienLenGame {
         }
         if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
         if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
+        if (data.dailyQuestsDate === today && data.dailyQuestsState && typeof data.dailyQuestsState === 'object') {
+          this.dailyQuestsDate = today;
+          DAILY_QUESTS_CONFIG.forEach((q) => {
+            const savedQ = data.dailyQuestsState[q.id];
+            if (savedQ && typeof savedQ === 'object') {
+              const cur = this.dailyQuestsState[q.id];
+              cur.progress = Math.min(q.target, Math.max(cur.progress || 0, Number(savedQ.progress) || 0));
+              cur.claimed = !!(cur.claimed || savedQ.claimed);
+            }
+          });
+        }
       });
 
-      // Nếu bước sang ngày mới: tự động hồi +5,000 xu và reset lượt cứu trợ trong ngày
+      // Nếu bước sang ngày mới: tự động reset 4 Nhiệm Vụ Hàng Ngày & lượt cứu trợ
       if (this.lastDailyDate !== today) {
         this.lastDailyDate = today;
         this.dailyReliefUsed = 0;
+        this.dailyQuestsDate = today;
+        this.dailyQuestsState = this.getDefaultDailyQuestsState();
         if (this.savedCoins < INITIAL_COINS) {
           this.savedCoins = Math.min(INITIAL_COINS, this.savedCoins + DAILY_RECOVERY_COINS);
-          this.dailyRecoveredOnLoad = true;
-        } else {
-          this.savedCoins += Math.floor(DAILY_RECOVERY_COINS / 2);
           this.dailyRecoveredOnLoad = true;
         }
       }
@@ -1368,6 +1428,12 @@ class TienLenGame {
 
   saveShopProfile() {
     try {
+      const today = this.getTodayKey();
+      if (this.dailyQuestsDate !== today) {
+        this.dailyQuestsDate = today;
+        this.dailyQuestsState = this.getDefaultDailyQuestsState();
+      }
+
       if (this.players) {
         const me = this.getLocalPlayer();
         const isTrulyMe =
@@ -1379,7 +1445,7 @@ class TienLenGame {
         }
       }
 
-      // Gộp (Union) với dữ liệu v9 đã lưu để không bao giờ mất đồ đã mua
+      // Gộp (Union) với dữ liệu v9 đã lưu để không bao giờ mất đồ đã mua hoặc tiến độ nhiệm vụ
       const backups = this.readBackupPayloads();
       backups.forEach((old) => {
         if (!old || typeof old !== 'object') return;
@@ -1391,6 +1457,18 @@ class TienLenGame {
         }
         if (Array.isArray(old.unlockedBursts)) {
           old.unlockedBursts.forEach((id) => this.unlockedBursts.add(id));
+        }
+        if (old.dailyQuestsDate === today && old.dailyQuestsState && typeof old.dailyQuestsState === 'object') {
+          DAILY_QUESTS_CONFIG.forEach((q) => {
+            const sq = old.dailyQuestsState[q.id];
+            if (sq && this.dailyQuestsState[q.id]) {
+              this.dailyQuestsState[q.id].progress = Math.min(
+                q.target,
+                Math.max(this.dailyQuestsState[q.id].progress || 0, Number(sq.progress) || 0)
+              );
+              this.dailyQuestsState[q.id].claimed = !!(this.dailyQuestsState[q.id].claimed || sq.claimed);
+            }
+          });
         }
       });
 
@@ -1418,8 +1496,10 @@ class TienLenGame {
         selectedBannerBurstId: this.selectedBannerBurstId || 'raiden',
         totalWishes: this.totalWishes || 0,
         gachaHistory: (this.gachaHistory || []).slice(0, 40),
-        lastDailyDate: this.lastDailyDate || this.getTodayKey(),
+        lastDailyDate: this.lastDailyDate || today,
         dailyReliefUsed: this.dailyReliefUsed || 0,
+        dailyQuestsDate: this.dailyQuestsDate || today,
+        dailyQuestsState: this.dailyQuestsState,
       };
       const jsonStr = JSON.stringify(payload);
       localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
@@ -1493,11 +1573,12 @@ class TienLenGame {
 
   switchShopTab(tabName) {
     this.activeShopTab = tabName;
-    const tabs = ['gacha', 'bursts', 'skins', 'avatars', 'history'];
+    const tabs = ['gacha', 'quests', 'bursts', 'skins', 'avatars', 'history'];
     tabs.forEach((t) => {
       document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tabName);
     });
     document.getElementById('shop-gacha-panel')?.classList.toggle('hidden', tabName !== 'gacha');
+    document.getElementById('shop-quests-panel')?.classList.toggle('hidden', tabName !== 'quests');
     document.getElementById('shop-bursts-grid')?.classList.toggle('hidden', tabName !== 'bursts');
     document.getElementById('shop-skins-grid')?.classList.toggle('hidden', tabName !== 'skins');
     document.getElementById('shop-avatars-grid')?.classList.toggle('hidden', tabName !== 'avatars');
@@ -1668,7 +1749,7 @@ class TienLenGame {
 
     if (me.coins < cost) {
       alert(
-        `⚠️ Bạn chưa đủ Xu để Cầu Nguyện ×${pullCount} (Cần ${cost.toLocaleString()} Xu, hiện có ${me.coins.toLocaleString()} Xu)!\n💡 Hãy đánh thắng thêm ván bài hoặc bấm nút "🎁 Hồi Xu Hàng Ngày (+5,000 Xu)" ở góc dưới nhé!`
+        `⚠️ Bạn chưa đủ Xu để Cầu Nguyện ×${pullCount} (Cần ${cost.toLocaleString()} Xu, hiện có ${me.coins.toLocaleString()} Xu)!\n💡 Hãy làm 4 Nhiệm Vụ Hàng Ngày (mỗi nhiệm vụ nhận 2.5 Roll = +4,000 Xu) hoặc Xem Quảng Cáo (+1 Roll = +1,600 Xu) nhé!`
       );
       return;
     }
@@ -1827,14 +1908,7 @@ class TienLenGame {
       lobbyBal.textContent = me.coins.toLocaleString();
     }
 
-    const bonusBtn = document.getElementById('btn-claim-bonus');
-    if (bonusBtn) {
-      const remaining = Math.max(0, MAX_DAILY_RELIEF_CLAIMS - (this.dailyReliefUsed || 0));
-      bonusBtn.textContent =
-        remaining > 0
-          ? `🎁 Hồi Xu Hàng Ngày (+${DAILY_RECOVERY_COINS.toLocaleString()} Xu • Còn ${remaining}/${MAX_DAILY_RELIEF_CLAIMS} lượt hôm nay)`
-          : `✅ Đã nhận đủ ${MAX_DAILY_RELIEF_CLAIMS} lượt hồi xu hôm nay (Mai hồi tiếp +5,000 xu)`;
-    }
+    this.renderDailyQuestsUI();
 
     // Cập nhật số lượng sưu tầm trên các Tab
     const tabBurstsBtn = document.getElementById('tab-btn-bursts');
@@ -2245,7 +2319,7 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // RICK ROLL REWARDED VIDEO AD (XEM VIDEO RICK ROLL NHẬN +8,000 XU)
+  // RICK ROLL REWARDED VIDEO AD (XEM VIDEO RICK ROLL NHẬN 1 ROLL = +1,600 XU)
   // ============================================================================
   startRickRollAd() {
     const overlay = document.getElementById('rickroll-ad-overlay');
@@ -2261,7 +2335,7 @@ class TienLenGame {
     if (!overlay) return;
 
     const AD_DURATION = 15;
-    const AD_REWARD = 8000;
+    const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
     this.adRemainingSec = AD_DURATION;
     this.adRewardClaimed = false;
     clearInterval(this.adIntervalTimer);
@@ -2269,7 +2343,7 @@ class TienLenGame {
     overlay.classList.remove('hidden');
 
     if (countdownPill) {
-      countdownPill.innerHTML = `⏳ Nhận +${AD_REWARD.toLocaleString()} Xu sau: <strong>${AD_DURATION}s</strong>`;
+      countdownPill.innerHTML = `⏳ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) sau: <strong>${AD_DURATION}s</strong>`;
     }
     if (skipBtn) {
       skipBtn.textContent = `🔒 Chờ ${AD_DURATION}s...`;
@@ -2279,7 +2353,7 @@ class TienLenGame {
       progressFill.style.width = '0%';
     }
     if (toastMsg) {
-      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> quảng cáo Rick Roll sẽ được cộng ngay <strong>+${AD_REWARD.toLocaleString()} Xu</strong> (= 5 Lượt Cầu Nguyện)!`;
+      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> quảng cáo Rick Roll sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
     }
 
     const lyricsTimeline = [
@@ -2342,7 +2416,7 @@ class TienLenGame {
 
       if (this.adRemainingSec > 0) {
         if (countdownPill) {
-          countdownPill.innerHTML = `⏳ Nhận +${AD_REWARD.toLocaleString()} Xu sau: <strong>${this.adRemainingSec}s</strong>`;
+          countdownPill.innerHTML = `⏳ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) sau: <strong>${this.adRemainingSec}s</strong>`;
         }
         if (skipBtn) {
           skipBtn.textContent = `🔒 Chờ ${this.adRemainingSec}s...`;
@@ -2362,20 +2436,20 @@ class TienLenGame {
           const resBal = document.getElementById('gacha-results-balance');
           if (resBal && me) resBal.textContent = me.coins.toLocaleString();
           this.addLog(
-            `🕺 <strong>Quảng Cáo Rick Roll:</strong> Bạn đã nghe Rick Astley hát đủ 15 giây và nhận thưởng <strong>+${AD_REWARD.toLocaleString()} xu</strong>!`,
+            `🕺 <strong>Quảng Cáo Rick Roll:</strong> Bạn đã nghe Rick Astley hát đủ 15 giây và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
             'log-win'
           );
           this.syncCosmeticsInRoom();
         }
         if (countdownPill) {
-          countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +${AD_REWARD.toLocaleString()} XU VÀO VÍ!</strong>`;
+          countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +1 ROLL (+${AD_REWARD.toLocaleString()} XU)!</strong>`;
         }
         if (skipBtn) {
-          skipBtn.textContent = `✅ Nhận +${AD_REWARD.toLocaleString()} Xu & Đóng QC`;
+          skipBtn.textContent = `✅ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) & Đóng QC`;
           skipBtn.classList.add('ready-claim');
         }
         if (toastMsg) {
-          toastMsg.innerHTML = `🎁 <strong>Hoàn tất Quảng Cáo!</strong> Tài khoản của bạn đã được cộng thêm <strong>+${AD_REWARD.toLocaleString()} Xu</strong>!`;
+          toastMsg.innerHTML = `🎁 <strong>Hoàn tất Quảng Cáo!</strong> Tài khoản của bạn đã được cộng thêm <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
         }
       }
     }, 1000);
@@ -2400,33 +2474,275 @@ class TienLenGame {
     sfx.click();
   }
 
-  claimFreeBonus() {
-    const me = this.getLocalPlayer();
-    if (!me) return;
+  // ============================================================================
+  // HỆ THỐNG 4 NHIỆM VỤ HÀNG NGÀY (ỦY THÁC HIỆP HỘI NHÀ MẠO HIỂM)
+  // Mỗi nhiệm vụ hoàn thành nhận 2.5 Roll (+4,000 Xu) • Tổng 4 NV = 10 Roll (+16,000 Xu)
+  // ============================================================================
+  ensureTodayQuests() {
     const today = this.getTodayKey();
-    if (this.lastDailyDate !== today) {
-      this.lastDailyDate = today;
-      this.dailyReliefUsed = 0;
+    if (this.dailyQuestsDate !== today || !this.dailyQuestsState) {
+      this.dailyQuestsDate = today;
+      this.dailyQuestsState = this.getDefaultDailyQuestsState();
+      this.saveShopProfile();
     }
+  }
 
-    if (this.dailyReliefUsed >= MAX_DAILY_RELIEF_CLAIMS) {
-      alert(
-        `Hôm nay bạn đã nhận đủ ${MAX_DAILY_RELIEF_CLAIMS}/${MAX_DAILY_RELIEF_CLAIMS} gói Hồi Xu Hàng Ngày (+15,000 xu tổng cộng).\n🌅 Ngày mai hệ thống sẽ tự động hồi tiếp +5,000 xu cho bạn!`
+  incrementDailyQuest(questId, amount = 1) {
+    if (!questId || amount <= 0) return;
+    this.ensureTodayQuests();
+    const cfg = DAILY_QUESTS_CONFIG.find((q) => q.id === questId);
+    if (!cfg) return;
+    if (!this.dailyQuestsState[questId]) {
+      this.dailyQuestsState[questId] = { progress: 0, claimed: false };
+    }
+    const qState = this.dailyQuestsState[questId];
+    if (qState.claimed || qState.progress >= cfg.target) return;
+
+    const prev = qState.progress || 0;
+    qState.progress = Math.min(cfg.target, prev + amount);
+    this.saveShopProfile();
+    this.renderDailyQuestsUI();
+
+    if (prev < cfg.target && qState.progress >= cfg.target) {
+      sfx.win();
+      this.addLog(
+        `🧭 <strong>Ủy Thác Hàng Ngày Hoàn Thành:</strong> <strong>${cfg.title}</strong> (${cfg.target}/${cfg.target})! Bấm nút <strong>"🧭 Nhiệm Vụ"</strong> để nhận ngay <strong>+${DAILY_QUEST_REWARD_ROLLS} Roll (+${DAILY_QUEST_REWARD_COINS.toLocaleString()} Xu)</strong>!`,
+        'log-win'
       );
+    }
+  }
+
+  claimDailyQuest(questId) {
+    this.ensureTodayQuests();
+    const cfg = DAILY_QUESTS_CONFIG.find((q) => q.id === questId);
+    const qState = this.dailyQuestsState?.[questId];
+    if (!cfg || !qState) return;
+    if (qState.claimed) return;
+    if (qState.progress < cfg.target) {
+      // Nếu chưa xong thì đóng bảng nhiệm vụ để người chơi vào bàn làm nhiệm vụ
+      document.getElementById('quests-modal')?.classList.add('hidden');
+      this.modalShop?.classList.add('hidden');
+      sfx.click();
       return;
     }
 
-    this.dailyReliefUsed++;
-    me.coins += DAILY_RECOVERY_COINS;
+    qState.claimed = true;
+    const me = this.getLocalPlayer();
+    if (me) {
+      me.coins += DAILY_QUEST_REWARD_COINS;
+    }
     sfx.win();
     this.saveShopProfile();
+    this.renderDailyQuestsUI();
     this.renderShopModal();
     this.renderSeats();
     this.addLog(
-      `🎁 Bạn vừa nhận gói Hồi Xu Hàng Ngày <strong>+${DAILY_RECOVERY_COINS.toLocaleString()} xu</strong> (Lượt ${this.dailyReliefUsed}/${MAX_DAILY_RELIEF_CLAIMS} hôm nay)!`,
+      `🎁 <strong>Nhận Thưởng Nhiệm Vụ:</strong> Đã nhận <strong>+${DAILY_QUEST_REWARD_ROLLS} Roll (+${DAILY_QUEST_REWARD_COINS.toLocaleString()} xu)</strong> từ <strong>${cfg.title}</strong>!`,
       'log-win'
     );
     this.syncCosmeticsInRoom();
+  }
+
+  claimAllDailyQuests() {
+    this.ensureTodayQuests();
+    let claimedCount = 0;
+    let totalCoinsGained = 0;
+
+    DAILY_QUESTS_CONFIG.forEach((cfg) => {
+      const qState = this.dailyQuestsState?.[cfg.id];
+      if (qState && !qState.claimed && qState.progress >= cfg.target) {
+        qState.claimed = true;
+        claimedCount++;
+        totalCoinsGained += DAILY_QUEST_REWARD_COINS;
+      }
+    });
+
+    if (claimedCount === 0) {
+      alert('⏳ Hiện chưa có nhiệm vụ nào hoàn thành chờ nhận thưởng. Hãy đánh thêm vài ván bài để hoàn thành Ủy Thác nhé!');
+      return;
+    }
+
+    const me = this.getLocalPlayer();
+    if (me) {
+      me.coins += totalCoinsGained;
+    }
+    const totalRolls = claimedCount * DAILY_QUEST_REWARD_ROLLS;
+    sfx.win();
+    this.saveShopProfile();
+    this.renderDailyQuestsUI();
+    this.renderShopModal();
+    this.renderSeats();
+    this.addLog(
+      `🌟 <strong>Tổng Kết Ủy Thác Hàng Ngày:</strong> Nhận cùng lúc <strong>${claimedCount} nhiệm vụ</strong> = <strong>+${totalRolls} Roll (+${totalCoinsGained.toLocaleString()} xu)</strong>!`,
+      'log-win'
+    );
+    this.syncCosmeticsInRoom();
+  }
+
+  openDailyQuestsModal() {
+    this.ensureTodayQuests();
+    this.renderDailyQuestsUI();
+    const modal = document.getElementById('quests-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+    sfx.click();
+  }
+
+  renderDailyQuestsUI() {
+    this.ensureTodayQuests();
+    const me = this.getLocalPlayer();
+
+    let completedCount = 0;
+    let claimedCount = 0;
+    let readyToClaimCount = 0;
+
+    DAILY_QUESTS_CONFIG.forEach((cfg) => {
+      const st = this.dailyQuestsState?.[cfg.id] || { progress: 0, claimed: false };
+      if (st.progress >= cfg.target) completedCount++;
+      if (st.claimed) claimedCount++;
+      if (st.progress >= cfg.target && !st.claimed) readyToClaimCount++;
+    });
+
+    const badgeText =
+      readyToClaimCount > 0 ? `🎁 Nhận ${readyToClaimCount}!` : `${claimedCount}/4`;
+
+    const topBadge = document.getElementById('top-quest-badge');
+    if (topBadge) topBadge.textContent = badgeText;
+    const lobbyBadge = document.getElementById('lobby-quest-badge');
+    if (lobbyBadge) lobbyBadge.textContent = badgeText;
+
+    document.getElementById('btn-top-quests')?.classList.toggle('has-claimable', readyToClaimCount > 0);
+    document.getElementById('btn-lobby-quests')?.classList.toggle('has-claimable', readyToClaimCount > 0);
+
+    const tabQuestsBtn = document.getElementById('tab-btn-quests');
+    if (tabQuestsBtn) {
+      tabQuestsBtn.textContent =
+        readyToClaimCount > 0
+          ? `🧭 Nhiệm Vụ Ngày (🎁 Nhận ${readyToClaimCount}!)`
+          : `🧭 Nhiệm Vụ Ngày (${claimedCount}/4 • 10 Roll)`;
+    }
+
+    const bonusBtn = document.getElementById('btn-claim-bonus');
+    if (bonusBtn) {
+      bonusBtn.classList.toggle('has-claimable', readyToClaimCount > 0);
+      bonusBtn.textContent =
+        readyToClaimCount > 0
+          ? `🎁 Nhận Thưởng Nhiệm Vụ Ngày (${readyToClaimCount} NV × 2.5 Roll chờ nhận!)`
+          : `🧭 Nhiệm Vụ Hàng Ngày (${claimedCount}/4 hoàn tất • Tổng 10 Roll / ngày)`;
+    }
+
+    const questsBal = document.getElementById('quests-modal-balance');
+    if (questsBal && me) {
+      questsBal.textContent = me.coins.toLocaleString();
+    }
+
+    const claimAllBtn = document.getElementById('btn-claim-all-quests');
+    if (claimAllBtn) {
+      if (readyToClaimCount > 0) {
+        const rollsReady = readyToClaimCount * DAILY_QUEST_REWARD_ROLLS;
+        const coinsReady = readyToClaimCount * DAILY_QUEST_REWARD_COINS;
+        claimAllBtn.textContent = `🎁 Nhận Tất Cả (+${rollsReady} Roll / +${coinsReady.toLocaleString()} Xu)`;
+        claimAllBtn.disabled = false;
+      } else if (claimedCount === 4) {
+        claimAllBtn.textContent = `✅ Đã Nhận Trọn 10 Roll (+16,000 Xu) Hôm Nay`;
+        claimAllBtn.disabled = true;
+      } else {
+        claimAllBtn.textContent = `⏳ Hoàn thành nhiệm vụ để nhận thưởng`;
+        claimAllBtn.disabled = true;
+      }
+    }
+
+    const earnedRolls = claimedCount * DAILY_QUEST_REWARD_ROLLS;
+    const earnedCoins = claimedCount * DAILY_QUEST_REWARD_COINS;
+
+    const cardsHtml = DAILY_QUESTS_CONFIG.map((cfg) => {
+      const st = this.dailyQuestsState?.[cfg.id] || { progress: 0, claimed: false };
+      const cur = Math.min(cfg.target, st.progress || 0);
+      const pct = Math.min(100, Math.round((cur / cfg.target) * 100));
+      const isReady = cur >= cfg.target && !st.claimed;
+      const isClaimed = !!st.claimed;
+
+      const cardClass = isClaimed ? 'quest-claimed' : isReady ? 'quest-ready' : '';
+      let statusLabel = `⏳ Tiến độ: ${cur} / ${cfg.target} ${cfg.unit}`;
+      let btnClass = '';
+      let btnLabel = '⚔️ Vào bàn làm NV';
+
+      if (isClaimed) {
+        statusLabel = '✅ Đã nhận thưởng hôm nay';
+        btnClass = 'btn-claimed';
+        btnLabel = '✅ Đã nhận 2.5 Roll';
+      } else if (isReady) {
+        statusLabel = '🌟 Đã hoàn thành! Có thể nhận ngay!';
+        btnClass = 'btn-claim-ready';
+        btnLabel = `🎁 Nhận +2.5 Roll (+4,000 Xu)`;
+      }
+
+      return `
+        <div class="daily-quest-card ${cardClass}">
+          <div class="daily-quest-top">
+            <div class="daily-quest-info">
+              <div class="daily-quest-icon">${cfg.icon}</div>
+              <div>
+                <div class="daily-quest-title">${cfg.title}</div>
+                <div class="daily-quest-desc">${cfg.desc}</div>
+              </div>
+            </div>
+            <div class="daily-quest-reward-badge">
+              🌠 +${DAILY_QUEST_REWARD_ROLLS} Roll (${DAILY_QUEST_REWARD_COINS.toLocaleString()} Xu)
+            </div>
+          </div>
+
+          <div class="daily-quest-progress-wrap">
+            <div class="daily-quest-progress-labels">
+              <span>${statusLabel}</span>
+              <span><strong>${cur}/${cfg.target}</strong> (${pct}%)</span>
+            </div>
+            <div class="daily-quest-progress-bar-bg">
+              <div class="daily-quest-progress-bar-fill" style="width:${pct}%;"></div>
+            </div>
+          </div>
+
+          <div class="daily-quest-bottom">
+            <span class="daily-quest-status-text">
+              💎 Phần thưởng: <strong style="color:#fde68a;">2.5 Lượt Cầu Nguyện (+4,000 Xu)</strong>
+            </span>
+            <button class="daily-quest-btn ${btnClass}" onclick="window.tienLenGame.claimDailyQuest('${cfg.id}')">
+              ${btnLabel}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const fullHtml = `
+      <div class="daily-quests-banner">
+        <div class="daily-quests-banner-left">
+          <div class="daily-quests-banner-title">
+            🧭 SỔ TAY ỦY THÁC HÀNG NGÀY (4 NHIỆM VỤ × 2.5 ROLL = 10 ROLL / NGÀY)
+          </div>
+          <div class="daily-quests-banner-sub">
+            Mỗi nhiệm vụ hoàn thành thưởng <strong>2.5 Roll (+4,000 Xu)</strong>. Làm đủ 4 nhiệm vụ nhận trọn <strong>10 Roll (+16,000 Xu = 1 lần Cầu Nguyện ×10)</strong>! Tự động làm mới mỗi ngày.
+          </div>
+        </div>
+        <div class="daily-quests-summary-pill">
+          Đã nhận hôm nay: <strong>${claimedCount}/4 NV</strong><br/>
+          🌠 <strong>${earnedRolls} / 10 Roll</strong> (+${earnedCoins.toLocaleString()} / 16,000 Xu)
+        </div>
+      </div>
+      <div class="daily-quests-grid">
+        ${cardsHtml}
+      </div>
+    `;
+
+    const shopQuestsPanel = document.getElementById('shop-quests-panel');
+    if (shopQuestsPanel) shopQuestsPanel.innerHTML = fullHtml;
+    const modalQuestsPanel = document.getElementById('modal-quests-panel');
+    if (modalQuestsPanel) modalQuestsPanel.innerHTML = fullHtml;
+  }
+
+  claimFreeBonus() {
+    this.openDailyQuestsModal();
   }
 
   syncCosmeticsInRoom() {
@@ -2527,11 +2843,28 @@ class TienLenGame {
     document.getElementById('btn-lobby-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
     document.getElementById('btn-shop-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
 
+    document.getElementById('btn-top-quests')?.addEventListener('click', () => this.openDailyQuestsModal());
+    document.getElementById('btn-lobby-quests')?.addEventListener('click', () => this.openDailyQuestsModal());
+    document.getElementById('btn-close-quests')?.addEventListener('click', () => {
+      document.getElementById('quests-modal')?.classList.add('hidden');
+      sfx.click();
+    });
+    document.getElementById('btn-ok-quests')?.addEventListener('click', () => {
+      document.getElementById('quests-modal')?.classList.add('hidden');
+      sfx.click();
+    });
+    document.getElementById('btn-quests-to-gacha')?.addEventListener('click', () => {
+      document.getElementById('quests-modal')?.classList.add('hidden');
+      this.renderShopModal();
+      this.modalShop?.classList.remove('hidden');
+      this.switchShopTab('gacha');
+    });
+
     document.getElementById('btn-ad-skip-or-claim')?.addEventListener('click', () => {
       if (this.adRemainingSec > 0 && !this.adRewardClaimed) {
         const toastMsg = document.getElementById('ad-toast-msg');
         if (toastMsg) {
-          toastMsg.innerHTML = `<span style="color:#fde047;font-weight:800;">😂 Không bỏ qua được đâu! Bạn vừa bị RICK ROLL — hãy nghe Rick Astley hát thêm ${this.adRemainingSec} giây nữa để nhận +8,000 Xu nhé!</span>`;
+          toastMsg.innerHTML = `<span style="color:#fde047;font-weight:800;">😂 Không bỏ qua được đâu! Bạn vừa bị RICK ROLL — hãy nghe Rick Astley hát thêm ${this.adRemainingSec} giây nữa để nhận +1 Roll (+1,600 Xu) nhé!</span>`;
         }
         sfx.pass();
         return;
@@ -2561,6 +2894,7 @@ class TienLenGame {
       });
 
       document.getElementById('tab-btn-gacha')?.addEventListener('click', () => this.switchShopTab('gacha'));
+      document.getElementById('tab-btn-quests')?.addEventListener('click', () => this.switchShopTab('quests'));
       document.getElementById('tab-btn-bursts')?.addEventListener('click', () => this.switchShopTab('bursts'));
       document.getElementById('tab-btn-skins')?.addEventListener('click', () => this.switchShopTab('skins'));
       document.getElementById('tab-btn-avatars')?.addEventListener('click', () => this.switchShopTab('avatars'));
@@ -2570,6 +2904,8 @@ class TienLenGame {
         this.claimFreeBonus();
       });
     }
+
+    this.renderDailyQuestsUI();
 
     this.btnPlay.addEventListener('click', () => this.onHumanPlay());
     this.btnPass.addEventListener('click', () => this.onHumanPass());
@@ -3401,6 +3737,12 @@ class TienLenGame {
 
     if (this.isGameOver && state.lastSummaryData) {
       this.btnShowSummary.classList.remove('hidden');
+      if (!wasGameOver) {
+        this.incrementDailyQuest('play_matches', 1);
+        if (this.players[this.mySeatId]?.finishRank === 1) {
+          this.incrementDailyQuest('win_matches', 1);
+        }
+      }
       if (!wasGameOver && (!state.lastBurstEffect || !state.lastBurstEffect.isWin)) {
         sfx.win();
         this.showSummaryModal(
@@ -3700,6 +4042,10 @@ class TienLenGame {
     const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon.toLocaleString()} Xu!`;
     const winBurstId = winner.winBurst || 'none';
     this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: burstDetail };
+    this.incrementDailyQuest('play_matches', 1);
+    if (winnerId === this.mySeatId) {
+      this.incrementDailyQuest('win_matches', 1);
+    }
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
 
@@ -3754,6 +4100,18 @@ class TienLenGame {
 
     const playedIds = new Set(combo.cards.map((c) => c.id));
     player.hand = player.hand.filter((c) => !playedIds.has(c.id));
+
+    // Cập nhật tiến độ Nhiệm Vụ Hàng Ngày nếu người đánh là người chơi chính
+    if (player.id === this.mySeatId) {
+      if (combo.length >= 2) {
+        this.incrementDailyQuest('play_combos', 1);
+      }
+      const twosPlayed = combo.cards.filter((c) => c.rankIndex === 12).length;
+      const powerGain = twosPlayed + (beatCheck.isChop ? 1 : 0);
+      if (powerGain > 0) {
+        this.incrementDailyQuest('play_power', powerGain);
+      }
+    }
 
     if (
       beatCheck.isChop &&
@@ -4084,58 +4442,130 @@ class TienLenGame {
     return breakCost;
   }
 
+  // ============================================================================
+  // ĐỌC TÌNH HÌNH BÀN BÀI CHO BOT AI (THẤY SẮP THUA PHẢI XÉ BỘ RA ĐÁNH CỨU VÁN!)
+  // ============================================================================
+  analyzeBotTableSituation(bot, struct) {
+    const activeOpponents = this.players.filter(
+      (p) => p.active && p.id !== bot.id && p.finishRank === null
+    );
+    const minOpponentCards =
+      activeOpponents.length > 0
+        ? Math.min(...activeOpponents.map((p) => p.hand.length))
+        : 13;
+    const owner = this.trickOwnerId !== null ? this.players[this.trickOwnerId] : null;
+    const ownerCards = owner && owner.id !== bot.id ? owner.hand.length : 13;
+    const cardDeficit = bot.hand.length - minOpponentCards;
+
+    const hasTwos = bot.hand.some((c) => c.rankIndex === 12);
+    const has3Spade = bot.hand.some((c) => c.value === 0);
+    const hasBombs = struct.bombRanks.size > 0;
+
+    // 1. Nguy cơ bị CÓNG (Còn nguyên 13 lá phạt gấp đôi 26x + thối toàn bộ Heo/Hàng):
+    const isCongRisk = bot.hand.length === 13 && minOpponentCards <= 10;
+
+    // 2. Nguy cơ THỐI HEO / THỐI HÀNG / THỐI 3♠ khi đối thủ đã xuống <= 7 lá:
+    const hasRotDanger = (hasTwos || has3Spade || hasBombs) && minOpponentCards <= 7;
+
+    // 3. Thấy mình SẮP THUA (Đối thủ còn <= 6 lá, hoặc người cầm cái còn <= 7 lá, hoặc mình tụt lại >= 5 lá):
+    // Lúc này giữ Đôi / Sảnh trên tay chẳng để làm gì vì đối thủ 1-2 nhịp nữa là Về Nhất đếm lá!
+    const isLosingSoon =
+      isCongRisk ||
+      hasRotDanger ||
+      minOpponentCards <= 6 ||
+      ownerCards <= 7 ||
+      cardDeficit >= 5;
+
+    // 4. Báo động đỏ TỬ CHIẾN (Đối thủ còn <= 4 lá hoặc người cầm cái còn <= 4 lá):
+    // Phải xé TẤT CẢ mọi bộ (kể cả Sảnh, Đôi, Sám, Đôi Thông, Tứ Quý) để chặn đứng đối thủ!
+    const isCriticalEndgame =
+      minOpponentCards <= 4 ||
+      ownerCards <= 4 ||
+      (isCongRisk && minOpponentCards <= 8);
+
+    return {
+      minOpponentCards,
+      ownerCards,
+      cardDeficit,
+      hasTwos,
+      has3Spade,
+      hasBombs,
+      isCongRisk,
+      hasRotDanger,
+      isLosingSoon,
+      isCriticalEndgame,
+    };
+  }
+
   chooseBotLeadMove(bot, validMoves) {
-    // Nếu có bộ đánh 1 phát hết bài luôn -> Đánh ngay!
+    // 1. Nếu có bộ đánh 1 phát hết bài luôn -> Đánh ngay!
     const instantWin = validMoves.find((m) => m.length === bot.hand.length);
     if (instantWin) return instantWin;
 
-    const minOpponentCards = Math.min(
-      ...this.players
-        .filter((p) => p.active && p.id !== bot.id && p.finishRank === null)
-        .map((p) => p.hand.length)
-    );
-
     const struct = this.analyzeBotHandStructure(bot.hand);
+    const sit = this.analyzeBotTableSituation(bot, struct);
+
+    // 2. Khi đối thủ còn <= 5 lá mà Bot đang ôm Hàng (Tứ Quý / 3-4 Đôi Thông) chưa có dịp chặt:
+    // Giữ lại coi chừng THỐI HÀNG phạt cực nặng -> Cho phép xả nguyên bộ Hàng ra bàn để chạy 4-8 lá!
     const nonBombMoves = validMoves.filter((m) => !m.isBomb);
-    const pool = nonBombMoves.length > 0 ? nonBombMoves : validMoves;
+    const allowLeadBomb = sit.minOpponentCards <= 5 || bot.hand.length <= 6;
+    const pool = !allowLeadBomb && nonBombMoves.length > 0 ? nonBombMoves : validMoves;
+
+    // Hệ số bảo vệ bộ khi cầm cái: nếu sắp thua thì giảm mạnh để ưu tiên xả nhiều lá / chạy bài thối
+    const breakWeight = sit.isCriticalEndgame ? 0.25 : sit.isLosingSoon ? 0.55 : 1.25;
 
     const scored = pool.map((move) => {
       let score = 0;
       const breakCost = this.evaluateMoveBreakCost(move, struct);
       const contains3Spade = move.cards.some((c) => c.value === 0);
+      const twosCount = move.cards.filter((c) => c.rankIndex === 12).length;
 
-      // Trừ điểm nặng nếu nước mở vòng tự làm hỏng Đôi / Sảnh / Hàng của chính mình
-      score -= breakCost * 1.25;
+      score -= breakCost * breakWeight;
 
-      if (move.type === COMBO_TYPES.STRAIGHT) score += 52 + move.length * 8;
-      else if (move.type === COMBO_TYPES.TRIPLE) score += 42;
-      else if (move.type === COMBO_TYPES.PAIR) score += 34;
-      else if (move.type === COMBO_TYPES.SINGLE) {
+      // Ưu tiên đánh các bộ xả được nhiều lá cùng lúc
+      if (move.isBomb && allowLeadBomb) {
+        score += 85 + move.length * 12; // Xả Hàng thoát Thối Hàng + chạy 4-8 lá!
+      } else if (move.type === COMBO_TYPES.STRAIGHT) {
+        score += 56 + move.length * 10;
+      } else if (move.type === COMBO_TYPES.TRIPLE) {
+        score += 46;
+      } else if (move.type === COMBO_TYPES.PAIR) {
+        score += 36;
+      } else if (move.type === COMBO_TYPES.SINGLE) {
         score += 22;
-        // Nếu là quân lẻ cô lập thực sự (rác) -> Ưu tiên tống khứ sớm!
         if (breakCost === 0 && move.highRank < 11) {
-          score += 26;
+          score += 28; // Xả rác lẻ cô lập
         }
       }
 
-      if (contains3Spade && minOpponentCards <= 6) {
-        score += 45;
+      // Chạy 3♠ ngay khi có cơ hội kẻo bị phạt Thối 3♠ (5x mức cược)
+      if (contains3Spade) {
+        score += sit.minOpponentCards <= 8 ? 95 : 40;
       }
 
-      // Nếu đối thủ chỉ còn 1 lá: Tuyệt đối ưu tiên đánh Bộ (Đôi/Sảnh), nếu đánh lẻ phải đánh quân lớn nhất!
-      if (minOpponentCards === 1) {
-        if (move.type === COMBO_TYPES.SINGLE) {
-          score += move.highValue * 0.9 - 25;
+      // Chạy Heo (2) nếu thấy đối thủ sắp về (<= 5 lá) kẻo bị Thối Heo
+      if (twosCount > 0 && sit.minOpponentCards <= 5) {
+        score += 55 * twosCount;
+      }
+
+      // ĐỌC TÌNH HÌNH ĐỐI THỦ KHI MỞ VÒNG:
+      if (sit.minOpponentCards === 1) {
+        // Đối thủ chỉ còn 1 lá: Tuyệt đối ưu tiên đánh Bộ >= 2 lá (Đôi/Sám/Sảnh)!
+        // Nếu bắt buộc đánh lẻ thì phải đánh từ quân LỚN NHẤT xuống (kể cả phải xé bộ!) để khóa chết đối thủ!
+        if (move.length >= 2) {
+          score += 120 + move.length * 10;
         } else {
-          score += 35;
+          score += move.highValue * 2.2 - 40;
         }
+      } else if (sit.minOpponentCards <= 3) {
+        // Đối thủ còn 2-3 lá: Ưu tiên Sảnh dài / Sám hoặc đánh bài lớn áp đảo, xả tối đa số lá để giảm phạt
+        score += move.length * 18 + move.highValue * 0.45;
       } else {
-        // Bình thường: Ưu tiên ra bài nhỏ trước, giữ bài lớn (A, 2) lại điều nhịp
+        // Bình thường: Ra bài nhỏ trước, giữ bài lớn điều nhịp
         score -= move.highValue * 0.85;
-      }
-
-      if (move.highRank === 12 && bot.hand.length > 3) {
-        score -= 75;
+        if (move.highRank === 12 && bot.hand.length > 3) {
+          score -= 75;
+        }
       }
 
       return { move, score };
@@ -4157,30 +4587,43 @@ class TienLenGame {
       return chopMoves[0];
     }
 
-    const owner = this.players[this.trickOwnerId];
-    const minOpponentCards = Math.min(
-      ...this.players
-        .filter((p) => p.active && p.id !== bot.id && p.finishRank === null)
-        .map((p) => p.hand.length)
-    );
-    const ownerDanger = owner && owner.hand.length <= 2;
-    const tableEmergency = ownerDanger || minOpponentCards <= 2;
-
     const struct = this.analyzeBotHandStructure(bot.hand);
+    const sit = this.analyzeBotTableSituation(bot, struct);
 
-    // Chấm điểm từng nước đỡ: kết hợp giữa độ lớn quân bài và chi phí "Xé Bộ" (breakCost)
+    // Trọng số phạt khi Xé Bộ (breakWeight):
+    // - Khi an toàn đầu ván: breakWeight = 1.0 (Ưu tiên giữ nguyên Đôi, Sảnh, Sám, Hàng).
+    // - Khi thấy SẮP THUA (isLosingSoon): giảm breakWeight xuống 0.18 -> Nếu có bài lẻ tự nhiên thì đánh trước,
+    //   nhưng nếu không có thì XÉ NGAY Đôi / Sảnh / Hàng ra đánh chứ tuyệt đối không ôm bài chịu chết!
+    // - Khi BÁO ĐỘNG ĐỎ (isCriticalEndgame): breakWeight = 0.05 -> Bất chấp xé mọi bộ để chặn bằng được đối thủ!
+    const breakWeight = sit.isCriticalEndgame ? 0.05 : sit.isLosingSoon ? 0.18 : 1.0;
+
     const candidates = validMoves.map((move) => {
       const breakCost = this.evaluateMoveBreakCost(move, struct);
       const isTwo = move.highRank === 12;
-      // Nếu đánh nước này mà trên tay chỉ còn 1 bộ duy nhất -> Rất đáng đánh để cướp cái!
+      const containsTwo = move.cards.some((c) => c.rankIndex === 12);
       const remainingAfter = bot.hand.length - move.length;
-      const nearFinishBonus = remainingAfter <= 1 ? -70 : remainingAfter === 2 ? -30 : 0;
+      const nearFinishBonus = remainingAfter <= 1 ? -95 : remainingAfter === 2 ? -45 : 0;
+
+      // Nếu đang có nguy cơ Thối Heo (đối thủ <= 6 lá mà mình ôm Heo), ưu tiên quăng Heo ra cướp cái & chạy Heo!
+      const rotEscapeBonus =
+        containsTwo && sit.minOpponentCards <= 6 ? -55 : 0;
+
+      // Nếu đối thủ hoặc người cầm cái chỉ còn <= 2 lá (nguy cơ về đích ngay lượt sau):
+      // Không đánh rón rén lá nhỏ nữa mà ưu tiên đánh lá/bộ LỚN để cướp cái dứt điểm!
+      let cardValueTerm = move.highValue * 1.3;
+      if (sit.minOpponentCards <= 2 || sit.ownerCards <= 2) {
+        cardValueTerm = -move.highValue * 1.1; // Ưu tiên quân lớn đè chết đối thủ!
+      }
+
+      const holdTwoPenalty =
+        isTwo && !sit.isLosingSoon && bot.hand.length > 4 ? 48 : 0;
 
       const totalCost =
-        breakCost +
-        move.highValue * 1.35 +
-        (isTwo && bot.hand.length > 4 ? 48 : 0) +
-        nearFinishBonus;
+        breakCost * breakWeight +
+        cardValueTerm +
+        holdTwoPenalty +
+        nearFinishBonus +
+        rotEscapeBonus;
 
       return { move, breakCost, totalCost };
     });
@@ -4188,33 +4631,38 @@ class TienLenGame {
     candidates.sort((a, b) => a.totalCost - b.totalCost);
     const best = candidates[0];
 
-    // 3. QUY TẮC GIỮ BỘ & BỎ LƯỢT CHIẾN THUẬT (Khi bàn chưa vào tình trạng nguy hiểm):
-    if (!tableEmergency) {
-      // (a) Tuyệt đối KHÔNG xé Hàng (Tứ Quý / 3-4 Đôi Thông) ra đỡ bài thường
-      if (best.breakCost >= 400) {
-        return null;
-      }
+    // 3. QUYẾT ĐỊNH ĐÁNH HAY BỎ LƯỢT DỰA TRÊN ĐỌC TÌNH HÌNH BÀN BÀI:
+    // (A) KHI THẤY MÌNH SẮP THUA / NGUY CƠ CÓNG / NGUY CƠ THỐI BÀI / ĐỐI THỦ CÒN ÍT LÁ:
+    // -> TUYỆT ĐỐI KHÔNG BỎ LƯỢT! Phải xé Đôi, xé Sảnh, xé Sám, thậm chí xé cả Đôi Thông / Tứ Quý ra đánh!
+    if (sit.isCriticalEndgame) {
+      return best.move; // Tử chiến: Xé bất cứ bộ nào (kể cả Hàng) để chặn đối thủ!
+    }
 
-      // (b) Nếu nước đỡ tốt nhất buộc phải XÉ ĐÔI / XÉ SẢNH / XÉ SÁM (breakCost >= 90)
-      // và trên tay Bot vẫn còn từ 4 lá trở lên -> Nhịn Bỏ Lượt để bảo toàn Đôi và Sảnh!
-      if (best.breakCost >= 90 && bot.hand.length >= 4 && (!owner || owner.hand.length >= 4)) {
+    if (sit.isLosingSoon) {
+      // Sắp thua: Xé Đôi, xé Sảnh, xé Sám, đánh Heo thoải mái để cướp cái và xả lá!
+      // Chỉ giữ lại Hàng nếu đối thủ đang đánh còn nhiều bài (> 5 lá) và mình không có nguy cơ Cóng
+      if (best.breakCost >= 400 && sit.ownerCards > 5 && sit.minOpponentCards > 4 && !sit.isCongRisk) {
         return null;
       }
+      return best.move;
+    }
 
-      // (c) Giữ Heo (2): Không phung phí Heo hoặc Đôi Heo sớm khi bài dưới bàn còn nhỏ (<= J)
-      if (
-        best.move.highRank === 12 &&
-        this.currentCombo.highRank <= 8 &&
-        bot.hand.length > 5 &&
-        (!owner || owner.hand.length >= 4)
-      ) {
-        return null;
-      }
-    } else {
-      // Ngay cả khi khẩn cấp, vẫn không tự phá Hàng nếu đối thủ đang đánh không phải người sắp hết bài
-      if (!ownerDanger && best.breakCost >= 400) {
-        return null;
-      }
+    // (B) KHI BÀN BÀI ĐANG AN TOÀN (Đầu ván, mọi đối thủ còn >= 7 lá, Bot đã thoát Cóng):
+    // -> Lúc này mới giữ bộ đẹp (Không xé Hàng, không xé Đôi/Sảnh để đỡ bài lẻ nhỏ)
+    if (best.breakCost >= 400) {
+      return null;
+    }
+
+    if (best.breakCost >= 90 && bot.hand.length >= 5) {
+      return null;
+    }
+
+    if (
+      best.move.highRank === 12 &&
+      this.currentCombo.highRank <= 8 &&
+      bot.hand.length > 6
+    ) {
+      return null;
     }
 
     return best.move;
@@ -4416,6 +4864,17 @@ class TienLenGame {
     this.companionCardIds.clear();
 
     if (this.isMultiplayer && !this.isHost) {
+      const beatCheck = canBeatCombo(combo, this.currentCombo);
+      if (beatCheck.ok) {
+        if (combo.length >= 2) {
+          this.incrementDailyQuest('play_combos', 1);
+        }
+        const twosPlayed = combo.cards.filter((c) => c.rankIndex === 12).length;
+        const powerGain = twosPlayed + (beatCheck.isChop ? 1 : 0);
+        if (powerGain > 0) {
+          this.incrementDailyQuest('play_power', powerGain);
+        }
+      }
       this.sendClientEvent({
         type: 'PLAY_CARDS',
         clientId: this.myClientId,
@@ -4507,6 +4966,10 @@ class TienLenGame {
     const winBurstId = winner.winBurst || 'none';
     this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: winBurstDetail };
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
+    this.incrementDailyQuest('play_matches', 1);
+    if (winnerId === this.mySeatId) {
+      this.incrementDailyQuest('win_matches', 1);
+    }
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
 

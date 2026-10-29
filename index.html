@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=13" />
+  <link rel="stylesheet" href="styles.css?v=14" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -33,8 +33,11 @@
         <button class="shop-btn" id="btn-shop" title="Cầu Nguyện (Gacha Genshin Impact) mở khóa Kỹ Năng Nộ 5★, Decor Bài 4★ & Avatar 3★">
           🌠 Cầu Nguyện (Gacha)
         </button>
-        <button class="ad-reward-btn" id="btn-top-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) để nhận ngay +8,000 Xu (5 Lượt Cầu Nguyện)!">
-          📺 Xem QC (+8,000 Xu)
+        <button class="quest-top-btn" id="btn-top-quests" title="Hệ thống Nhiệm Vụ Hàng Ngày (4 Nhiệm Vụ • Mỗi nhiệm vụ nhận 2.5 Roll = +4,000 Xu)">
+          🧭 Nhiệm Vụ (<span id="top-quest-badge">0/4</span>)
+        </button>
+        <button class="ad-reward-btn" id="btn-top-watch-ad" title="Xem Video Quảng Cáo Rick Roll (15 giây) để nhận ngay 1 Roll (+1,600 Xu)!">
+          📺 Xem QC (+1 Roll)
         </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -233,8 +236,11 @@
             <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Sảnh Cầu Nguyện Gacha Genshin Impact & Kho Đồ">
               🌠 Cầu Nguyện (Gacha)
             </button>
-            <button class="ad-reward-btn" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay +8,000 Xu!">
-              📺 Xem QC (+8,000 Xu)
+            <button class="quest-top-btn" id="btn-lobby-quests" title="Hệ thống Nhiệm Vụ Hàng Ngày (4 Nhiệm Vụ • Mỗi nhiệm vụ nhận 2.5 Roll = +4,000 Xu)">
+              🧭 Nhiệm Vụ (<span id="lobby-quest-badge">0/4</span>)
+            </button>
+            <button class="ad-reward-btn" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay 1 Roll (+1,600 Xu)!">
+              📺 Xem QC (+1 Roll)
             </button>
             <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
               📖 Luật
@@ -506,6 +512,9 @@
             <button class="shop-tab active" id="tab-btn-gacha">
               🌠 Sảnh Cầu Nguyện (Gacha)
             </button>
+            <button class="shop-tab" id="tab-btn-quests">
+              🧭 Nhiệm Vụ Ngày (4 NV • 10 Roll)
+            </button>
             <button class="shop-tab" id="tab-btn-bursts">
               ⭐⭐⭐⭐⭐ Kỹ Năng Nộ (5★)
             </button>
@@ -523,6 +532,9 @@
           <!-- TAB 1: SẢNH CẦU NGUYỆN GENSHIN IMPACT (CHARACTER EVENT WISH) -->
           <div class="gacha-banner-panel" id="shop-gacha-panel"></div>
 
+          <!-- TAB NHIỆM VỤ HÀNG NGÀY (4 NHIỆM VỤ × 2.5 ROLL = 10 ROLL / NGÀY) -->
+          <div class="daily-quests-panel hidden" id="shop-quests-panel"></div>
+
           <!-- TAB 2, 3, 4: KHO ĐỒ TRANG BỊ (5★ BURSTS, 4★ SKINS, 3★ AVATARS) -->
           <div class="shop-grid hidden" id="shop-bursts-grid"></div>
           <div class="shop-grid hidden" id="shop-skins-grid"></div>
@@ -534,11 +546,11 @@
 
         <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
-              🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
+            <button class="quest-top-btn" id="btn-claim-bonus" title="Mở 4 Nhiệm Vụ Hàng Ngày — Mỗi nhiệm vụ nhận 2.5 Roll (+4,000 Xu)">
+              🧭 Làm 4 Nhiệm Vụ Ngày (+10 Roll / 16,000 Xu)
             </button>
-            <button class="ad-reward-btn" id="btn-shop-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) nhận ngay +8,000 Xu (= 5 Lượt Cầu Nguyện!)">
-              📺 Xem Quảng Cáo Nhận +8,000 Xu
+            <button class="ad-reward-btn" id="btn-shop-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) nhận ngay +1,600 Xu (= 1 Lượt Cầu Nguyện!)">
+              📺 Xem Quảng Cáo Nhận +1 Roll (1,600 Xu)
             </button>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -549,6 +561,45 @@
               🌌 Xem Thử Nộ Skirk
             </button>
             <button class="primary-btn" id="btn-ok-shop">Đóng Sảnh Cầu Nguyện</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL HỆ THỐNG NHIỆM VỤ HÀNG NGÀY (ỦY THÁC HIỆP HỘI NHÀ MẠO HIỂM: 4 NHIỆM VỤ × 2.5 ROLL) -->
+    <div class="modal-backdrop hidden" id="quests-modal">
+      <div class="modal-card quests-modal-card">
+        <div class="modal-header">
+          <div>
+            <h2>🧭 ỦY THÁC HÀNG NGÀY • HIỆP HỘI NHÀ MẠO HIỂM</h2>
+            <p>“Hướng Tới Vì Sao Và Vực Sâu!” • Hoàn thành 4 nhiệm vụ mỗi ngày — Mỗi nhiệm vụ nhận <strong>2.5 Roll (+4,000 Xu)</strong>, tổng <strong>10 Roll (+16,000 Xu)</strong>/ngày!</p>
+          </div>
+          <div class="shop-header-right">
+            <div class="shop-balance-pill">
+              Số dư: 🪙 <strong id="quests-modal-balance">20,000</strong> xu
+            </div>
+            <button class="close-modal-btn" id="btn-close-quests">✕</button>
+          </div>
+        </div>
+
+        <div class="modal-body shop-body">
+          <div class="daily-quests-panel" id="modal-quests-panel"></div>
+        </div>
+
+        <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="ad-reward-btn" onclick="window.tienLenGame.startRickRollAd()">
+              📺 Xem Quảng Cáo Nhận +1 Roll (1,600 Xu)
+            </button>
+            <button class="shop-btn" id="btn-quests-to-gacha">
+              🌠 Sang Sảnh Cầu Nguyện (Gacha)
+            </button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="primary-btn" id="btn-claim-all-quests" onclick="window.tienLenGame.claimAllDailyQuests()">
+              🎁 Nhận Tất Cả Thưởng Hoàn Thành
+            </button>
+            <button class="icon-btn" id="btn-ok-quests">Đóng Bảng Nhiệm Vụ</button>
           </div>
         </div>
       </div>
@@ -586,7 +637,7 @@
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="ad-reward-btn" id="btn-results-watch-ad" onclick="window.tienLenGame.startRickRollAd()">
-              📺 Xem QC (+8,000 Xu)
+              📺 Xem QC (+1 Roll / 1,600 Xu)
             </button>
             <button class="icon-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(1)">
               🌠 Cầu Nguyện Tiếp ×1 (1,600 Xu)
@@ -610,7 +661,7 @@
           </div>
           <div class="ad-top-right">
             <div class="ad-countdown-pill" id="ad-countdown-pill">
-              ⏳ Nhận +8,000 Xu sau: <strong>15s</strong>
+              ⏳ Nhận +1 Roll (1,600 Xu) sau: <strong>15s</strong>
             </div>
             <button class="ad-skip-btn" id="btn-ad-skip-or-claim">
               🔒 Chờ 15s...
@@ -625,7 +676,7 @@
           <audio id="rickroll-audio" src="rickroll.mp3" preload="auto"></audio>
 
           <div class="ad-rickroll-banner" id="ad-rickroll-banner">
-            🕺 <strong>BẠN ĐÃ BỊ RICK ROLL!</strong> Hãy thưởng thức giai điệu bất hủ <em>“Never Gonna Give You Up”</em> đủ 15 giây để nhận ngay <strong>+8,000 Xu</strong>! 🎤
+            🕺 <strong>BẠN ĐÃ BỊ RICK ROLL!</strong> Hãy thưởng thức giai điệu bất hủ <em>“Never Gonna Give You Up”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎤
           </div>
 
           <div class="ad-lyrics-sub" id="ad-lyrics-sub">
@@ -640,9 +691,9 @@
 
         <div class="ad-bottom-bar">
           <div class="ad-toast-msg" id="ad-toast-msg">
-            💡 Xem hết 15 giây quảng cáo sẽ được cộng tự động <strong>+8,000 Xu</strong> (tương đương <strong>5 Lượt Cầu Nguyện</strong>)!
+            💡 Xem hết 15 giây quảng cáo sẽ được cộng tự động <strong>+1,600 Xu</strong> (tương đương <strong>1 Lượt Cầu Nguyện</strong>)!
           </div>
-          <button class="clear-log-btn" id="btn-ad-force-abandon" title="Tắt quảng cáo sớm sẽ mất phần thưởng +8,000 Xu!">
+          <button class="clear-log-btn" id="btn-ad-force-abandon" title="Tắt quảng cáo sớm sẽ mất phần thưởng +1,600 Xu!">
             ✕ Tắt sớm (Không nhận thưởng)
           </button>
         </div>
@@ -667,6 +718,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=13"></script>
+  <script src="game.js?v=14"></script>
 </body>
 </html>

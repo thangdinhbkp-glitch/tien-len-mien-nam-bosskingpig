@@ -5625,15 +5625,6 @@ body {
             </div>
 
             <div class="left-tools">
-              <button class="tool-btn" id="btn-sort" title="Đổi kiểu xếp bài (Theo Số / Theo Bộ)">
-                🔃 Xếp: <span id="sort-mode-label">Tăng dần</span>
-              </button>
-              <button class="tool-btn" id="btn-unselect" title="Bỏ chọn các lá đang nhấc (Phím Esc)">
-                ⬇️ Hạ xuống
-              </button>
-              <button class="tool-btn hint-btn" id="btn-hint" title="Gợi ý bộ bài đánh được (Phím H)">
-                💡 Gợi ý
-              </button>
               <button class="tool-btn char-skill-btn" id="btn-char-skill" title="Kích hoạt Kỹ Năng Chiến Thuật của nhân vật 5★ bạn đang xài (1 lần / ván — Phím E)">
                 🔮 <span id="char-skill-btn-label">Kỹ Năng [E]</span>
               </button>
@@ -9910,9 +9901,9 @@ class TienLenGame {
 
     this.btnPlay.addEventListener('click', () => this.onHumanPlay());
     this.btnPass.addEventListener('click', () => this.onHumanPass());
-    this.btnSort.addEventListener('click', () => this.toggleSortMode());
-    this.btnUnselect.addEventListener('click', () => this.clearSelection());
-    this.btnHint.addEventListener('click', () => this.onHumanHint());
+    this.btnSort?.addEventListener('click', () => this.toggleSortMode());
+    this.btnUnselect?.addEventListener('click', () => this.clearSelection());
+    this.btnHint?.addEventListener('click', () => this.onHumanHint());
 
     this.btnCharSkill = document.getElementById('btn-char-skill');
     this.elCharSkillLabel = document.getElementById('char-skill-btn-label');
@@ -13239,8 +13230,10 @@ class TienLenGame {
 
   toggleSortMode() {
     this.sortMode = this.sortMode === 'asc' ? 'combo' : 'asc';
-    document.getElementById('sort-mode-label').textContent =
-      this.sortMode === 'asc' ? 'Tăng dần' : 'Theo Bộ';
+    const sortLabel = document.getElementById('sort-mode-label');
+    if (sortLabel) {
+      sortLabel.textContent = this.sortMode === 'asc' ? 'Tăng dần' : 'Theo Bộ';
+    }
     const human = this.getLocalPlayer();
     human.hand = sortHandByMode(human.hand, this.sortMode);
     sfx.click();

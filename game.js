@@ -3679,9 +3679,9 @@ class TienLenGame {
 
     this.btnPlay.addEventListener('click', () => this.onHumanPlay());
     this.btnPass.addEventListener('click', () => this.onHumanPass());
-    this.btnSort.addEventListener('click', () => this.toggleSortMode());
-    this.btnUnselect.addEventListener('click', () => this.clearSelection());
-    this.btnHint.addEventListener('click', () => this.onHumanHint());
+    this.btnSort?.addEventListener('click', () => this.toggleSortMode());
+    this.btnUnselect?.addEventListener('click', () => this.clearSelection());
+    this.btnHint?.addEventListener('click', () => this.onHumanHint());
 
     this.btnCharSkill = document.getElementById('btn-char-skill');
     this.elCharSkillLabel = document.getElementById('char-skill-btn-label');
@@ -7008,8 +7008,10 @@ class TienLenGame {
 
   toggleSortMode() {
     this.sortMode = this.sortMode === 'asc' ? 'combo' : 'asc';
-    document.getElementById('sort-mode-label').textContent =
-      this.sortMode === 'asc' ? 'Tăng dần' : 'Theo Bộ';
+    const sortLabel = document.getElementById('sort-mode-label');
+    if (sortLabel) {
+      sortLabel.textContent = this.sortMode === 'asc' ? 'Tăng dần' : 'Theo Bộ';
+    }
     const human = this.getLocalPlayer();
     human.hand = sortHandByMode(human.hand, this.sortMode);
     sfx.click();

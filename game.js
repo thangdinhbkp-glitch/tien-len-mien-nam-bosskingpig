@@ -17,8 +17,13 @@ const DAILY_RECOVERY_COINS = 5000;
 const MAX_DAILY_RELIEF_CLAIMS = 3;
 
 // ============================================================================
-// ANIME SHOP CATALOG: REAL ANIME CHARACTER IMAGES ON CARDS & AVATARS
+// GENSHIN IMPACT SHOP CATALOG: CHARACTER SKINS, AVATARS & BURST SPLASH ART
 // ============================================================================
+const GENSHIN_BURST_ART = {
+  raiden: 'https://enka.network/ui/UI_Gacha_AvatarImg_Shougun.png',
+  skirk: 'https://enka.network/ui/UI_Gacha_AvatarImg_SkirkNew.png',
+};
+
 const ANIME_CARD_SKINS = [
   {
     id: 'classic',
@@ -27,110 +32,105 @@ const ANIME_CARD_SKINS = [
     price: 0,
     crest: '',
     imgUrl: '',
-    anilistId: null,
   },
   {
     id: 'sakura_miko',
-    name: 'Nezuko Sakura (Anh Đào)',
-    desc: '[Hiếm] Hình nền Nezuko Kamado & hoa anh đào dịu dàng.',
+    name: 'Yae Miko (Anh Đào Narukami)',
+    desc: '[Hiếm] Hình nền Guuji Yae Miko đền Narukami & hoa anh đào Inazuma.',
     price: 2500,
     crest: '🌸',
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/16/415141.jpg',
-    anilistId: 127518,
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Yae.png',
   },
   {
     id: 'uchiha_sharingan',
-    name: 'Itachi Sharingan (Huyết Nguyệt)',
-    desc: '[Sử Thi] Hình nền Itachi Uchiha viền đỏ Hỏa Độn cực ngầu.',
+    name: 'Arlecchino (Xích Nguyệt Phán Quyết)',
+    desc: '[Sử Thi] Hình nền Quan Chấp Hành Arlecchino viền đỏ Huyết Nguyệt cực ngầu.',
     price: 4500,
-    crest: '🔥',
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/5/61359.jpg',
-    anilistId: 14,
+    crest: '🩸',
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Arlecchino.png',
   },
   {
     id: 'gojo_infinity',
-    name: 'Gojo Satoru (Vô Hạ Hạn)',
-    desc: '[Sử Thi] Hình nền Satoru Gojo & hào quang Lục Nhãn băng lam.',
+    name: 'Furina (Thủy Thần Fontaine)',
+    desc: '[Sử Thi] Hình nền Thủy Thần Furina & hào quang đại dương xanh lam.',
     price: 6500,
-    crest: '❄️',
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/15/433018.jpg',
-    anilistId: 127691,
+    crest: '💧',
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Furina.png',
   },
   {
     id: 'sun_breathing',
-    name: 'Tanjiro (Hơi Thở Mặt Trời)',
-    desc: '[Huyền Thoại] Hình nền Tanjiro Kamado & Hỏa Thần Kagura.',
+    name: 'Raiden Shogun (Lôi Thần Vĩnh Hằng)',
+    desc: '[Huyền Thoại] Hình nền Lôi Thần Ei & ấn sấm sét Vô Tưởng Nhất Đao.',
     price: 9500,
-    crest: '☀️',
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/6/415139.jpg',
-    anilistId: 126071,
+    crest: '⚡',
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Shougun.png',
   },
   {
     id: 'cyber_waifu',
-    name: 'Ai Hoshino (Thần Tượng Tinh Tú)',
-    desc: '[Thần Thoại] Hình nền Idol Ai Hoshino tím hồng Neon lấp lánh.',
+    name: 'Skirk (Kiếm Khách Vực Sâu)',
+    desc: '[Thần Thoại] Hình nền Skirk — Sư phụ Childe mang hào quang Tinh Không Vực Sâu.',
     price: 14000,
-    crest: '💎',
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/13/506927.jpg',
-    anilistId: 172759,
+    crest: '🌌',
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_SkirkNew.png',
   },
 ];
 
 const ANIME_AVATARS = [
   {
     id: 'default_cool',
-    name: 'Monkey D. Luffy',
-    desc: 'Thuyền trưởng Mũ Rơm (Mặc định miễn phí).',
+    name: 'Hu Tao (Đường Chủ Vãng Sinh)',
+    desc: 'Đường chủ Vãng Sinh Đường tinh nghịch (Mặc định miễn phí).',
     price: 0,
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/9/55741.jpg',
-    anilistId: 40,
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Hutao.png',
   },
   {
     id: 'anime_swordsman',
-    name: 'Tanjiro Kamado',
-    desc: '[Hiếm] Kiếm Sĩ Diệt Quỷ mang Ấn Hơi Thở Mặt Trời.',
+    name: 'Nahida (Thảo Thần Sumeru)',
+    desc: '[Hiếm] Tiểu Vương Kusanali thông thái của vùng đất Sumeru.',
     price: 2000,
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/6/415139.jpg',
-    anilistId: 126071,
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Nahida.png',
   },
   {
     id: 'anime_kitsune',
-    name: 'Zero Two (Waifu)',
-    desc: '[Sử Thi] Nữ thần Darling in the Franxx mang lại vận may.',
+    name: 'Furina (Thủy Thần Fontaine)',
+    desc: '[Sử Thi] Ngôi sao sân khấu Epiclese mang lại vận may rực rỡ.',
     price: 3800,
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/9/341980.jpg',
-    anilistId: 124381,
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Furina.png',
   },
   {
     id: 'anime_sorcerer',
-    name: 'Satoru Gojo',
-    desc: '[Sử Thi] Chú Thuật Sư mạnh nhất đương đại với Lục Nhãn.',
+    name: 'Arlecchino (The Knave)',
+    desc: '[Sử Thi] Quan Chấp Hành thứ 4 của Fatui với ngọn lửa Xích Nguyệt.',
     price: 6000,
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/15/433018.jpg',
-    anilistId: 127691,
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Arlecchino.png',
   },
   {
     id: 'anime_shinobi',
-    name: 'Itachi Uchiha',
-    desc: '[Huyền Thoại] Thiên tài tộc Uchiha với Mangekyou Sharingan.',
+    name: 'Raiden Shogun (Lôi Thần Ei)',
+    desc: '[Huyền Thoại] Chúa tể sấm sét Inazuma với tuyệt kỹ Vô Tưởng Nhất Đao.',
     price: 8500,
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/5/61359.jpg',
-    anilistId: 14,
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Shougun.png',
+  },
+  {
+    id: 'genshin_mavuika',
+    name: 'Mavuika (Hỏa Thần Natlan)',
+    desc: '[Huyền Thoại] Hỏa Thần rực cháy dẫn lối chiến thắng bất bại.',
+    price: 10000,
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_Mavuika.png',
   },
   {
     id: 'anime_empress',
-    name: 'Ai Hoshino (Idol)',
-    desc: '[Thần Thoại] Nữ hoàng thần tượng Oshi no Ko mắt sao lấp lánh.',
+    name: 'Skirk (Chân Truyền Vực Sâu)',
+    desc: '[Thần Thoại] Nữ kiếm khách bí ẩn ngự trị Tinh Không Vực Sâu.',
     price: 12000,
-    imgUrl: 'https://cdn.myanimelist.net/images/characters/13/506927.jpg',
-    anilistId: 172759,
+    imgUrl: 'https://enka.network/ui/UI_AvatarIcon_SkirkNew.png',
   },
 ];
 
 const BOT_ANIME_AVATARS = {
-  1: 'https://cdn.myanimelist.net/images/characters/16/94247.jpg', // Roronoa Zoro
-  2: 'https://cdn.myanimelist.net/images/characters/16/415141.jpg', // Nezuko Kamado
-  3: 'https://cdn.myanimelist.net/images/characters/9/341980.jpg', // Zero Two
+  1: 'https://enka.network/ui/UI_AvatarIcon_Shougun.png', // Bot Raiden Shogun
+  2: 'https://enka.network/ui/UI_AvatarIcon_SkirkNew.png', // Bot Skirk
+  3: 'https://enka.network/ui/UI_AvatarIcon_Furina.png', // Bot Furina
 };
 
 function getAvatarHtml(avatarIdOrEmoji) {
@@ -139,7 +139,7 @@ function getAvatarHtml(avatarIdOrEmoji) {
     return `<img class="anime-avatar-img" src="${found.imgUrl}" alt="${found.name}" referrerpolicy="no-referrer" />`;
   }
   if (typeof avatarIdOrEmoji === 'string' && avatarIdOrEmoji.startsWith('http')) {
-    return `<img class="anime-avatar-img" src="${avatarIdOrEmoji}" alt="Anime Avatar" referrerpolicy="no-referrer" />`;
+    return `<img class="anime-avatar-img" src="${avatarIdOrEmoji}" alt="Genshin Avatar" referrerpolicy="no-referrer" />`;
   }
   return avatarIdOrEmoji || '😎';
 }
@@ -208,15 +208,32 @@ class SoundFX {
   }
 
   chop() {
-    this.playTone(150, 'sawtooth', 0.25, 0.2, 0);
-    this.playTone(440, 'square', 0.18, 0.16, 0.06);
-    this.playTone(587, 'square', 0.22, 0.16, 0.14);
-    this.playTone(880, 'triangle', 0.35, 0.2, 0.22);
+    this.raidenBurst();
   }
 
   win() {
     const notes = [523.25, 659.25, 783.99, 1046.5];
     notes.forEach((n, idx) => this.playTone(n, 'triangle', 0.22, 0.15, idx * 0.09));
+  }
+
+  // Âm thanh Kỹ Năng Nộ Raiden Shogun: Sấm sét + Rút kiếm Vô Tưởng Nhất Đao
+  raidenBurst() {
+    this.playTone(95, 'sawtooth', 0.45, 0.24, 0);
+    this.playTone(130, 'sawtooth', 0.35, 0.2, 0.05);
+    this.playTone(880, 'triangle', 0.14, 0.22, 0.12);
+    this.playTone(1318.5, 'sine', 0.28, 0.22, 0.16);
+    this.playTone(1760, 'sawtooth', 0.38, 0.18, 0.2);
+    this.playTone(220, 'square', 0.45, 0.16, 0.25);
+  }
+
+  // Âm thanh Kỹ Năng Nộ Skirk: Vực Sâu Phá Toái Tinh Không
+  skirkBurst() {
+    const cosmicNotes = [293.66, 440, 587.33, 880, 1174.66, 1760];
+    cosmicNotes.forEach((n, idx) => {
+      this.playTone(n, 'sine', 0.38, 0.16, idx * 0.06);
+      this.playTone(n * 1.5, 'triangle', 0.28, 0.1, idx * 0.06 + 0.04);
+    });
+    this.playTone(110, 'sawtooth', 0.55, 0.2, 0.12);
   }
 }
 
@@ -679,9 +696,9 @@ class TienLenGame {
 
     this.players = [
       { id: 0, name: 'Bạn', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Zoro', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'uchiha_sharingan', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Nezuko', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'sakura_miko', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Zero Two', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'gojo_infinity', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'sun_breathing', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'cyber_waifu', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'gojo_infinity', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
     ];
 
     // Multiplayer state
@@ -715,6 +732,9 @@ class TienLenGame {
     this.matchChopCoins = [0, 0, 0, 0];
     this.matchChopDetails = [[], [], [], []];
     this.lastSummaryData = null;
+    this.lastBurstEffect = null;
+    this.lastShownBurstId = 0;
+    this.burstTimeout = null;
     this.logsData = [];
 
     this.sortMode = 'asc';
@@ -736,66 +756,108 @@ class TienLenGame {
     }
   }
 
-  async fetchLiveAnimeImages() {
+  fetchLiveAnimeImages() {
+    // Tải trước (Preload) ảnh Splash Art Kỹ Năng Nộ của Raiden Shogun & Skirk để hiện tức thì 0ms
     try {
-      const query = `
-        query {
-          c40: Character(id: 40) { image { large } }
-          c62: Character(id: 62) { image { large } }
-          c14: Character(id: 14) { image { large } }
-          c126071: Character(id: 126071) { image { large } }
-          c127518: Character(id: 127518) { image { large } }
-          c124381: Character(id: 124381) { image { large } }
-          c127691: Character(id: 127691) { image { large } }
-          c172759: Character(id: 172759) { image { large } }
-        }
-      `;
-      const res = await fetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ query }),
+      [
+        GENSHIN_BURST_ART.raiden,
+        GENSHIN_BURST_ART.skirk,
+        ...ANIME_CARD_SKINS.map((s) => s.imgUrl).filter(Boolean),
+        ...ANIME_AVATARS.map((a) => a.imgUrl).filter(Boolean),
+      ].forEach((url) => {
+        const img = new Image();
+        img.referrerPolicy = 'no-referrer';
+        img.src = url;
       });
-      if (!res.ok) return;
-      const json = await res.json();
-      const d = json && json.data;
-      if (!d) return;
-
-      const mapById = {
-        40: d.c40?.image?.large,
-        62: d.c62?.image?.large,
-        14: d.c14?.image?.large,
-        126071: d.c126071?.image?.large,
-        127518: d.c127518?.image?.large,
-        124381: d.c124381?.image?.large,
-        127691: d.c127691?.image?.large,
-        172759: d.c172759?.image?.large,
-      };
-
-      ANIME_CARD_SKINS.forEach((s) => {
-        if (s.anilistId && mapById[s.anilistId]) {
-          s.imgUrl = mapById[s.anilistId];
-        }
-      });
-      ANIME_AVATARS.forEach((a) => {
-        if (a.anilistId && mapById[a.anilistId]) {
-          a.imgUrl = mapById[a.anilistId];
-        }
-      });
-      if (mapById[62]) BOT_ANIME_AVATARS[1] = mapById[62];
-      if (mapById[127518]) BOT_ANIME_AVATARS[2] = mapById[127518];
-      if (mapById[124381]) BOT_ANIME_AVATARS[3] = mapById[124381];
-
-      this.players.forEach((p) => {
-        if (p.isBot && BOT_ANIME_AVATARS[p.id]) {
-          p.avatar = BOT_ANIME_AVATARS[p.id];
-        }
-      });
-
-      this.renderAll();
-      if (this.modalShop && !this.modalShop.classList.contains('hidden')) {
-        this.renderShopModal();
-      }
     } catch (_) {}
+  }
+
+  triggerGenshinBurst(type, detailText, onDoneCallback = null) {
+    const overlay = document.getElementById('genshin-burst-overlay');
+    if (!overlay) {
+      if (onDoneCallback) onDoneCallback();
+      return;
+    }
+
+    const imgEl = document.getElementById('burst-character-img');
+    const chakraEl = document.getElementById('burst-chakra-ring');
+    const slashContainer = document.getElementById('burst-slash-container');
+    const tagEl = document.getElementById('burst-skill-tag');
+    const titleEl = document.getElementById('burst-skill-title');
+    const quoteEl = document.getElementById('burst-skill-quote');
+    const detailEl = document.getElementById('burst-skill-detail');
+    const tableEl = document.querySelector('.casino-table');
+
+    overlay.classList.remove('hidden', 'theme-raiden', 'theme-skirk');
+    if (tableEl) {
+      tableEl.classList.remove('burst-shake');
+      void tableEl.offsetWidth;
+      tableEl.classList.add('burst-shake');
+    }
+
+    if (type === 'raiden') {
+      sfx.raidenBurst();
+      overlay.classList.add('theme-raiden');
+      imgEl.src = GENSHIN_BURST_ART.raiden;
+      tagEl.textContent = '⚡ KỸ NĂNG NỘ • RAIDEN SHOGUN (MUSOU NO HITOTACHI)';
+      titleEl.textContent = 'BÍ THUẬT: MỘNG TƯỞNG CHÂN THUYẾT';
+      quoteEl.textContent = '“Vô Tưởng Nhất Đao — Chặt Đứt Vĩnh Hằng!”';
+      detailEl.textContent = detailText;
+
+      chakraEl.innerHTML = `
+        <svg viewBox="0 0 200 200" width="90%" height="90%">
+          <circle cx="100" cy="100" r="88" fill="none" stroke="#e879f9" stroke-width="2.5" stroke-dasharray="10 6"/>
+          <circle cx="100" cy="100" r="72" fill="none" stroke="#c084fc" stroke-width="1.5"/>
+          <polygon points="100,14 122,78 186,100 122,122 100,186 78,122 14,100 78,78" fill="none" stroke="#f0abfc" stroke-width="2" opacity="0.75"/>
+        </svg>
+      `;
+
+      slashContainer.innerHTML = `
+        <div class="raiden-slash-beam"></div>
+        <svg class="burst-svg-fx" viewBox="0 0 1000 600" preserveAspectRatio="none">
+          <polyline points="0,480 230,380 210,415 490,295 475,325 760,195 1000,90" fill="none" stroke="#ffffff" stroke-width="5" filter="drop-shadow(0 0 16px #d946ef)"/>
+          <polyline points="120,80 340,260 320,290 610,360 890,520" fill="none" stroke="#e879f9" stroke-width="3" opacity="0.85"/>
+          <polyline points="680,40 540,240 580,260 410,490" fill="none" stroke="#c084fc" stroke-width="3" opacity="0.8"/>
+        </svg>
+      `;
+    } else {
+      sfx.skirkBurst();
+      overlay.classList.add('theme-skirk');
+      imgEl.src = GENSHIN_BURST_ART.skirk;
+      tagEl.textContent = '🌌 KỸ NĂNG NỘ • SKIRK (ABYSSAL STARSHATTER)';
+      titleEl.textContent = 'TUYỆT KỸ VỰC SÂU: PHÁ TOÁI TINH KHÔNG';
+      quoteEl.textContent = '“Vạn Vật Quy Hư Vô — Nhất Ăn Tất!”';
+      detailEl.textContent = detailText;
+
+      chakraEl.innerHTML = `
+        <svg viewBox="0 0 200 200" width="92%" height="92%">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="14 6"/>
+          <polygon points="100,8 126,74 192,100 126,126 100,192 74,126 8,100 74,74" fill="none" stroke="#7dd3fc" stroke-width="2.2"/>
+          <polygon points="35,35 100,68 165,35 132,100 165,165 100,132 35,165 68,100" fill="none" stroke="#e879f9" stroke-width="1.8" opacity="0.8"/>
+        </svg>
+      `;
+
+      slashContainer.innerHTML = `
+        <div class="skirk-slash-beam-1"></div>
+        <div class="skirk-slash-beam-2"></div>
+        <svg class="burst-svg-fx" viewBox="0 0 1000 600" preserveAspectRatio="none">
+          <line x1="50" y1="520" x2="950" y2="80" stroke="#7dd3fc" stroke-width="4"/>
+          <line x1="80" y1="90" x2="920" y2="510" stroke="#e879f9" stroke-width="4"/>
+          <polygon points="500,220 520,280 580,300 520,320 500,380 480,320 420,300 480,280" fill="#ffffff" opacity="0.9"/>
+        </svg>
+      `;
+    }
+
+    clearTimeout(this.burstTimeout);
+    const finishBurst = () => {
+      clearTimeout(this.burstTimeout);
+      overlay.classList.add('hidden');
+      overlay.onclick = null;
+      if (onDoneCallback) onDoneCallback();
+    };
+
+    overlay.onclick = finishBurst;
+    this.burstTimeout = setTimeout(finishBurst, type === 'skirk' ? 2350 : 1950);
   }
 
   // ============================================================================
@@ -1495,9 +1557,9 @@ class TienLenGame {
 
     this.players = [
       { id: 0, name: 'Bạn', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Zoro', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'uchiha_sharingan', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Nezuko', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'sakura_miko', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Zero Two', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'gojo_infinity', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 1, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'sun_breathing', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'cyber_waifu', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'gojo_infinity', isBot: true, active: true, hand: [], coins: INITIAL_COINS, passed: false, finishRank: null, clientId: null },
     ];
 
     document.getElementById('wifi-status-label').textContent = 'Tạo phòng';
@@ -1617,6 +1679,7 @@ class TienLenGame {
         : null,
       logsData: this.logsData.slice(0, 25),
       lastSummaryData: this.lastSummaryData,
+      lastBurstEffect: this.lastBurstEffect,
       penaltyCardIds: this.penaltyCardIdsByPlayer.map((s) => Array.from(s)),
       players: this.players.map((p) => ({
         id: p.id,
@@ -1795,9 +1858,27 @@ class TienLenGame {
         .join('');
     }
 
+    if (state.lastBurstEffect && state.lastBurstEffect.id !== this.lastShownBurstId) {
+      this.lastShownBurstId = state.lastBurstEffect.id;
+      const burst = state.lastBurstEffect;
+      if (burst.type === 'raiden') {
+        this.triggerGenshinBurst('raiden', burst.detail);
+      } else if (burst.type === 'skirk') {
+        this.triggerGenshinBurst('skirk', burst.detail, () => {
+          if (this.isGameOver && state.lastSummaryData) {
+            this.showSummaryModal(
+              state.lastSummaryData.coinChanges,
+              state.lastSummaryData.detailsByPlayer,
+              state.lastSummaryData.bannerTitle
+            );
+          }
+        });
+      }
+    }
+
     if (this.isGameOver && state.lastSummaryData) {
       this.btnShowSummary.classList.remove('hidden');
-      if (!wasGameOver) {
+      if (!wasGameOver && (!state.lastBurstEffect || state.lastBurstEffect.type !== 'skirk')) {
         sfx.win();
         this.showSummaryModal(
           state.lastSummaryData.coinChanges,
@@ -1882,8 +1963,8 @@ class TienLenGame {
 
   toggleBotInLobby(seatIdx, addBot) {
     if (!this.isHost || seatIdx <= 0 || seatIdx > 3) return;
-    const botNames = ['', 'Bot Zoro', 'Bot Nezuko', 'Bot Zero Two'];
-    const botSkins = ['', 'uchiha_sharingan', 'sakura_miko', 'gojo_infinity'];
+    const botNames = ['', 'Bot Raiden Shogun', 'Bot Skirk', 'Bot Furina'];
+    const botSkins = ['', 'sun_breathing', 'cyber_waifu', 'gojo_infinity'];
     const p = this.players[seatIdx];
     if (addBot) {
       p.active = true;
@@ -2084,6 +2165,8 @@ class TienLenGame {
     this.lastWinnerId = winnerId;
     const bannerTitle = `🎉 ${winner.name} TỚI TRẮNG (${reason}) - ĂN TRỌN +${totalWon} XU!`;
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
+    const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon} Xu!`;
+    this.lastBurstEffect = { id: Date.now(), type: 'skirk', detail: burstDetail };
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
 
@@ -2091,9 +2174,9 @@ class TienLenGame {
     if (this.isMultiplayer && this.isHost) {
       this.broadcastState();
     }
-    setTimeout(() => {
+    this.triggerGenshinBurst('skirk', burstDetail, () => {
       this.showSummaryModal(coinChanges, detailsByPlayer, bannerTitle);
-    }, 900);
+    });
   }
 
   canPlayerCutWithFourPairs(player) {
@@ -2181,6 +2264,9 @@ class TienLenGame {
         isGood: true,
       });
 
+      const chopBurstDetail = `⚡ ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue} xu)!`;
+      this.lastBurstEffect = { id: Date.now(), type: 'raiden', detail: chopBurstDetail };
+      this.triggerGenshinBurst('raiden', chopBurstDetail);
       this.showComboBanner(`💥 CHẶT HEO/HÀNG! +${chopValue} XU`);
       this.addLog(
         `💥 <strong>${player.name}</strong> tung <strong>${combo.label}</strong> chặt <strong>${this.currentCombo.label}</strong> của <strong>${victim.name}</strong> (+${chopValue} xu)!`,
@@ -2705,6 +2791,10 @@ class TienLenGame {
       ? `👑 ${winner.name.toUpperCase()} ĐÚT 3 BÍCH VỀ NHẤT — ĂN TRỌN +${totalWinnerGain} XU!`
       : `🏆 ${winner.name.toUpperCase()} VỀ NHẤT — ĂN TRỌN +${totalWinnerGain} XU!`;
 
+    const winBurstDetail = wonBy3Spade
+      ? `👑 ${winner.name} Đút 3♠ Về Nhất • +${totalWinnerGain} Xu!`
+      : `🏆 ${winner.name} Về Nhất Ăn Tất • +${totalWinnerGain} Xu!`;
+    this.lastBurstEffect = { id: Date.now(), type: 'skirk', detail: winBurstDetail };
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
@@ -2714,9 +2804,9 @@ class TienLenGame {
       this.broadcastState();
     }
 
-    setTimeout(() => {
+    this.triggerGenshinBurst('skirk', winBurstDetail, () => {
       this.showSummaryModal(coinChanges, detailsByPlayer, bannerTitle);
-    }, 950);
+    });
   }
 
   showSummaryModal(coinChanges, detailsByPlayer, bannerText) {

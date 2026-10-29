@@ -1552,6 +1552,330 @@ body {
   color: #94a3b8;
 }
 
+/* ============================================================================
+   GENSHIN IMPACT ELEMENTAL BURST CUT-IN (RAIDEN SHOGUN & SKIRK)
+   ============================================================================ */
+.genshin-burst-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  animation: burstFadeIn 0.18s ease-out;
+}
+
+@keyframes burstFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.genshin-burst-overlay.theme-raiden {
+  background: radial-gradient(circle at 50% 45%, rgba(147, 51, 234, 0.88) 0%, rgba(46, 16, 101, 0.95) 55%, rgba(9, 5, 24, 0.98) 100%);
+}
+
+.genshin-burst-overlay.theme-skirk {
+  background: radial-gradient(circle at 50% 45%, rgba(56, 189, 248, 0.82) 0%, rgba(49, 16, 98, 0.95) 52%, rgba(5, 8, 28, 0.98) 100%);
+}
+
+.burst-bg-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 15% 25%, #fff, transparent),
+    radial-gradient(2.5px 2.5px at 78% 18%, #e879f9, transparent),
+    radial-gradient(2px 2px at 35% 75%, #38bdf8, transparent),
+    radial-gradient(3px 3px at 85% 68%, #f0abfc, transparent),
+    radial-gradient(2px 2px at 55% 30%, #fff, transparent);
+  animation: burstFlashPulse 0.45s ease-out;
+}
+
+@keyframes burstFlashPulse {
+  0% {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+  40% {
+    background-color: rgba(192, 132, 252, 0.4);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.burst-chakra-ring {
+  position: absolute;
+  width: min(560px, 82vmin);
+  height: min(560px, 82vmin);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: spinBurstChakra 8s linear infinite, popChakra 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-raiden .burst-chakra-ring {
+  border: 3px dashed rgba(232, 121, 249, 0.78);
+  box-shadow:
+    0 0 60px rgba(168, 85, 247, 0.9),
+    inset 0 0 50px rgba(216, 180, 254, 0.65);
+}
+
+.theme-skirk .burst-chakra-ring {
+  border: 3px dashed rgba(125, 211, 252, 0.85);
+  box-shadow:
+    0 0 70px rgba(56, 189, 248, 0.9),
+    inset 0 0 55px rgba(192, 132, 252, 0.75);
+}
+
+@keyframes spinBurstChakra {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes popChakra {
+  0% {
+    transform: scale(0.2) rotate(-90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.burst-character-wrap {
+  position: relative;
+  z-index: 3;
+  height: min(85vh, 640px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: burstCharZoom 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.burst-character-img {
+  max-height: 100%;
+  max-width: 92vw;
+  object-fit: contain;
+  filter: drop-shadow(0 0 32px rgba(255, 255, 255, 0.65)) drop-shadow(0 12px 45px rgba(0, 0, 0, 0.85));
+}
+
+@keyframes burstCharZoom {
+  0% {
+    transform: scale(1.45) translateX(-40px);
+    opacity: 0;
+    filter: brightness(2.5) contrast(1.4);
+  }
+  18% {
+    transform: scale(1.02) translateX(0);
+    opacity: 1;
+    filter: brightness(1.15) contrast(1.1);
+  }
+  85% {
+    transform: scale(1.08) translateX(8px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.12) translateX(12px);
+    opacity: 0.96;
+  }
+}
+
+.burst-slash-container {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Raiden Musou no Hitotachi Diagonal Dimension Slash */
+.raiden-slash-beam {
+  position: absolute;
+  top: 50%;
+  left: -25%;
+  width: 150%;
+  height: 18px;
+  background: linear-gradient(90deg, transparent 0%, #c084fc 15%, #ffffff 50%, #e879f9 85%, transparent 100%);
+  box-shadow:
+    0 0 28px #fff,
+    0 0 55px #a855f7,
+    0 0 95px #7e22ce;
+  transform: translateY(-50%) rotate(-18deg) scaleX(0);
+  animation: slashCutAnim 0.65s 0.14s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+.skirk-slash-beam-1,
+.skirk-slash-beam-2 {
+  position: absolute;
+  top: 50%;
+  left: -25%;
+  width: 150%;
+  height: 14px;
+  background: linear-gradient(90deg, transparent 0%, #38bdf8 15%, #ffffff 50%, #c084fc 85%, transparent 100%);
+  box-shadow:
+    0 0 26px #fff,
+    0 0 52px #38bdf8,
+    0 0 90px #818cf8;
+  transform: translateY(-50%) rotate(-24deg) scaleX(0);
+  animation: slashCutAnim 0.6s 0.12s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+.skirk-slash-beam-2 {
+  transform: translateY(-50%) rotate(22deg) scaleX(0);
+  animation: slashCutAnim2 0.65s 0.25s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes slashCutAnim {
+  0% {
+    transform: translateY(-50%) rotate(-18deg) scaleX(0);
+    opacity: 1;
+  }
+  35% {
+    transform: translateY(-50%) rotate(-18deg) scaleX(1);
+    height: 28px;
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) rotate(-18deg) scaleX(1.08);
+    height: 3px;
+    opacity: 0;
+  }
+}
+
+@keyframes slashCutAnim2 {
+  0% {
+    transform: translateY(-50%) rotate(22deg) scaleX(0);
+    opacity: 1;
+  }
+  35% {
+    transform: translateY(-50%) rotate(22deg) scaleX(1);
+    height: 24px;
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) rotate(22deg) scaleX(1.08);
+    height: 3px;
+    opacity: 0;
+  }
+}
+
+.burst-svg-fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: lightningFlicker 0.85s ease-out forwards;
+}
+
+@keyframes lightningFlicker {
+  0%, 15% { opacity: 0; }
+  20%, 35%, 55% { opacity: 1; }
+  42% { opacity: 0.35; }
+  100% { opacity: 0.8; }
+}
+
+.burst-text-box {
+  position: absolute;
+  bottom: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  text-align: center;
+  background: rgba(9, 11, 26, 0.86);
+  border: 2px solid rgba(232, 121, 249, 0.78);
+  border-radius: 18px;
+  padding: 12px 28px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 30px rgba(168, 85, 247, 0.55);
+  min-width: min(560px, 92vw);
+  animation: burstBannerSlideUp 0.38s 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28) backwards;
+}
+
+.theme-skirk .burst-text-box {
+  border-color: rgba(56, 189, 248, 0.85);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 34px rgba(56, 189, 248, 0.65);
+}
+
+@keyframes burstBannerSlideUp {
+  from {
+    transform: translate(-50%, 40px) scale(0.82);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+.burst-skill-tag {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #f0abfc;
+  text-transform: uppercase;
+}
+
+.theme-skirk .burst-skill-tag {
+  color: #7dd3fc;
+}
+
+.burst-skill-title {
+  font-size: clamp(20px, 3.6vw, 32px);
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin: 3px 0;
+  background: linear-gradient(90deg, #fff 0%, #f0abfc 50%, #fde047 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 18px rgba(192, 132, 252, 0.65);
+}
+
+.theme-skirk .burst-skill-title {
+  background: linear-gradient(90deg, #fff 0%, #7dd3fc 50%, #e879f9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.burst-skill-quote {
+  font-size: 13.5px;
+  font-style: italic;
+  color: #e2e8f0;
+  margin-bottom: 6px;
+}
+
+.burst-skill-detail {
+  display: inline-block;
+  background: linear-gradient(135deg, #f59e0b, #dc2626);
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  padding: 4px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #fde047;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.55);
+}
+
+.casino-table.burst-shake {
+  animation: tableShake 0.48s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes tableShake {
+  10%, 90% { transform: translate3d(-4px, 2px, 0); }
+  20%, 80% { transform: translate3d(6px, -3px, 0); }
+  30%, 50%, 70% { transform: translate3d(-8px, 4px, 0); }
+  40%, 60% { transform: translate3d(8px, -4px, 0); }
+}
+
 .hidden {
   display: none !important;
 }

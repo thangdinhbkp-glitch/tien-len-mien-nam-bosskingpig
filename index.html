@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tiến Lên Miền Nam (WiFi 2-4 Người & Đánh Với Bot)</title>
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
+  <link rel="stylesheet" href="styles.css?v=4" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -27,8 +27,8 @@
         <button class="wifi-btn" id="btn-wifi" title="Tạo phòng hoặc gửi link chơi qua WiFi (2-4 người)">
           📶 Chơi WiFi (<span id="wifi-status-label">Tạo phòng</span>)
         </button>
-        <button class="shop-btn" id="btn-shop" title="Mua trang trí bài Anime & Avatar bằng Xu">
-          🛍️ Shop Anime
+        <button class="shop-btn" id="btn-shop" title="Mua trang trí bài Genshin Impact & Avatar bằng Xu">
+          🛍️ Shop Genshin
         </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -414,8 +414,24 @@
         </div>
       </div>
     </div>
+
+    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC CUT-IN OVERLAY (RAIDEN SHOGUN & SKIRK) -->
+    <div class="genshin-burst-overlay hidden" id="genshin-burst-overlay">
+      <div class="burst-bg-fx" id="burst-bg-fx"></div>
+      <div class="burst-chakra-ring" id="burst-chakra-ring"></div>
+      <div class="burst-character-wrap">
+        <img class="burst-character-img" id="burst-character-img" src="" alt="Genshin Elemental Burst" referrerpolicy="no-referrer" />
+      </div>
+      <div class="burst-slash-container" id="burst-slash-container"></div>
+      <div class="burst-text-box">
+        <div class="burst-skill-tag" id="burst-skill-tag">⚡ KỸ NĂNG NỘ • ELEMENTAL BURST</div>
+        <div class="burst-skill-title" id="burst-skill-title">MỘNG TƯỞNG CHÂN THUYẾT</div>
+        <div class="burst-skill-quote" id="burst-skill-quote">“Vô Tưởng Nhất Đao — Chặt Đứt Vĩnh Hằng!”</div>
+        <div class="burst-skill-detail" id="burst-skill-detail">💥 Chặt Heo +200 Xu!</div>
+      </div>
+    </div>
   </div>
 
-  <script src="game.js?v=3"></script>
+  <script src="game.js?v=4"></script>
 </body>
 </html>

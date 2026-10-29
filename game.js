@@ -457,6 +457,186 @@ function resolveGenshinReaction(elemA, elemB) {
   };
 }
 
+// ============================================================================
+// HỆ THỐNG 10 KỸ NĂNG CHIẾN THUẬT NHÂN VẬT 5★ (MỖI VÁN DÙNG 1 LẦN • CÂN BẰNG)
+// ============================================================================
+let activeFurinaReverseSuit = false;
+
+const CHARACTER_SKILLS = {
+  raiden: {
+    id: 'raiden',
+    charName: 'Raiden Shogun',
+    icon: '⚡',
+    name: 'Tịnh Thổ Cắt Vòng',
+    shortDesc: 'Chém đứt bộ bài thường trên bàn để cướp cái mở vòng mới (hoặc gắn Lôi Ấn phạt bỏ lượt 1× cược)',
+  },
+  furina: {
+    id: 'furina',
+    charName: 'Furina',
+    icon: '💧',
+    name: 'Luật Sân Khấu Fontaine',
+    shortDesc: 'Trong vòng này: Đảo ngược thứ tự chất (♠ > ♣ > ♦ > ♥) khi đè cùng số & CẤM đánh Heo lẻ (2 lẻ)',
+  },
+  skirk: {
+    id: 'skirk',
+    charName: 'Skirk',
+    icon: '🌌',
+    name: 'Khe Nứt Vực Sâu',
+    shortDesc: 'Tráo đổi 1 lá bài đang chọn (hoặc lá rác nhỏ nhất) với 1 lá bài ngẫu nhiên của đối thủ',
+  },
+  mavuika: {
+    id: 'mavuika',
+    charName: 'Mavuika',
+    icon: '🔥',
+    name: 'Thánh Hỏa Rèn Bài',
+    shortDesc: 'Rèn 1 lá bài thường (3→K) tăng +1 bậc số và đổi sang chất Cơ ♥ (tối đa lên A♥)',
+  },
+  yaemiko: {
+    id: 'yaemiko',
+    charName: 'Yae Miko',
+    icon: '🌸',
+    name: 'Hồ Ly Dụ Hoặc',
+    shortDesc: 'Trong vòng này: Ai tới lượt mà có bài hợp lệ BẮT BUỘC PHẢI ĐÁNH (khóa Bỏ lượt giấu Heo)',
+  },
+  yelan: {
+    id: 'yelan',
+    charName: 'Yelan',
+    icon: '🎲',
+    name: 'Mạng Lưới Tình Báo',
+    shortDesc: 'Lật ngửa 3 lá bài của đối thủ nguy hiểm nhất trong 8 giây & báo cáo số Heo + Hàng',
+  },
+  clorinde: {
+    id: 'clorinde',
+    charName: 'Clorinde',
+    icon: '⚡',
+    name: 'Thách Đấu Danh Dự',
+    shortDesc: 'Khóa vòng hiện tại thành Quyết Đấu 1v1 với 1 đối thủ (các nhà khác đứng ngoài vòng này)',
+  },
+  ayaka: {
+    id: 'ayaka',
+    charName: 'Kamisato Ayaka',
+    icon: '❄️',
+    name: 'Sương Hoa Phong Ấn',
+    shortDesc: 'Đóng băng 1 đối thủ khiến họ bị Băng Phong mất 1 lượt trong vòng hiện tại',
+  },
+  hutao: {
+    id: 'hutao',
+    charName: 'Hu Tao',
+    icon: '🦋',
+    name: 'Bùa Vãng Sinh (Thuế Chặn)',
+    shortDesc: 'Yểm bùa vòng hiện tại: ai đánh đè bài của Hu Tao phải nộp thuế ngay 2× mức cược',
+  },
+  eula: {
+    id: 'eula',
+    charName: 'Eula',
+    icon: '❄️',
+    name: 'Kiếm Ánh Sáng Phá Giáp',
+    shortDesc: 'Chém giảm 2 bậc số của bộ bài thường trên bàn (A➔Q, K➔J) hoặc cường hóa +2 bậc khi mở vòng',
+  },
+};
+
+function buildReactionVfxHtml(rx) {
+  if (!rx) return '';
+  const cls = rx.cssClass || 'reaction-overloaded';
+  let ringColor = '#fbbf24';
+  let clashIcons = '⚡ 💥 🔥';
+  let svgInner = '';
+  let particles = [];
+
+  if (cls === 'reaction-vaporize') {
+    ringColor = '#38bdf8';
+    clashIcons = '💧 ✕ 🔥';
+    svgInner = `
+      <circle cx="200" cy="140" r="88" fill="none" stroke="#38bdf8" stroke-width="5" stroke-dasharray="14 8" />
+      <circle cx="200" cy="140" r="64" fill="none" stroke="#fb923c" stroke-width="4" />
+      <path d="M120,190 Q160,80 200,140 T280,90" fill="none" stroke="#bae6fd" stroke-width="6" stroke-linecap="round"/>
+      <path d="M130,95 Q200,185 275,105" fill="none" stroke="#fdba74" stroke-width="5" stroke-linecap="round"/>
+    `;
+    particles = ['💧', '🔥', '💨', '🌊', '🔥', '💨', '💧', '✨'];
+  } else if (cls === 'reaction-melt') {
+    ringColor = '#67e8f9';
+    clashIcons = '❄️ ✕ 🔥';
+    svgInner = `
+      <polygon points="200,32 230,105 308,140 230,175 200,248 170,175 92,140 170,105" fill="none" stroke="#67e8f9" stroke-width="4"/>
+      <polygon points="140,65 200,115 260,65 225,140 260,215 200,165 140,215 175,140" fill="none" stroke="#f87171" stroke-width="4"/>
+    `;
+    particles = ['❄️', '🔥', '🧊', '💥', '❄️', '🔥', '✨', '🌡️'];
+  } else if (cls === 'reaction-overloaded') {
+    ringColor = '#e879f9';
+    clashIcons = '⚡ ✕ 🔥';
+    svgInner = `
+      <polyline points="70,140 145,105 135,145 215,85 200,145 285,105 335,140" fill="none" stroke="#fde047" stroke-width="6"/>
+      <polyline points="110,55 180,125 165,155 245,135 295,220" fill="none" stroke="#f43f5e" stroke-width="5"/>
+      <circle cx="200" cy="140" r="78" fill="none" stroke="#c084fc" stroke-width="5" stroke-dasharray="10 6"/>
+    `;
+    particles = ['⚡', '💥', '🔥', '⚡', '🧨', '🔥', '💥', '✨'];
+  } else if (cls === 'reaction-electrocharged') {
+    ringColor = '#a855f7';
+    clashIcons = '⚡ ✕ 💧';
+    svgInner = `
+      <polyline points="65,120 135,155 155,105 215,165 245,110 330,145" fill="none" stroke="#c084fc" stroke-width="5"/>
+      <polyline points="85,175 155,120 190,168 255,115 315,165" fill="none" stroke="#38bdf8" stroke-width="5"/>
+      <circle cx="200" cy="140" r="82" fill="none" stroke="#7dd3fc" stroke-width="3.5" stroke-dasharray="12 8"/>
+    `;
+    particles = ['⚡', '💧', '⚡', '🌊', '⚡', '💧', '✨', '🫧'];
+  } else if (cls === 'reaction-frozen') {
+    ringColor = '#bae6fd';
+    clashIcons = '🧊 ✕ ❄️';
+    svgInner = `
+      <polygon points="200,24 222,110 310,140 222,170 200,256 178,170 90,140 178,110" fill="rgba(186,230,253,0.22)" stroke="#e0f2fe" stroke-width="4.5"/>
+      <line x1="115" y1="65" x2="285" y2="215" stroke="#7dd3fc" stroke-width="4"/>
+      <line x1="285" y1="65" x2="115" y2="215" stroke="#7dd3fc" stroke-width="4"/>
+    `;
+    particles = ['🧊', '❄️', '💎', '❄️', '🧊', '❄️', '✨', '🌨️'];
+  } else if (cls === 'reaction-superconduct') {
+    ringColor = '#818cf8';
+    clashIcons = '❄️ ✕ ⚡';
+    svgInner = `
+      <circle cx="200" cy="140" r="85" fill="none" stroke="#a5f3fc" stroke-width="4.5" stroke-dasharray="16 6"/>
+      <polyline points="85,140 155,95 175,155 235,95 315,140" fill="none" stroke="#c084fc" stroke-width="5"/>
+    `;
+    particles = ['❄️', '⚡', '🧊', '⚡', '❄️', '💜', '✨', '⚡'];
+  } else {
+    ringColor = '#facc15';
+    clashIcons = '💎 ✕ 🌿';
+    svgInner = `
+      <polygon points="200,36 278,140 200,244 122,140" fill="none" stroke="#fde047" stroke-width="4.5"/>
+      <circle cx="200" cy="140" r="76" fill="none" stroke="#4ade80" stroke-width="4" stroke-dasharray="10 6"/>
+    `;
+    particles = ['💎', '🌿', '⚡', '🔥', '✨', '💎', '🌿', '💥'];
+  }
+
+  const vectors = [
+    { tx: '-135px', ty: '-85px', rot: '-35deg' },
+    { tx: '135px', ty: '-85px', rot: '35deg' },
+    { tx: '-155px', ty: '15px', rot: '-60deg' },
+    { tx: '155px', ty: '15px', rot: '60deg' },
+    { tx: '-110px', ty: '95px', rot: '-25deg' },
+    { tx: '110px', ty: '95px', rot: '25deg' },
+    { tx: '0px', ty: '-115px', rot: '15deg' },
+    { tx: '0px', ty: '110px', rot: '-15deg' },
+  ];
+
+  const particlesHtml = particles
+    .map((emo, i) => {
+      const v = vectors[i % vectors.length];
+      return `<span class="rx-particle" style="--tx:${v.tx};--ty:${v.ty};--rot:${v.rot};color:${ringColor};">${emo}</span>`;
+    })
+    .join('');
+
+  return `
+    <div class="reaction-vfx-stage ${cls}">
+      <div class="rx-ring-outer" style="color:${ringColor};"></div>
+      <div class="rx-ring-inner" style="border-color:${ringColor};"></div>
+      <svg class="rx-svg-layer" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet">
+        ${svgInner}
+      </svg>
+      ${particlesHtml}
+      <div class="rx-element-clash-icons">${clashIcons}</div>
+    </div>
+  `;
+}
+
 const BOT_ANIME_AVATARS = {
   1: 'fanart/furina.jpg',
   2: 'fanart/raiden.jpg',
@@ -1097,8 +1277,24 @@ function canBeatCombo(candidate, current) {
   if (!candidate) return { ok: false, isChop: false };
   if (!current) return { ok: true, isChop: false };
 
+  // Luật Sân Khấu Fontaine (Furina): Cấm đánh Heo lẻ (2 lẻ) chặn bài trong vòng này
+  if (activeFurinaReverseSuit && candidate.type === COMBO_TYPES.SINGLE && candidate.highRank === 12) {
+    return {
+      ok: false,
+      isChop: false,
+      reason: '💧 Luật Sân Khấu Furina: Cấm đánh Heo lẻ (2) trong vòng này!',
+    };
+  }
+
   if (candidate.type === current.type && candidate.length === current.length) {
-    if (candidate.highValue > current.highValue) {
+    let candVal = candidate.highValue;
+    let curVal = current.highValue;
+    // Luật Sân Khấu Fontaine (Furina): Đảo ngược thứ tự chất (♠ > ♣ > ♦ > ♥) khi so bài cùng bậc
+    if (activeFurinaReverseSuit && candidate.highCard && current.highCard) {
+      candVal = candidate.highRank * 4 + (3 - candidate.highCard.suitIndex);
+      curVal = current.highRank * 4 + (3 - current.highCard.suitIndex);
+    }
+    if (candVal > curVal) {
       const isBombOverBomb =
         candidate.type === COMBO_TYPES.THREE_PAIRS ||
         candidate.type === COMBO_TYPES.FOUR_OF_A_KIND ||
@@ -1418,10 +1614,10 @@ class TienLenGame {
 
     const botBankroll = Math.max(INITIAL_COINS, this.betPerCard * 500);
     this.players = [
-      { id: 0, name: this.savedPlayerName || 'Thắng', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
-      { id: 1, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', isBot: true, active: this.soloPlayerCount >= 3, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
-      { id: 2, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
-      { id: 3, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', isBot: true, active: this.soloPlayerCount === 4, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 0, name: this.savedPlayerName || 'Thắng', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, activeChar: this.equippedActiveChar || 'raiden', skillUsed: false, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
+      { id: 1, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', activeChar: 'furina', skillUsed: false, isBot: true, active: this.soloPlayerCount >= 3, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 2, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', activeChar: 'raiden', skillUsed: false, isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
+      { id: 3, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', activeChar: 'skirk', skillUsed: false, isBot: true, active: this.soloPlayerCount === 4, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
     ];
 
     // Multiplayer state (Giữ cố định clientId trong localStorage để F5 không bị mất ghế hoặc reset đồ)
@@ -1457,6 +1653,16 @@ class TienLenGame {
     this.mustPlay3Spade = false;
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
+
+    // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
+    this.raidenElectroMarkOwnerId = null;
+    this.furinaReverseSuitRound = false;
+    this.yaeForcePlayRound = false;
+    this.clorindeDuelPair = null;
+    this.ayakaFrozenPlayerId = null;
+    this.hutaoTaxOwnerId = null;
+    this.eulaNextPlayBoost = false;
+    this.yelanRevealedByPlayer = {};
 
     this.selectedCardIds = new Set();
     this.companionCardIds = new Set();
@@ -1716,6 +1922,7 @@ class TienLenGame {
     this.unlockedBursts = new Set();
     this.equippedChopBurst = 'none';
     this.equippedWinBurst = 'none';
+    this.equippedActiveChar = 'raiden';
     this.gachaPity5 = 0;
     this.gachaPity4 = 0;
     this.gachaGuaranteed5 = false;
@@ -1797,6 +2004,17 @@ class TienLenGame {
         }
         if (data.equippedWinBurst && this.unlockedBursts.has(data.equippedWinBurst)) {
           this.equippedWinBurst = data.equippedWinBurst;
+        }
+        if (data.equippedActiveChar && CHARACTER_SKILLS[data.equippedActiveChar]) {
+          this.equippedActiveChar = data.equippedActiveChar;
+        } else if (this.equippedChopBurst && CHARACTER_SKILLS[this.equippedChopBurst]) {
+          this.equippedActiveChar = this.equippedChopBurst;
+        } else if (this.equippedWinBurst && CHARACTER_SKILLS[this.equippedWinBurst]) {
+          this.equippedActiveChar = this.equippedWinBurst;
+        } else if (this.equippedSkin && CHARACTER_SKILLS[this.equippedSkin]) {
+          this.equippedActiveChar = this.equippedSkin;
+        } else if (this.equippedAvatar && CHARACTER_SKILLS[this.equippedAvatar]) {
+          this.equippedActiveChar = this.equippedAvatar;
         }
         if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
         if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
@@ -1894,6 +2112,7 @@ class TienLenGame {
         unlockedBursts: Array.from(this.unlockedBursts),
         equippedChopBurst: this.equippedChopBurst || 'none',
         equippedWinBurst: this.equippedWinBurst || 'none',
+        equippedActiveChar: this.equippedActiveChar || 'raiden',
         gachaPity5: this.gachaPity5 || 0,
         gachaPity4: this.gachaPity4 || 0,
         gachaGuaranteed5: !!this.gachaGuaranteed5,
@@ -2758,7 +2977,12 @@ class TienLenGame {
     sfx.click();
     this.equippedSkin = skinId;
     me.cardSkin = skinId;
+    if (CHARACTER_SKILLS[skinId]) {
+      this.equippedActiveChar = skinId;
+      me.activeChar = skinId;
+    }
     this.saveShopProfile();
+    this.updateArenaBackdropCharacters();
     this.renderShopModal();
     this.renderAll();
     this.syncCosmeticsInRoom();
@@ -2778,7 +3002,12 @@ class TienLenGame {
     sfx.click();
     this.equippedAvatar = avatarId;
     me.avatar = avatarId;
+    if (CHARACTER_SKILLS[avatarId]) {
+      this.equippedActiveChar = avatarId;
+      me.activeChar = avatarId;
+    }
     this.saveShopProfile();
+    this.updateArenaBackdropCharacters();
     this.renderShopModal();
     this.renderAll();
     this.syncCosmeticsInRoom();
@@ -2803,9 +3032,15 @@ class TienLenGame {
       this.equippedChopBurst = burstId;
       me.chopBurst = burstId;
     }
+    if (CHARACTER_SKILLS[burstId]) {
+      this.equippedActiveChar = burstId;
+      me.activeChar = burstId;
+    }
 
     this.saveShopProfile();
+    this.updateArenaBackdropCharacters();
     this.renderShopModal();
+    this.renderAll();
     this.syncCosmeticsInRoom();
   }
 
@@ -3448,6 +3683,36 @@ class TienLenGame {
     this.btnSort.addEventListener('click', () => this.toggleSortMode());
     this.btnUnselect.addEventListener('click', () => this.clearSelection());
     this.btnHint.addEventListener('click', () => this.onHumanHint());
+
+    this.btnCharSkill = document.getElementById('btn-char-skill');
+    this.selectCharSkill = document.getElementById('select-char-skill');
+    if (this.btnCharSkill) {
+      this.btnCharSkill.addEventListener('click', () => this.onHumanUseSkill());
+    }
+    if (this.selectCharSkill) {
+      this.selectCharSkill.value = this.equippedActiveChar || 'raiden';
+      this.selectCharSkill.addEventListener('change', () => {
+        const chosen = this.selectCharSkill.value;
+        if (!CHARACTER_SKILLS[chosen]) return;
+        const me = this.getLocalPlayer();
+        if (this.isMidMatch() && me && me.skillUsed) {
+          this.selectCharSkill.value = this.getPlayerActiveCharId(me);
+          alert('⛔ Bạn đã dùng Kỹ Năng trong ván này rồi! Chỉ có thể đổi nhân vật cho ván tiếp theo.');
+          return;
+        }
+        this.equippedActiveChar = chosen;
+        if (me) me.activeChar = chosen;
+        sfx.click();
+        this.saveShopProfile();
+        this.updateArenaBackdropCharacters();
+        this.updateHumanActionButtons();
+        const sk = CHARACTER_SKILLS[chosen];
+        this.addLog(
+          `✨ <strong>Nhân Vật Xuất Chiến Dưới Chân Bạn:</strong> Đã chọn <strong>${sk.icon} ${sk.charName}</strong> — Kỹ năng: <strong>${sk.name}</strong> (${sk.shortDesc}).`,
+          'log-play'
+        );
+      });
+    }
     this.btnNewGame.addEventListener('click', () => {
       if (this.isMultiplayer && !this.isHost) {
         alert('Chỉ Chủ phòng mới có thể chia ván mới!');
@@ -3671,6 +3936,11 @@ class TienLenGame {
           e.preventDefault();
           this.onHumanPass();
         }
+      } else if (e.key === 'e' || e.key === 'E') {
+        if (this.btnCharSkill && !this.btnCharSkill.disabled) {
+          e.preventDefault();
+          this.onHumanUseSkill();
+        }
       } else if (e.code === 'Escape') {
         this.clearSelection();
       }
@@ -3866,6 +4136,13 @@ class TienLenGame {
         mustPlay3Spade: !!this.mustPlay3Spade,
         chopPot: this.chopPot || 0,
         lastChoppedPlayerId: this.lastChoppedPlayerId,
+        raidenElectroMarkOwnerId: this.raidenElectroMarkOwnerId ?? null,
+        furinaReverseSuitRound: !!this.furinaReverseSuitRound,
+        yaeForcePlayRound: !!this.yaeForcePlayRound,
+        clorindeDuelPair: this.clorindeDuelPair || null,
+        ayakaFrozenPlayerId: this.ayakaFrozenPlayerId ?? null,
+        hutaoTaxOwnerId: this.hutaoTaxOwnerId ?? null,
+        eulaNextPlayBoost: !!this.eulaNextPlayBoost,
         matchChopCoins: this.matchChopCoins || [0, 0, 0, 0],
         matchChopDetails: this.matchChopDetails || [[], [], [], []],
         firstTurnBadgeText: this.elFirstTurnBadge?.textContent || '',
@@ -3877,6 +4154,8 @@ class TienLenGame {
           cardSkin: p.cardSkin || 'classic',
           chopBurst: p.chopBurst || 'none',
           winBurst: p.winBurst || 'none',
+          activeChar: p.activeChar || 'raiden',
+          skillUsed: !!p.skillUsed,
           isBot: !!p.isBot,
           active: !!p.active,
           hand: Array.isArray(p.hand) ? p.hand : [],
@@ -3932,6 +4211,15 @@ class TienLenGame {
       this.mustPlay3Spade = !!snap.mustPlay3Spade;
       this.chopPot = snap.chopPot || 0;
       this.lastChoppedPlayerId = snap.lastChoppedPlayerId ?? null;
+      this.raidenElectroMarkOwnerId = snap.raidenElectroMarkOwnerId ?? null;
+      this.furinaReverseSuitRound = !!snap.furinaReverseSuitRound;
+      activeFurinaReverseSuit = this.furinaReverseSuitRound;
+      this.yaeForcePlayRound = !!snap.yaeForcePlayRound;
+      this.clorindeDuelPair = Array.isArray(snap.clorindeDuelPair) ? snap.clorindeDuelPair : null;
+      this.ayakaFrozenPlayerId = snap.ayakaFrozenPlayerId ?? null;
+      this.hutaoTaxOwnerId = snap.hutaoTaxOwnerId ?? null;
+      this.eulaNextPlayBoost = !!snap.eulaNextPlayBoost;
+      this.yelanRevealedByPlayer = {};
       this.matchChopCoins = Array.isArray(snap.matchChopCoins) ? snap.matchChopCoins : [0, 0, 0, 0];
       this.matchChopDetails = Array.isArray(snap.matchChopDetails) ? snap.matchChopDetails : [[], [], [], []];
       this.penaltyCardIdsByPlayer = [new Set(), new Set(), new Set(), new Set()];
@@ -3945,6 +4233,8 @@ class TienLenGame {
         cardSkin: idx === 0 ? this.equippedSkin : p.cardSkin || 'raiden',
         chopBurst: idx === 0 ? this.equippedChopBurst : p.chopBurst || 'raiden',
         winBurst: idx === 0 ? this.equippedWinBurst : p.winBurst || 'raiden',
+        activeChar: idx === 0 ? p.activeChar || this.equippedActiveChar || 'raiden' : p.activeChar || p.chopBurst || p.cardSkin || 'raiden',
+        skillUsed: !!p.skillUsed,
         isBot: idx === 0 ? false : !!p.isBot,
         active: !!p.active,
         hand: Array.isArray(p.hand) ? p.hand : [],
@@ -3991,8 +4281,42 @@ class TienLenGame {
     }
   }
 
+  getPlayerActiveCharId(player) {
+    if (!player) return this.equippedActiveChar || 'raiden';
+    if (player.id === this.mySeatId && !player.isBot) {
+      const candidates = [
+        player.activeChar,
+        this.equippedActiveChar,
+        this.equippedChopBurst,
+        this.equippedWinBurst,
+        player.chopBurst,
+        player.winBurst,
+        player.cardSkin,
+        player.avatar,
+        this.selectedBannerBurstId,
+      ];
+      for (const id of candidates) {
+        if (id && CHARACTER_SKILLS[id]) return id;
+      }
+      return 'raiden';
+    }
+    const botCandidates = [
+      player.activeChar,
+      player.chopBurst,
+      player.winBurst,
+      player.cardSkin,
+      player.avatar,
+    ];
+    for (const id of botCandidates) {
+      if (id && CHARACTER_SKILLS[id]) return id;
+    }
+    return 'raiden';
+  }
+
   getPlayerElement(player, combo = null) {
     if (player) {
+      const activeId = this.getPlayerActiveCharId(player);
+      if (activeId && CHARACTER_ELEMENTS[activeId]) return CHARACTER_ELEMENTS[activeId];
       const candidates = [player.chopBurst, player.winBurst, player.avatar, player.cardSkin];
       for (const id of candidates) {
         if (id && CHARACTER_ELEMENTS[id]) return CHARACTER_ELEMENTS[id];
@@ -4081,6 +4405,7 @@ class TienLenGame {
         // Bot xài chính xác 100% Kỹ Năng Nộ 5★ của chính nhân vật đó!
         p.chopBurst = ch.id;
         p.winBurst = ch.id;
+        p.activeChar = ch.id;
       }
     });
 
@@ -4106,25 +4431,452 @@ class TienLenGame {
   }
 
   updateArenaBackdropCharacters() {
-    const leftArt = document.getElementById('arena-char-left');
-    const rightArt = document.getElementById('arena-char-right');
     if (!this.players || this.players.length < 4) return;
+    const splitWrap = document.getElementById('arena-split-zones');
+    const activePlayers = this.getActivePlayers();
+    const activeCount = Math.max(2, Math.min(4, activePlayers.length || this.soloPlayerCount || 4));
 
-    const mySkin = this.players[this.mySeatId]?.cardSkin;
-    const leftCharId =
-      mySkin && mySkin !== 'classic'
-        ? mySkin
-        : this.players[1]?.active
-        ? this.players[1].cardSkin
-        : 'raiden';
-    const rightCharId = this.players[2]?.cardSkin || 'furina';
+    if (splitWrap) {
+      splitWrap.classList.remove('layout-2p', 'layout-3p', 'layout-4p');
+      splitWrap.classList.add(`layout-${activeCount}p`);
+    }
 
-    if (leftArt) {
-      leftArt.style.backgroundImage = `url('fanart/${leftCharId}.jpg')`;
+    for (let visualSlot = 0; visualSlot < 4; visualSlot++) {
+      let playerId = (this.mySeatId + visualSlot) % 4;
+      let p = this.players[playerId];
+      // Nếu bàn 2 người mà đối thủ ngồi ở ghế 1 hoặc 3 thì vẫn ánh xạ lên vùng trên (visualSlot = 2)
+      if (activeCount === 2 && visualSlot === 2 && (!p || !p.active)) {
+        const opp = activePlayers.find((pl) => pl.id !== this.mySeatId);
+        if (opp) p = opp;
+      }
+
+      const zoneEl = document.getElementById(`arena-zone-${visualSlot}`);
+      const artEl = document.getElementById(`arena-art-${visualSlot}`);
+      const tagEl = document.getElementById(`arena-tag-${visualSlot}`);
+      if (!zoneEl || !p) continue;
+
+      const charId = this.getPlayerActiveCharId(p);
+      const sk = CHARACTER_SKILLS[charId] || CHARACTER_SKILLS.raiden;
+      const elem = CHARACTER_ELEMENTS[charId] || 'electro';
+
+      zoneEl.setAttribute('data-elem', elem);
+      zoneEl.classList.toggle('zone-active-turn', !this.isGameOver && this.currentTurn === p.id);
+
+      if (artEl) {
+        artEl.style.backgroundImage = `url('fanart/${charId}.jpg')`;
+      }
+      if (tagEl) {
+        if (visualSlot === 0) {
+          tagEl.textContent = `${sk.icon} Dưới chân bạn: ${sk.charName} • Kỹ năng: ${sk.name} ${
+            p.skillUsed ? '(Đã dùng)' : '[Phím E]'
+          }`;
+        } else {
+          tagEl.textContent = `${sk.icon} ${p.name} • ${sk.name} ${p.skillUsed ? '(Đã dùng)' : ''}`;
+        }
+      }
     }
-    if (rightArt) {
-      rightArt.style.backgroundImage = `url('fanart/${rightCharId}.jpg')`;
+
+    if (this.selectCharSkill) {
+      const me = this.getLocalPlayer();
+      const myChar = this.getPlayerActiveCharId(me);
+      if (this.selectCharSkill.value !== myChar) {
+        this.selectCharSkill.value = myChar;
+      }
+      this.selectCharSkill.disabled = !!(this.isMidMatch() && me && me.skillUsed);
     }
+  }
+
+  triggerArenaReactionFlash(rx) {
+    const screenFx = document.getElementById('arena-reaction-screen-fx');
+    if (!screenFx || !rx) return;
+    screenFx.className = `arena-reaction-screen-fx ${rx.cssClass || 'reaction-overloaded'}`;
+    void screenFx.offsetWidth;
+    clearTimeout(this.reactionScreenTimer);
+    this.reactionScreenTimer = setTimeout(() => {
+      screenFx.classList.add('hidden');
+    }, 980);
+  }
+
+  renderRoundSkillStatusBar() {
+    const bar = document.getElementById('round-skill-status-bar');
+    if (!bar) return;
+    const pills = [];
+    const b = this.betPerCard || 100;
+
+    if (this.raidenElectroMarkOwnerId !== null) {
+      const owner = this.players[this.raidenElectroMarkOwnerId];
+      pills.push(
+        `<span class="round-skill-pill">⚡ Lôi Ấn (${owner ? owner.name : 'Raiden'}): Bỏ lượt vòng này nộp phạt ${b.toLocaleString()} Xu</span>`
+      );
+    }
+    if (this.furinaReverseSuitRound) {
+      pills.push(
+        `<span class="round-skill-pill">💧 Luật Sân Khấu Furina: Đảo ngược chất (♠&gt;♣&gt;♦&gt;♥) &amp; Cấm đánh Heo lẻ (2)</span>`
+      );
+    }
+    if (this.yaeForcePlayRound) {
+      pills.push(
+        `<span class="round-skill-pill">🌸 Hồ Ly Yae Miko: Cấm nhịn bài (Có nước đi hợp lệ bắt buộc phải đánh!)</span>`
+      );
+    }
+    if (Array.isArray(this.clorindeDuelPair) && this.clorindeDuelPair.length === 2) {
+      const p1 = this.players[this.clorindeDuelPair[0]];
+      const p2 = this.players[this.clorindeDuelPair[1]];
+      pills.push(
+        `<span class="round-skill-pill">⚡ Quyết Đấu Clorinde: ${p1 ? p1.name : ''} ⚔️ ${
+          p2 ? p2.name : ''
+        } (Nhà khác đứng ngoài vòng này)</span>`
+      );
+    }
+    if (this.ayakaFrozenPlayerId !== null) {
+      const fp = this.players[this.ayakaFrozenPlayerId];
+      pills.push(
+        `<span class="round-skill-pill">❄️ Băng Phong Ayaka: ${
+          fp ? fp.name : 'Đối thủ'
+        } bị đóng băng mất lượt kế tiếp</span>`
+      );
+    }
+    if (this.hutaoTaxOwnerId !== null) {
+      const hp = this.players[this.hutaoTaxOwnerId];
+      pills.push(
+        `<span class="round-skill-pill">🦋 Bùa Vãng Sinh (${
+          hp ? hp.name : 'Hu Tao'
+        }): Đánh đè bài nộp thuế ${(b * 2).toLocaleString()} Xu</span>`
+      );
+    }
+    if (this.eulaNextPlayBoost) {
+      pills.push(
+        `<span class="round-skill-pill">❄️ Kiếm Ánh Sáng Eula: Bộ bài thường kế tiếp được cộng +2 bậc sức mạnh!</span>`
+      );
+    }
+
+    if (pills.length === 0 || this.isGameOver) {
+      bar.innerHTML = '';
+      bar.classList.add('hidden');
+    } else {
+      bar.innerHTML = pills.join('');
+      bar.classList.remove('hidden');
+    }
+  }
+
+  canUseCharacterSkill(player) {
+    if (!player || !player.active || player.skillUsed || this.isGameOver) return { ok: false, reason: 'Đã dùng kỹ năng trong ván này' };
+    if (this.currentTurn !== player.id) return { ok: false, reason: 'Chỉ dùng trong lượt của bạn' };
+    if (player.passed) return { ok: false, reason: 'Bạn đã bỏ lượt vòng này' };
+
+    const charId = this.getPlayerActiveCharId(player);
+    const activeOpponents = this.players.filter(
+      (p) => p.active && p.id !== player.id && p.finishRank === null && p.hand.length > 0
+    );
+    if (activeOpponents.length === 0) return { ok: false, reason: 'Không còn đối thủ' };
+
+    if (charId === 'furina' && this.furinaReverseSuitRound) {
+      return { ok: false, reason: 'Luật Sân Khấu Fontaine đã bật trong vòng này' };
+    }
+    if (charId === 'yaemiko' && this.yaeForcePlayRound) {
+      return { ok: false, reason: 'Ấn Hồ Ly đã bật trong vòng này' };
+    }
+    if (charId === 'clorinde' && this.clorindeDuelPair) {
+      return { ok: false, reason: 'Đang trong Quyết Đấu Danh Dự' };
+    }
+    if (charId === 'ayaka' && this.ayakaFrozenPlayerId !== null) {
+      return { ok: false, reason: 'Đã đóng băng đối thủ trong vòng này' };
+    }
+    if (charId === 'hutao' && this.hutaoTaxOwnerId !== null) {
+      return { ok: false, reason: 'Bùa Vãng Sinh đã yểm trong vòng này' };
+    }
+    if (charId === 'mavuika') {
+      const hasForgeable = player.hand.some((c) => c.rankIndex <= 10);
+      if (!hasForgeable) {
+        return { ok: false, reason: 'Cần ít nhất 1 lá bài thường từ 3 đến K để rèn (+1 bậc ♥)' };
+      }
+    }
+    if (charId === 'eula') {
+      const canSlashTable = this.currentCombo && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb;
+      const canBuffLead = !this.currentCombo && !this.eulaNextPlayBoost;
+      if (!canSlashTable && !canBuffLead) {
+        return { ok: false, reason: 'Chỉ chém giảm bậc bộ bài thường trên bàn (dưới Heo/Hàng) hoặc dùng khi mở vòng' };
+      }
+    }
+    return { ok: true, charId };
+  }
+
+  onHumanUseSkill() {
+    if (this.isGameOver || this.currentTurn !== this.mySeatId) return;
+    const human = this.getLocalPlayer();
+    const check = this.canUseCharacterSkill(human);
+    if (!check.ok) {
+      alert(`⚠️ Chưa thể kích hoạt Kỹ Năng: ${check.reason}`);
+      return;
+    }
+    if (this.isMultiplayer && !this.isHost) {
+      const selectedIds = Array.from(this.selectedCardIds);
+      this.sendClientEvent({
+        type: 'USE_CHAR_SKILL',
+        clientId: this.myClientId,
+        charId: check.charId,
+        selectedIds,
+      });
+      return;
+    }
+    this.useCharacterSkill(human, Array.from(this.selectedCardIds));
+  }
+
+  useCharacterSkill(player, preferredCardIds = []) {
+    const check = this.canUseCharacterSkill(player);
+    if (!check.ok) return false;
+
+    const charId = check.charId;
+    const sk = CHARACTER_SKILLS[charId] || CHARACTER_SKILLS.raiden;
+    const b = this.betPerCard || 100;
+    const activeOpponents = this.players
+      .filter((p) => p.active && p.id !== player.id && p.finishRank === null && p.hand.length > 0)
+      .sort((a, c) => a.hand.length - c.hand.length);
+
+    player.skillUsed = true;
+
+    // Hiệu ứng sáng rực vùng nhân vật dưới chân người vừa tung kỹ năng
+    const visualSlot = (player.id - this.mySeatId + 4) % 4;
+    const zoneEl = document.getElementById(`arena-zone-${visualSlot}`);
+    if (zoneEl) {
+      zoneEl.classList.add('zone-skill-cast');
+      setTimeout(() => zoneEl.classList.remove('zone-skill-cast'), 2600);
+    }
+
+    let skillSummary = '';
+    const rx = this.getSpecialPlayReaction(player, this.currentCombo);
+
+    if (charId === 'raiden') {
+      if (this.currentCombo && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
+        const oldLabel = this.currentCombo.label;
+        this.previousCombo = this.currentCombo;
+        this.currentCombo = null;
+        this.trickOwnerId = player.id;
+        this.players.forEach((p) => {
+          p.passed = false;
+          p.declinedFourPairsCut = false;
+        });
+        skillSummary = `⚡ [Tịnh Thổ Cắt Vòng] ${player.name} chém đứt ${oldLabel} trên bàn và cướp cái mở vòng mới!`;
+      } else {
+        this.raidenElectroMarkOwnerId = player.id;
+        skillSummary = `⚡ [Tịnh Thổ Lôi Ấn] ${player.name} mở mắt Lôi Phạt: Ai bỏ lượt trong vòng này phải nộp phạt ${b.toLocaleString()} Xu!`;
+      }
+    } else if (charId === 'furina') {
+      this.furinaReverseSuitRound = true;
+      activeFurinaReverseSuit = true;
+      skillSummary = `💧 [Luật Sân Khấu Fontaine] ${player.name} đảo ngược chất (♠ > ♣ > ♦ > ♥) khi đè cùng số & CẤM đánh Heo lẻ (2) trong vòng này!`;
+    } else if (charId === 'skirk') {
+      const target =
+        (this.trickOwnerId !== null &&
+          this.trickOwnerId !== player.id &&
+          this.players[this.trickOwnerId]?.hand?.length > 0 &&
+          this.players[this.trickOwnerId]) ||
+        activeOpponents[0];
+      if (target && target.hand.length > 0 && player.hand.length > 0) {
+        let myCard = null;
+        if (preferredCardIds && preferredCardIds.length > 0) {
+          myCard = player.hand.find((c) => preferredCardIds.includes(c.id));
+        }
+        if (!myCard) {
+          const sortedMine = sortCardsAsc(player.hand);
+          myCard = sortedMine.find((c) => c.rankIndex < 11) || sortedMine[0];
+        }
+        const oppIdx = Math.floor(Math.random() * target.hand.length);
+        const oppCard = target.hand[oppIdx];
+
+        player.hand = player.hand.filter((c) => c.id !== myCard.id);
+        target.hand = target.hand.filter((c) => c.id !== oppCard.id);
+        player.hand.push(oppCard);
+        target.hand.push(myCard);
+
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds.clear();
+        this.companionCardIds.clear();
+        if (player.id === this.mySeatId) {
+          this.selectedCardIds.add(oppCard.id);
+        }
+
+        if (player.id === this.mySeatId || target.id === this.mySeatId) {
+          skillSummary = `🌌 [Khe Nứt Vực Sâu] ${player.name} tráo ${myCard.rank}${myCard.suit} lấy ${oppCard.rank}${oppCard.suit} của ${target.name}!`;
+        } else {
+          skillSummary = `🌌 [Khe Nứt Vực Sâu] ${player.name} mở cổng Hư Vô tráo đổi 1 lá bài ngẫu nhiên với ${target.name}!`;
+        }
+      }
+    } else if (charId === 'mavuika') {
+      let targetCard = null;
+      if (preferredCardIds && preferredCardIds.length > 0) {
+        targetCard = player.hand.find((c) => preferredCardIds.includes(c.id) && c.rankIndex <= 10);
+      }
+      if (!targetCard) {
+        const rankCounts = new Array(13).fill(0);
+        player.hand.forEach((c) => rankCounts[c.rankIndex]++);
+        const forgeCandidates = player.hand.filter((c) => c.rankIndex <= 10);
+        // Ưu tiên rèn lá bài giúp ghép thành Đôi hoặc Sám cô ở bậc kế tiếp
+        targetCard =
+          forgeCandidates.find((c) => rankCounts[c.rankIndex] === 1 && rankCounts[c.rankIndex + 1] >= 1) ||
+          forgeCandidates[forgeCandidates.length - 1];
+      }
+      if (targetCard) {
+        const oldLabel = `${targetCard.rank}${targetCard.suit}`;
+        const newRankIdx = Math.min(11, targetCard.rankIndex + 1); // Tối đa lên A (11), không bao giờ tạo Heo (12)
+        targetCard.rankIndex = newRankIdx;
+        targetCard.suitIndex = 3; // Chất Cơ ♥
+        targetCard.rank = RANKS[newRankIdx];
+        targetCard.suit = '♥';
+        targetCard.value = newRankIdx * 4 + 3;
+        targetCard.isRed = true;
+        targetCard.id = `${targetCard.rank}♥_forged_${Date.now()}`;
+        const newLabel = `${targetCard.rank}${targetCard.suit}`;
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds.clear();
+        this.companionCardIds.clear();
+        if (player.id === this.mySeatId) {
+          this.selectedCardIds.add(targetCard.id);
+        }
+        skillSummary = `🔥 [Thánh Hỏa Rèn Bài] ${player.name} rèn nâng cấp lá ${oldLabel} ➔ ${newLabel} ngay trên tay!`;
+      }
+    } else if (charId === 'yaemiko') {
+      this.yaeForcePlayRound = true;
+      skillSummary = `🌸 [Hồ Ly Dụ Hoặc] ${player.name} yểm ấn Hồ Ly: Mọi đối thủ có bài đánh được BẮT BUỘC PHẢI ĐÁNH (khóa Bỏ lượt giấu Heo)!`;
+    } else if (charId === 'yelan') {
+      const target = activeOpponents[0];
+      if (target) {
+        const sortedTarget = [...target.hand].sort((a, c) => c.value - a.value);
+        const revealed = sortedTarget.slice(0, Math.min(3, sortedTarget.length));
+        this.yelanRevealedByPlayer[target.id] = {
+          cards: revealed,
+          expiresAt: Date.now() + 8500,
+        };
+        setTimeout(() => {
+          if (this.yelanRevealedByPlayer[target.id] && Date.now() >= this.yelanRevealedByPlayer[target.id].expiresAt) {
+            delete this.yelanRevealedByPlayer[target.id];
+            this.renderSeats();
+          }
+        }, 8600);
+        const twosCount = target.hand.filter((c) => c.rankIndex === 12).length;
+        const struct = this.analyzeBotHandStructure(target.hand);
+        const hasBomb = struct.bombRanks.size > 0;
+        const revStr = revealed.map((c) => `${c.rank}${c.suit}`).join(' ');
+        skillSummary = `🎲 [Mạng Lưới Tình Báo] ${player.name} thấu thị ${target.name}: Lộ 3 lá lớn nhất [${revStr}] • Đang giữ ${twosCount} Heo & ${
+          hasBomb ? 'CÓ HÀNG 💣!' : '0 Hàng'
+        }`;
+      }
+    } else if (charId === 'clorinde') {
+      const target =
+        (this.trickOwnerId !== null &&
+          this.trickOwnerId !== player.id &&
+          this.players[this.trickOwnerId]?.active &&
+          this.players[this.trickOwnerId]?.finishRank === null &&
+          this.players[this.trickOwnerId]) ||
+        activeOpponents[0];
+      if (target) {
+        this.clorindeDuelPair = [player.id, target.id];
+        this.players.forEach((p) => {
+          if (p.active && p.id !== player.id && p.id !== target.id) {
+            p.passed = true;
+          }
+        });
+        skillSummary = `⚡ [Thách Đấu Danh Dự] ${player.name} khóa vòng đấu thành Quyết Đấu 1v1 với ${target.name}!`;
+      }
+    } else if (charId === 'ayaka') {
+      let target = null;
+      for (let step = 1; step <= 3; step++) {
+        const cand = this.players[(player.id + step) % 4];
+        if (cand && cand.active && cand.finishRank === null && cand.hand.length > 0 && !cand.passed) {
+          target = cand;
+          break;
+        }
+      }
+      if (!target) target = activeOpponents[0];
+      if (target) {
+        this.ayakaFrozenPlayerId = target.id;
+        skillSummary = `❄️ [Sương Hoa Phong Ấn] ${player.name} đóng băng ${target.name} khiến họ mất lượt kế tiếp trong vòng này!`;
+      }
+    } else if (charId === 'hutao') {
+      this.hutaoTaxOwnerId = player.id;
+      skillSummary = `🦋 [Bùa Vãng Sinh] ${player.name} yểm bùa: Ai đánh đè bài của Hu Tao trong vòng này phải nộp thuế ngay ${(
+        b * 2
+      ).toLocaleString()} Xu!`;
+    } else if (charId === 'eula') {
+      if (this.currentCombo && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
+        const oldRank = RANKS[this.currentCombo.highRank];
+        const newRankIdx = Math.max(0, this.currentCombo.highRank - 2);
+        this.currentCombo.highRank = newRankIdx;
+        this.currentCombo.highValue = newRankIdx * 4 + (this.currentCombo.highCard?.suitIndex || 0);
+        this.currentCombo.label = `${this.currentCombo.label} [❄️ Eula chém hạ bậc ${oldRank}➔${RANKS[newRankIdx]}]`;
+        skillSummary = `❄️ [Kiếm Ánh Sáng Phá Giáp] ${player.name} chém giảm 2 bậc bộ bài trên bàn (${oldRank} ➔ ${RANKS[newRankIdx]})!`;
+      } else {
+        this.eulaNextPlayBoost = true;
+        skillSummary = `❄️ [Kiếm Ánh Sáng Phá Giáp] ${player.name} tích tụ Kiếm Ánh Sáng: Bộ bài thường đánh ra kế tiếp được +2 bậc sức mạnh!`;
+      }
+    }
+
+    this.lastBurstEffect = {
+      id: Date.now(),
+      type: charId,
+      burstId: charId,
+      isWin: false,
+      detail: skillSummary,
+    };
+    this.triggerGenshinBurst(charId, skillSummary);
+    this.triggerArenaReactionFlash(rx);
+    this.showComboBanner(`🔮 KỸ NĂNG ${sk.charName.toUpperCase()}: ${sk.name.toUpperCase()}!`, rx.cssClass);
+    this.addLog(`🔮 <strong>${skillSummary}</strong>`, 'log-win');
+
+    this.updateArenaBackdropCharacters();
+    this.renderRoundSkillStatusBar();
+    this.renderAll();
+    this.saveActiveMatchSnapshot();
+    if (this.isMultiplayer && this.isHost) {
+      this.broadcastState();
+    }
+    return true;
+  }
+
+  maybeBotUseSkill(bot, validMoves) {
+    if (!bot || !bot.isBot || bot.skillUsed || this.isGameOver) return false;
+    const check = this.canUseCharacterSkill(bot);
+    if (!check.ok) return false;
+
+    const charId = check.charId;
+    const minOppCards = Math.min(
+      ...this.players
+        .filter((p) => p.active && p.id !== bot.id && p.finishRank === null)
+        .map((p) => p.hand.length)
+    );
+
+    // AI Bot cân nhắc thời điểm tung Kỹ Năng chiến thuật:
+    let shouldCast = false;
+    if (charId === 'raiden') {
+      // Nếu không có bài đỡ hoặc đối thủ còn <= 6 lá và trên bàn là bài thường -> Cắt vòng cướp cái ngay!
+      if (this.currentCombo && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
+        if (validMoves.length === 0 || (this.currentCombo.highRank >= 7 && bot.hand.length <= 9)) {
+          shouldCast = true;
+        }
+      } else if (!this.currentCombo && bot.hand.length <= 7) {
+        shouldCast = true;
+      }
+    } else if (charId === 'eula') {
+      if (this.currentCombo && this.currentCombo.highRank >= 6 && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
+        shouldCast = true;
+      } else if (!this.currentCombo && bot.hand.length <= 7) {
+        shouldCast = true;
+      }
+    } else if (charId === 'mavuika' || charId === 'skirk') {
+      if (bot.hand.length <= 10 && minOppCards <= 9) {
+        shouldCast = true;
+      }
+    } else if (charId === 'furina' || charId === 'yaemiko' || charId === 'hutao' || charId === 'yelan' || charId === 'clorinde' || charId === 'ayaka') {
+      if (minOppCards <= 8 || bot.hand.length <= 8) {
+        shouldCast = true;
+      }
+    }
+
+    if (shouldCast) {
+      return this.useCharacterSkill(bot);
+    }
+    return false;
   }
 
   selectSoloPlayerCount(count) {
@@ -4995,6 +5747,8 @@ class TienLenGame {
       p.passed = false;
       p.declinedFourPairsCut = false;
       p.finishRank = null;
+      p.skillUsed = false;
+      p.activeChar = this.getPlayerActiveCharId(p);
     });
 
     this.currentCombo = null;
@@ -5010,7 +5764,20 @@ class TienLenGame {
     this.hintIndex = 0;
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
+
+    // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
+    this.raidenElectroMarkOwnerId = null;
+    this.furinaReverseSuitRound = false;
+    activeFurinaReverseSuit = false;
+    this.yaeForcePlayRound = false;
+    this.clorindeDuelPair = null;
+    this.ayakaFrozenPlayerId = null;
+    this.hutaoTaxOwnerId = null;
+    this.eulaNextPlayBoost = false;
+    this.yelanRevealedByPlayer = {};
     this.isGameOver = false;
+    this.updateArenaBackdropCharacters();
+    this.renderRoundSkillStatusBar();
 
     const b = this.betPerCard || 100;
     const tierMeta = this.getCurrentBetTierMeta(b);
@@ -5206,6 +5973,49 @@ class TienLenGame {
     const playedIds = new Set(combo.cards.map((c) => c.id));
     player.hand = player.hand.filter((c) => !playedIds.has(c.id));
 
+    // Cường hóa Kiếm Ánh Sáng của Eula (+2 bậc khi mở vòng mới)
+    if (
+      this.eulaNextPlayBoost &&
+      this.getPlayerActiveCharId(player) === 'eula' &&
+      combo.highRank < 12 &&
+      !combo.isBomb
+    ) {
+      this.eulaNextPlayBoost = false;
+      combo.highRank = Math.min(11, combo.highRank + 2);
+      combo.highValue = combo.highRank * 4 + (combo.highCard?.suitIndex || 0);
+      combo.label = `${combo.label} [❄️ Eula +2 bậc ➔ ${RANKS[combo.highRank]}]`;
+      this.renderRoundSkillStatusBar();
+    }
+
+    // Bùa Vãng Sinh của Hu Tao: Ai đánh chặn bài của Hu Tao trong vòng này phải nộp Thuế Vãng Sinh (2x cược)
+    if (
+      this.hutaoTaxOwnerId !== null &&
+      this.currentCombo &&
+      this.trickOwnerId === this.hutaoTaxOwnerId &&
+      player.id !== this.hutaoTaxOwnerId
+    ) {
+      const hutaoOwner = this.players[this.hutaoTaxOwnerId];
+      if (hutaoOwner && hutaoOwner.active) {
+        const tax = Math.round((this.betPerCard || 100) * 2);
+        player.coins -= tax;
+        hutaoOwner.coins += tax;
+        this.matchChopCoins[player.id] -= tax;
+        this.matchChopCoins[hutaoOwner.id] += tax;
+        this.matchChopDetails[player.id].push({
+          label: `🦋 Thuế Bùa Vãng Sinh cho ${hutaoOwner.name} (-${tax.toLocaleString()})`,
+          isSpecial: true,
+        });
+        this.matchChopDetails[hutaoOwner.id].push({
+          label: `🦋 Thu Thuế Bùa Vãng Sinh từ ${player.name} (+${tax.toLocaleString()})`,
+          isGood: true,
+        });
+        this.addLog(
+          `🦋 <strong>[Bùa Vãng Sinh]</strong> <strong>${player.name}</strong> đánh đè bài của <strong>${hutaoOwner.name}</strong> nên phải nộp <strong>${tax.toLocaleString()} Xu</strong> Thuế Vãng Sinh!`,
+          'log-chop'
+        );
+      }
+    }
+
     // Cập nhật tiến độ Nhiệm Vụ Hàng Ngày nếu người đánh là người chơi chính
     if (player.id === this.mySeatId) {
       if (combo.length >= 2) {
@@ -5270,6 +6080,7 @@ class TienLenGame {
 
       const rx = this.getSpecialPlayReaction(player, combo);
       combo.reaction = rx;
+      this.triggerArenaReactionFlash(rx);
       const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue.toLocaleString()} xu)!`;
       const chopBurstId = player.chopBurst || 'none';
       this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
@@ -5295,6 +6106,7 @@ class TienLenGame {
       if (isHeavy) {
         const rx = this.getSpecialPlayReaction(player, combo);
         combo.reaction = rx;
+        this.triggerArenaReactionFlash(rx);
         this.showComboBanner(`${rx.badge} • ${combo.label.toUpperCase()}!`, rx.cssClass);
         this.addLog(
           `<strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> đánh <strong>${combo.label}</strong> (${combo.cards
@@ -5362,13 +6174,51 @@ class TienLenGame {
     if (this.isGameOver || !player || !player.active || this.currentTurn !== player.id || !this.currentCombo) {
       return;
     }
+    // Hồ Ly Dụ Hoặc của Yae Miko: Nếu còn bài hợp lệ chặn được thì cấm Bỏ lượt giấu bài!
+    if (this.yaeForcePlayRound && !player.passed) {
+      const validMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false);
+      if (validMoves.length > 0) {
+        if (player.isBot) {
+          this.playCombo(player, validMoves[0]);
+          return;
+        }
+        this.showComboBanner('🌸 HỒ LY DỤ HOẶC: CÒN BÀI CHẶN ĐƯỢC KHÔNG ĐƯỢC BỎ LƯỢT!', 'reaction-overloaded');
+        return;
+      }
+    }
+
     clearTimeout(this.botTimer);
     sfx.pass();
     if (player.passed) {
       player.declinedFourPairsCut = true;
     }
     player.passed = true;
-    this.addLog(`<em>${player.name} bỏ lượt.</em>`, 'log-pass');
+
+    // Lôi Ấn của Raiden Shogun: Ai Bỏ lượt trong vòng Lôi Ấn phải nộp 1x mức cược cho Raiden
+    if (this.raidenElectroMarkOwnerId !== null && player.id !== this.raidenElectroMarkOwnerId) {
+      const raidenOwner = this.players[this.raidenElectroMarkOwnerId];
+      if (raidenOwner && raidenOwner.active) {
+        const markFee = Math.round(this.betPerCard || 100);
+        player.coins -= markFee;
+        raidenOwner.coins += markFee;
+        this.matchChopCoins[player.id] -= markFee;
+        this.matchChopCoins[raidenOwner.id] += markFee;
+        this.matchChopDetails[player.id].push({
+          label: `⚡ Phạt Lôi Ấn Raiden khi bỏ lượt (-${markFee.toLocaleString()})`,
+          isSpecial: true,
+        });
+        this.matchChopDetails[raidenOwner.id].push({
+          label: `⚡ Thu Lôi Ấn từ ${player.name} (+${markFee.toLocaleString()})`,
+          isGood: true,
+        });
+        this.addLog(
+          `⚡ <strong>[Lôi Ấn Raiden]</strong> <strong>${player.name}</strong> bỏ lượt, nộp <strong>${markFee.toLocaleString()} Xu</strong> cho <strong>${raidenOwner.name}</strong>!`,
+          'log-pass'
+        );
+      }
+    } else {
+      this.addLog(`<em>${player.name} bỏ lượt.</em>`, 'log-pass');
+    }
     this.advanceTurn();
     if (this.isMultiplayer && this.isHost) {
       this.broadcastState();
@@ -5396,6 +6246,24 @@ class TienLenGame {
       const nextPlayer = this.players[nextId];
       if (!nextPlayer.active || nextPlayer.finishRank !== null) continue;
       if (!nextPlayer.passed || this.canPlayerCutWithFourPairs(nextPlayer)) {
+        // Sương Hoa Phong Ấn của Ayaka: đóng băng mất 1 lượt trong vòng hiện tại
+        // (Ở bàn 2 người: chỉ kích hoạt đóng băng nếu bộ bài trên bàn từ 10 trở xuống để không khóa trắng Heo/Át)
+        if (nextId === this.ayakaFrozenPlayerId) {
+          const activeCount = this.getActivePlayers().length;
+          const allowFreeze =
+            activeCount >= 3 || !this.currentCombo || this.currentCombo.highRank <= 9;
+          this.ayakaFrozenPlayerId = null;
+          if (allowFreeze) {
+            nextPlayer.passed = true;
+            this.showComboBanner(`❄️ ${nextPlayer.name.toUpperCase()} BỊ ĐÓNG BĂNG MẤT LƯỢT!`, 'reaction-superconduct');
+            this.addLog(
+              `❄️ <strong>[Sương Hoa Phong Ấn]</strong> <strong>${nextPlayer.name}</strong> bị đóng băng nên mất lượt đỡ bài trong vòng này!`,
+              'log-chop'
+            );
+            this.renderRoundSkillStatusBar();
+            continue;
+          }
+        }
         this.currentTurn = nextId;
         this.promptCurrentTurn();
         return;
@@ -5416,6 +6284,18 @@ class TienLenGame {
     this.companionCardIds.clear();
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
+
+    // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
+    this.raidenElectroMarkOwnerId = null;
+    this.furinaReverseSuitRound = false;
+    activeFurinaReverseSuit = false;
+    this.yaeForcePlayRound = false;
+    this.clorindeDuelPair = null;
+    this.ayakaFrozenPlayerId = null;
+    this.hutaoTaxOwnerId = null;
+    this.eulaNextPlayBoost = false;
+    this.yelanRevealedByPlayer = {};
+    this.renderRoundSkillStatusBar();
 
     let leaderId = this.trickOwnerId;
     const owner = leaderId !== null ? this.players[leaderId] : null;
@@ -5445,7 +6325,12 @@ class TienLenGame {
     if (this.isGameOver || !bot || !bot.active || this.currentTurn !== bot.id) return;
 
     const onlyFourPairs = bot.passed && this.canPlayerCutWithFourPairs(bot);
-    const validMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, onlyFourPairs);
+    let validMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, onlyFourPairs);
+
+    // Bot tự động cân nhắc kích hoạt Kỹ Năng Nhân Vật chiến thuật (1 lần/ván)
+    if (!onlyFourPairs && this.maybeBotUseSkill(bot, validMoves)) {
+      validMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false);
+    }
 
     if (validMoves.length === 0) {
       if (this.currentCombo) {
@@ -5472,6 +6357,10 @@ class TienLenGame {
     try {
       chosen = this.chooseBotResponseMove(bot, validMoves);
     } catch (_) {}
+    // Nếu đang trúng Hồ Ly Dụ Hoặc của Yae Miko thì bắt buộc phải đánh lá hợp lệ nhỏ nhất
+    if (!chosen && this.yaeForcePlayRound && validMoves.length > 0) {
+      chosen = validMoves[0];
+    }
     if (chosen) {
       this.playCombo(bot, chosen);
     } else {
@@ -6069,6 +6958,24 @@ class TienLenGame {
     const selectedCards = this.getSelectedCards();
     const combo = classifyCombo(selectedCards);
 
+    // Cập nhật nút Kỹ Năng Nhân Vật (1 lần/ván)
+    if (this.btnCharSkill) {
+      const charId = this.getPlayerActiveCharId(human);
+      const skill = CHARACTER_SKILLS[charId] || CHARACTER_SKILLS.raiden;
+      const skillCheck = this.canUseCharacterSkill(human);
+      if (this.elCharSkillLabel) {
+        this.elCharSkillLabel.textContent = human.skillUsed
+          ? `${skill.icon} Đã dùng Kỹ Năng`
+          : `${skill.icon} ${skill.skillName} (1/1)`;
+      }
+      this.btnCharSkill.disabled = !skillCheck.ok;
+      this.btnCharSkill.classList.toggle('skill-ready', !!skillCheck.ok);
+      this.btnCharSkill.classList.toggle('skill-used', !!human.skillUsed);
+      this.btnCharSkill.title = `${skill.icon} ${skill.charName} — ${skill.skillName}: ${skill.shortDesc}${
+        skillCheck.ok ? ' (Nhấn phím E để tung chiêu!)' : ` (${skillCheck.reason})`
+      }`;
+    }
+
     if (selectedCards.length === 0) {
       this.elSelectedPreview.textContent = 'Chọn bài để đánh';
       this.elSelectedPreview.classList.remove('invalid');
@@ -6086,7 +6993,16 @@ class TienLenGame {
       return;
     }
 
-    this.btnPass.disabled = this.currentCombo === null;
+    const canBeatAny =
+      this.currentCombo &&
+      getValidMoves(human.hand, this.currentCombo, this.mustPlay3Spade, false).length > 0;
+    const forcePlayLocked = this.yaeForcePlayRound && !human.passed && canBeatAny;
+    this.btnPass.disabled = this.currentCombo === null || forcePlayLocked;
+    if (forcePlayLocked) {
+      this.btnPass.title = '🌸 Hồ Ly Dụ Hoặc (Yae Miko): Bạn đang có bài chặn được nên không thể Bỏ lượt!';
+    } else {
+      this.btnPass.title = 'Bỏ qua vòng hiện tại (Phím P)';
+    }
 
     if (!combo) {
       this.btnPlay.disabled = true;
@@ -6394,7 +7310,9 @@ class TienLenGame {
       }
 
       // Khi ván bài kết thúc (isGameOver), lật ngửa toàn bộ bài còn lại của các đối thủ ngay trên bàn!
+      // Hoặc khi Yelan kích hoạt [Mạng Lưới Tình Báo], lộ diện 3 lá lớn nhất của đối thủ trong 8.5s!
       if (revealEl) {
+        const yelanCards = !this.isGameOver && this.yelanRevealedByPlayer?.[p.id];
         if (this.isGameOver && p.hand.length > 0) {
           const penSet = this.penaltyCardIdsByPlayer[p.id] || new Set();
           revealEl.innerHTML = p.hand
@@ -6407,6 +7325,16 @@ class TienLenGame {
                 <span>${c.suit}</span>
               </div>`;
             })
+            .join('');
+          revealEl.classList.remove('hidden');
+        } else if (yelanCards && yelanCards.length > 0) {
+          revealEl.innerHTML = yelanCards
+            .map(
+              (c) => `<div class="mini-open-card ${c.isRed ? 'red-card' : 'black-card'} penalty-card" title="🎲 Tình báo Yelan soi bài!">
+                <span>${c.rank}</span>
+                <span>${c.suit}</span>
+              </div>`
+            )
             .join('');
           revealEl.classList.remove('hidden');
         } else {
@@ -6469,6 +7397,7 @@ class TienLenGame {
           <div class="trick-flash-core"></div>
           <div class="trick-shockwave-ring"></div>
           ${isHeavy ? '<div class="trick-slash-line"></div>' : ''}
+          ${rx ? buildReactionVfxHtml(rx) : ''}
           ${rx ? `<div class="trick-reaction-float ${rx.cssClass}">${rx.shortName}</div>` : ''}
         `;
         this.elCurrentTrick.appendChild(fxWrap);
@@ -6519,6 +7448,8 @@ class TienLenGame {
   }
 
   renderAll() {
+    this.updateArenaBackdropCharacters();
+    this.renderRoundSkillStatusBar();
     this.renderSeats();
     this.renderCenterTrick();
     this.renderHumanHand();

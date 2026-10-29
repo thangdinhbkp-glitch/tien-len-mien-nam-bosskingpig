@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -406,21 +406,30 @@
           <div class="shop-grid hidden" id="shop-avatars-grid"></div>
         </div>
 
-        <div class="modal-footer summary-footer">
+        <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
           <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
             🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
           </button>
-          <button class="primary-btn" id="btn-ok-shop">Đóng Cửa Hàng</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Biểu diễn Kỹ Năng Nộ Raiden Shogun (Chặt Heo/Hàng)!')">
+              ⚡ Test Nộ Raiden
+            </button>
+            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('skirk', '🌌 Biểu diễn Kỹ Năng Nộ Skirk (Về Nhất Ăn Tất)!')">
+              🌌 Test Nộ Skirk
+            </button>
+            <button class="primary-btn" id="btn-ok-shop">Đóng Cửa Hàng</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC CUT-IN OVERLAY (RAIDEN SHOGUN & SKIRK) -->
+    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC ANIMATION OVERLAY (RAIDEN SHOGUN & SKIRK) -->
     <div class="genshin-burst-overlay hidden" id="genshin-burst-overlay">
       <div class="burst-bg-fx" id="burst-bg-fx"></div>
       <div class="burst-chakra-ring" id="burst-chakra-ring"></div>
       <div class="burst-character-wrap">
-        <img class="burst-character-img" id="burst-character-img" src="" alt="Genshin Elemental Burst" referrerpolicy="no-referrer" />
+        <video class="burst-video" id="burst-video" autoplay muted playsinline loop></video>
+        <img class="burst-character-img" id="burst-character-img" src="" alt="Genshin Elemental Burst Animation" referrerpolicy="no-referrer" />
       </div>
       <div class="burst-slash-container" id="burst-slash-container"></div>
       <div class="burst-text-box">
@@ -432,6 +441,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=4"></script>
+  <script src="game.js?v=5"></script>
 </body>
 </html>

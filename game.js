@@ -20,8 +20,12 @@ const MAX_DAILY_RELIEF_CLAIMS = 3;
 // GENSHIN IMPACT SHOP CATALOG: CHARACTER SKINS, AVATARS & BURST SPLASH ART
 // ============================================================================
 const GENSHIN_BURST_ART = {
-  raiden: 'https://enka.network/ui/UI_Gacha_AvatarImg_Shougun.png',
-  skirk: 'https://enka.network/ui/UI_Gacha_AvatarImg_SkirkNew.png',
+  raidenGif: 'raiden_burst.gif',
+  raidenMp4: 'raiden_burst.mp4',
+  raidenRemoteGif: 'https://media.tenor.com/umRS1zU3OUsAAAAM/raiden-baal.gif',
+  skirkGif: 'skirk_burst.gif',
+  skirkMp4: 'skirk_burst.mp4',
+  skirkRemoteGif: 'https://media.tenor.com/vrLe2zvzqNYAAAAM/genshin-genshin-impact.gif',
 };
 
 const ANIME_CARD_SKINS = [
@@ -757,11 +761,11 @@ class TienLenGame {
   }
 
   fetchLiveAnimeImages() {
-    // Tải trước (Preload) ảnh Splash Art Kỹ Năng Nộ của Raiden Shogun & Skirk để hiện tức thì 0ms
+    // Tải trước (Preload) GIF/Video Kỹ Năng Nộ của Raiden Shogun & Skirk để phát tức thì
     try {
       [
-        GENSHIN_BURST_ART.raiden,
-        GENSHIN_BURST_ART.skirk,
+        GENSHIN_BURST_ART.raidenGif,
+        GENSHIN_BURST_ART.skirkGif,
         ...ANIME_CARD_SKINS.map((s) => s.imgUrl).filter(Boolean),
         ...ANIME_AVATARS.map((a) => a.imgUrl).filter(Boolean),
       ].forEach((url) => {
@@ -779,6 +783,7 @@ class TienLenGame {
       return;
     }
 
+    const videoEl = document.getElementById('burst-video');
     const imgEl = document.getElementById('burst-character-img');
     const chakraEl = document.getElementById('burst-chakra-ring');
     const slashContainer = document.getElementById('burst-slash-container');
@@ -795,10 +800,30 @@ class TienLenGame {
       tableEl.classList.add('burst-shake');
     }
 
+    const isFileProtocol = window.location.protocol === 'file:';
+
     if (type === 'raiden') {
       sfx.raidenBurst();
       overlay.classList.add('theme-raiden');
-      imgEl.src = GENSHIN_BURST_ART.raiden;
+      imgEl.src = isFileProtocol ? GENSHIN_BURST_ART.raidenRemoteGif : GENSHIN_BURST_ART.raidenGif;
+      imgEl.onerror = () => {
+        imgEl.src = GENSHIN_BURST_ART.raidenRemoteGif;
+      };
+      if (videoEl) {
+        if (!isFileProtocol) {
+          videoEl.style.display = 'block';
+          videoEl.src = GENSHIN_BURST_ART.raidenMp4;
+          videoEl.currentTime = 0;
+          videoEl.play().catch(() => {
+            videoEl.style.display = 'none';
+          });
+          videoEl.onerror = () => {
+            videoEl.style.display = 'none';
+          };
+        } else {
+          videoEl.style.display = 'none';
+        }
+      }
       tagEl.textContent = '⚡ KỸ NĂNG NỘ • RAIDEN SHOGUN (MUSOU NO HITOTACHI)';
       titleEl.textContent = 'BÍ THUẬT: MỘNG TƯỞNG CHÂN THUYẾT';
       quoteEl.textContent = '“Vô Tưởng Nhất Đao — Chặt Đứt Vĩnh Hằng!”';
@@ -823,7 +848,25 @@ class TienLenGame {
     } else {
       sfx.skirkBurst();
       overlay.classList.add('theme-skirk');
-      imgEl.src = GENSHIN_BURST_ART.skirk;
+      imgEl.src = isFileProtocol ? GENSHIN_BURST_ART.skirkRemoteGif : GENSHIN_BURST_ART.skirkGif;
+      imgEl.onerror = () => {
+        imgEl.src = GENSHIN_BURST_ART.skirkRemoteGif;
+      };
+      if (videoEl) {
+        if (!isFileProtocol) {
+          videoEl.style.display = 'block';
+          videoEl.src = GENSHIN_BURST_ART.skirkMp4;
+          videoEl.currentTime = 0;
+          videoEl.play().catch(() => {
+            videoEl.style.display = 'none';
+          });
+          videoEl.onerror = () => {
+            videoEl.style.display = 'none';
+          };
+        } else {
+          videoEl.style.display = 'none';
+        }
+      }
       tagEl.textContent = '🌌 KỸ NĂNG NỘ • SKIRK (ABYSSAL STARSHATTER)';
       titleEl.textContent = 'TUYỆT KỸ VỰC SÂU: PHÁ TOÁI TINH KHÔNG';
       quoteEl.textContent = '“Vạn Vật Quy Hư Vô — Nhất Ăn Tất!”';
@@ -851,13 +894,18 @@ class TienLenGame {
     clearTimeout(this.burstTimeout);
     const finishBurst = () => {
       clearTimeout(this.burstTimeout);
+      if (videoEl) {
+        try {
+          videoEl.pause();
+        } catch (_) {}
+      }
       overlay.classList.add('hidden');
       overlay.onclick = null;
       if (onDoneCallback) onDoneCallback();
     };
 
     overlay.onclick = finishBurst;
-    this.burstTimeout = setTimeout(finishBurst, type === 'skirk' ? 2350 : 1950);
+    this.burstTimeout = setTimeout(finishBurst, 3000);
   }
 
   // ============================================================================

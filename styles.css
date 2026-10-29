@@ -1655,19 +1655,44 @@ body {
 .burst-character-wrap {
   position: relative;
   z-index: 3;
-  height: min(85vh, 640px);
+  width: min(860px, 94vw);
+  height: min(490px, 72vh);
+  border-radius: 22px;
+  overflow: hidden;
+  border: 3px solid rgba(240, 171, 252, 0.9);
+  box-shadow:
+    0 0 55px rgba(168, 85, 247, 0.95),
+    0 20px 60px rgba(0, 0, 0, 0.9);
+  background: #05050f;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  animation: burstCharZoom 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: burstCharZoom 3.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.theme-skirk .burst-character-wrap {
+  border-color: rgba(125, 211, 252, 0.95);
+  box-shadow:
+    0 0 60px rgba(56, 189, 248, 0.95),
+    0 20px 60px rgba(0, 0, 0, 0.9);
+}
+
+.burst-video,
+.burst-character-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.burst-video {
+  z-index: 2;
 }
 
 .burst-character-img {
-  max-height: 100%;
-  max-width: 92vw;
-  object-fit: contain;
-  filter: drop-shadow(0 0 32px rgba(255, 255, 255, 0.65)) drop-shadow(0 12px 45px rgba(0, 0, 0, 0.85));
+  z-index: 1;
 }
 
 @keyframes burstCharZoom {

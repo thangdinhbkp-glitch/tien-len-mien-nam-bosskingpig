@@ -1662,19 +1662,44 @@ body {
 .burst-character-wrap {
   position: relative;
   z-index: 3;
-  height: min(85vh, 640px);
+  width: min(860px, 94vw);
+  height: min(490px, 72vh);
+  border-radius: 22px;
+  overflow: hidden;
+  border: 3px solid rgba(240, 171, 252, 0.9);
+  box-shadow:
+    0 0 55px rgba(168, 85, 247, 0.95),
+    0 20px 60px rgba(0, 0, 0, 0.9);
+  background: #05050f;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  animation: burstCharZoom 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: burstCharZoom 3.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.theme-skirk .burst-character-wrap {
+  border-color: rgba(125, 211, 252, 0.95);
+  box-shadow:
+    0 0 60px rgba(56, 189, 248, 0.95),
+    0 20px 60px rgba(0, 0, 0, 0.9);
+}
+
+.burst-video,
+.burst-character-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.burst-video {
+  z-index: 2;
 }
 
 .burst-character-img {
-  max-height: 100%;
-  max-width: 92vw;
-  object-fit: contain;
-  filter: drop-shadow(0 0 32px rgba(255, 255, 255, 0.65)) drop-shadow(0 12px 45px rgba(0, 0, 0, 0.85));
+  z-index: 1;
 }
 
 @keyframes burstCharZoom {
@@ -2647,21 +2672,30 @@ body {
           <div class="shop-grid hidden" id="shop-avatars-grid"></div>
         </div>
 
-        <div class="modal-footer summary-footer">
+        <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
           <button class="icon-btn" id="btn-claim-bonus" title="Mỗi ngày được hồi 5,000 xu hoặc cứu trợ khi cạn vốn">
             🎁 Hồi Xu Hàng Ngày (+5,000 Xu)
           </button>
-          <button class="primary-btn" id="btn-ok-shop">Đóng Cửa Hàng</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Biểu diễn Kỹ Năng Nộ Raiden Shogun (Chặt Heo/Hàng)!')">
+              ⚡ Test Nộ Raiden
+            </button>
+            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('skirk', '🌌 Biểu diễn Kỹ Năng Nộ Skirk (Về Nhất Ăn Tất)!')">
+              🌌 Test Nộ Skirk
+            </button>
+            <button class="primary-btn" id="btn-ok-shop">Đóng Cửa Hàng</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC CUT-IN OVERLAY (RAIDEN SHOGUN & SKIRK) -->
+    <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC ANIMATION OVERLAY (RAIDEN SHOGUN & SKIRK) -->
     <div class="genshin-burst-overlay hidden" id="genshin-burst-overlay">
       <div class="burst-bg-fx" id="burst-bg-fx"></div>
       <div class="burst-chakra-ring" id="burst-chakra-ring"></div>
       <div class="burst-character-wrap">
-        <img class="burst-character-img" id="burst-character-img" src="" alt="Genshin Elemental Burst" referrerpolicy="no-referrer" />
+        <video class="burst-video" id="burst-video" autoplay muted playsinline loop></video>
+        <img class="burst-character-img" id="burst-character-img" src="" alt="Genshin Elemental Burst Animation" referrerpolicy="no-referrer" />
       </div>
       <div class="burst-slash-container" id="burst-slash-container"></div>
       <div class="burst-text-box">
@@ -2696,8 +2730,12 @@ const MAX_DAILY_RELIEF_CLAIMS = 3;
 // GENSHIN IMPACT SHOP CATALOG: CHARACTER SKINS, AVATARS & BURST SPLASH ART
 // ============================================================================
 const GENSHIN_BURST_ART = {
-  raiden: 'https://enka.network/ui/UI_Gacha_AvatarImg_Shougun.png',
-  skirk: 'https://enka.network/ui/UI_Gacha_AvatarImg_SkirkNew.png',
+  raidenGif: 'raiden_burst.gif',
+  raidenMp4: 'raiden_burst.mp4',
+  raidenRemoteGif: 'https://media.tenor.com/umRS1zU3OUsAAAAM/raiden-baal.gif',
+  skirkGif: 'skirk_burst.gif',
+  skirkMp4: 'skirk_burst.mp4',
+  skirkRemoteGif: 'https://media.tenor.com/vrLe2zvzqNYAAAAM/genshin-genshin-impact.gif',
 };
 
 const ANIME_CARD_SKINS = [
@@ -3433,11 +3471,11 @@ class TienLenGame {
   }
 
   fetchLiveAnimeImages() {
-    // Tải trước (Preload) ảnh Splash Art Kỹ Năng Nộ của Raiden Shogun & Skirk để hiện tức thì 0ms
+    // Tải trước (Preload) GIF/Video Kỹ Năng Nộ của Raiden Shogun & Skirk để phát tức thì
     try {
       [
-        GENSHIN_BURST_ART.raiden,
-        GENSHIN_BURST_ART.skirk,
+        GENSHIN_BURST_ART.raidenGif,
+        GENSHIN_BURST_ART.skirkGif,
         ...ANIME_CARD_SKINS.map((s) => s.imgUrl).filter(Boolean),
         ...ANIME_AVATARS.map((a) => a.imgUrl).filter(Boolean),
       ].forEach((url) => {
@@ -3455,6 +3493,7 @@ class TienLenGame {
       return;
     }
 
+    const videoEl = document.getElementById('burst-video');
     const imgEl = document.getElementById('burst-character-img');
     const chakraEl = document.getElementById('burst-chakra-ring');
     const slashContainer = document.getElementById('burst-slash-container');
@@ -3471,10 +3510,30 @@ class TienLenGame {
       tableEl.classList.add('burst-shake');
     }
 
+    const isFileProtocol = window.location.protocol === 'file:';
+
     if (type === 'raiden') {
       sfx.raidenBurst();
       overlay.classList.add('theme-raiden');
-      imgEl.src = GENSHIN_BURST_ART.raiden;
+      imgEl.src = isFileProtocol ? GENSHIN_BURST_ART.raidenRemoteGif : GENSHIN_BURST_ART.raidenGif;
+      imgEl.onerror = () => {
+        imgEl.src = GENSHIN_BURST_ART.raidenRemoteGif;
+      };
+      if (videoEl) {
+        if (!isFileProtocol) {
+          videoEl.style.display = 'block';
+          videoEl.src = GENSHIN_BURST_ART.raidenMp4;
+          videoEl.currentTime = 0;
+          videoEl.play().catch(() => {
+            videoEl.style.display = 'none';
+          });
+          videoEl.onerror = () => {
+            videoEl.style.display = 'none';
+          };
+        } else {
+          videoEl.style.display = 'none';
+        }
+      }
       tagEl.textContent = '⚡ KỸ NĂNG NỘ • RAIDEN SHOGUN (MUSOU NO HITOTACHI)';
       titleEl.textContent = 'BÍ THUẬT: MỘNG TƯỞNG CHÂN THUYẾT';
       quoteEl.textContent = '“Vô Tưởng Nhất Đao — Chặt Đứt Vĩnh Hằng!”';
@@ -3499,7 +3558,25 @@ class TienLenGame {
     } else {
       sfx.skirkBurst();
       overlay.classList.add('theme-skirk');
-      imgEl.src = GENSHIN_BURST_ART.skirk;
+      imgEl.src = isFileProtocol ? GENSHIN_BURST_ART.skirkRemoteGif : GENSHIN_BURST_ART.skirkGif;
+      imgEl.onerror = () => {
+        imgEl.src = GENSHIN_BURST_ART.skirkRemoteGif;
+      };
+      if (videoEl) {
+        if (!isFileProtocol) {
+          videoEl.style.display = 'block';
+          videoEl.src = GENSHIN_BURST_ART.skirkMp4;
+          videoEl.currentTime = 0;
+          videoEl.play().catch(() => {
+            videoEl.style.display = 'none';
+          });
+          videoEl.onerror = () => {
+            videoEl.style.display = 'none';
+          };
+        } else {
+          videoEl.style.display = 'none';
+        }
+      }
       tagEl.textContent = '🌌 KỸ NĂNG NỘ • SKIRK (ABYSSAL STARSHATTER)';
       titleEl.textContent = 'TUYỆT KỸ VỰC SÂU: PHÁ TOÁI TINH KHÔNG';
       quoteEl.textContent = '“Vạn Vật Quy Hư Vô — Nhất Ăn Tất!”';
@@ -3527,13 +3604,18 @@ class TienLenGame {
     clearTimeout(this.burstTimeout);
     const finishBurst = () => {
       clearTimeout(this.burstTimeout);
+      if (videoEl) {
+        try {
+          videoEl.pause();
+        } catch (_) {}
+      }
       overlay.classList.add('hidden');
       overlay.onclick = null;
       if (onDoneCallback) onDoneCallback();
     };
 
     overlay.onclick = finishBurst;
-    this.burstTimeout = setTimeout(finishBurst, type === 'skirk' ? 2350 : 1950);
+    this.burstTimeout = setTimeout(finishBurst, 3000);
   }
 
   // ============================================================================

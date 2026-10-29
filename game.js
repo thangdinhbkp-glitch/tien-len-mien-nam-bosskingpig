@@ -1920,9 +1920,9 @@ class TienLenGame {
     this.unlockedAvatars = new Set(['default_player']);
     this.equippedAvatar = 'default_player';
     this.unlockedBursts = new Set();
-    this.equippedChopBurst = 'none';
-    this.equippedWinBurst = 'none';
     this.equippedActiveChar = 'raiden';
+    this.equippedChopBurst = 'raiden';
+    this.equippedWinBurst = 'raiden';
     this.gachaPity5 = 0;
     this.gachaPity4 = 0;
     this.gachaGuaranteed5 = false;
@@ -2016,6 +2016,9 @@ class TienLenGame {
         } else if (this.equippedAvatar && CHARACTER_SKILLS[this.equippedAvatar]) {
           this.equippedActiveChar = this.equippedAvatar;
         }
+        // Đồng bộ chung 1 nhân vật cho cả Nhân Vật Đang Xài, Hoạt Ảnh Chặt Heo & Về Nhất
+        this.equippedChopBurst = this.equippedActiveChar || 'raiden';
+        this.equippedWinBurst = this.equippedActiveChar || 'raiden';
         if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
         if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
         if (data.dailyQuestsDate === today && data.dailyQuestsState && typeof data.dailyQuestsState === 'object') {
@@ -2713,37 +2716,40 @@ class TienLenGame {
       `;
     }
 
-    // 2. RENDER TAB KHO ĐỒ 5★ KỸ NĂNG NỘ
+    // 2. RENDER TAB KHO ĐỒ 5★ NHÂN VẬT & KỸ NĂNG NỘ (DÙNG CHUNG CHO KỸ NĂNG [E], CHẶT HEO & VỀ NHẤT)
     const burstsGrid = document.getElementById('shop-bursts-grid');
     if (burstsGrid) {
+      const currentCharId = this.getPlayerActiveCharId(me);
       burstsGrid.innerHTML = GENSHIN_BURSTS.map((b) => {
         const owned = this.unlockedBursts.has(b.id);
-        const isChop = this.equippedChopBurst === b.id;
-        const isWin = this.equippedWinBurst === b.id;
+        const isEquipped = currentCharId === b.id;
+        const sk = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
 
         let actionsHtml = '';
-        if (!owned) {
+        if (!owned && !isEquipped) {
           actionsHtml = `
-            <button class="shop-buy-btn buy-btn" onclick="window.tienLenGame.openGachaForCharacter('${b.id}')">
-              🌠 Chưa sở hữu ➔ Chọn Banner Cầu Nguyện 5★
-            </button>
+            <div class="shop-burst-actions">
+              <button class="shop-buy-btn equip-btn" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}')">
+                ⚡ Dùng Nhân Vật Này (Cả Kỹ Năng &amp; Nộ)
+              </button>
+              <button class="shop-buy-btn buy-btn" onclick="window.tienLenGame.openGachaForCharacter('${b.id}')">
+                🌠 Mở Khóa Sưu Tập 5★
+              </button>
+            </div>
           `;
         } else {
           actionsHtml = `
             <div class="shop-burst-actions">
-              <button class="shop-buy-btn ${isChop ? 'equipped-btn' : 'equip-btn'}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'chop')">
-                ${isChop ? '⚡ Đang dùng Chặt Heo' : '⚡ Gắn cho Chặt Heo'}
-              </button>
-              <button class="shop-buy-btn ${isWin ? 'equipped-btn' : 'equip-btn'}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'win')">
-                ${isWin ? '👑 Đang dùng Về Nhất' : '👑 Gắn cho Về Nhất'}
+              <button class="shop-buy-btn ${isEquipped ? 'equipped-btn' : 'equip-btn'}" style="width:100%;" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}')">
+                ${isEquipped ? '✅ Đang Xài (Kỹ Năng + Nộ Chặt Heo & Về Nhất)' : '⚡ Chọn Nhân Vật Này (Dùng Chung Kỹ Năng & Nộ)'}
               </button>
             </div>
           `;
         }
 
         return `
-          <div class="shop-item-card ${isChop || isWin ? 'equipped' : ''}">
-            <div class="rarity-stars-badge rarity-5">⭐⭐⭐⭐⭐ KỸ NĂNG NỘ 5 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}</div>
+          <div class="shop-item-card ${isEquipped ? 'equipped' : ''}">
+            <div class="rarity-stars-badge rarity-5">⭐⭐⭐⭐⭐ NHÂN VẬT &amp; NỘ 5★ ${isEquipped ? '• ĐANG XÀI' : owned ? '• ĐÃ SỞ HỮU' : ''}</div>
             <div class="shop-burst-preview-wrap">
               <video src="${b.mp4Url}" poster="${b.posterUrl}" autoplay muted loop playsinline preload="metadata"></video>
               <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem & Nghe Thử Video Nộ: ${b.name}!')">
@@ -2752,6 +2758,9 @@ class TienLenGame {
             </div>
             <div class="shop-item-title">${b.name}</div>
             <div class="shop-item-desc">${b.desc}</div>
+            <div style="font-size:11.5px;color:#fde68a;background:rgba(15,23,42,0.72);border:1px solid rgba(250,204,21,0.35);border-radius:8px;padding:6px 8px;margin-bottom:6px;line-height:1.35;">
+              <strong>${sk.icon} Kỹ Năng [Phím E]: ${sk.skillName}</strong> — ${sk.shortDesc}
+            </div>
             ${actionsHtml}
           </div>
         `;
@@ -3013,29 +3022,25 @@ class TienLenGame {
     this.syncCosmeticsInRoom();
   }
 
-  buyOrEquipBurst(burstId, slot = 'chop') {
+  buyOrEquipBurst(burstId) {
     const burst = GENSHIN_BURSTS.find((b) => b.id === burstId);
     if (!burst) return;
     const me = this.getLocalPlayer();
     if (!me) return;
 
-    if (!this.unlockedBursts.has(burstId)) {
-      this.openGachaForCharacter(burstId);
+    if (this.isMidMatch() && me.skillUsed && this.getPlayerActiveCharId(me) !== burstId) {
+      alert('⛔ Bạn đã dùng Kỹ Năng trong ván này rồi! Chỉ có thể đổi nhân vật ở ván tiếp theo.');
       return;
     }
 
     sfx.click();
-    if (slot === 'win') {
-      this.equippedWinBurst = burstId;
-      me.winBurst = burstId;
-    } else {
-      this.equippedChopBurst = burstId;
-      me.chopBurst = burstId;
-    }
-    if (CHARACTER_SKILLS[burstId]) {
-      this.equippedActiveChar = burstId;
-      me.activeChar = burstId;
-    }
+    // Dùng chung 1 nhân vật cho cả Kỹ Năng Chiến Thuật, Hoạt Ảnh Chặt Heo & Về Nhất!
+    this.equippedActiveChar = burstId;
+    this.equippedChopBurst = burstId;
+    this.equippedWinBurst = burstId;
+    me.activeChar = burstId;
+    me.chopBurst = burstId;
+    me.winBurst = burstId;
 
     this.saveShopProfile();
     this.updateArenaBackdropCharacters();
@@ -3701,14 +3706,21 @@ class TienLenGame {
           return;
         }
         this.equippedActiveChar = chosen;
-        if (me) me.activeChar = chosen;
+        this.equippedChopBurst = chosen;
+        this.equippedWinBurst = chosen;
+        if (me) {
+          me.activeChar = chosen;
+          me.chopBurst = chosen;
+          me.winBurst = chosen;
+        }
         sfx.click();
         this.saveShopProfile();
         this.updateArenaBackdropCharacters();
-        this.updateHumanActionButtons();
+        this.renderAll();
+        this.syncCosmeticsInRoom();
         const sk = CHARACTER_SKILLS[chosen];
         this.addLog(
-          `✨ <strong>Nhân Vật Xuất Chiến Dưới Chân Bạn:</strong> Đã chọn <strong>${sk.icon} ${sk.charName}</strong> — Kỹ năng: <strong>${sk.name}</strong> (${sk.shortDesc}).`,
+          `✨ <strong>Đổi Nhân Vật Đang Xài:</strong> Bạn đang sử dụng <strong>${sk.icon} ${sk.charName}</strong> (Dùng chung cho Kỹ năng <strong>${sk.skillName}</strong>, Hoạt ảnh Chặt Heo &amp; Về Nhất).`,
           'log-play'
         );
       });
@@ -4432,55 +4444,34 @@ class TienLenGame {
 
   updateArenaBackdropCharacters() {
     if (!this.players || this.players.length < 4) return;
-    const splitWrap = document.getElementById('arena-split-zones');
-    const activePlayers = this.getActivePlayers();
-    const activeCount = Math.max(2, Math.min(4, activePlayers.length || this.soloPlayerCount || 4));
+    const me = this.getLocalPlayer();
+    const myCharId = this.getPlayerActiveCharId(me);
 
-    if (splitWrap) {
-      splitWrap.classList.remove('layout-2p', 'layout-3p', 'layout-4p');
-      splitWrap.classList.add(`layout-${activeCount}p`);
+    // Đồng bộ nhân vật của người chơi vào cả activeChar, chopBurst và winBurst
+    if (me) {
+      me.activeChar = myCharId;
+      me.chopBurst = myCharId;
+      me.winBurst = myCharId;
     }
+    this.equippedActiveChar = myCharId;
+    this.equippedChopBurst = myCharId;
+    this.equippedWinBurst = myCharId;
 
-    for (let visualSlot = 0; visualSlot < 4; visualSlot++) {
-      let playerId = (this.mySeatId + visualSlot) % 4;
-      let p = this.players[playerId];
-      // Nếu bàn 2 người mà đối thủ ngồi ở ghế 1 hoặc 3 thì vẫn ánh xạ lên vùng trên (visualSlot = 2)
-      if (activeCount === 2 && visualSlot === 2 && (!p || !p.active)) {
-        const opp = activePlayers.find((pl) => pl.id !== this.mySeatId);
-        if (opp) p = opp;
-      }
-
-      const zoneEl = document.getElementById(`arena-zone-${visualSlot}`);
-      const artEl = document.getElementById(`arena-art-${visualSlot}`);
-      const tagEl = document.getElementById(`arena-tag-${visualSlot}`);
-      if (!zoneEl || !p) continue;
-
-      const charId = this.getPlayerActiveCharId(p);
-      const sk = CHARACTER_SKILLS[charId] || CHARACTER_SKILLS.raiden;
-      const elem = CHARACTER_ELEMENTS[charId] || 'electro';
-
-      zoneEl.setAttribute('data-elem', elem);
-      zoneEl.classList.toggle('zone-active-turn', !this.isGameOver && this.currentTurn === p.id);
-
-      if (artEl) {
-        artEl.style.backgroundImage = `url('fanart/${charId}.jpg')`;
-      }
-      if (tagEl) {
-        if (visualSlot === 0) {
-          tagEl.textContent = `${sk.icon} Dưới chân bạn: ${sk.charName} • Kỹ năng: ${sk.name} ${
-            p.skillUsed ? '(Đã dùng)' : '[Phím E]'
-          }`;
-        } else {
-          tagEl.textContent = `${sk.icon} ${p.name} • ${sk.name} ${p.skillUsed ? '(Đã dùng)' : ''}`;
-        }
-      }
+    const leftEl = document.getElementById('arena-char-left');
+    const rightEl = document.getElementById('arena-char-right');
+    if (leftEl) {
+      leftEl.style.backgroundImage = `url('fanart/${myCharId}.jpg')`;
+    }
+    if (rightEl) {
+      const activeOpponents = this.players.filter((p) => p.active && p.id !== this.mySeatId);
+      const mainOpp = activeOpponents.find((p) => p.id === 2) || activeOpponents[0] || this.players[2];
+      const oppCharId = this.getPlayerActiveCharId(mainOpp);
+      rightEl.style.backgroundImage = `url('fanart/${oppCharId}.jpg')`;
     }
 
     if (this.selectCharSkill) {
-      const me = this.getLocalPlayer();
-      const myChar = this.getPlayerActiveCharId(me);
-      if (this.selectCharSkill.value !== myChar) {
-        this.selectCharSkill.value = myChar;
+      if (this.selectCharSkill.value !== myCharId) {
+        this.selectCharSkill.value = myCharId;
       }
       this.selectCharSkill.disabled = !!(this.isMidMatch() && me && me.skillUsed);
     }
@@ -4635,12 +4626,12 @@ class TienLenGame {
 
     player.skillUsed = true;
 
-    // Hiệu ứng sáng rực vùng nhân vật dưới chân người vừa tung kỹ năng
+    // Hiệu ứng sáng rực Ô Nhân Vật Đang Xài cạnh Name Tag của người vừa tung kỹ năng
     const visualSlot = (player.id - this.mySeatId + 4) % 4;
-    const zoneEl = document.getElementById(`arena-zone-${visualSlot}`);
-    if (zoneEl) {
-      zoneEl.classList.add('zone-skill-cast');
-      setTimeout(() => zoneEl.classList.remove('zone-skill-cast'), 2600);
+    const charBoxEl = document.getElementById(`char-box-${visualSlot}`);
+    if (charBoxEl) {
+      charBoxEl.classList.add('char-skill-flash');
+      setTimeout(() => charBoxEl.classList.remove('char-skill-flash'), 2400);
     }
 
     let skillSummary = '';
@@ -5889,7 +5880,7 @@ class TienLenGame {
     const bannerTitle = `🎉 ${winner.name} TỚI TRẮNG (${reason}) - ĂN TRỌN +${totalWon.toLocaleString()} XU!`;
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon.toLocaleString()} Xu!`;
-    const winBurstId = winner.winBurst || 'none';
+    const winBurstId = this.getPlayerActiveCharId(winner);
     this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: burstDetail };
     this.incrementDailyQuest('play_matches', 1);
     if (winnerId === this.mySeatId) {
@@ -6082,7 +6073,7 @@ class TienLenGame {
       combo.reaction = rx;
       this.triggerArenaReactionFlash(rx);
       const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} chặt ${this.currentCombo.label} của ${victim.name} (+${chopValue.toLocaleString()} xu)!`;
-      const chopBurstId = player.chopBurst || 'none';
+      const chopBurstId = this.getPlayerActiveCharId(player);
       this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
       this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
       this.showComboBanner(`${rx.badge} • CHẶT +${chopValue.toLocaleString()} XU!`, rx.cssClass);
@@ -7134,7 +7125,7 @@ class TienLenGame {
     const winBurstDetail = wonBy3Spade
       ? `👑 ${winner.name} Đút 3♠ Về Nhất • +${totalWinnerGain.toLocaleString()} Xu!`
       : `🏆 ${winner.name} Về Nhất Ăn Tất • +${totalWinnerGain.toLocaleString()} Xu!`;
-    const winBurstId = winner.winBurst || 'none';
+    const winBurstId = this.getPlayerActiveCharId(winner);
     this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: winBurstDetail };
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     this.incrementDailyQuest('play_matches', 1);
@@ -7307,6 +7298,37 @@ class TienLenGame {
         rankEl.className = `rank-badge ${p.finishRank === 1 ? 'rank-1' : 'rank-4'}`;
       } else {
         rankEl.className = 'rank-badge hidden';
+      }
+
+      // Cập nhật Ô Riêng Bên Cạnh Name Tag Ghi Tên Nhân Vật Người Đó Đang Xài
+      const charId = this.getPlayerActiveCharId(p);
+      const sk = CHARACTER_SKILLS[charId] || CHARACTER_SKILLS.raiden;
+      const elem = CHARACTER_ELEMENTS[charId] || 'electro';
+      const charBoxEl = document.getElementById(`char-box-${visualSlot}`);
+      const charThumbEl = document.getElementById(`char-thumb-${visualSlot}`);
+      const charNameEl = document.getElementById(`char-name-${visualSlot}`);
+      const charSkillEl = document.getElementById(`char-skill-${visualSlot}`);
+
+      if (charBoxEl) {
+        charBoxEl.classList.remove('elem-electro', 'elem-hydro', 'elem-pyro', 'elem-cryo');
+        charBoxEl.classList.add(`elem-${elem}`);
+        charBoxEl.title = `${sk.icon} ${sk.charName} (Nhân vật đang xài — Dùng chung cho Kỹ năng ${sk.skillName}, Hoạt ảnh Chặt Heo & Về Nhất): ${sk.shortDesc}`;
+      }
+      if (charThumbEl) {
+        const expectedSrc = `fanart/${charId}.jpg`;
+        if (charThumbEl.getAttribute('src') !== expectedSrc) {
+          charThumbEl.setAttribute('src', expectedSrc);
+        }
+        charThumbEl.alt = sk.charName;
+      }
+      if (charNameEl) {
+        charNameEl.textContent = `${sk.icon} ${sk.charName}`;
+      }
+      if (charSkillEl) {
+        charSkillEl.textContent = p.skillUsed
+          ? `${sk.skillName} • Đã dùng`
+          : `${sk.skillName} • 1/1`;
+        charSkillEl.classList.toggle('used', !!p.skillUsed);
       }
 
       // Khi ván bài kết thúc (isGameOver), lật ngửa toàn bộ bài còn lại của các đối thủ ngay trên bàn!

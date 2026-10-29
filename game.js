@@ -6029,12 +6029,11 @@ class TienLenGame {
       activeFurinaReverseSuit = true;
       skillSummary = `💧 [Luật Sân Khấu Fontaine] ${player.name} đảo ngược chất (♠ > ♣ > ♦ > ♥) khi đè cùng số & CẤM đánh Heo lẻ (2) trong vòng này!`;
     } else if (charId === 'skirk') {
+      // Chọn ngẫu nhiên công bằng (tỉ lệ đều 1/N) giữa tất cả các đối thủ đang còn bài trên bàn
       const target =
-        (this.trickOwnerId !== null &&
-          this.trickOwnerId !== player.id &&
-          this.players[this.trickOwnerId]?.hand?.length > 0 &&
-          this.players[this.trickOwnerId]) ||
-        activeOpponents[0];
+        activeOpponents.length > 0
+          ? activeOpponents[Math.floor(Math.random() * activeOpponents.length)]
+          : null;
       if (target && target.hand.length > 0 && player.hand.length > 0) {
         let myCard = null;
         if (preferredCardIds && preferredCardIds.length > 0) {

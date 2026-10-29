@@ -1686,6 +1686,7 @@ class TienLenGame {
     this.inInitialLobby = true;
     this.botTimer = null;
     this.endMatchDelayTimer = null;
+    this.queuedNextMatchBots = null;
 
     this.bindDOM();
     sfx.onTrackChanged = () => this.syncBGMButtonsUI();
@@ -1735,6 +1736,12 @@ class TienLenGame {
       if (Array.isArray(this.players)) {
         this.players.forEach((p) => {
           const cid = this.getPlayerActiveCharId(p);
+          if (cid && cid !== 'none') charIds.add(cid);
+        });
+      }
+      if (this.queuedNextMatchBots) {
+        [1, 2, 3].forEach((idx) => {
+          const cid = this.queuedNextMatchBots[idx]?.id;
           if (cid && cid !== 'none') charIds.add(cid);
         });
       }
@@ -4810,10 +4817,6 @@ class TienLenGame {
         alert('Chỉ Chủ phòng mới có thể đổi nhân vật Bot!');
         return;
       }
-      if (this.isMidMatch()) {
-        alert('⛔ Ván bài đang diễn ra! Bạn phải đánh xong ván hiện tại mới được đổi nhân vật Bot.');
-        return;
-      }
       this.randomizeBotCharacters(true);
     });
 
@@ -5228,18 +5231,39 @@ class TienLenGame {
     }
     const btnTopRandom = document.getElementById('btn-top-random-bots');
     if (btnTopRandom) {
-      btnTopRandom.disabled = locked;
-      btnTopRandom.title = locked
-        ? '⛔ Đang trong trận! Chỉ đổi nhân vật Bot sau khi kết thúc ván bài.'
-        : 'Random ngẫu nhiên nhân vật Bot từ 10 nhân vật 5★ có Hoạt Ảnh Kỹ Năng Nộ riêng';
-      btnTopRandom.style.opacity = locked ? '0.55' : '1';
-      btnTopRandom.style.cursor = locked ? 'not-allowed' : 'pointer';
+      btnTopRandom.disabled = false;
+      btnTopRandom.style.opacity = '1';
+      btnTopRandom.style.cursor = 'pointer';
+      if (locked) {
+        if (this.queuedNextMatchBots) {
+          const count = this.soloPlayerCount || 4;
+          const activeIdxs = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+          const qNames = activeIdxs
+            .map((i) => {
+              const ch = this.queuedNextMatchBots[i];
+              return ch ? `${ch.name.split('(')[0].trim()} ${ch.crest}` : '';
+            })
+            .filter(Boolean)
+            .join(', ');
+          btnTopRandom.textContent = `🎲 Trận sau: ${qNames}`;
+        } else {
+          btnTopRandom.textContent = '🎲 Random Bot Trận Sau';
+        }
+        btnTopRandom.title =
+          'Đang trong trận: Bấm để Random chọn trước nhân vật Bot 5★ cho ván kế tiếp (không làm ảnh hưởng ván đang đánh)!';
+      } else {
+        btnTopRandom.textContent = '🎲 Đổi Nhân Vật Bot (5★)';
+        btnTopRandom.title = 'Random ngẫu nhiên nhân vật Bot từ 10 nhân vật 5★ có Hoạt Ảnh Kỹ Năng Nộ riêng';
+      }
     }
     const btnLobbyRandom = document.getElementById('btn-random-bots');
     if (btnLobbyRandom) {
-      btnLobbyRandom.disabled = locked;
-      btnLobbyRandom.style.opacity = locked ? '0.55' : '1';
-      btnLobbyRandom.style.cursor = locked ? 'not-allowed' : 'pointer';
+      btnLobbyRandom.disabled = false;
+      btnLobbyRandom.style.opacity = '1';
+      btnLobbyRandom.style.cursor = 'pointer';
+      btnLobbyRandom.textContent = locked
+        ? '🎲 Random Đối Thủ Bot Cho Trận Sau (10 Nhân Vật Có Nộ 5★)'
+        : '🎲 Random Đối Thủ Bot (10 Nhân Vật Có Nộ 5★)';
     }
     const botBtn = document.getElementById('btn-solo-bot-mode');
     if (botBtn) {
@@ -5538,16 +5562,12 @@ class TienLenGame {
   }
 
   randomizeBotCharacters(notify = false) {
-    if (notify && this.isMidMatch()) {
-      alert('⛔ Ván bài đang diễn ra! Bạn phải đánh xong ván hiện tại mới được đổi nhân vật Bot.');
-      return;
-    }
     if (!this.players || this.players.length < 4) return;
     const fullRoster = this.getBotBurstRoster(); // 10 Nhân vật 5★ có Burst Animation riêng
     const myCharId = this.getPlayerActiveCharId(this.getLocalPlayer());
     const botRoster = fullRoster.filter((c) => c.id !== myCharId);
     const pool = botRoster.length >= 3 ? botRoster : fullRoster;
-    const currentSeat2Char = this.players[2]?.cardSkin || '';
+    const currentSeat2Char = this.queuedNextMatchBots?.[2]?.id || this.players[2]?.cardSkin || '';
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
 
     // Đảm bảo ghế đối diện (Ghế #2 trong Solo 1v1) luôn đổi sang nhân vật 5★ MỚI không trùng ván trước và không trùng người chơi!
@@ -5562,6 +5582,37 @@ class TienLenGame {
       if (picked.length === 3) break;
     }
 
+    if (this.isMidMatch()) {
+      // Đang chơi giữa trận: Cho phép Random chọn trước nhân vật Bot cho VÁN TIẾP THEO mà không phá ván đang đánh!
+      this.queuedNextMatchBots = {
+        1: picked[0] || pool[0],
+        2: picked[1] || pool[1 % pool.length],
+        3: picked[2] || pool[2 % pool.length],
+      };
+      sfx.click();
+      const count = this.soloPlayerCount || 4;
+      const activeIdxs = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+      const queuedPlain = activeIdxs
+        .map((i) => {
+          const ch = this.queuedNextMatchBots[i];
+          return ch ? `Bot ${ch.name.split('(')[0].trim()} ${ch.crest}` : '';
+        })
+        .filter(Boolean);
+      const queuedHtml = queuedPlain.map((n) => `<strong>${n}</strong>`).join(', ');
+      this.showComboBanner(`🎲 BOT TRẬN SAU: ${queuedPlain.join(' • ').toUpperCase()}!`);
+      this.addLog(
+        `🎲 <strong>[Random Bot Trận Sau]</strong> Đã chọn trước đối thủ cho <strong>Ván #${
+          (this.matchCount || 1) + 1
+        }</strong>: ${queuedHtml} <em>(Sẽ vào bàn ngay khi ván hiện tại kết thúc)</em>!`,
+        'log-win'
+      );
+      this.preloadActiveBurstVideos();
+      this.renderSoloPlayerCountUI();
+      this.updateMidMatchLockUI();
+      return;
+    }
+
+    this.queuedNextMatchBots = null;
     [1, 2, 3].forEach((seatIdx, idx) => {
       const p = this.players[seatIdx];
       const ch = picked[idx] || pool[idx % pool.length];
@@ -5598,6 +5649,31 @@ class TienLenGame {
         'log-win'
       );
     }
+    this.updateMidMatchLockUI();
+  }
+
+  applyQueuedNextMatchBots() {
+    if (!this.queuedNextMatchBots || !this.players || this.players.length < 4) return;
+    [1, 2, 3].forEach((seatIdx) => {
+      const p = this.players[seatIdx];
+      const ch = this.queuedNextMatchBots[seatIdx];
+      if (!p || !ch) return;
+      if (!this.isMultiplayer || p.isBot) {
+        const shortName = ch.name.split('(')[0].trim();
+        p.name = `Bot ${shortName} ${ch.crest}`;
+        p.avatar = ch.id;
+        p.cardSkin = ch.id;
+        p.chopBurst = ch.id;
+        p.winBurst = ch.id;
+        p.activeChar = ch.id;
+      }
+    });
+    this.queuedNextMatchBots = null;
+    this.updateArenaBackdropCharacters();
+    this.preloadActiveBurstVideos();
+    this.renderSoloPlayerCountUI();
+    this.renderSeats();
+    this.updateMidMatchLockUI();
   }
 
   updateArenaBackdropCharacters() {
@@ -6305,9 +6381,33 @@ class TienLenGame {
       }
     });
 
-    const b1 = this.players?.[1]?.name || 'Bot Furina 💧';
-    const b2 = this.players?.[2]?.name || 'Bot Raiden ⚡';
-    const b3 = this.players?.[3]?.name || 'Bot Skirk 🌌';
+    const getBotDisplay = (idx, fallbackName, fallbackSkin) => {
+      if (locked && this.queuedNextMatchBots && this.queuedNextMatchBots[idx]) {
+        const ch = this.queuedNextMatchBots[idx];
+        return {
+          name: `Bot ${ch.name.split('(')[0].trim()} ${ch.crest}`,
+          skin: ch.id,
+          isQueued: true,
+        };
+      }
+      const p = this.players?.[idx];
+      return {
+        name: p?.name || fallbackName,
+        skin: p?.cardSkin || fallbackSkin,
+        isQueued: false,
+      };
+    };
+
+    const d1 = getBotDisplay(1, 'Bot Furina 💧', 'furina');
+    const d2 = getBotDisplay(2, 'Bot Raiden ⚡', 'raiden');
+    const d3 = getBotDisplay(3, 'Bot Skirk 🌌', 'skirk');
+    const b1 = d1.name;
+    const b2 = d2.name;
+    const b3 = d3.name;
+    const queuedTag =
+      locked && this.queuedNextMatchBots
+        ? ` <span style="color:#fde047;font-weight:800;">(⏳ Đã chọn cho Trận Sau — Ván #${(this.matchCount || 1) + 1})</span>`
+        : '';
 
     const desc2 = document.getElementById('bot-desc-2');
     if (desc2) desc2.innerHTML = `Đấu tay đôi trực diện với <strong>${b2}</strong>`;
@@ -6320,17 +6420,18 @@ class TienLenGame {
     if (lineupEl && this.players) {
       const activeIndices = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
       const seatLabels = { 1: 'Ghế Trái', 2: 'Ghế Đối Diện (1v1)', 3: 'Ghế Phải' };
+      const dispMap = { 1: d1, 2: d2, 3: d3 };
       lineupEl.innerHTML = activeIndices
         .map((idx) => {
-          const p = this.players[idx];
-          if (!p) return '';
-          const charId = p.cardSkin || 'raiden';
+          const d = dispMap[idx];
+          if (!d) return '';
+          const seatTag = d.isQueued ? `${seatLabels[idx]} • ⏳ Trận sau` : seatLabels[idx];
           return `
             <div class="bot-lineup-chip">
-              <img src="fanart/${charId}.jpg" alt="${p.name}" />
+              <img src="fanart/${d.skin}.jpg" alt="${d.name}" />
               <div class="bot-lineup-chip-info">
-                <span class="bot-lineup-chip-seat">${seatLabels[idx]}</span>
-                <span class="bot-lineup-chip-name">${p.name}</span>
+                <span class="bot-lineup-chip-seat">${seatTag}</span>
+                <span class="bot-lineup-chip-name">${d.name}</span>
               </div>
             </div>
           `;
@@ -6341,11 +6442,11 @@ class TienLenGame {
     const previewEl = document.getElementById('bot-opponents-preview');
     if (previewEl) {
       if (count === 2) {
-        previewEl.innerHTML = `<strong>⚔️ Bàn 2 Người (Solo 1v1 Bot):</strong> Bạn đấu tay đôi trực diện với <strong>${b2}</strong> (Có thể bấm 🎲 Random để đổi nhân vật khác!)`;
+        previewEl.innerHTML = `<strong>⚔️ Bàn 2 Người (Solo 1v1 Bot):</strong> Bạn đấu tay đôi trực diện với <strong>${b2}</strong>${queuedTag} (Có thể bấm 🎲 Random để đổi nhân vật khác!)`;
       } else if (count === 3) {
-        previewEl.innerHTML = `<strong>🔥 Bàn 3 Người (Tam Hùng 1v2 Bot):</strong> Bạn đấu với <strong>${b1}</strong> (Trái) & <strong>${b2}</strong> (Đối diện)`;
+        previewEl.innerHTML = `<strong>🔥 Bàn 3 Người (Tam Hùng 1v2 Bot):</strong> Bạn đấu với <strong>${b1}</strong> (Trái) & <strong>${b2}</strong> (Đối diện)${queuedTag}`;
       } else {
-        previewEl.innerHTML = `<strong>👑 Bàn 4 Người (Đủ Bàn 1v3 Bot):</strong> Bạn đấu với <strong>${b1}</strong>, <strong>${b2}</strong> & <strong>${b3}</strong>`;
+        previewEl.innerHTML = `<strong>👑 Bàn 4 Người (Đủ Bàn 1v3 Bot):</strong> Bạn đấu với <strong>${b1}</strong>, <strong>${b2}</strong> & <strong>${b3}</strong>${queuedTag}`;
       }
     }
   }
@@ -7216,7 +7317,9 @@ class TienLenGame {
     this.modalSummary.classList.add('hidden');
     this.btnShowSummary.classList.add('hidden');
 
-    if (!this.isMultiplayer && !resetHistory && this.autoRandomizeBots !== false) {
+    if (!this.isMultiplayer && this.queuedNextMatchBots) {
+      this.applyQueuedNextMatchBots();
+    } else if (!this.isMultiplayer && !resetHistory && this.autoRandomizeBots !== false) {
       this.randomizeBotCharacters(false);
     } else {
       this.updateArenaBackdropCharacters();

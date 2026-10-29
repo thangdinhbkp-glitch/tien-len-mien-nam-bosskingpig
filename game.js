@@ -468,7 +468,7 @@ const CHARACTER_SKILLS = {
     charName: 'Raiden Shogun',
     icon: '⚡',
     name: 'Tịnh Thổ Cắt Vòng',
-    shortDesc: 'Khi còn ≥6 lá: Chém đứt Lá Lẻ/Đôi nhỏ (≤ J) trên bàn để mở vòng mới và được đánh bộ bài hợp lệ bất kỳ',
+    shortDesc: 'Chém đứt Lá Lẻ hoặc Đôi nhỏ (≤ J) trên bàn để mở vòng mới và được đánh bộ bài hợp lệ bất kỳ',
   },
   furina: {
     id: 'furina',
@@ -5918,12 +5918,6 @@ class TienLenGame {
     if (activeOpponents.length === 0) return { ok: false, reason: 'Không còn đối thủ' };
 
     if (charId === 'raiden') {
-      if (player.hand.length < 6) {
-        return {
-          ok: false,
-          reason: 'Chỉ được dùng Tịnh Thổ Cắt Vòng khi trên tay còn từ 6 lá bài trở lên (không dùng khi còn ≤ 5 lá cuối ván)!',
-        };
-      }
       const canCutTable =
         this.currentCombo &&
         (this.currentCombo.type === COMBO_TYPES.SINGLE || this.currentCombo.type === COMBO_TYPES.PAIR) &&
@@ -6224,14 +6218,13 @@ class TienLenGame {
     let preferredIds = [];
 
     if (charId === 'raiden') {
-      // Chỉ cắt vòng khi thực sự không có bài đỡ bộ Lẻ/Đôi <= J trên bàn và trên tay còn >= 6 lá
+      // Cắt vòng khi không có bài đỡ bộ Lẻ/Đôi <= J trên bàn (hoặc khi còn ít bài / đối thủ sắp hết bài)
       if (
         this.currentCombo &&
         (this.currentCombo.type === COMBO_TYPES.SINGLE || this.currentCombo.type === COMBO_TYPES.PAIR) &&
         this.currentCombo.highRank <= 8 &&
         !this.currentCombo.isBomb &&
-        bot.hand.length >= 6 &&
-        validMoves.length === 0
+        (validMoves.length === 0 || bot.hand.length <= 4 || minOppCards <= 4)
       ) {
         shouldCast = true;
       }

@@ -8151,6 +8151,7 @@ class TienLenGame {
     this.isGameOver = false;
     this.inInitialLobby = true;
     this.botTimer = null;
+    this.endMatchDelayTimer = null;
 
     this.bindDOM();
     sfx.onTrackChanged = () => this.syncBGMButtonsUI();
@@ -8220,7 +8221,7 @@ class TienLenGame {
   triggerGenshinBurst(burstId, detailText, onDoneCallback = null, lockGameplay = false) {
     if (!burstId || burstId === 'none') {
       if (onDoneCallback) {
-        setTimeout(onDoneCallback, 450);
+        onDoneCallback();
       }
       return;
     }
@@ -13488,15 +13489,21 @@ class TienLenGame {
       if (!burst.isWin) {
         this.triggerGenshinBurst(bId, burst.detail, null, !!burst.lockGameplay);
       } else {
-        this.triggerGenshinBurst(bId, burst.detail, () => {
-          if (this.isGameOver && state.lastSummaryData) {
-            this.showSummaryModal(
-              state.lastSummaryData.coinChanges,
-              state.lastSummaryData.detailsByPlayer,
-              state.lastSummaryData.bannerTitle
-            );
-          }
-        });
+        sfx.win();
+        const summarySnapshot = state.lastSummaryData;
+        clearTimeout(this.endMatchDelayTimer);
+        this.endMatchDelayTimer = setTimeout(() => {
+          if (!this.isGameOver) return;
+          this.triggerGenshinBurst(bId, burst.detail, () => {
+            if (this.isGameOver && summarySnapshot) {
+              this.showSummaryModal(
+                summarySnapshot.coinChanges,
+                summarySnapshot.detailsByPlayer,
+                summarySnapshot.bannerTitle
+              );
+            }
+          });
+        }, 1350);
       }
     }
 
@@ -13510,13 +13517,19 @@ class TienLenGame {
       }
       if (!wasGameOver && (!state.lastBurstEffect || !state.lastBurstEffect.isWin)) {
         sfx.win();
-        this.showSummaryModal(
-          state.lastSummaryData.coinChanges,
-          state.lastSummaryData.detailsByPlayer,
-          state.lastSummaryData.bannerTitle
-        );
+        const summarySnapshot = state.lastSummaryData;
+        clearTimeout(this.endMatchDelayTimer);
+        this.endMatchDelayTimer = setTimeout(() => {
+          if (!this.isGameOver || !summarySnapshot) return;
+          this.showSummaryModal(
+            summarySnapshot.coinChanges,
+            summarySnapshot.detailsByPlayer,
+            summarySnapshot.bannerTitle
+          );
+        }, 1350);
       }
     } else if (!this.isGameOver) {
+      clearTimeout(this.endMatchDelayTimer);
       this.modalSummary.classList.add('hidden');
       this.btnShowSummary.classList.add('hidden');
     }
@@ -13675,6 +13688,7 @@ class TienLenGame {
 
   startNewMatch(resetHistory = false) {
     clearTimeout(this.botTimer);
+    clearTimeout(this.endMatchDelayTimer);
     this.modalSummary.classList.add('hidden');
     this.btnShowSummary.classList.add('hidden');
 
@@ -13870,9 +13884,15 @@ class TienLenGame {
     if (this.isMultiplayer && this.isHost) {
       this.broadcastState();
     }
-    this.triggerGenshinBurst(winBurstId, burstDetail, () => {
-      this.showSummaryModal(coinChanges, detailsByPlayer, bannerTitle);
-    });
+    clearTimeout(this.endMatchDelayTimer);
+    this.endMatchDelayTimer = setTimeout(() => {
+      if (!this.isGameOver) return;
+      this.triggerGenshinBurst(winBurstId, burstDetail, () => {
+        if (this.isGameOver) {
+          this.showSummaryModal(coinChanges, detailsByPlayer, bannerTitle);
+        }
+      });
+    }, 1350);
   }
 
   getComboChopValue(combo, b = this.betPerCard || 100) {
@@ -14097,8 +14117,10 @@ class TienLenGame {
       const chopTitleUpper = isStackedChop ? 'CHẶT CHỒNG' : 'CHẶT';
       const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} ${chopTitleUpper.toLowerCase()} ${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()} xu)!`;
       const chopBurstId = this.getPlayerActiveCharId(player);
-      this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
-      this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
+      if (player.hand.length > 0) {
+        this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
+        this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
+      }
       this.showComboBanner(`${rx.badge} • ${chopTitleUpper} +${totalChopValue.toLocaleString()} XU!`, rx.cssClass);
       this.addLog(
         `💥 <strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> tung <strong>${combo.label}</strong> ${chopTitleUpper.toLowerCase()} <strong>${targetDisplayLabel}</strong> của <strong>${victim.name}</strong> (+${totalChopValue.toLocaleString()} xu)!`,
@@ -15218,9 +15240,16 @@ class TienLenGame {
       this.broadcastState();
     }
 
-    this.triggerGenshinBurst(winBurstId, winBurstDetail, () => {
-      this.showSummaryModal(coinChanges, detailsByPlayer, bannerTitle);
-    });
+    // Delay ~1.35 giây để người chơi nhìn rõ lá bài cuối cùng đánh xuống bàn & bài lật ngửa của đối thủ rồi mới tổng kết
+    clearTimeout(this.endMatchDelayTimer);
+    this.endMatchDelayTimer = setTimeout(() => {
+      if (!this.isGameOver) return;
+      this.triggerGenshinBurst(winBurstId, winBurstDetail, () => {
+        if (this.isGameOver) {
+          this.showSummaryModal(coinChanges, detailsByPlayer, bannerTitle);
+        }
+      });
+    }, 1350);
   }
 
   showSummaryModal(coinChanges, detailsByPlayer, bannerText) {

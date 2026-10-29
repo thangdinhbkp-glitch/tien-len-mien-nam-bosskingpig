@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=36" />
+  <link rel="stylesheet" href="styles.css?v=37" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -32,6 +32,9 @@
         </button>
         <button class="account-top-btn" id="btn-top-account" onclick="window.tienLenGame.openAccountModal()" title="Tài Khoản & Mật Khẩu — Tạo tài khoản giữ nguyên 100% dữ liệu đang chơi">
           🔐 <span id="top-account-label">Tạo TK (Lưu Dữ Liệu)</span>
+        </button>
+        <button class="clear-log-btn hidden" id="btn-top-logout" onclick="window.tienLenGame.logoutAccount()" title="Đăng xuất khỏi tài khoản hiện tại (Dữ liệu đã được lưu an toàn trên Đám Mây)" style="padding:6px 10px;font-weight:800;border-radius:999px;">
+          🚪 Đăng Xuất
         </button>
         <button class="shop-btn" id="btn-shop" title="Cầu Nguyện (Gacha Genshin Impact) mở khóa Kỹ Năng Nộ 5★, Decor Bài 4★ & Avatar 3★">
           🌠 Cầu Nguyện (Gacha)
@@ -308,6 +311,9 @@
             </div>
             <button class="account-top-btn" id="btn-lobby-account" onclick="window.tienLenGame.openAccountModal()" title="Tạo Tài Khoản / Đăng Nhập bằng Mật Khẩu (Giữ nguyên 100% dữ liệu đang chơi)">
               🔐 <span id="lobby-account-label">Tạo TK (Giữ Dữ Liệu)</span>
+            </button>
+            <button class="clear-log-btn hidden" id="btn-lobby-logout" onclick="window.tienLenGame.logoutAccount()" title="Đăng xuất khỏi tài khoản hiện tại (Dữ liệu đã được lưu an toàn trên Đám Mây)" style="padding:6px 12px;font-weight:800;border-radius:999px;">
+              🚪 Đăng Xuất
             </button>
             <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Sảnh Cầu Nguyện Gacha Genshin Impact & Kho Đồ">
               🌠 Cầu Nguyện (Gacha)
@@ -879,6 +885,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=36"></script>
+  <script src="game.js?v=37"></script>
 </body>
 </html>

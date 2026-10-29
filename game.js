@@ -2187,11 +2187,11 @@ class TienLenGame {
       const backups = this.readBackupPayloads();
       backups.forEach((data, idx) => {
         if (!data || typeof data !== 'object') return;
-        // Nếu đang đăng nhập tài khoản cụ thể, chỉ gộp backup nếu backup thuộc cùng tài khoản hoặc chưa gắn tài khoản
+        // Nếu đang đăng nhập tài khoản cụ thể, chỉ gộp backup nếu backup thuộc cùng tài khoản hoặc chưa gắn tài khoản.
+        // Nếu đã Đăng Xuất (activeUser === ''), bỏ qua các backup có gắn accountUsername của tài khoản cũ!
         if (
-          activeUser &&
-          data.accountUsername &&
-          data.accountUsername !== activeUser
+          (activeUser && data.accountUsername && data.accountUsername !== activeUser) ||
+          (!activeUser && data.accountUsername)
         ) {
           return;
         }
@@ -2672,14 +2672,15 @@ class TienLenGame {
         }
       }
 
-      // Gộp (Union) với dữ liệu v9 đã lưu nếu cùng tài khoản (hoặc đang chơi chưa tạo tài khoản)
+      // Gộp (Union) với dữ liệu v9 đã lưu nếu cùng tài khoản (hoặc đang chơi khách chưa tạo tài khoản)
       const backups = this.readBackupPayloads();
       backups.forEach((old) => {
         if (!old || typeof old !== 'object') return;
         if (
-          this.currentAccountUsername &&
-          old.accountUsername &&
-          old.accountUsername !== this.currentAccountUsername
+          (this.currentAccountUsername &&
+            old.accountUsername &&
+            old.accountUsername !== this.currentAccountUsername) ||
+          (!this.currentAccountUsername && old.accountUsername)
         ) {
           return;
         }
@@ -2767,8 +2768,10 @@ class TienLenGame {
   syncAccountButtonsUI() {
     const topBtn = document.getElementById('btn-top-account');
     const topLabel = document.getElementById('top-account-label');
+    const topLogoutBtn = document.getElementById('btn-top-logout');
     const lobbyBtn = document.getElementById('btn-lobby-account');
     const lobbyLabel = document.getElementById('lobby-account-label');
+    const lobbyLogoutBtn = document.getElementById('btn-lobby-logout');
     const guestBanner = document.getElementById('lobby-account-guest-banner');
 
     if (this.currentAccountUsername) {
@@ -2776,12 +2779,16 @@ class TienLenGame {
       if (lobbyBtn) lobbyBtn.classList.remove('is-guest');
       if (topLabel) topLabel.textContent = `☁️ TK: ${this.currentAccountUsername}`;
       if (lobbyLabel) lobbyLabel.textContent = `☁️ TK: ${this.currentAccountUsername}`;
+      if (topLogoutBtn) topLogoutBtn.classList.remove('hidden');
+      if (lobbyLogoutBtn) lobbyLogoutBtn.classList.remove('hidden');
       if (guestBanner) guestBanner.classList.add('hidden');
     } else {
       if (topBtn) topBtn.classList.add('is-guest');
       if (lobbyBtn) lobbyBtn.classList.add('is-guest');
       if (topLabel) topLabel.textContent = 'Tạo TK / Đăng Nhập';
       if (lobbyLabel) lobbyLabel.textContent = 'Tạo TK / Đăng Nhập';
+      if (topLogoutBtn) topLogoutBtn.classList.add('hidden');
+      if (lobbyLogoutBtn) lobbyLogoutBtn.classList.add('hidden');
       if (guestBanner) guestBanner.classList.remove('hidden');
     }
   }
@@ -3053,17 +3060,36 @@ class TienLenGame {
 
   async logoutAccount() {
     if (!this.currentAccountUsername) return;
-    this.saveShopProfile();
-    await this.pushAccountToCloud(this.currentAccountUsername);
+    if (this.isMidMatch()) {
+      const ok = confirm(
+        `⚠️ Bạn đang đánh dở Ván #${this.matchCount}! Bạn có chắc chắn muốn Đăng Xuất khỏi tài khoản @${this.currentAccountUsername} ngay bây giờ không?`
+      );
+      if (!ok) return;
+    }
     const oldUser = this.currentAccountUsername;
+    this.saveShopProfile();
+    try {
+      await this.pushAccountToCloud(oldUser);
+    } catch (_) {}
+
     this.currentAccountUsername = '';
-    localStorage.setItem('tlmn_active_account_v1', '');
+    try {
+      localStorage.removeItem('tlmn_active_account_v1');
+      localStorage.removeItem('tlmn_genshin_vault_v9');
+      document.cookie = 'tlmn_vault_v9=; path=/; max-age=0; SameSite=Lax';
+      window.name = '';
+    } catch (_) {}
+
+    this.clearActiveMatchSnapshot();
+    this.resetProfileMemoryToDefaults();
+    this.saveShopProfile();
+    this.syncLoadedProfileToLivePlayer();
     this.accountModalTab = 'login';
-    this.syncAccountButtonsUI();
     this.renderAccountModal();
+    document.getElementById('account-modal')?.classList.remove('hidden');
     sfx.click();
     this.addLog(
-      `🚪 Đã đăng xuất khỏi tài khoản <strong>@${oldUser}</strong> (Dữ liệu đã được đồng bộ an toàn trên Đám Mây ☁️).`,
+      `🚪 Đã đăng xuất khỏi tài khoản <strong>@${oldUser}</strong> (Dữ liệu đã được đồng bộ an toàn trên Đám Mây ☁️). Bạn có thể đăng nhập tài khoản khác hoặc tạo tài khoản mới!`,
       'log-play'
     );
   }
@@ -3085,8 +3111,11 @@ class TienLenGame {
     const accountsDb = this.loadAccountsDb();
     const savedUsernames = Object.keys(accountsDb);
 
-    if (this.currentAccountUsername && accountsDb[this.currentAccountUsername]) {
-      const acc = accountsDb[this.currentAccountUsername];
+    if (this.currentAccountUsername) {
+      const acc = accountsDb[this.currentAccountUsername] || {
+        username: this.currentAccountUsername,
+        displayName: this.savedPlayerName || this.currentAccountUsername,
+      };
       const syncTimeText = this.lastCloudSyncTime
         ? `☁️ Đã đồng bộ Đám Mây lúc ${this.lastCloudSyncTime} (Vào máy khác chỉ cần nhập TK + MK!)`
         : `☁️ Tự động đồng bộ Đám Mây Online (Vào máy/điện thoại khác chỉ cần nhập TK + MK!)`;

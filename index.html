@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=24" />
+  <link rel="stylesheet" href="styles.css?v=25" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -29,6 +29,9 @@
         </div>
         <button class="wifi-btn" id="btn-wifi" title="Mở Màn Hình Chờ để chọn Chế Độ (Đấu Bot / Đấu Người) & Mức Cược">
           🏠 Sảnh Chờ (<span id="wifi-status-label">Chọn Chế Độ / Cược</span>)
+        </button>
+        <button class="account-top-btn" id="btn-top-account" onclick="window.tienLenGame.openAccountModal()" title="Tài Khoản & Mật Khẩu — Tạo tài khoản giữ nguyên 100% dữ liệu đang chơi">
+          🔐 <span id="top-account-label">Tạo TK (Lưu Dữ Liệu)</span>
         </button>
         <button class="shop-btn" id="btn-shop" title="Cầu Nguyện (Gacha Genshin Impact) mở khóa Kỹ Năng Nộ 5★, Decor Bài 4★ & Avatar 3★">
           🌠 Cầu Nguyện (Gacha)
@@ -303,6 +306,9 @@
             <div class="lobby-coin-pill" title="Số dư Xu hiện tại của bạn">
               🪙 <strong id="lobby-balance-display">20,000</strong> Xu
             </div>
+            <button class="account-top-btn" id="btn-lobby-account" onclick="window.tienLenGame.openAccountModal()" title="Tạo Tài Khoản / Đăng Nhập bằng Mật Khẩu (Giữ nguyên 100% dữ liệu đang chơi)">
+              🔐 <span id="lobby-account-label">Tạo TK (Giữ Dữ Liệu)</span>
+            </button>
             <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Sảnh Cầu Nguyện Gacha Genshin Impact & Kho Đồ">
               🌠 Cầu Nguyện (Gacha)
             </button>
@@ -347,6 +353,16 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- THÔNG BÁO TẠO TÀI KHOẢN GIỮ NGUYÊN DỮ LIỆU CHO NGƯỜI CHƠI CHƯA TẠO TÀI KHOẢN -->
+          <div class="account-guest-banner" id="lobby-account-guest-banner">
+            <div class="account-guest-banner-text">
+              🛡️ <strong>Bạn đang chơi mà chưa tạo Tài Khoản!</strong> Tạo Tài Khoản &amp; Mật Khẩu ngay để bảo vệ tiến độ — <strong>Toàn bộ Xu, Nhân Vật 5★, Skin Bài, Avatar &amp; Pity đang chơi được GIỮ NGUYÊN 100%!</strong>
+            </div>
+            <button class="account-banner-cta" onclick="window.tienLenGame.openAccountModal('register')">
+              🔐 Tạo Tài Khoản Ngay
+            </button>
           </div>
 
           <!-- Hàng 1: Nhập Tên & Chọn 1 trong 2 Chế Độ -->
@@ -815,6 +831,20 @@
       </div>
     </div>
 
+    <!-- MODAL HỆ THỐNG TÀI KHOẢN & MẬT KHẨU (GIỮ NGUYÊN 100% DỮ LIỆU ĐANG CHƠI) -->
+    <div class="modal-backdrop hidden" id="account-modal">
+      <div class="modal-card account-modal-card" style="max-width: 660px;">
+        <div class="modal-header">
+          <div>
+            <h2 id="account-modal-title">🔐 TÀI KHOẢN &amp; MẬT KHẨU NGƯỜI CHƠI</h2>
+            <p style="font-size:12px;color:#cbd5e1;margin:2px 0 0;">Bảo vệ dữ liệu cá nhân • Tạo tài khoản mới giữ nguyên 100% Xu, Nhân Vật 5★, Skin Bài &amp; Pity đang chơi</p>
+          </div>
+          <button class="close-modal-btn" id="btn-close-account">✕</button>
+        </div>
+        <div class="modal-body" id="account-modal-body" style="max-height: 76vh; overflow-y: auto;"></div>
+      </div>
+    </div>
+
     <!-- MODAL XEM CHI TIẾT KỸ NĂNG NHÂN VẬT ĐANG XÀI KHI BẤM VÀO ẢNH ĐẠI DIỆN / Ô NHÂN VẬT -->
     <div class="modal-backdrop hidden" id="char-skill-detail-modal">
       <div class="modal-card" style="max-width: 680px;">
@@ -849,6 +879,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=24"></script>
+  <script src="game.js?v=25"></script>
 </body>
 </html>

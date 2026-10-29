@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=11" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -30,8 +30,8 @@
         <button class="wifi-btn" id="btn-wifi" title="Mở Màn Hình Chờ để chọn Chế Độ (Đấu Bot / Đấu Người) & Mức Cược">
           🏠 Sảnh Chờ (<span id="wifi-status-label">Chọn Chế Độ / Cược</span>)
         </button>
-        <button class="shop-btn" id="btn-shop" title="Mua trang trí bài Genshin Impact & Avatar bằng Xu">
-          🛍️ Shop Genshin
+        <button class="shop-btn" id="btn-shop" title="Cầu Nguyện (Gacha Genshin Impact) mở khóa Kỹ Năng Nộ 5★, Decor Bài 4★ & Avatar 3★">
+          🌠 Cầu Nguyện (Gacha)
         </button>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -227,8 +227,8 @@
             <div class="lobby-coin-pill" title="Số dư Xu hiện tại của bạn">
               🪙 <strong id="lobby-balance-display">20,000</strong> Xu
             </div>
-            <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Cửa Hàng mua Skin Bài, Avatar & Kỹ Năng Nộ">
-              🛍️ Shop Genshin
+            <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Sảnh Cầu Nguyện Gacha Genshin Impact & Kho Đồ">
+              🌠 Cầu Nguyện (Gacha)
             </button>
             <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
               📖 Luật
@@ -320,7 +320,7 @@
                 <strong>🤖 Bàn 4 Người (1v3 Bot):</strong> Bạn đấu với Bot Furina 💧, Bot Raiden Shogun ⚡ & Bot Skirk 🌌
               </div>
               <div class="bot-mode-sub">
-                💡 Thắng ván bài nhận Xu mua 29 Skin Bài Fanart (từ 30k Xu), 29 Avatar (từ 22k Xu) & 10 Kỹ Năng Nộ (từ 80k Xu)!
+                💡 Thắng ván bài nhận Xu để Cầu Nguyện (Gacha Genshin): Nổ 5★ Kỹ Năng Nộ, 4★ Decor Bài Fanart & 3★ Avatar (Trùng đồ hoàn lại Xu)!
               </div>
             </div>
             <button class="primary-btn btn-lg lobby-big-cta" id="btn-solo-bot-mode">
@@ -479,13 +479,13 @@
       </div>
     </div>
 
-    <!-- Anime Card Skin, Avatar & Burst Shop Modal -->
+    <!-- Genshin Impact Wish (Gacha) & Inventory Modal -->
     <div class="modal-backdrop hidden" id="shop-modal">
       <div class="modal-card shop-card">
         <div class="modal-header">
           <div>
-            <h2>🛍️ CỬA HÀNG GENSHIN FANART & KỸ NĂNG NỘ</h2>
-            <p>Thắng các bàn cược cao để tích lũy Xu mở khóa 29 Skin Bài Fanart, 29 Avatar & 10 Kỹ Năng Nộ (Burst Animation)</p>
+            <h2>🌠 SẢNH CẦU NGUYỆN GENSHIN IMPACT & KHO ĐỒ TRANG BỊ</h2>
+            <p>Cơ chế Gacha chuẩn Genshin Impact: ⭐⭐⭐⭐⭐ Kỹ Năng Nộ (5★) • ⭐⭐⭐⭐ Decor Bài (4★) • ⭐⭐⭐ Avatar (3★) • Trùng đồ hoàn Xu!</p>
           </div>
           <div class="shop-header-right">
             <div class="shop-balance-pill">
@@ -497,20 +497,33 @@
 
         <div class="modal-body shop-body">
           <div class="shop-tabs">
-            <button class="shop-tab active" id="tab-btn-skins">
-              🎴 Skin Bài Fanart (29)
-            </button>
-            <button class="shop-tab" id="tab-btn-avatars">
-              🎭 Avatar Fanart (29)
+            <button class="shop-tab active" id="tab-btn-gacha">
+              🌠 Sảnh Cầu Nguyện (Gacha)
             </button>
             <button class="shop-tab" id="tab-btn-bursts">
-              🎬 Kỹ Năng Nộ (Burst)
+              ⭐⭐⭐⭐⭐ Kỹ Năng Nộ (5★)
+            </button>
+            <button class="shop-tab" id="tab-btn-skins">
+              ⭐⭐⭐⭐ Decor Bài (4★)
+            </button>
+            <button class="shop-tab" id="tab-btn-avatars">
+              ⭐⭐⭐ Avatar (3★)
+            </button>
+            <button class="shop-tab" id="tab-btn-history">
+              📜 Lịch Sử & Tỷ Lệ Gacha
             </button>
           </div>
 
-          <div class="shop-grid" id="shop-skins-grid"></div>
-          <div class="shop-grid hidden" id="shop-avatars-grid"></div>
+          <!-- TAB 1: SẢNH CẦU NGUYỆN GENSHIN IMPACT (CHARACTER EVENT WISH) -->
+          <div class="gacha-banner-panel" id="shop-gacha-panel"></div>
+
+          <!-- TAB 2, 3, 4: KHO ĐỒ TRANG BỊ (5★ BURSTS, 4★ SKINS, 3★ AVATARS) -->
           <div class="shop-grid hidden" id="shop-bursts-grid"></div>
+          <div class="shop-grid hidden" id="shop-skins-grid"></div>
+          <div class="shop-grid hidden" id="shop-avatars-grid"></div>
+
+          <!-- TAB 5: LỊCH SỬ CẦU NGUYỆN & PHÂN TÍCH TỶ LỆ BẢO HIỂM -->
+          <div class="gacha-history-panel hidden" id="shop-history-panel"></div>
         </div>
 
         <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
@@ -520,13 +533,56 @@
             </button>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Xem thử Kỹ Năng Nộ Raiden Shogun (Chặt Heo/Hàng)!')">
+            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Xem thử Kỹ Năng Nộ 5★ Raiden Shogun!')">
               ⚡ Xem Thử Nộ Raiden
             </button>
-            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('skirk', '🌌 Xem thử Kỹ Năng Nộ Skirk (Về Nhất Ăn Tất)!')">
+            <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('skirk', '🌌 Xem thử Kỹ Năng Nộ 5★ Skirk!')">
               🌌 Xem Thử Nộ Skirk
             </button>
-            <button class="primary-btn" id="btn-ok-shop">Đóng Cửa Hàng</button>
+            <button class="primary-btn" id="btn-ok-shop">Đóng Sảnh Cầu Nguyện</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENSHIN IMPACT WISH METEOR CUTSCENE & GACHA RESULTS OVERLAY -->
+    <div class="gacha-wish-overlay hidden" id="gacha-wish-overlay">
+      <!-- Stage 1: Shooting Meteor Cutscene -->
+      <div class="gacha-meteor-stage" id="gacha-meteor-stage">
+        <div class="gacha-starfield"></div>
+        <button class="gacha-skip-btn" id="btn-skip-gacha-meteor">⏭️ Bỏ qua ▸</button>
+        <div class="gacha-meteor-track" id="gacha-meteor-track">
+          <div class="gacha-meteor-tail"></div>
+          <div class="gacha-meteor-head"></div>
+        </div>
+        <div class="gacha-meteor-flash" id="gacha-meteor-flash"></div>
+        <div class="gacha-meteor-caption" id="gacha-meteor-caption">🌠 Sao băng đang bay qua bầu trời Teyvat...</div>
+      </div>
+
+      <!-- Stage 2: Wish Pull Results Showcase (1x or 10x) -->
+      <div class="gacha-results-stage hidden" id="gacha-results-stage">
+        <div class="gacha-results-header">
+          <div>
+            <h2 id="gacha-results-title">🌟 KẾT QUẢ CẦU NGUYỆN</h2>
+            <p id="gacha-results-subtitle">Vật phẩm mới tự động mở khóa vào Kho Đồ • Vật phẩm trùng được quy đổi hoàn trả thành Xu!</p>
+          </div>
+          <div class="gacha-refund-summary" id="gacha-refund-summary"></div>
+        </div>
+
+        <div class="gacha-results-grid" id="gacha-results-grid"></div>
+
+        <div class="gacha-results-footer">
+          <div class="shop-balance-pill">
+            Số dư hiện tại: 🪙 <strong id="gacha-results-balance">20,000</strong> xu
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="icon-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(1)">
+              🌠 Cầu Nguyện Tiếp ×1 (1,600 Xu)
+            </button>
+            <button class="primary-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(10)">
+              🌟 Cầu Nguyện Tiếp ×10 (16,000 Xu)
+            </button>
+            <button class="primary-btn" id="btn-close-gacha-results">✅ Xác Nhận & Thu Nhận</button>
           </div>
         </div>
       </div>
@@ -550,6 +606,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=10"></script>
+  <script src="game.js?v=11"></script>
 </body>
 </html>

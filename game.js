@@ -63,9 +63,33 @@ const BET_TIERS = [
 ];
 
 // ============================================================================
-// GENSHIN IMPACT FANART CATALOG (29 CHARACTERS) & ELEMENTAL BURST ANIMATIONS
-// Giá bán được nâng cao để người chơi mới (vốn 20,000 Xu) phải thắng cược mới mua được!
+// CƠ CHẾ CẦU NGUYỆN GACHA CHUẨN GENSHIN IMPACT (CHARACTER EVENT WISH)
+// - 5★ (⭐⭐⭐⭐⭐): 10 Hiệu Ứng Kỹ Năng Nộ (Base 0.6%, Soft Pity từ lượt 74 +6%/lượt, Hard Pity 90, 50/50 & Đại Bảo Hiểm UP)
+// - 4★ (⭐⭐⭐⭐): 29 Decor / Skin Bài Fanart (Base 5.1%, Soft Pity lượt 9: 56.1%, Hard Pity 10: 100%, 50/50 Rate-Up)
+// - 3★ (⭐⭐⭐): 29 Avatar Fanart Nhân Vật (94.3% cơ bản)
+// - Trùng đồ (Duplicate): Tự động quy đổi Tinh Huy / Tinh Trần hoàn lại Xu!
 // ============================================================================
+const WISH_COST_SINGLE = 1600; // 1,600 Xu / 1 Lượt Cầu Nguyện (tương ứng 160 Nguyên Thạch)
+const WISH_COST_TEN = 16000;   // 16,000 Xu / 10 Lượt Cầu Nguyện
+const DUPLICATE_REFUND_COINS = {
+  3: 600,   // Trùng Avatar 3★ -> Hoàn +600 Xu
+  4: 3200,  // Trùng Decor Bài 4★ -> Hoàn +3,200 Xu (= 2 lượt Cầu Nguyện!)
+  5: 16000, // Trùng Kỹ Năng Nộ 5★ -> Hoàn +16,000 Xu (= 10 lượt Cầu Nguyện!)
+};
+
+const BANNER_4STAR_RATEUPS = {
+  raiden: ['raiden', 'yaemiko', 'yoimiya'],
+  skirk: ['skirk', 'columbina', 'sandrone'],
+  mavuika: ['mavuika', 'xilonen', 'citlali'],
+  furina: ['furina', 'navia', 'escoffier'],
+  yaemiko: ['yaemiko', 'raiden', 'kokomi'],
+  yelan: ['yelan', 'shenhe', 'ganyu'],
+  clorinde: ['clorinde', 'furina', 'navia'],
+  ayaka: ['ayaka', 'yoimiya', 'kokomi'],
+  eula: ['eula', 'odette', 'vesna'],
+  hutao: ['hutao', 'zibai', 'ganyu'],
+};
+
 const GENSHIN_FANART_ROSTER = [
   { id: 'zibai', name: 'Zibai (Tiên Nhân Bạch Mã)', desc: '[Hiếm] Fanart Tiên Nhân Zibai thanh tao của vùng đất Liyue.', avatarPrice: 22000, skinPrice: 30000, crest: '🐎' },
   { id: 'lauma', name: 'Lauma (Nữ Tu Sương Giá)', desc: '[Hiếm] Fanart thiếu nữ huyền bí mang sức mạnh cổ đại.', avatarPrice: 23000, skinPrice: 32000, crest: '✨' },
@@ -482,6 +506,26 @@ class SoundFX {
       this.playTone(n * 1.5, 'triangle', 0.28, 0.1, idx * 0.06 + 0.04);
     });
     this.playTone(110, 'sawtooth', 0.55, 0.2, 0.12);
+  }
+
+  // Âm thanh Sao Băng Cầu Nguyện Genshin Impact (3★ Xanh / 4★ Tím / 5★ Vàng Kim)
+  wishMeteor(maxStar = 3) {
+    const harp = [523.25, 659.25, 783.99, 987.77, 1174.66, 1567.98];
+    harp.forEach((n, idx) => {
+      this.playTone(n, 'sine', 0.28, 0.14, idx * 0.075);
+    });
+    if (maxStar === 5) {
+      this.playImpactThud(185, 32, 0.45, 0.42, 0.85);
+      this.playTone(587.33, 'triangle', 0.55, 0.22, 0.88);
+      this.playTone(880, 'sine', 0.65, 0.22, 0.95);
+      this.playTone(1760, 'triangle', 0.75, 0.18, 1.02);
+    } else if (maxStar === 4) {
+      this.playImpactThud(150, 42, 0.32, 0.32, 0.85);
+      this.playTone(523.25, 'triangle', 0.42, 0.18, 0.88);
+      this.playTone(1046.5, 'sine', 0.48, 0.16, 0.95);
+    } else {
+      this.playTone(783.99, 'sine', 0.32, 0.14, 0.85);
+    }
   }
 }
 
@@ -1232,6 +1276,13 @@ class TienLenGame {
     this.unlockedBursts = new Set();
     this.equippedChopBurst = 'none';
     this.equippedWinBurst = 'none';
+    this.gachaPity5 = 0;
+    this.gachaPity4 = 0;
+    this.gachaGuaranteed5 = false;
+    this.gachaGuaranteed4 = false;
+    this.selectedBannerBurstId = 'raiden';
+    this.totalWishes = 0;
+    this.gachaHistory = [];
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
     this.dailyRecoveredOnLoad = false;
@@ -1252,6 +1303,15 @@ class TienLenGame {
         if ([2, 3, 4].includes(Number(data.soloPlayerCount))) {
           this.savedSoloPlayerCount = Number(data.soloPlayerCount);
         }
+        if (typeof data.gachaPity5 === 'number') this.gachaPity5 = Math.max(0, Math.min(89, data.gachaPity5));
+        if (typeof data.gachaPity4 === 'number') this.gachaPity4 = Math.max(0, Math.min(9, data.gachaPity4));
+        if (typeof data.gachaGuaranteed5 === 'boolean') this.gachaGuaranteed5 = data.gachaGuaranteed5;
+        if (typeof data.gachaGuaranteed4 === 'boolean') this.gachaGuaranteed4 = data.gachaGuaranteed4;
+        if (data.selectedBannerBurstId && GENSHIN_BURSTS.some((b) => b.id === data.selectedBannerBurstId)) {
+          this.selectedBannerBurstId = data.selectedBannerBurstId;
+        }
+        if (typeof data.totalWishes === 'number') this.totalWishes = data.totalWishes;
+        if (Array.isArray(data.gachaHistory)) this.gachaHistory = data.gachaHistory.slice(0, 40);
         if (Array.isArray(data.unlockedSkins)) {
           data.unlockedSkins.forEach((id) => {
             if (ANIME_CARD_SKINS.some((s) => s.id === id)) {
@@ -1351,6 +1411,13 @@ class TienLenGame {
         unlockedBursts: Array.from(this.unlockedBursts),
         equippedChopBurst: this.equippedChopBurst || 'none',
         equippedWinBurst: this.equippedWinBurst || 'none',
+        gachaPity5: this.gachaPity5 || 0,
+        gachaPity4: this.gachaPity4 || 0,
+        gachaGuaranteed5: !!this.gachaGuaranteed5,
+        gachaGuaranteed4: !!this.gachaGuaranteed4,
+        selectedBannerBurstId: this.selectedBannerBurstId || 'raiden',
+        totalWishes: this.totalWishes || 0,
+        gachaHistory: (this.gachaHistory || []).slice(0, 40),
         lastDailyDate: this.lastDailyDate || this.getTodayKey(),
         dailyReliefUsed: this.dailyReliefUsed || 0,
       };
@@ -1397,6 +1464,358 @@ class TienLenGame {
     });
   }
 
+  // ============================================================================
+  // HỆ THỐNG CẦU NGUYỆN GACHA CHUẨN GENSHIN IMPACT & KHO ĐỒ TRANG BỊ
+  // - 5★ (⭐⭐⭐⭐⭐): 10 Hiệu Ứng Kỹ Năng Nộ (Base 0.6%, Soft Pity từ 74 +6%/lượt, Hard Pity 90, 50/50 & Đại Bảo Hiểm UP)
+  // - 4★ (⭐⭐⭐⭐): 29 Decor / Skin Bài Fanart (Base 5.1%, Soft Pity lượt 9: 56.1%, Hard Pity 10: 100%, 50/50 Rate-Up)
+  // - 3★ (⭐⭐⭐): 29 Avatar Fanart Nhân Vật (94.3% cơ bản)
+  // - Trùng đồ: Tự động quy đổi Tinh Huy / Tinh Trần hoàn trả Xu (+600 / +3,200 / +16,000 Xu)
+  // ============================================================================
+  get5StarDropChance(pullNum5) {
+    if (pullNum5 <= 73) return 0.006; // 0.6% cơ bản từ lượt 1 -> 73
+    if (pullNum5 >= 90) return 1.0;   // 100% Bảo hiểm cứng ở lượt 90
+    return Math.min(1.0, 0.006 + (pullNum5 - 73) * 0.06); // Soft Pity: tăng +6% mỗi lượt từ lượt 74
+  }
+
+  get4StarDropChance(pullNum4) {
+    if (pullNum4 <= 8) return 0.051;  // 5.1% cơ bản từ lượt 1 -> 8
+    if (pullNum4 === 9) return 0.561; // Soft Pity 4★ ở lượt 9: 56.1%
+    return 1.0;                       // Hard Pity 4★ ở lượt 10: 100%
+  }
+
+  selectBannerUp(burstId) {
+    if (!GENSHIN_BURSTS.some((b) => b.id === burstId)) return;
+    this.selectedBannerBurstId = burstId;
+    sfx.click();
+    this.saveShopProfile();
+    this.renderShopModal();
+  }
+
+  switchShopTab(tabName) {
+    this.activeShopTab = tabName;
+    const tabs = ['gacha', 'bursts', 'skins', 'avatars', 'history'];
+    tabs.forEach((t) => {
+      document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tabName);
+    });
+    document.getElementById('shop-gacha-panel')?.classList.toggle('hidden', tabName !== 'gacha');
+    document.getElementById('shop-bursts-grid')?.classList.toggle('hidden', tabName !== 'bursts');
+    document.getElementById('shop-skins-grid')?.classList.toggle('hidden', tabName !== 'skins');
+    document.getElementById('shop-avatars-grid')?.classList.toggle('hidden', tabName !== 'avatars');
+    document.getElementById('shop-history-panel')?.classList.toggle('hidden', tabName !== 'history');
+    sfx.click();
+  }
+
+  openGachaForCharacter(charId) {
+    if (charId && GENSHIN_BURSTS.some((b) => b.id === charId)) {
+      this.selectedBannerBurstId = charId;
+    }
+    this.saveShopProfile();
+    this.renderShopModal();
+    this.switchShopTab('gacha');
+  }
+
+  rollSingleWish() {
+    this.gachaPity5 = (this.gachaPity5 || 0) + 1;
+    this.gachaPity4 = (this.gachaPity4 || 0) + 1;
+    this.totalWishes = (this.totalWishes || 0) + 1;
+
+    const p5 = this.get5StarDropChance(this.gachaPity5);
+    const p4 = this.get4StarDropChance(this.gachaPity4);
+    const roll = Math.random();
+
+    const featuredId = this.selectedBannerBurstId || 'raiden';
+    const rateUp4Ids = BANNER_4STAR_RATEUPS[featuredId] || ['raiden', 'furina', 'skirk'];
+    const me = this.getLocalPlayer();
+
+    // 1. KIỂM TRA NỔ 5 SAO (⭐⭐⭐⭐⭐ HIỆU ỨNG KỸ NĂNG NỘ)
+    if (roll < p5) {
+      const hitPity = this.gachaPity5;
+      this.gachaPity5 = 0;
+
+      let chosenBurst = null;
+      let rateNote = '';
+      if (this.gachaGuaranteed5) {
+        chosenBurst = getBurstMeta(featuredId);
+        this.gachaGuaranteed5 = false;
+        rateNote = '🔥 Nổ Đại Bảo Hiểm 100% UP';
+      } else if (Math.random() < 0.55) {
+        // 50/50 + Capturing Radiance (55% thắng UP)
+        chosenBurst = getBurstMeta(featuredId);
+        this.gachaGuaranteed5 = false;
+        rateNote = '🎯 Thắng 50/50 (Trúng UP)';
+      } else {
+        const others = GENSHIN_BURSTS.filter((b) => b.id !== featuredId);
+        chosenBurst = others[Math.floor(Math.random() * others.length)] || GENSHIN_BURSTS[0];
+        this.gachaGuaranteed5 = true;
+        rateNote = '☯️ Lệch 50/50 (Kích hoạt Đại Bảo Hiểm)';
+      }
+
+      const alreadyOwned = this.unlockedBursts.has(chosenBurst.id);
+      const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[5] : 0;
+      if (!alreadyOwned) {
+        this.unlockedBursts.add(chosenBurst.id);
+        // Tự động gắn Nộ nếu người chơi chưa gắn Nộ nào
+        if (!this.equippedChopBurst || this.equippedChopBurst === 'none') {
+          this.equippedChopBurst = chosenBurst.id;
+          if (me) me.chopBurst = chosenBurst.id;
+        }
+        if (!this.equippedWinBurst || this.equippedWinBurst === 'none') {
+          this.equippedWinBurst = chosenBurst.id;
+          if (me) me.winBurst = chosenBurst.id;
+        }
+      }
+
+      const result = {
+        star: 5,
+        category: 'burst',
+        typeLabel: '🎬 KỸ NĂNG NỘ 5★',
+        id: chosenBurst.id,
+        name: chosenBurst.name,
+        thumbUrl: chosenBurst.gifUrl,
+        isNew: !alreadyOwned,
+        refund,
+        pityUsed: hitPity,
+        rateNote,
+      };
+      this.gachaHistory.unshift(result);
+      this.gachaHistory = this.gachaHistory.slice(0, 40);
+      return result;
+    }
+
+    // 2. KIỂM TRA NỔ 4 SAO (⭐⭐⭐⭐ DECOR / SKIN BÀI FANART)
+    if (roll < p5 + p4) {
+      const hitPity = this.gachaPity4;
+      this.gachaPity4 = 0;
+
+      const skinPool = ANIME_CARD_SKINS.filter((s) => s.id !== 'classic');
+      let chosenSkin = null;
+      let rateNote = '';
+
+      if (this.gachaGuaranteed4 || Math.random() < 0.5) {
+        const upPool = skinPool.filter((s) => rateUp4Ids.includes(s.id));
+        chosenSkin = upPool[Math.floor(Math.random() * upPool.length)] || skinPool[0];
+        this.gachaGuaranteed4 = false;
+        rateNote = '💜 Trúng 4★ Rate-Up';
+      } else {
+        const nonUpPool = skinPool.filter((s) => !rateUp4Ids.includes(s.id));
+        chosenSkin = nonUpPool[Math.floor(Math.random() * nonUpPool.length)] || skinPool[0];
+        this.gachaGuaranteed4 = true;
+        rateNote = '💜 4★ Thường (Lần sau 100% Rate-Up)';
+      }
+
+      const alreadyOwned = this.unlockedSkins.has(chosenSkin.id);
+      const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[4] : 0;
+      if (!alreadyOwned) {
+        this.unlockedSkins.add(chosenSkin.id);
+        if (this.equippedSkin === 'classic') {
+          this.equippedSkin = chosenSkin.id;
+          if (me) me.cardSkin = chosenSkin.id;
+        }
+      }
+
+      const result = {
+        star: 4,
+        category: 'skin',
+        typeLabel: '🃏 DECOR BÀI 4★',
+        id: chosenSkin.id,
+        name: chosenSkin.name,
+        thumbUrl: chosenSkin.imgUrl,
+        isNew: !alreadyOwned,
+        refund,
+        pityUsed: hitPity,
+        rateNote,
+      };
+      this.gachaHistory.unshift(result);
+      this.gachaHistory = this.gachaHistory.slice(0, 40);
+      return result;
+    }
+
+    // 3. MẶC ĐỊNH RA 3 SAO (⭐⭐⭐ AVATAR FANART NHÂN VẬT)
+    const avatarPool = ANIME_AVATARS.filter((a) => a.id !== 'default_player');
+    const chosenAvatar = avatarPool[Math.floor(Math.random() * avatarPool.length)] || avatarPool[0];
+    const alreadyOwned = this.unlockedAvatars.has(chosenAvatar.id);
+    const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[3] : 0;
+    if (!alreadyOwned) {
+      this.unlockedAvatars.add(chosenAvatar.id);
+      if (this.equippedAvatar === 'default_player') {
+        this.equippedAvatar = chosenAvatar.id;
+        if (me) me.avatar = chosenAvatar.id;
+      }
+    }
+
+    const result = {
+      star: 3,
+      category: 'avatar',
+      typeLabel: '🖼️ AVATAR 3★',
+      id: chosenAvatar.id,
+      name: `Avatar: ${chosenAvatar.name}`,
+      thumbUrl: chosenAvatar.imgUrl,
+      isNew: !alreadyOwned,
+      refund,
+      pityUsed: this.gachaPity5,
+      rateNote: '3★ Tiêu chuẩn',
+    };
+    this.gachaHistory.unshift(result);
+    this.gachaHistory = this.gachaHistory.slice(0, 40);
+    return result;
+  }
+
+  performWish(count = 1) {
+    const me = this.getLocalPlayer();
+    if (!me) return;
+    const pullCount = count === 10 ? 10 : 1;
+    const cost = pullCount === 10 ? WISH_COST_TEN : WISH_COST_SINGLE;
+
+    if (me.coins < cost) {
+      alert(
+        `⚠️ Bạn chưa đủ Xu để Cầu Nguyện ×${pullCount} (Cần ${cost.toLocaleString()} Xu, hiện có ${me.coins.toLocaleString()} Xu)!\n💡 Hãy đánh thắng thêm ván bài hoặc bấm nút "🎁 Hồi Xu Hàng Ngày (+5,000 Xu)" ở góc dưới nhé!`
+      );
+      return;
+    }
+
+    me.coins -= cost;
+    const results = [];
+    let totalRefund = 0;
+
+    for (let i = 0; i < pullCount; i++) {
+      const item = this.rollSingleWish();
+      results.push(item);
+      if (item.refund > 0) {
+        totalRefund += item.refund;
+      }
+    }
+
+    if (totalRefund > 0) {
+      me.coins += totalRefund;
+    }
+
+    const maxStar = Math.max(...results.map((r) => r.star));
+    const newUnlocks = results.filter((r) => r.isNew).length;
+    this.addLog(
+      `🌠 <strong>Cầu Nguyện ×${pullCount}:</strong> Nổ cao nhất <strong>${maxStar}★</strong> (${newUnlocks} món mới${
+        totalRefund > 0 ? ` • Hoàn +${totalRefund.toLocaleString()} xu từ đồ trùng` : ''
+      })!`,
+      maxStar === 5 ? 'log-win' : 'log-play'
+    );
+
+    this.saveShopProfile();
+    this.renderShopModal();
+    this.renderAll();
+    this.syncCosmeticsInRoom();
+    this.showGachaMeteorAndResults(results, totalRefund);
+  }
+
+  showGachaMeteorAndResults(results, totalRefund) {
+    const overlay = document.getElementById('gacha-wish-overlay');
+    const meteorStage = document.getElementById('gacha-meteor-stage');
+    const resultsStage = document.getElementById('gacha-results-stage');
+    const meteorTrack = document.getElementById('gacha-meteor-track');
+    const meteorCaption = document.getElementById('gacha-meteor-caption');
+    const resultsGrid = document.getElementById('gacha-results-grid');
+    const refundSummary = document.getElementById('gacha-refund-summary');
+    const resultsTitle = document.getElementById('gacha-results-title');
+    const resultsBal = document.getElementById('gacha-results-balance');
+
+    if (!overlay || !meteorStage || !resultsStage) return;
+
+    const maxStar = Math.max(...results.map((r) => r.star));
+    sfx.wishMeteor(maxStar);
+
+    overlay.classList.remove('hidden');
+    meteorStage.classList.remove('hidden');
+    resultsStage.classList.add('hidden');
+
+    if (meteorTrack) {
+      meteorTrack.className = `gacha-meteor-track meteor-${maxStar}`;
+      // Restart CSS animation
+      meteorTrack.style.animation = 'none';
+      void meteorTrack.offsetWidth;
+      meteorTrack.style.animation = '';
+    }
+
+    if (meteorCaption) {
+      meteorCaption.textContent =
+        maxStar === 5
+          ? '🌟 ÁNH SÁNG VÀNG KIM 5 SAO RỰC CHÁY TRÊN BẦU TRỜI TEYVAT!'
+          : maxStar === 4
+          ? '💜 Ánh sao tím 4 Sao lấp lánh xuyên qua màn đêm...'
+          : '🌠 Sao băng Cầu Nguyện đang rơi xuống...';
+    }
+
+    // Sắp xếp kết quả: 5★ lên đầu, tiếp theo 4★, rồi 3★ (chuẩn Genshin 10x summary)
+    const sorted = [...results].sort((a, b) => b.star - a.star || (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+
+    if (resultsTitle) {
+      resultsTitle.textContent =
+        maxStar === 5
+          ? `🌟 CHÚC MỪNG NỔ 5 SAO (⭐⭐⭐⭐⭐) — KẾT QUẢ CẦU NGUYỆN ×${results.length}`
+          : `🌠 KẾT QUẢ CẦU NGUYỆN ×${results.length}`;
+    }
+
+    if (refundSummary) {
+      if (totalRefund > 0) {
+        refundSummary.textContent = `♻️ Tinh Huy quy đổi đồ trùng: Hoàn lại +${totalRefund.toLocaleString()} Xu!`;
+        refundSummary.classList.remove('hidden');
+      } else {
+        refundSummary.textContent = '✨ Toàn bộ vật phẩm đều là Mở Khóa Mới!';
+        refundSummary.classList.remove('hidden');
+      }
+    }
+
+    const me = this.getLocalPlayer();
+    if (resultsBal && me) {
+      resultsBal.textContent = me.coins.toLocaleString();
+    }
+
+    if (resultsGrid) {
+      resultsGrid.classList.toggle('single-pull', sorted.length === 1);
+      resultsGrid.innerHTML = sorted
+        .map((item, idx) => {
+          const starsStr = '⭐'.repeat(item.star);
+          const statusHtml = item.isNew
+            ? `<div class="gacha-result-status is-new">✨ MỚI MỞ KHÓA!</div>`
+            : `<div class="gacha-result-status is-dup">♻️ Đã có ➔ Hoàn +${item.refund.toLocaleString()} Xu</div>`;
+
+          const quickEquipBtn =
+            item.category === 'burst'
+              ? `<button class="tool-btn" style="margin-top:4px;width:100%;" onclick="window.tienLenGame.triggerGenshinBurst('${item.id}', '🎬 Xem thử Kỹ Năng Nộ 5★: ${item.name}!')">▶ Xem Nộ 5★</button>`
+              : item.category === 'skin'
+              ? `<button class="tool-btn" style="margin-top:4px;width:100%;" onclick="window.tienLenGame.buyOrEquipSkin('${item.id}')">🃏 Trang bị Bài</button>`
+              : `<button class="tool-btn" style="margin-top:4px;width:100%;" onclick="window.tienLenGame.buyOrEquipAvatar('${item.id}')">🎭 Dùng Avatar</button>`;
+
+          return `
+            <div class="gacha-result-card star-${item.star}" style="animation-delay:${idx * 0.055}s">
+              <div class="rarity-stars-badge rarity-${item.star}">${starsStr}</div>
+              <img class="gacha-result-thumb" src="${item.thumbUrl}" alt="${item.name}" referrerpolicy="no-referrer" />
+              <div class="gacha-result-type">${item.typeLabel}</div>
+              <div class="gacha-result-name">${item.name}</div>
+              <div style="font-size:10px;color:#cbd5e1;">${item.rateNote}</div>
+              ${statusHtml}
+              ${quickEquipBtn}
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    const revealResults = () => {
+      clearTimeout(this.gachaMeteorTimer);
+      meteorStage.classList.add('hidden');
+      resultsStage.classList.remove('hidden');
+      if (maxStar === 5) {
+        sfx.win();
+      }
+    };
+
+    const skipBtn = document.getElementById('btn-skip-gacha-meteor');
+    if (skipBtn) {
+      skipBtn.onclick = revealResults;
+    }
+
+    clearTimeout(this.gachaMeteorTimer);
+    this.gachaMeteorTimer = setTimeout(revealResults, 1600);
+  }
+
   renderShopModal() {
     const me = this.getLocalPlayer();
     const balanceEl = document.getElementById('shop-balance');
@@ -1417,24 +1836,216 @@ class TienLenGame {
           : `✅ Đã nhận đủ ${MAX_DAILY_RELIEF_CLAIMS} lượt hồi xu hôm nay (Mai hồi tiếp +5,000 xu)`;
     }
 
+    // Cập nhật số lượng sưu tầm trên các Tab
+    const tabBurstsBtn = document.getElementById('tab-btn-bursts');
+    const tabSkinsBtn = document.getElementById('tab-btn-skins');
+    const tabAvatarsBtn = document.getElementById('tab-btn-avatars');
+    if (tabBurstsBtn) {
+      tabBurstsBtn.textContent = `⭐⭐⭐⭐⭐ Kỹ Năng Nộ 5★ (${this.unlockedBursts.size}/${GENSHIN_BURSTS.length})`;
+    }
+    if (tabSkinsBtn) {
+      tabSkinsBtn.textContent = `⭐⭐⭐⭐ Decor Bài 4★ (${this.unlockedSkins.size}/${ANIME_CARD_SKINS.length})`;
+    }
+    if (tabAvatarsBtn) {
+      tabAvatarsBtn.textContent = `⭐⭐⭐ Avatar 3★ (${this.unlockedAvatars.size}/${ANIME_AVATARS.length})`;
+    }
+
+    // 1. RENDER TAB SẢNH CẦU NGUYỆN GENSHIN IMPACT
+    const gachaPanel = document.getElementById('shop-gacha-panel');
+    if (gachaPanel) {
+      const featuredId = this.selectedBannerBurstId || 'raiden';
+      const featuredBurst = getBurstMeta(featuredId) || GENSHIN_BURSTS[0];
+      const rateUp4Ids = BANNER_4STAR_RATEUPS[featuredBurst.id] || ['raiden', 'furina', 'skirk'];
+      const nextPull5 = (this.gachaPity5 || 0) + 1;
+      const nextPull4 = (this.gachaPity4 || 0) + 1;
+      const curChance5 = (this.get5StarDropChance(nextPull5) * 100).toFixed(1);
+      const curChance4 = (this.get4StarDropChance(nextPull4) * 100).toFixed(1);
+      const pity5Pct = Math.min(100, Math.round(((this.gachaPity5 || 0) / 90) * 100));
+      const pity4Pct = Math.min(100, Math.round(((this.gachaPity4 || 0) / 10) * 100));
+
+      const upRosterHtml = GENSHIN_BURSTS.map((b) => {
+        const isCurrent = b.id === featuredBurst.id;
+        const owned = this.unlockedBursts.has(b.id);
+        const charName = b.name.split('—')[0].trim();
+        return `
+          <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" onclick="window.tienLenGame.selectBannerUp('${b.id}')">
+            <img src="fanart/${b.id}.jpg" alt="${charName}" referrerpolicy="no-referrer" />
+            <div>
+              <div class="gacha-up-chip-name">${charName}</div>
+              <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★'}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const rateUp4Html = rateUp4Ids
+        .map((id) => {
+          const s = getCardSkinMeta(id);
+          return `
+            <span class="gacha-rateup-4star-pill">
+              <img src="fanart/${id}.jpg" alt="${s.name}" referrerpolicy="no-referrer" />
+              ${id.toUpperCase()} (4★ UP)
+            </span>
+          `;
+        })
+        .join('');
+
+      gachaPanel.innerHTML = `
+        <div class="gacha-epitomized-bar">
+          <div class="gacha-epitomized-title">
+            <span>🎯 CHỌN NHÂN VẬT 5★ TÂM NGUYỆN TRÊN BANNER (Đổi tự do — Giữ nguyên Bảo Hiểm Pity):</span>
+            <span style="font-size:11.5px;color:#cbd5e1;">Đã Cầu Nguyện tổng cộng: <strong>${(this.totalWishes || 0).toLocaleString()}</strong> lượt</span>
+          </div>
+          <div class="gacha-up-Roster">${upRosterHtml}</div>
+        </div>
+
+        <div class="gacha-banner-hero">
+          <div class="gacha-hero-left">
+            <div>
+              <div class="gacha-banner-tag">🌠 BANNER NHÂN VẬT GIỚI HẠN • TỶ LỆ RƠI TĂNG MẠNH!</div>
+              <div class="gacha-banner-main-title" style="margin-top:6px;">${featuredBurst.name}</div>
+              <div class="gacha-banner-sub" style="margin-top:4px;">${featuredBurst.desc}</div>
+            </div>
+
+            <div class="gacha-featured-visual">
+              <img class="gacha-featured-gif" src="${featuredBurst.gifUrl}" alt="${featuredBurst.name}" />
+              <div class="gacha-featured-info">
+                <div class="gacha-featured-stars">⭐⭐⭐⭐⭐ HIỆU ỨNG KỸ NĂNG NỘ (5 SAO UP)</div>
+                <div style="font-size:12px;color:#fde68a;font-weight:700;">${featuredBurst.title}</div>
+                <div style="font-size:11px;color:#cbd5e1;font-style:italic;">${featuredBurst.quote}</div>
+                <div style="margin-top:4px;">
+                  <button class="tool-btn" onclick="window.tienLenGame.triggerGenshinBurst('${featuredBurst.id}', '🎬 Xem thử Kỹ Năng Nộ 5★ UP: ${featuredBurst.name}!')">
+                    ▶ Xem Thử Hoạt Ảnh Nộ 5★
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11.5px;font-weight:800;color:#d8b4fe;margin-bottom:4px;">
+                ⭐⭐⭐⭐ DECOR BÀI 4 SAO ĐANG TĂNG TỶ LỆ RƠI (RATE-UP 50%) TRÊN BANNER NÀY:
+              </div>
+              <div class="gacha-featured-rateup-row">${rateUp4Html}</div>
+            </div>
+          </div>
+
+          <div class="gacha-hero-right">
+            <div class="gacha-pity-box">
+              <!-- Pity 5 Sao -->
+              <div class="gacha-pity-row">
+                <div class="gacha-pity-header">
+                  <span style="color:#fde047;">⭐⭐⭐⭐⭐ Bảo Hiểm 5★ (Kỹ Năng Nộ): <strong>${this.gachaPity5 || 0} / 90</strong></span>
+                  <span style="color:${this.gachaGuaranteed5 ? '#34d399' : '#fbbf24'};">
+                    ${this.gachaGuaranteed5 ? '🔥 ĐẠI BẢO HIỂM 100% TRÚNG UP' : '☯️ Đang 50/50 (55% Trúng UP)'}
+                  </span>
+                </div>
+                <div class="gacha-pity-bar-bg">
+                  <div class="gacha-pity-bar-fill gold" style="width:${pity5Pct}%;"></div>
+                </div>
+                <div class="gacha-pity-sub">
+                  <span>Tỷ lệ nổ lượt kế (#${nextPull5}): <strong>${curChance5}%</strong> ${nextPull5 >= 74 ? '🔥 (Đang trong vùng Soft Pity +6%/lượt!)' : '(Soft Pity từ lượt 74)'}</span>
+                  <span>Còn tối đa <strong>${90 - (this.gachaPity5 || 0)}</strong> lượt</span>
+                </div>
+              </div>
+
+              <!-- Pity 4 Sao -->
+              <div class="gacha-pity-row">
+                <div class="gacha-pity-header">
+                  <span style="color:#d8b4fe;">⭐⭐⭐⭐ Bảo Hiểm 4★ (Decor Bài Fanart): <strong>${this.gachaPity4 || 0} / 10</strong></span>
+                  <span style="color:#c4b5fd;">${this.gachaGuaranteed4 ? '🔥 Bảo hiểm 100% 4★ Rate-Up' : 'Tối đa 10 lượt nổ ≥ 4★'}</span>
+                </div>
+                <div class="gacha-pity-bar-bg">
+                  <div class="gacha-pity-bar-fill purple" style="width:${pity4Pct}%;"></div>
+                </div>
+                <div class="gacha-pity-sub">
+                  <span>Tỷ lệ nổ lượt kế (#${nextPull4}): <strong>${curChance4}%</strong></span>
+                  <span>Còn tối đa <strong>${10 - (this.gachaPity4 || 0)}</strong> lượt</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="gacha-refund-rules-mini">
+              ♻️ <strong>Cơ chế Tinh Huy / Tinh Trần Hoàn Trả Xu khi quay trùng đồ đã có:</strong><br/>
+              • Trùng <strong>3★ Avatar</strong> ➔ Hoàn lại <strong>+${DUPLICATE_REFUND_COINS[3].toLocaleString()} Xu</strong><br/>
+              • Trùng <strong>4★ Decor Bài</strong> ➔ Hoàn lại <strong>+${DUPLICATE_REFUND_COINS[4].toLocaleString()} Xu</strong> <em>(bằng 2 lượt Cầu Nguyện)</em><br/>
+              • Trùng <strong>5★ Kỹ Năng Nộ</strong> ➔ Hoàn lại <strong>+${DUPLICATE_REFUND_COINS[5].toLocaleString()} Xu</strong> <em>(hoàn trả trọn 10 lượt!)</em>
+            </div>
+
+            <div class="gacha-wish-buttons-row">
+              <button class="gacha-wish-btn wish-1x" onclick="window.tienLenGame.performWish(1)">
+                <span class="gacha-wish-btn-title">🌠 Cầu Nguyện ×1</span>
+                <span class="gacha-wish-btn-cost">🪙 ${WISH_COST_SINGLE.toLocaleString()} Xu</span>
+              </button>
+              <button class="gacha-wish-btn wish-10x" onclick="window.tienLenGame.performWish(10)">
+                <span class="gacha-wish-btn-title">🌟 Cầu Nguyện ×10</span>
+                <span class="gacha-wish-btn-cost">🪙 ${WISH_COST_TEN.toLocaleString()} Xu • Đảm bảo ≥ 1 món 4★+</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. RENDER TAB KHO ĐỒ 5★ KỸ NĂNG NỘ
+    const burstsGrid = document.getElementById('shop-bursts-grid');
+    if (burstsGrid) {
+      burstsGrid.innerHTML = GENSHIN_BURSTS.map((b) => {
+        const owned = this.unlockedBursts.has(b.id);
+        const isChop = this.equippedChopBurst === b.id;
+        const isWin = this.equippedWinBurst === b.id;
+
+        let actionsHtml = '';
+        if (!owned) {
+          actionsHtml = `
+            <button class="shop-buy-btn buy-btn" onclick="window.tienLenGame.openGachaForCharacter('${b.id}')">
+              🌠 Chưa sở hữu ➔ Chọn Banner Cầu Nguyện 5★
+            </button>
+          `;
+        } else {
+          actionsHtml = `
+            <div class="shop-burst-actions">
+              <button class="shop-buy-btn ${isChop ? 'equipped-btn' : 'equip-btn'}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'chop')">
+                ${isChop ? '⚡ Đang dùng Chặt Heo' : '⚡ Gắn cho Chặt Heo'}
+              </button>
+              <button class="shop-buy-btn ${isWin ? 'equipped-btn' : 'equip-btn'}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'win')">
+                ${isWin ? '👑 Đang dùng Về Nhất' : '👑 Gắn cho Về Nhất'}
+              </button>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="shop-item-card ${isChop || isWin ? 'equipped' : ''}">
+            <div class="rarity-stars-badge rarity-5">⭐⭐⭐⭐⭐ KỸ NĂNG NỘ 5 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}</div>
+            <div class="shop-burst-preview-wrap">
+              <img src="${b.gifUrl}" alt="${b.name}" loading="lazy" />
+              <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem thử: ${b.name}!')">
+                ▶ Xem thử
+              </button>
+            </div>
+            <div class="shop-item-title">${b.name}</div>
+            <div class="shop-item-desc">${b.desc}</div>
+            ${actionsHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 3. RENDER TAB KHO ĐỒ 4★ DECOR BÀI
     const skinsGrid = document.getElementById('shop-skins-grid');
     if (skinsGrid) {
       skinsGrid.innerHTML = ANIME_CARD_SKINS.map((skin) => {
         const owned = this.unlockedSkins.has(skin.id);
         const equipped = this.equippedSkin === skin.id;
-        const canAfford = me && me.coins >= skin.price;
 
         let btnClass = 'buy-btn';
-        let btnLabel = `🪙 Mua (${skin.price.toLocaleString()} xu)`;
+        let btnLabel = '🌠 Mở từ Sảnh Cầu Nguyện (4★)';
         if (equipped) {
           btnClass = 'equipped-btn';
           btnLabel = '✨ Đang trang bị';
         } else if (owned) {
           btnClass = 'equip-btn';
-          btnLabel = 'Trang bị ngay';
-        } else if (!canAfford) {
-          btnClass = 'cant-afford';
-          btnLabel = `🔒 Cần ${skin.price.toLocaleString()} xu`;
+          btnLabel = '🃏 Trang bị ngay';
         }
 
         const crestHtml = skin.crest
@@ -1446,6 +2057,7 @@ class TienLenGame {
 
         return `
           <div class="shop-item-card ${equipped ? 'equipped' : ''}">
+            <div class="rarity-stars-badge rarity-4">${skin.id === 'classic' ? '🃏 MẶC ĐỊNH' : `⭐⭐⭐⭐ DECOR BÀI 4 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}`}</div>
             <div class="shop-card-preview-wrap">
               <div class="playing-card red-card is-two skin-${skin.id}" style="width:68px;height:96px;cursor:default;">
                 ${bgArtHtml}
@@ -1484,24 +2096,21 @@ class TienLenGame {
       }).join('');
     }
 
+    // 4. RENDER TAB KHO ĐỒ 3★ AVATAR
     const avatarsGrid = document.getElementById('shop-avatars-grid');
     if (avatarsGrid) {
       avatarsGrid.innerHTML = ANIME_AVATARS.map((av) => {
         const owned = this.unlockedAvatars.has(av.id);
         const equipped = this.equippedAvatar === av.id;
-        const canAfford = me && me.coins >= av.price;
 
         let btnClass = 'buy-btn';
-        let btnLabel = `🪙 Mua (${av.price.toLocaleString()} xu)`;
+        let btnLabel = '🌠 Mở từ Sảnh Cầu Nguyện (3★)';
         if (equipped) {
           btnClass = 'equipped-btn';
           btnLabel = '✨ Đang dùng';
         } else if (owned) {
           btnClass = 'equip-btn';
-          btnLabel = 'Chọn Avatar';
-        } else if (!canAfford) {
-          btnClass = 'cant-afford';
-          btnLabel = `🔒 Cần ${av.price.toLocaleString()} xu`;
+          btnLabel = '🎭 Chọn Avatar';
         }
 
         const previewHtml = av.imgUrl
@@ -1510,6 +2119,7 @@ class TienLenGame {
 
         return `
           <div class="shop-item-card ${equipped ? 'equipped' : ''}">
+            <div class="rarity-stars-badge rarity-3">${av.id === 'default_player' ? '😎 MẶC ĐỊNH' : `⭐⭐⭐ AVATAR 3 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}`}</div>
             <div class="shop-avatar-preview-wrap">
               ${previewHtml}
             </div>
@@ -1523,52 +2133,49 @@ class TienLenGame {
       }).join('');
     }
 
-    const burstsGrid = document.getElementById('shop-bursts-grid');
-    if (burstsGrid) {
-      burstsGrid.innerHTML = GENSHIN_BURSTS.map((b) => {
-        const owned = this.unlockedBursts.has(b.id);
-        const isChop = this.equippedChopBurst === b.id;
-        const isWin = this.equippedWinBurst === b.id;
-        const canAfford = me && me.coins >= b.price;
+    // 5. RENDER TAB LỊCH SỬ CẦU NGUYỆN & PHÂN TÍCH CƠ CHẾ GACHA GENSHIN
+    const historyPanel = document.getElementById('shop-history-panel');
+    if (historyPanel) {
+      const historyItemsHtml =
+        !this.gachaHistory || this.gachaHistory.length === 0
+          ? `<div style="color:#94a3b8;font-size:13px;padding:12px 0;">Chưa có lịch sử Cầu Nguyện. Hãy thử vận may ở tab 🌠 Sảnh Cầu Nguyện nhé!</div>`
+          : this.gachaHistory
+              .map((h, i) => {
+                const color = h.star === 5 ? '#fde047' : h.star === 4 ? '#d8b4fe' : '#93c5fd';
+                return `
+                  <div class="gacha-history-item">
+                    <div>
+                      <strong style="color:${color};">[${h.star}★] ${h.name}</strong>
+                      <div style="font-size:11px;color:#94a3b8;">${h.typeLabel} • ${h.rateNote} (Pity: ${h.pityUsed})</div>
+                    </div>
+                    <div style="text-align:right;font-weight:800;font-size:11.5px;color:${h.isNew ? '#34d399' : '#fbbf24'};">
+                      ${h.isNew ? '✨ MỚI' : `♻️ +${h.refund.toLocaleString()} Xu`}
+                    </div>
+                  </div>
+                `;
+              })
+              .join('');
 
-        let actionsHtml = '';
-        if (!owned) {
-          const buyClass = canAfford ? 'buy-btn' : 'cant-afford';
-          const buyLabel = canAfford
-            ? `🪙 Mua Nộ (${b.price.toLocaleString()} xu)`
-            : `🔒 Cần ${b.price.toLocaleString()} xu`;
-          actionsHtml = `
-            <button class="shop-buy-btn ${buyClass}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'chop')">
-              ${buyLabel}
-            </button>
-          `;
-        } else {
-          actionsHtml = `
-            <div class="shop-burst-actions">
-              <button class="shop-buy-btn ${isChop ? 'equipped-btn' : 'equip-btn'}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'chop')">
-                ${isChop ? '⚡ Đang dùng Chặt Heo' : '⚡ Gắn cho Chặt Heo'}
-              </button>
-              <button class="shop-buy-btn ${isWin ? 'equipped-btn' : 'equip-btn'}" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}', 'win')">
-                ${isWin ? '👑 Đang dùng Về Nhất' : '👑 Gắn cho Về Nhất'}
-              </button>
+      historyPanel.innerHTML = `
+        <div class="gacha-rules-card">
+          <h3>📖 Phân Tích Chi Tiết Cơ Chế Gacha Banner Nhân Vật Genshin Impact</h3>
+          <div style="font-size:12.5px;color:#e2e8f0;line-height:1.55;display:flex;flex-direction:column;gap:6px;">
+            <div>• <strong>⭐⭐⭐⭐⭐ 5 Sao — Hiệu Ứng Kỹ Năng Nộ (10 Nhân Vật):</strong> Tỷ lệ cơ bản <strong>0.6%</strong> (lượt 1–73). Từ lượt <strong>74 (Soft Pity / Bảo hiểm mềm)</strong>, mỗi lượt tăng thêm <strong>+6%</strong> xác suất. Lượt thứ <strong>90 (Hard Pity)</strong> chắc chắn <strong>100% nổ 5★</strong>!</div>
+            <div>• <strong>☯️ Cơ chế 50/50, Capturing Radiance & Đại Bảo Hiểm:</strong> Khi nổ 5★, có <strong>55%</strong> trúng ngay Nhân Vật 5★ UP đang chọn trên Banner. Nếu lệch sang 5★ khác, lần nổ 5★ kế tiếp được <strong>🔥 Đại Bảo Hiểm 100% trúng Nhân Vật UP</strong>!</div>
+            <div>• <strong>⭐⭐⭐⭐ 4 Sao — Decor / Skin Bài Fanart (29 Bộ Bài):</strong> Tỷ lệ cơ bản <strong>5.1%</strong> (lượt 1–8), lượt 9 vọt lên <strong>56.1%</strong> và lượt <strong>10 chắc chắn 100% nổ ≥ 4★</strong> (Kèm bảo hiểm 50/50 cho 3 bộ bài 4★ Rate-Up trên Banner).</div>
+            <div>• <strong>⭐⭐⭐ 3 Sao — Avatar Fanart Nhân Vật (29 Avatar):</strong> Rơi ở các lượt còn lại (<strong>94.3%</strong> cơ bản).</div>
+            <div>• <strong>♻️ Cơ chế Trùng Đồ Hoàn Trả Xu (Tinh Huy / Tinh Trần):</strong>
+              <br/>— Trùng <strong>3★ Avatar</strong>: Hoàn trả <strong>+${DUPLICATE_REFUND_COINS[3].toLocaleString()} Xu</strong>
+              <br/>— Trùng <strong>4★ Decor Bài</strong>: Hoàn trả <strong>+${DUPLICATE_REFUND_COINS[4].toLocaleString()} Xu</strong>
+              <br/>— Trùng <strong>5★ Kỹ Năng Nộ</strong>: Hoàn trả <strong>+${DUPLICATE_REFUND_COINS[5].toLocaleString()} Xu</strong>
             </div>
-          `;
-        }
-
-        return `
-          <div class="shop-item-card ${isChop || isWin ? 'equipped' : ''}">
-            <div class="shop-burst-preview-wrap">
-              <img src="${b.gifUrl}" alt="${b.name}" loading="lazy" />
-              <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem thử: ${b.name}!')">
-                ▶ Xem thử
-              </button>
-            </div>
-            <div class="shop-item-title">${b.name}</div>
-            <div class="shop-item-desc">${b.desc}</div>
-            ${actionsHtml}
           </div>
-        `;
-      }).join('');
+        </div>
+        <div class="gacha-log-card">
+          <h3>📜 Lịch Sử 40 Lượt Cầu Nguyện Gần Nhất</h3>
+          <div class="gacha-history-list">${historyItemsHtml}</div>
+        </div>
+      `;
     }
   }
 
@@ -1579,23 +2186,11 @@ class TienLenGame {
     if (!me) return;
 
     if (!this.unlockedSkins.has(skinId)) {
-      if (me.coins < skin.price) {
-        alert(
-          `Bạn chưa đủ xu! Bộ bài "${skin.name}" cần ${skin.price.toLocaleString()} xu.\n💡 Bạn có thể đánh thắng thêm ván bài hoặc bấm nút "🎁 Hồi Xu Hàng Ngày (+5,000 Xu)" ở góc dưới Cửa Hàng!`
-        );
-        return;
-      }
-      me.coins -= skin.price;
-      this.unlockedSkins.add(skinId);
-      sfx.win();
-      this.addLog(
-        `🛍️ Bạn đã mở khóa bộ bài Fanart <strong>${skin.name}</strong> (-${skin.price.toLocaleString()} xu)!`,
-        'log-win'
-      );
-    } else {
-      sfx.click();
+      this.openGachaForCharacter(skinId);
+      return;
     }
 
+    sfx.click();
     this.equippedSkin = skinId;
     me.cardSkin = skinId;
     this.saveShopProfile();
@@ -1611,23 +2206,11 @@ class TienLenGame {
     if (!me) return;
 
     if (!this.unlockedAvatars.has(avatarId)) {
-      if (me.coins < av.price) {
-        alert(
-          `Bạn chưa đủ xu! Avatar "${av.name}" cần ${av.price.toLocaleString()} xu.\n💡 Bạn có thể đánh thắng thêm ván bài hoặc bấm nút "🎁 Hồi Xu Hàng Ngày (+5,000 Xu)" ở góc dưới Cửa Hàng!`
-        );
-        return;
-      }
-      me.coins -= av.price;
-      this.unlockedAvatars.add(avatarId);
-      sfx.win();
-      this.addLog(
-        `🛍️ Bạn đã sở hữu Avatar Fanart <strong>${av.name}</strong> (-${av.price.toLocaleString()} xu)!`,
-        'log-win'
-      );
-    } else {
-      sfx.click();
+      this.openGachaForCharacter(avatarId);
+      return;
     }
 
+    sfx.click();
     this.equippedAvatar = avatarId;
     me.avatar = avatarId;
     this.saveShopProfile();
@@ -1643,23 +2226,11 @@ class TienLenGame {
     if (!me) return;
 
     if (!this.unlockedBursts.has(burstId)) {
-      if (me.coins < burst.price) {
-        alert(
-          `Bạn chưa đủ xu! Hiệu ứng Kỹ Năng Nộ "${burst.name}" cần ${burst.price.toLocaleString()} xu.\n💡 Bạn có thể đánh thắng thêm ván bài hoặc bấm nút "🎁 Hồi Xu Hàng Ngày (+5,000 Xu)" ở góc dưới Cửa Hàng!`
-        );
-        return;
-      }
-      me.coins -= burst.price;
-      this.unlockedBursts.add(burstId);
-      sfx.win();
-      this.addLog(
-        `🎬 Bạn đã mở khóa Kỹ Năng Nộ <strong>${burst.name}</strong> (-${burst.price.toLocaleString()} xu)!`,
-        'log-win'
-      );
-    } else {
-      sfx.click();
+      this.openGachaForCharacter(burstId);
+      return;
     }
 
+    sfx.click();
     if (slot === 'win') {
       this.equippedWinBurst = burstId;
       me.winBurst = burstId;
@@ -1791,6 +2362,11 @@ class TienLenGame {
       sfx.click();
     });
 
+    document.getElementById('btn-close-gacha-results')?.addEventListener('click', () => {
+      document.getElementById('gacha-wish-overlay')?.classList.add('hidden');
+      sfx.click();
+    });
+
     if (this.btnShop && this.modalShop) {
       this.btnShop.addEventListener('click', () => {
         this.renderShopModal();
@@ -1808,26 +2384,11 @@ class TienLenGame {
         sfx.click();
       });
 
-      const tabSkinsBtn = document.getElementById('tab-btn-skins');
-      const tabAvatarsBtn = document.getElementById('tab-btn-avatars');
-      const tabBurstsBtn = document.getElementById('tab-btn-bursts');
-      const skinsGrid = document.getElementById('shop-skins-grid');
-      const avatarsGrid = document.getElementById('shop-avatars-grid');
-      const burstsGrid = document.getElementById('shop-bursts-grid');
-
-      const activateShopTab = (tabName) => {
-        tabSkinsBtn?.classList.toggle('active', tabName === 'skins');
-        tabAvatarsBtn?.classList.toggle('active', tabName === 'avatars');
-        tabBurstsBtn?.classList.toggle('active', tabName === 'bursts');
-        skinsGrid?.classList.toggle('hidden', tabName !== 'skins');
-        avatarsGrid?.classList.toggle('hidden', tabName !== 'avatars');
-        burstsGrid?.classList.toggle('hidden', tabName !== 'bursts');
-        sfx.click();
-      };
-
-      tabSkinsBtn?.addEventListener('click', () => activateShopTab('skins'));
-      tabAvatarsBtn?.addEventListener('click', () => activateShopTab('avatars'));
-      tabBurstsBtn?.addEventListener('click', () => activateShopTab('bursts'));
+      document.getElementById('tab-btn-gacha')?.addEventListener('click', () => this.switchShopTab('gacha'));
+      document.getElementById('tab-btn-bursts')?.addEventListener('click', () => this.switchShopTab('bursts'));
+      document.getElementById('tab-btn-skins')?.addEventListener('click', () => this.switchShopTab('skins'));
+      document.getElementById('tab-btn-avatars')?.addEventListener('click', () => this.switchShopTab('avatars'));
+      document.getElementById('tab-btn-history')?.addEventListener('click', () => this.switchShopTab('history'));
 
       document.getElementById('btn-claim-bonus')?.addEventListener('click', () => {
         this.claimFreeBonus();

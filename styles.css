@@ -3022,6 +3022,7 @@ body {
 }
 
 .gacha-up-Roster {
+  position: relative;
   display: flex;
   gap: 8px;
   overflow-x: auto;

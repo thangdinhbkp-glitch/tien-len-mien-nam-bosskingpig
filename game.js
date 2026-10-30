@@ -112,9 +112,9 @@ const DAILY_QUESTS_CONFIG = [
 ];
 
 const DUPLICATE_REFUND_COINS = {
-  3: 600,   // Trùng Avatar 3★ -> Hoàn +600 Xu
-  4: 3200,  // Trùng Decor Bài 4★ -> Hoàn +3,200 Xu (= 2 lượt Cầu Nguyện!)
-  5: 16000, // Trùng Kỹ Năng Nộ 5★ -> Hoàn +16,000 Xu (= 10 lượt Cầu Nguyện!)
+  3: 160,  // Trùng Avatar 3★ -> Hoàn +160 Xu (= 1/10 lượt Cầu Nguyện)
+  4: 1600, // Trùng Decor Bài 4★ -> Hoàn +1,600 Xu (= 1 lượt Cầu Nguyện)
+  5: 3200, // Trùng Kỹ Năng Nộ 5★ -> Hoàn +3,200 Xu (= 2 lượt Cầu Nguyện)
 };
 
 const BANNER_4STAR_RATEUPS = {
@@ -4135,6 +4135,11 @@ class TienLenGame {
 
   selectBannerUp(burstId) {
     if (!GENSHIN_BURSTS.some((b) => b.id === burstId)) return;
+    const curRoster = document.querySelector('#shop-gacha-panel .gacha-up-Roster');
+    if (curRoster) {
+      this.lastGachaRosterScrollLeft = curRoster.scrollLeft;
+      this.lastGachaRosterScrollTop = curRoster.scrollTop;
+    }
     this.selectedBannerBurstId = burstId;
     sfx.click();
     this.saveShopProfile();
@@ -4161,6 +4166,7 @@ class TienLenGame {
   openGachaForCharacter(charId) {
     if (charId && GENSHIN_BURSTS.some((b) => b.id === charId)) {
       this.selectedBannerBurstId = charId;
+      this._pendingScrollToBannerChip = true;
     }
     this.saveShopProfile();
     document.getElementById('inventory-modal')?.classList.add('hidden');
@@ -4496,7 +4502,8 @@ class TienLenGame {
 
     if (refundSummary) {
       if (totalRefund > 0) {
-        refundSummary.textContent = `♻️ Tinh Huy quy đổi đồ trùng: Hoàn lại +${totalRefund.toLocaleString()} Xu!`;
+        const eqRolls = (totalRefund / WISH_COST_SINGLE).toFixed(1).replace(/\.0$/, '');
+        refundSummary.textContent = `♻️ Tinh Huy quy đổi đồ trùng: Hoàn lại +${totalRefund.toLocaleString()} Xu (tương đương +${eqRolls} Roll)!`;
         refundSummary.classList.remove('hidden');
       } else {
         refundSummary.textContent = '✨ Toàn bộ vật phẩm đều là Mở Khóa Mới!';
@@ -4514,9 +4521,10 @@ class TienLenGame {
       resultsGrid.innerHTML = sorted
         .map((item, idx) => {
           const starsStr = '⭐'.repeat(item.star);
+          const dupRollLabel = item.star === 5 ? '+2 Roll' : item.star === 4 ? '+1 Roll' : '+1/10 Roll';
           const statusHtml = item.isNew
             ? `<div class="gacha-result-status is-new">✨ MỚI MỞ KHÓA!</div>`
-            : `<div class="gacha-result-status is-dup">♻️ Đã có ➔ Hoàn +${item.refund.toLocaleString()} Xu</div>`;
+            : `<div class="gacha-result-status is-dup">♻️ Đã có ➔ +${item.refund.toLocaleString()} Xu (${dupRollLabel})</div>`;
 
           const quickEquipBtn =
             item.category === 'burst'
@@ -4597,6 +4605,10 @@ class TienLenGame {
     // 1. RENDER TAB SẢNH CẦU NGUYỆN GENSHIN IMPACT (Chỉ render khi đang mở tab gacha)
     const gachaPanel = document.getElementById('shop-gacha-panel');
     if (gachaPanel && activeTab === 'gacha') {
+      const prevRosterEl = gachaPanel.querySelector('.gacha-up-Roster');
+      const savedRosterScrollLeft = prevRosterEl ? prevRosterEl.scrollLeft : (this.lastGachaRosterScrollLeft || 0);
+      const savedRosterScrollTop = prevRosterEl ? prevRosterEl.scrollTop : (this.lastGachaRosterScrollTop || 0);
+
       const featuredId = this.selectedBannerBurstId || 'raiden';
       const featuredBurst = getBurstMeta(featuredId) || GENSHIN_BURSTS[0];
       const rateUp4Ids = BANNER_4STAR_RATEUPS[featuredBurst.id] || ['raiden', 'furina', 'skirk'];
@@ -4615,7 +4627,7 @@ class TienLenGame {
         const charName = b.name.split('—')[0].trim();
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
         return `
-          <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
+          <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" data-burst-id="${b.id}" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
             <img src="fanart/${b.id}.jpg" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name">${charName}</div>
@@ -4720,10 +4732,10 @@ class TienLenGame {
             </div>
 
             <div class="gacha-refund-rules-mini">
-              ♻️ <strong>Cơ chế Tinh Huy / Tinh Trần Hoàn Trả Xu khi quay trùng đồ đã có:</strong><br/>
-              • Trùng <strong>3★ Avatar</strong> ➔ Hoàn lại <strong>+${DUPLICATE_REFUND_COINS[3].toLocaleString()} Xu</strong><br/>
-              • Trùng <strong>4★ Decor Bài</strong> ➔ Hoàn lại <strong>+${DUPLICATE_REFUND_COINS[4].toLocaleString()} Xu</strong> <em>(bằng 2 lượt Cầu Nguyện)</em><br/>
-              • Trùng <strong>5★ Kỹ Năng Nộ</strong> ➔ Hoàn lại <strong>+${DUPLICATE_REFUND_COINS[5].toLocaleString()} Xu</strong> <em>(hoàn trả trọn 10 lượt!)</em>
+              ♻️ <strong>Cơ chế Tinh Huy / Tinh Trần Hoàn Trả khi quay trùng đồ đã có:</strong><br/>
+              • Trùng <strong>3★ Avatar</strong> ➔ Nhận thêm <strong>+1/10 Roll</strong> (<strong>+${DUPLICATE_REFUND_COINS[3].toLocaleString()} Xu</strong>)<br/>
+              • Trùng <strong>4★ Decor Bài</strong> ➔ Nhận thêm <strong>+1 Roll</strong> (<strong>+${DUPLICATE_REFUND_COINS[4].toLocaleString()} Xu</strong>)<br/>
+              • Trùng <strong>5★ Kỹ Năng Nộ</strong> ➔ Nhận thêm <strong>+2 Roll</strong> (<strong>+${DUPLICATE_REFUND_COINS[5].toLocaleString()} Xu</strong>)
             </div>
 
             <div class="gacha-wish-buttons-row">
@@ -4744,6 +4756,29 @@ class TienLenGame {
           </div>
         </div>
       `;
+
+      // Giữ nguyên vị trí cuộn của thanh danh sách Banner (không bị giật/thụt về banner đầu tiên)
+      const newRosterEl = gachaPanel.querySelector('.gacha-up-Roster');
+      if (newRosterEl) {
+        newRosterEl.scrollLeft = savedRosterScrollLeft;
+        newRosterEl.scrollTop = savedRosterScrollTop;
+        newRosterEl.addEventListener(
+          'scroll',
+          () => {
+            this.lastGachaRosterScrollLeft = newRosterEl.scrollLeft;
+            this.lastGachaRosterScrollTop = newRosterEl.scrollTop;
+          },
+          { passive: true }
+        );
+        if (this._pendingScrollToBannerChip) {
+          this._pendingScrollToBannerChip = false;
+          const activeChip = newRosterEl.querySelector('.gacha-up-chip.active');
+          if (activeChip && typeof activeChip.scrollIntoView === 'function') {
+            activeChip.scrollIntoView({ inline: 'center', block: 'nearest' });
+            this.lastGachaRosterScrollLeft = newRosterEl.scrollLeft;
+          }
+        }
+      }
     }
 
     // 5. RENDER TAB TOÀN BỘ LỊCH SỬ CẦU NGUYỆN & BẢNG TỶ LỆ TĂNG DẦN THEO SỐ ROLL

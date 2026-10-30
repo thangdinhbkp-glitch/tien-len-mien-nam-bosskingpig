@@ -6757,5 +6757,54 @@ body {
   }
 }
 
+/* ============================================================================
+   GEO ELEMENT THEME & NAVIA LOCKED CARD VISUALS (20-CHARACTER 5★ ROSTER)
+   ============================================================================ */
+.genshin-burst-overlay.theme-geo .burst-bg-fx {
+  background: radial-gradient(circle at 50% 45%, rgba(245, 158, 11, 0.42), rgba(180, 83, 9, 0.35) 55%, rgba(10, 8, 4, 0.94) 90%);
+}
+
+.genshin-burst-overlay.theme-geo .burst-character-wrap {
+  border-color: rgba(251, 191, 36, 0.95);
+  box-shadow: 0 0 28px rgba(245, 158, 11, 0.65);
+}
+
+.genshin-burst-overlay.theme-geo .burst-skill-tag {
+  background: linear-gradient(135deg, #f59e0b, #b45309);
+  border-color: #fde68a;
+  color: #fffbeb;
+}
+
+.seat-char-box.elem-geo {
+  border-color: rgba(251, 191, 36, 0.65);
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.82), rgba(28, 25, 23, 0.92));
+}
+
+.playing-card.navia-locked-card {
+  filter: grayscale(0.45) brightness(0.76);
+  border: 2.5px dashed #f59e0b !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.65) !important;
+  cursor: not-allowed !important;
+}
+
+.card-navia-lock-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  background: rgba(120, 53, 15, 0.94);
+  border: 1.5px solid #fde047;
+  color: #fef08a;
+  font-size: 9.5px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 6;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
+}
+
+
 
 

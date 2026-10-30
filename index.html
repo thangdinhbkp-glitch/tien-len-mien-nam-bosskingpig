@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=45" />
+  <link rel="stylesheet" href="styles.css?v=46" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -344,9 +344,9 @@
                 <div class="hero-mode-icon">👥</div>
                 <div class="hero-mode-text">
                   <div class="hero-mode-title">CHƠI VỚI NGƯỜI</div>
-                  <div class="hero-mode-sub">Tạo phòng làm Chủ bàn hoặc nhập Mã phòng 4 số / gửi Link rủ bạn bè (2 – 4 người)</div>
+                  <div class="hero-mode-sub">Danh sách nhiều bàn trực tuyến • Tạo phòng (Có/Không Pass) • Tìm bàn theo ID (2 – 4 người)</div>
                 </div>
-                <div class="hero-mode-cta-pill online-pill">🚀 MỞ PHÒNG ONLINE ▸</div>
+                <div class="hero-mode-cta-pill online-pill">🚀 DANH SÁCH BÀN ▸</div>
               </div>
             </div>
           </div>
@@ -464,23 +464,79 @@
             </div>
           </div>
 
-          <!-- Khung Hành Động Chế Độ 2 (Chơi Với Người) -->
+          <!-- Khung Hành Động Chế Độ 2 (Chơi Với Người - Danh Sách Bàn, Tạo Phòng Có/Không Pass & Tìm Bàn Theo ID) -->
           <div class="lobby-action-panel compact-mode-panel hidden" id="lobby-human-panel">
-            <div class="human-mode-actions-row compact-human-row" id="human-create-join-row">
-              <div class="human-create-box compact-box">
-                <div class="human-box-title">🏠 Tạo Phòng Mới (Làm Chủ Bàn)</div>
-                <div class="human-box-desc">Tạo phòng với mức cược bên dưới và gửi Mã / Link cho bạn bè:</div>
-                <button class="primary-btn" id="btn-create-room">
-                  🏠 Tạo Phòng Đấu Với Người
+            <!-- Khu vực Danh Sách Bàn & Thanh Công Cụ (Ẩn khi đang ngồi trong 1 phòng chờ cụ thể) -->
+            <div class="mp-lobby-browser-wrap" id="human-create-join-row">
+              <!-- Thanh Công Cụ Đầu Sảnh: Nút Tạo Phòng Mới + Thanh Tìm Bàn Theo ID -->
+              <div class="mp-browser-toolbar">
+                <button class="primary-btn mp-open-create-btn" id="btn-toggle-create-room" onclick="window.tienLenGame.toggleCreateRoomSetupBox()">
+                  ➕ Tạo Phòng Mới (Set Pass / Không Pass)
                 </button>
+
+                <div class="mp-search-bar">
+                  <input type="text" id="input-room-code" maxlength="8" placeholder="🔍 Nhập ID phòng cần tìm (VD: 8429)..." />
+                  <button class="primary-btn btn-sm" id="btn-join-room" title="Tìm đúng bàn có ID này trong danh sách bàn">
+                    🔍 Search
+                  </button>
+                  <button class="tool-btn btn-sm hidden" id="btn-clear-search-room" onclick="window.tienLenGame.clearRoomSearchFilter()" title="Hiện lại tất cả các bàn đang mở">
+                    ✕ Bỏ lọc
+                  </button>
+                  <button class="tool-btn btn-sm" id="btn-refresh-rooms" onclick="window.tienLenGame.refreshMultiplayerRoomsDirectory(true)" title="Làm mới danh sách bàn trực tuyến">
+                    🔄 Làm mới
+                  </button>
+                </div>
               </div>
 
-              <div class="human-join-box compact-box">
-                <div class="human-box-title">🚀 Vào Phòng Bạn Bè</div>
-                <div class="human-box-desc">Nhập Mã phòng 4 chữ số do bạn bè gửi để vào bàn ngay:</div>
-                <div class="join-row">
-                  <input type="text" id="input-room-code" maxlength="8" placeholder="Mã phòng (VD: 8888)" />
-                  <button class="primary-btn" id="btn-join-room">🚀 Vào Phòng</button>
+              <!-- Hộp Thiết Lập Tạo Phòng Mới (Cài Mật Khẩu Hoặc Không + Chọn Cược + Push Bàn Lên Giao Diện) -->
+              <div class="mp-create-setup-box hidden" id="create-room-setup-box">
+                <div class="mp-create-setup-header">
+                  <div>
+                    <div class="human-box-title">🏠 Thiết Lập Tạo Phòng Mới &amp; Đưa Lên Sảnh Bàn</div>
+                    <div class="human-box-desc">Có thể đặt mật khẩu (hoặc để trống nếu tự do). Tạo xong sẽ hiện ngay ID Phòng và đưa bàn lên danh sách!</div>
+                  </div>
+                  <button class="clear-log-btn" onclick="window.tienLenGame.toggleCreateRoomSetupBox(false)">✕ Đóng</button>
+                </div>
+                <div class="mp-create-setup-fields">
+                  <div class="mp-field-group">
+                    <label for="input-room-password">🔒 Mật khẩu phòng (Tùy chọn):</label>
+                    <input type="text" id="input-room-password" maxlength="16" placeholder="Để trống nếu không đặt pass (Tự do vào)..." />
+                  </div>
+                  <div class="mp-field-group">
+                    <label for="input-room-title">🏷️ Tên bàn / Ghi chú:</label>
+                    <input type="text" id="input-room-title" maxlength="24" placeholder="VD: Bàn giao lưu vui vẻ..." />
+                  </div>
+                </div>
+                <div class="mp-create-setup-footer">
+                  <span class="mp-create-bet-hint">💰 Mức cược bàn lấy theo ô <strong>Mức Cược</strong> bên dưới (Đang chọn: <strong id="create-room-bet-preview" style="color:#fde047;">100 Xu/lá</strong>)</span>
+                  <button class="primary-btn" id="btn-create-room">
+                    🏠 Tạo Phòng &amp; Push Lên Sảnh Bàn
+                  </button>
+                </div>
+              </div>
+
+              <!-- Hộp Nhập Mật Khẩu Khi Bấm Vào Bàn Có Khóa Pass -->
+              <div class="mp-password-prompt-box hidden" id="room-password-prompt-box">
+                <div class="mp-pass-prompt-title" id="room-pass-prompt-label">🔒 Bàn #---- yêu cầu nhập Mật khẩu để vào:</div>
+                <div class="mp-pass-prompt-row">
+                  <input type="password" id="input-join-room-password" maxlength="16" placeholder="Nhập mật khẩu của bàn này..." />
+                  <button class="primary-btn btn-sm" id="btn-confirm-room-password" onclick="window.tienLenGame.confirmJoinPasswordProtectedRoom()">
+                    🚀 Xác Nhận Vào Bàn
+                  </button>
+                  <button class="clear-log-btn" onclick="window.tienLenGame.closeRoomPasswordPrompt()">
+                    Hủy
+                  </button>
+                </div>
+              </div>
+
+              <!-- Danh Sách Các Bàn Đang Mở Trên Giao Diện -->
+              <div class="mp-tables-directory-box">
+                <div class="mp-tables-dir-header">
+                  <span>🌐 DANH SÁCH BÀN ĐANG MỞ (<strong id="mp-tables-count">0</strong> bàn)</span>
+                  <span class="mp-search-filter-badge hidden" id="mp-search-active-badge">🔍 Đang lọc ID: #----</span>
+                </div>
+                <div class="mp-tables-grid" id="multiplayer-tables-grid">
+                  <!-- Populated dynamically by renderMultiplayerTablesList() -->
                 </div>
               </div>
             </div>
@@ -492,7 +548,10 @@
                   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
                     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                       <div class="room-code-pill">
-                        MÃ PHÒNG: <strong id="display-room-code">----</strong>
+                        ID PHÒNG: <strong id="display-room-code">----</strong>
+                      </div>
+                      <div class="room-code-pill" id="display-room-pass-pill" style="background:rgba(16,185,129,0.18);border-color:#34d399;color:#a7f3d0;">
+                        <strong id="display-room-pass">🔓 Không mật khẩu</strong>
                       </div>
                       <div class="room-code-pill" style="background:rgba(245,158,11,0.18);border-color:#fbbf24;color:#fde68a;">
                         CƯỢC: <strong id="display-room-bet">100 Xu/lá</strong>
@@ -500,8 +559,11 @@
                     </div>
                     <button class="clear-log-btn" id="btn-leave-room">✕ Rời phòng</button>
                   </div>
+                  <div class="mp-room-created-notice" id="mp-room-created-notice">
+                    ✅ Bàn đã được đẩy lên Sảnh Chơi Với Người! Bạn bè có thể bấm trực tiếp vào bàn trên danh sách hoặc tìm theo <strong>ID Phòng</strong>. (Lưu ý: Người chơi AFK suốt cả trận sẽ tự động rời bàn ở trận sau).
+                  </div>
                   <div class="share-url-wrap">
-                    <span>🔗 Link:</span>
+                    <span>🔗 Link bàn:</span>
                     <input type="text" id="share-link-input" readonly />
                     <button class="primary-btn btn-sm" id="btn-copy-link">📋 Copy Link</button>
                   </div>
@@ -511,7 +573,7 @@
 
               <!-- 4 Seats List (Minimum 2 players, Max 4 players) -->
               <div class="lobby-seats-header" style="margin-top:4px;">
-                <span>👥 Ghế trong phòng (<strong id="lobby-player-count">1</strong>/4 người • Tối thiểu 2 người)</span>
+                <span>👥 Ghế trong bàn (<strong id="lobby-player-count">1</strong>/4 người • Tối thiểu 2 người)</span>
               </div>
 
               <div class="lobby-seats-grid compact-seats-grid" id="lobby-seats-grid">
@@ -1043,6 +1105,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=45"></script>
+  <script src="game.js?v=46"></script>
 </body>
 </html>

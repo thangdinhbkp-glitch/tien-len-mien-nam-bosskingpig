@@ -537,7 +537,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'linnea',
     name: 'Linnea — Cẩm Nang Sinh Tồn Cực Hạn',
-    desc: '[Sử Thi] Ảo thuật gia tinh linh biến lá bài rác nhỏ nhất thành cùng số với 1 lá bài thường trên tay để ghép Đôi/Sám (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Ảo thuật gia tinh linh biến lá bài rác lẻ nhỏ nhất thành cùng số với 1 lá bài lẻ thường (≤ A) trên tay để tạo thành Đôi (Video + Giọng lồng tiếng thật).',
     price: 115000,
     mp4Url: 'linnea_burst.mp4',
     audioUrl: 'linnea_burst.ogg?v=55',
@@ -1027,7 +1027,7 @@ const CHARACTER_SKILLS = {
     charName: 'Linnea',
     icon: '🎩',
     name: 'Ảo Thuật Ghép Đôi',
-    shortDesc: 'Biến 1 lá bài rác nhỏ nhất trên tay thành cùng bậc số với 1 lá bài thường (≤ A) khác trên tay để tạo ngay Đôi / Sám Cô',
+    shortDesc: 'Biến 1 lá bài rác lẻ nhỏ nhất trên tay thành cùng bậc số với 1 lá bài lẻ thường (≤ A) khác trên tay để tạo ngay 1 bộ Đôi',
   },
   nefer: {
     id: 'nefer',
@@ -8017,8 +8017,16 @@ class TienLenGame {
         return { ok: false, reason: 'Cần có bộ bài thường (dưới Heo/Hàng) trên bàn để thu hồi 1 lá về tay hoặc dùng khi mở vòng mới!' };
       }
     }
-    if (charId === 'linnea' && player.hand.length < 2) {
-      return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá nhỏ nhất ghép thành Đôi/Sám' };
+    if (charId === 'linnea') {
+      if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá lẻ nhỏ nhất ghép thành Đôi' };
+      }
+      const rc = new Array(13).fill(0);
+      player.hand.forEach((c) => rc[c.rankIndex]++);
+      const singleNormals = player.hand.filter((c) => c.rankIndex <= 11 && rc[c.rankIndex] === 1);
+      if (singleNormals.length < 1) {
+        return { ok: false, reason: 'Cần ít nhất 1 lá bài lẻ thường (3→A) trên tay để Linnea ghép thành Đôi!' };
+      }
     }
     if (charId === 'nefer' && player.hand.length < 2) {
       return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá rác ghép thành Sám Cô / Đôi' };
@@ -8564,14 +8572,28 @@ class TienLenGame {
       }
     } else if (charId === 'linnea') {
       const sorted = sortCardsAsc(player.hand);
-      const lowest = sorted[0];
+      const rc = new Array(13).fill(0);
+      sorted.forEach((c) => rc[c.rankIndex]++);
+      const lowest = sorted.find((c) => rc[c.rankIndex] === 1 && c.rankIndex < 12) || sorted[0];
       let matchTarget = null;
       if (preferredCardIds && preferredCardIds.length > 0) {
-        matchTarget = player.hand.find((c) => preferredCardIds.includes(c.id) && c.id !== lowest?.id && c.rankIndex <= 11);
+        matchTarget = player.hand.find(
+          (c) =>
+            preferredCardIds.includes(c.id) &&
+            c.id !== lowest?.id &&
+            c.rankIndex <= 11 &&
+            rc[c.rankIndex] === 1
+        );
       }
       if (!matchTarget) {
-        const highNormals = sorted.filter((c) => c.id !== lowest?.id && c.rankIndex <= 11);
-        matchTarget = highNormals.length > 0 ? highNormals[highNormals.length - 1] : sorted[sorted.length - 1];
+        const singleNormals = sorted.filter(
+          (c) => c.id !== lowest?.id && c.rankIndex <= 11 && rc[c.rankIndex] === 1
+        );
+        matchTarget =
+          singleNormals.length > 0
+            ? singleNormals[singleNormals.length - 1]
+            : sorted.filter((c) => c.id !== lowest?.id && c.rankIndex <= 11).pop() ||
+              sorted[sorted.length - 1];
       }
       if (lowest && matchTarget && lowest.id !== matchTarget.id) {
         const oldStr = `${lowest.rank}${lowest.suit}`;
@@ -8584,9 +8606,9 @@ class TienLenGame {
         lowest.value = lowest.rankIndex * 4 + lowest.suitIndex;
         lowest.id = `${lowest.rank}${lowest.suit}_linnea_${Date.now()}`;
         player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-        this.selectedCardIds.clear();
+        this.selectedCardIds = new Set([lowest.id, matchTarget.id]);
         this.companionCardIds.clear();
-        skillSummary = `🎩 [Ảo Thuật Ghép Đôi] ${player.name} biến lá rác ${oldStr} thành ${lowest.rank}${lowest.suit} để ghép bộ với ${matchTarget.rank}${matchTarget.suit}!`;
+        skillSummary = `🎩 [Ảo Thuật Ghép Đôi] ${player.name} biến lá lẻ ${oldStr} thành ${lowest.rank}${lowest.suit} để tạo thành Đôi ${RANKS[targetRank]} (${lowest.rank}${lowest.suit} ${matchTarget.rank}${matchTarget.suit})!`;
       }
     } else if (charId === 'nefer') {
       const sorted = sortCardsAsc(player.hand);
@@ -9409,26 +9431,30 @@ class TienLenGame {
         }
       }
     } else if (charId === 'linnea') {
-      // Ảo Thuật Ghép Đôi: Biến lá rác nhỏ nhất thành bản sao cùng số với lá cao trên tay để tạo Đôi / Sám Cô
-      const nonBombNormals = sortCardsAsc(bot.hand).filter(
-        (c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex)
+      // Ảo Thuật Ghép Đôi: Biến lá lẻ nhỏ nhất thành bản sao cùng số với 1 lá lẻ thường (<= A) trên tay để tạo thành Đôi
+      const singleNormals = sortCardsAsc(bot.hand).filter(
+        (c) =>
+          c.rankIndex <= 11 &&
+          struct.rankCounts[c.rankIndex] === 1 &&
+          !struct.bombRanks.has(c.rankIndex)
       );
-      if (nonBombNormals.length >= 2) {
-        const lowest = nonBombNormals[0];
+      if (singleNormals.length >= 2) {
+        const lowest = singleNormals[0];
         let bestTarget = null;
-        if (this.currentCombo && !this.currentCombo.isBomb && (this.currentCombo.type === COMBO_TYPES.PAIR || this.currentCombo.type === COMBO_TYPES.TRIPLE) && (!plannedMove || plannedMove.highRank === 12)) {
-          const needCount = this.currentCombo.length - 1;
-          bestTarget = nonBombNormals.find(
-            (c) =>
-              c.id !== lowest.id &&
-              c.rankIndex > this.currentCombo.highRank &&
-              struct.rankCounts[c.rankIndex] >= needCount
+        if (
+          this.currentCombo &&
+          !this.currentCombo.isBomb &&
+          this.currentCombo.type === COMBO_TYPES.PAIR &&
+          (!plannedMove || plannedMove.highRank === 12)
+        ) {
+          bestTarget = singleNormals.find(
+            (c) => c.id !== lowest.id && c.rankIndex > this.currentCombo.highRank
           );
         }
         if (!bestTarget && (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6)) {
-          bestTarget = [...nonBombNormals]
+          bestTarget = [...singleNormals]
             .reverse()
-            .find((c) => c.id !== lowest.id && struct.rankCounts[c.rankIndex] === 1);
+            .find((c) => c.id !== lowest.id && !struct.criticalStraightRanks.has(c.rankIndex));
         }
         if (bestTarget && lowest.rankIndex <= 8) {
           shouldCast = true;

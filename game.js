@@ -1708,8 +1708,8 @@ class TienLenGame {
     if (!this.loadActiveMatchSnapshot()) {
       this.startNewMatch(true);
     }
-    // Đảm bảo khi mới vào game luôn mở ở Sảnh Chờ (#wifi-modal), ẩn Kho Đồ / Cầu Nguyện / Pause Menu
-    ['inventory-modal', 'shop-modal', 'pause-modal', 'quests-modal', 'rules-modal', 'account-modal', 'summary-modal'].forEach(
+    // Đảm bảo khi mới vào game luôn mở ở Sảnh Chờ (#wifi-modal), ẩn Kho Đồ / Cầu Nguyện / Pause Menu / Mode Setup
+    ['mode-setup-modal', 'inventory-modal', 'shop-modal', 'pause-modal', 'quests-modal', 'rules-modal', 'account-modal', 'summary-modal'].forEach(
       (id) => document.getElementById(id)?.classList.add('hidden')
     );
     this.modalWifi?.classList.remove('hidden');
@@ -1744,8 +1744,11 @@ class TienLenGame {
   preloadActiveBurstVideos() {
     try {
       if (!this.preloadedVideoSet) this.preloadedVideoSet = new Set();
+      if (!this.burstBlobUrls) this.burstBlobUrls = new Map();
       const charIds = new Set();
       if (this.equippedActiveChar && this.equippedActiveChar !== 'none') charIds.add(this.equippedActiveChar);
+      if (this.equippedChopBurst && this.equippedChopBurst !== 'none') charIds.add(this.equippedChopBurst);
+      if (this.equippedWinBurst && this.equippedWinBurst !== 'none') charIds.add(this.equippedWinBurst);
       if (Array.isArray(this.players)) {
         this.players.forEach((p) => {
           const cid = this.getPlayerActiveCharId(p);
@@ -1758,15 +1761,23 @@ class TienLenGame {
           if (cid && cid !== 'none') charIds.add(cid);
         });
       }
+      const cacheMediaToBlob = (url) => {
+        if (!url || this.preloadedVideoSet.has(url)) return;
+        this.preloadedVideoSet.add(url);
+        fetch(url, { cache: 'force-cache' })
+          .then((res) => (res.ok ? res.blob() : null))
+          .then((blob) => {
+            if (blob && blob.size > 0) {
+              this.burstBlobUrls.set(url, URL.createObjectURL(blob));
+            }
+          })
+          .catch(() => {});
+      };
       charIds.forEach((cid) => {
         const meta = getBurstMeta(cid);
-        if (meta && meta.mp4Url && !this.preloadedVideoSet.has(meta.mp4Url)) {
-          this.preloadedVideoSet.add(meta.mp4Url);
-          const link = document.createElement('link');
-          link.rel = 'preload';
-          link.as = 'video';
-          link.href = meta.mp4Url;
-          document.head.appendChild(link);
+        if (meta) {
+          cacheMediaToBlob(meta.mp4Url);
+          cacheMediaToBlob(meta.audioUrl);
         }
       });
     } catch (_) {}
@@ -1787,11 +1798,9 @@ class TienLenGame {
       return;
     }
 
-    if (lockGameplay) {
-      this.isBurstPlaying = true;
-      clearTimeout(this.botTimer);
-      this.updateHumanActionButtons();
-    }
+    // Luôn tạm khóa botTimer trong lúc đang phát Hoạt Ảnh Nộ để bàn bài không render đè gây giật lag video
+    this.isBurstPlaying = true;
+    clearTimeout(this.botTimer);
 
     const videoEl = document.getElementById('burst-video');
     const audioEl = document.getElementById('burst-audio');
@@ -1801,7 +1810,6 @@ class TienLenGame {
     const titleEl = document.getElementById('burst-skill-title');
     const quoteEl = document.getElementById('burst-skill-quote');
     const detailEl = document.getElementById('burst-skill-detail');
-    const tableEl = document.querySelector('.casino-table');
 
     overlay.classList.remove(
       'hidden',
@@ -1814,12 +1822,6 @@ class TienLenGame {
       'theme-cryo'
     );
     overlay.classList.add(burstMeta.theme || 'theme-electro');
-
-    if (tableEl) {
-      tableEl.classList.remove('burst-shake');
-      void tableEl.offsetWidth;
-      tableEl.classList.add('burst-shake');
-    }
 
     // Hạ nhỏ nhạc nền (Ducking) để tiếng hô Nộ & hiệu ứng âm thanh Video nghe rõ 100%
     sfx.duckBGM(true);
@@ -1851,28 +1853,27 @@ class TienLenGame {
       sfx.duckBGM(false);
       overlay.classList.add('hidden');
       overlay.onclick = null;
-      const wasLocking = this.isBurstPlaying;
       this.isBurstPlaying = false;
       this.updateHumanActionButtons();
       if (onDoneCallback) {
         onDoneCallback();
-      } else if (wasLocking && !this.isGameOver) {
+      } else if (!this.isGameOver && !this.inInitialLobby && this.modalWifi?.classList.contains('hidden')) {
         this.promptCurrentTurn();
       }
     };
 
     const startDurationCountdown = () => {
       clearTimeout(this.burstTimeout);
-      this.burstTimeout = setTimeout(finishBurst, 3450);
+      this.burstTimeout = setTimeout(finishBurst, 3400);
     };
 
     if (videoEl && burstMeta.mp4Url) {
       videoEl.style.display = 'block';
-      // TUYỆT ĐỐI KHÔNG gắn poster ảnh tĩnh của nhân vật lên video để tránh hiện avatar tĩnh làm mất thời gian Nộ!
       videoEl.removeAttribute('poster');
-      if (videoEl.getAttribute('data-loaded-src') !== burstMeta.mp4Url) {
-        videoEl.src = burstMeta.mp4Url;
-        videoEl.setAttribute('data-loaded-src', burstMeta.mp4Url);
+      const targetVideoSrc = this.burstBlobUrls?.get(burstMeta.mp4Url) || burstMeta.mp4Url;
+      if (videoEl.getAttribute('data-loaded-src') !== targetVideoSrc) {
+        videoEl.src = targetVideoSrc;
+        videoEl.setAttribute('data-loaded-src', targetVideoSrc);
       }
       videoEl.muted = !sfx.enabled;
       videoEl.volume = 0.95;
@@ -1880,13 +1881,11 @@ class TienLenGame {
         videoEl.currentTime = 0;
       } catch (_) {}
 
-      // Chỉ bắt đầu đếm 3.45s khi khung hình video đầu tiên thực sự chạy
       videoEl.onplaying = () => {
         videoEl.onplaying = null;
         startDurationCountdown();
       };
-      // Phòng hộ nếu mạng chậm chưa kịp fire onplaying
-      this.burstTimeout = setTimeout(finishBurst, 4600);
+      this.burstTimeout = setTimeout(finishBurst, 4400);
 
       const playPromise = videoEl.play();
       if (playPromise && typeof playPromise.catch === 'function') {
@@ -1902,9 +1901,10 @@ class TienLenGame {
     }
 
     if (audioEl && burstMeta.audioUrl && sfx.enabled) {
-      if (audioEl.getAttribute('data-loaded-src') !== burstMeta.audioUrl) {
-        audioEl.src = burstMeta.audioUrl;
-        audioEl.setAttribute('data-loaded-src', burstMeta.audioUrl);
+      const targetAudioSrc = this.burstBlobUrls?.get(burstMeta.audioUrl) || burstMeta.audioUrl;
+      if (audioEl.getAttribute('data-loaded-src') !== targetAudioSrc) {
+        audioEl.src = targetAudioSrc;
+        audioEl.setAttribute('data-loaded-src', targetAudioSrc);
       }
       audioEl.muted = false;
       audioEl.volume = 1.0;
@@ -1919,32 +1919,38 @@ class TienLenGame {
     quoteEl.textContent = burstMeta.quote;
     detailEl.textContent = detailText || `💥 Tuyệt Kỹ Nộ: ${burstMeta.name}!`;
 
-    if (burstMeta.sfxType === 'raiden') {
-      chakraEl.innerHTML = `
-        <svg viewBox="0 0 200 200" width="90%" height="90%">
-          <circle cx="100" cy="100" r="88" fill="none" stroke="#e879f9" stroke-width="2.5" stroke-dasharray="10 6"/>
-          <circle cx="100" cy="100" r="72" fill="none" stroke="#c084fc" stroke-width="1.5"/>
-          <polygon points="100,14 122,78 186,100 122,122 100,186 78,122 14,100 78,78" fill="none" stroke="#f0abfc" stroke-width="2" opacity="0.75"/>
-        </svg>
-      `;
+    // Chỉ render SVG vào chakraEl & slashContainer 1 lần theo sfxType để không tạo lại DOM mỗi lần tung Nộ
+    if (chakraEl.getAttribute('data-sfx-type') !== burstMeta.sfxType) {
+      chakraEl.setAttribute('data-sfx-type', burstMeta.sfxType);
+      if (burstMeta.sfxType === 'raiden') {
+        chakraEl.innerHTML = `
+          <svg viewBox="0 0 200 200" width="90%" height="90%">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#e879f9" stroke-width="2.5" stroke-dasharray="10 6"/>
+            <circle cx="100" cy="100" r="72" fill="none" stroke="#c084fc" stroke-width="1.5"/>
+            <polygon points="100,14 122,78 186,100 122,122 100,186 78,122 14,100 78,78" fill="none" stroke="#f0abfc" stroke-width="2" opacity="0.75"/>
+          </svg>
+        `;
+      } else {
+        chakraEl.innerHTML = `
+          <svg viewBox="0 0 200 200" width="92%" height="92%">
+            <circle cx="100" cy="100" r="90" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="14 6"/>
+            <polygon points="100,8 126,74 192,100 126,126 100,192 74,126 8,100 74,74" fill="none" stroke="#7dd3fc" stroke-width="2.2"/>
+            <polygon points="35,35 100,68 165,35 132,100 165,165 100,132 35,165 68,100" fill="none" stroke="#e879f9" stroke-width="1.8" opacity="0.8"/>
+          </svg>
+        `;
+      }
+    }
 
+    if (burstMeta.sfxType === 'raiden') {
       slashContainer.innerHTML = `
         <div class="raiden-slash-beam"></div>
         <svg class="burst-svg-fx" viewBox="0 0 1000 600" preserveAspectRatio="none">
-          <polyline points="0,480 230,380 210,415 490,295 475,325 760,195 1000,90" fill="none" stroke="#ffffff" stroke-width="5" filter="drop-shadow(0 0 16px #d946ef)"/>
+          <polyline points="0,480 230,380 210,415 490,295 475,325 760,195 1000,90" fill="none" stroke="#ffffff" stroke-width="5"/>
           <polyline points="120,80 340,260 320,290 610,360 890,520" fill="none" stroke="#e879f9" stroke-width="3" opacity="0.85"/>
           <polyline points="680,40 540,240 580,260 410,490" fill="none" stroke="#c084fc" stroke-width="3" opacity="0.8"/>
         </svg>
       `;
     } else {
-      chakraEl.innerHTML = `
-        <svg viewBox="0 0 200 200" width="92%" height="92%">
-          <circle cx="100" cy="100" r="90" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="14 6"/>
-          <polygon points="100,8 126,74 192,100 126,126 100,192 74,126 8,100 74,74" fill="none" stroke="#7dd3fc" stroke-width="2.2"/>
-          <polygon points="35,35 100,68 165,35 132,100 165,165 100,132 35,165 68,100" fill="none" stroke="#e879f9" stroke-width="1.8" opacity="0.8"/>
-        </svg>
-      `;
-
       slashContainer.innerHTML = `
         <div class="skirk-slash-beam-1"></div>
         <div class="skirk-slash-beam-2"></div>
@@ -5116,7 +5122,7 @@ class TienLenGame {
       if (this.roomId) {
         document.getElementById('share-link-input').value = this.getShareableRoomUrl(this.roomId);
       }
-      ['pause-modal', 'inventory-modal', 'shop-modal', 'quests-modal', 'rules-modal', 'account-modal', 'char-skill-detail-modal', 'summary-modal'].forEach(
+      ['mode-setup-modal', 'pause-modal', 'inventory-modal', 'shop-modal', 'quests-modal', 'rules-modal', 'account-modal', 'char-skill-detail-modal', 'summary-modal'].forEach(
         (id) => document.getElementById(id)?.classList.add('hidden')
       );
       this.modalWifi.classList.remove('hidden');
@@ -5130,6 +5136,7 @@ class TienLenGame {
     document.getElementById('btn-close-wifi').addEventListener('click', () => {
       const wasInitial = this.inInitialLobby;
       this.inInitialLobby = false;
+      document.getElementById('mode-setup-modal')?.classList.add('hidden');
       this.modalWifi.classList.add('hidden');
       if (!this.isMultiplayer) {
         const curActiveCount = this.players.filter((p) => p.active).length;
@@ -5188,11 +5195,19 @@ class TienLenGame {
         alert('⛔ Ván bài trong phòng đang diễn ra! Vui lòng đánh hết ván trước khi rời phòng.');
         return;
       }
-      this.inInitialLobby = false;
-      this.switchToSoloBotMode();
+      this.stopMultiplayerSync();
+      this.isMultiplayer = false;
+      this.isHost = true;
+      this.roomId = null;
+      document.getElementById('wifi-room-box')?.classList.add('hidden');
+      document.getElementById('human-create-join-row')?.classList.remove('hidden');
+      document.getElementById('mode-setup-bet-section')?.classList.remove('hidden');
+      this.renderLobbyModal();
+      sfx.click();
     });
 
     document.getElementById('btn-solo-bot-mode').addEventListener('click', () => {
+      document.getElementById('mode-setup-modal')?.classList.add('hidden');
       if (!this.isMultiplayer && this.isMidMatch()) {
         // Nếu đang đánh dở ván bài thì chỉ đóng Sảnh Chờ để đánh tiếp, tuyệt đối không reset ván!
         this.modalWifi.classList.add('hidden');
@@ -5210,6 +5225,7 @@ class TienLenGame {
     document.getElementById('btn-start-wifi-match').addEventListener('click', () => {
       if (!this.isHost) return;
       if (this.isMidMatch()) {
+        document.getElementById('mode-setup-modal')?.classList.add('hidden');
         this.modalWifi.classList.add('hidden');
         return;
       }
@@ -5219,6 +5235,7 @@ class TienLenGame {
         return;
       }
       this.inInitialLobby = false;
+      document.getElementById('mode-setup-modal')?.classList.add('hidden');
       this.modalWifi.classList.add('hidden');
       this.startNewMatch(false);
     });
@@ -5374,6 +5391,19 @@ class TienLenGame {
     };
   }
 
+  openModeSetupModal(mode = 'bot') {
+    this.selectLobbyMode(mode);
+    const modal = document.getElementById('mode-setup-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+  }
+
+  closeModeSetupModal() {
+    document.getElementById('mode-setup-modal')?.classList.add('hidden');
+    sfx.click();
+  }
+
   selectLobbyMode(mode) {
     this.selectedLobbyMode = mode === 'human' ? 'human' : 'bot';
     const cardBot = document.getElementById('mode-card-bot');
@@ -5381,17 +5411,49 @@ class TienLenGame {
     const panelBot = document.getElementById('lobby-bot-panel');
     const panelHuman = document.getElementById('lobby-human-panel');
     const modeLabel = document.getElementById('selected-mode-label');
+    const titleEl = document.getElementById('mode-setup-modal-title');
+    const subEl = document.getElementById('mode-setup-modal-sub');
+    const miniBot = document.getElementById('mini-tab-bot');
+    const miniHuman = document.getElementById('mini-tab-human');
+    const botFooter = document.getElementById('mode-setup-bot-footer');
+    const betSec = document.getElementById('mode-setup-bet-section');
+    const createJoinRow = document.getElementById('human-create-join-row');
 
     cardBot?.classList.toggle('active', this.selectedLobbyMode === 'bot');
     cardHuman?.classList.toggle('active', this.selectedLobbyMode === 'human');
+    miniBot?.classList.toggle('active', this.selectedLobbyMode === 'bot');
+    miniHuman?.classList.toggle('active', this.selectedLobbyMode === 'human');
     panelBot?.classList.toggle('hidden', this.selectedLobbyMode !== 'bot');
     panelHuman?.classList.toggle('hidden', this.selectedLobbyMode !== 'human');
+    botFooter?.classList.toggle('hidden', this.selectedLobbyMode !== 'bot');
+
+    if (titleEl) {
+      titleEl.textContent =
+        this.selectedLobbyMode === 'bot'
+          ? '🤖 CHƠI VỚI BOT (SOLO AI)'
+          : '👥 CHƠI VỚI NGƯỜI (ONLINE / WIFI)';
+    }
+    if (subEl) {
+      subEl.textContent =
+        this.selectedLobbyMode === 'bot'
+          ? 'Chọn số người • Đối thủ Bot 5★ • Mức cược bàn bài'
+          : 'Tạo phòng mới hoặc nhập Mã phòng 4 số để đấu cùng bạn bè (2–4 người)';
+    }
+
+    if (this.selectedLobbyMode === 'human' && this.isMultiplayer && this.roomId) {
+      createJoinRow?.classList.add('hidden');
+      betSec?.classList.add('hidden');
+      document.getElementById('wifi-room-box')?.classList.remove('hidden');
+    } else {
+      createJoinRow?.classList.remove('hidden');
+      betSec?.classList.remove('hidden');
+    }
 
     if (modeLabel) {
       modeLabel.textContent =
         this.selectedLobbyMode === 'bot'
-          ? `Chế độ 1: Đấu Với Bot (${this.soloPlayerCount || 4} Người)`
-          : 'Chế độ 2: Đấu Với Người (2 – 4 Người)';
+          ? `Đấu Với Bot (${this.soloPlayerCount || 4} Người)`
+          : 'Đấu Với Người (2 – 4 Người)';
     }
 
     sfx.click();
@@ -6272,8 +6334,16 @@ class TienLenGame {
     const activeOpponents = this.players.filter(
       (p) => p.active && p.id !== player.id && p.finishRank === null && p.hand.length > 0
     );
-    const pickRandomItem = (arr) =>
-      Array.isArray(arr) && arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
+    const pickRandomItem = (arr) => {
+      if (!Array.isArray(arr) || arr.length === 0) return null;
+      if (arr.length === 1) return arr[0];
+      if (window.crypto && window.crypto.getRandomValues) {
+        const randBuf = new Uint32Array(1);
+        window.crypto.getRandomValues(randBuf);
+        return arr[randBuf[0] % arr.length];
+      }
+      return arr[Math.floor(Math.random() * arr.length)];
+    };
 
     player.skillUsed = true;
 
@@ -6342,7 +6412,7 @@ class TienLenGame {
       }
     } else if (charId === 'mavuika') {
       let targetCard = null;
-      if (!player.isBot && preferredCardIds && preferredCardIds.length > 0) {
+      if (preferredCardIds && preferredCardIds.length > 0) {
         targetCard = player.hand.find((c) => preferredCardIds.includes(c.id) && c.rankIndex <= 10);
       }
       if (!targetCard) {
@@ -6396,13 +6466,7 @@ class TienLenGame {
       }
     } else if (charId === 'clorinde') {
       const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      const target =
-        (this.trickOwnerId !== null &&
-          this.trickOwnerId !== player.id &&
-          this.players[this.trickOwnerId]?.active &&
-          this.players[this.trickOwnerId]?.finishRank === null &&
-          this.players[this.trickOwnerId]) ||
-        pickRandomItem(unpassedOpps.length > 0 ? unpassedOpps : activeOpponents);
+      const target = pickRandomItem(unpassedOpps.length > 0 ? unpassedOpps : activeOpponents);
       if (target) {
         this.clorindeDuelPair = [player.id, target.id];
         this.players.forEach((p) => {
@@ -6447,14 +6511,15 @@ class TienLenGame {
       detail: skillSummary,
     };
     this.triggerGenshinBurst(charId, skillSummary, null, true);
-    this.triggerArenaReactionFlash(rx);
     this.showComboBanner(`🔮 KỸ NĂNG ${sk.charName.toUpperCase()}: ${sk.name.toUpperCase()}!`, rx.cssClass);
     this.addLog(`🔮 <strong>${skillSummary}</strong>`, 'log-win');
 
     this.updateArenaBackdropCharacters();
     this.renderRoundSkillStatusBar();
     this.renderAll();
-    this.saveActiveMatchSnapshot();
+    setTimeout(() => {
+      this.saveActiveMatchSnapshot();
+    }, 350);
     if (this.isMultiplayer && this.isHost) {
       this.broadcastState();
     }
@@ -6472,34 +6537,43 @@ class TienLenGame {
     );
     if (activeOpponents.length === 0) return false;
 
+    const unpassedOpps = activeOpponents.filter((p) => !p.passed);
     const minOppCards = Math.min(...activeOpponents.map((p) => p.hand.length));
     const rankCounts = new Array(13).fill(0);
     bot.hand.forEach((c) => rankCounts[c.rankIndex]++);
+    const struct = this.analyzeBotHandStructure(bot.hand);
 
-    // AI Bot cân nhắc chiến thuật thông minh cho từng nhân vật:
+    // Tính trước nước đi dự kiến của Bot để KHÔNG BAO GIỜ tung kỹ năng hỗ trợ vòng rồi lại Bỏ Lượt!
+    const plannedMove = !this.currentCombo
+      ? this.chooseBotLeadMove(bot, validMoves)
+      : this.chooseBotResponseMove(bot, validMoves);
+
     let shouldCast = false;
     let preferredIds = [];
 
     if (charId === 'raiden') {
-      // Cắt vòng khi không có bài đỡ bộ Lẻ/Đôi <= J trên bàn (hoặc khi còn ít bài / đối thủ sắp hết bài)
+      // Cắt vòng khi trên bàn là Lẻ/Đôi <= J mà Bot không muốn/không thể đỡ (hoặc phải tốn Heo mới đỡ được), hoặc khi cần cướp cái gấp
+      const wouldSpendTwo = plannedMove && plannedMove.highRank === 12;
       if (
         this.currentCombo &&
         (this.currentCombo.type === COMBO_TYPES.SINGLE || this.currentCombo.type === COMBO_TYPES.PAIR) &&
         this.currentCombo.highRank <= 8 &&
         !this.currentCombo.isBomb &&
-        (validMoves.length === 0 || bot.hand.length <= 4 || minOppCards <= 4)
+        (!plannedMove || wouldSpendTwo || bot.hand.length <= 5 || minOppCards <= 4)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'eula') {
-      // Nếu trên bàn có bộ bài thường (6..A): chỉ chém giảm 2 bậc khi hiện tại không đè được (hoặc chỉ có Heo), nhưng sau khi giảm 2 bậc thì đè được!
-      if (this.currentCombo && this.currentCombo.highRank >= 4 && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
-        const normalMovesNow = validMoves.filter((m) => m.highRank < 12 && !m.isBomb);
-        if (normalMovesNow.length === 0) {
+      // Chế độ 1: Trên bàn có bộ bài thường (6..A) mà Bot không đỡ được bằng bài thường (sắp phải Bỏ lượt hoặc tốn Heo),
+      // nhưng sau khi Eula chém giảm 2 bậc thì Bot có bài thường đỡ được ngay!
+      if (this.currentCombo && this.currentCombo.highRank >= 3 && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
+        const hasGoodNormalMoveNow = plannedMove && plannedMove.highRank < 12 && !plannedMove.isBomb;
+        if (!hasGoodNormalMoveNow) {
+          const loweredRank = Math.max(0, this.currentCombo.highRank - 2);
           const fakeLowerCombo = {
             ...this.currentCombo,
-            highRank: Math.max(0, this.currentCombo.highRank - 2),
-            highValue: Math.max(0, this.currentCombo.highRank - 2) * 4 + (this.currentCombo.highCard?.suitIndex || 0),
+            highRank: loweredRank,
+            highValue: loweredRank * 4 + (this.currentCombo.highCard?.suitIndex || 0),
           };
           const movesAfterSlash = getValidMoves(bot.hand, fakeLowerCombo, this.mustPlay3Spade, false).filter(
             (m) => m.highRank < 12 && !m.isBomb
@@ -6508,15 +6582,23 @@ class TienLenGame {
             shouldCast = true;
           }
         }
-      } else if (!this.currentCombo && bot.hand.length <= 7) {
-        // Khi mở vòng mới và bài còn ít (<= 7 lá): cường hóa +2 bậc cho bộ bài chuẩn bị đánh
-        shouldCast = true;
+      } else if (!this.currentCombo && plannedMove && !plannedMove.isBomb && plannedMove.highRank >= 5 && plannedMove.highRank <= 9) {
+        // Chế độ 2: Khi Bot mở vòng mới bằng bộ ghép (Đôi/Sám/Sảnh tầm trung 8..Q) và còn <= 8 lá -> Cường hóa +2 bậc thành 10..A khó đỡ!
+        if (
+          (plannedMove.type !== COMBO_TYPES.SINGLE && bot.hand.length <= 8) ||
+          (bot.hand.length <= 4 && minOppCards <= 5)
+        ) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'mavuika') {
-      // Tìm lá bài (3..K) mà khi rèn +1 bậc ♥ sẽ tạo thành Đôi/Sám Cô mới, hoặc giúp đè được bộ bài đang nằm trên bàn
-      const forgeCandidates = bot.hand.filter((c) => c.rankIndex <= 10);
+      // Rèn +1 bậc ♥ cho 1 lá (3..K) để đỡ bài trên bàn hoặc ghép lá lẻ cô lập thành Đôi/Sám Cô
+      const forgeCandidates = sortCardsAsc(bot.hand).filter(
+        (c) => c.rankIndex <= 10 && !struct.bombRanks.has(c.rankIndex)
+      );
       let bestCard = null;
-      if (this.currentCombo && validMoves.length === 0 && !this.currentCombo.isBomb) {
+      const needHelpToBeat = this.currentCombo && (!plannedMove || plannedMove.highRank === 12) && !this.currentCombo.isBomb;
+      if (needHelpToBeat) {
         bestCard = forgeCandidates.find((c) => {
           const newRank = Math.min(11, c.rankIndex + 1);
           const newVal = newRank * 4 + 3;
@@ -6526,76 +6608,111 @@ class TienLenGame {
           if (this.currentCombo.type === COMBO_TYPES.PAIR && rankCounts[newRank] >= 1) {
             return newVal > this.currentCombo.highValue;
           }
+          if (this.currentCombo.type === COMBO_TYPES.TRIPLE && rankCounts[newRank] >= 2) {
+            return newVal > this.currentCombo.highValue;
+          }
           return false;
         });
       }
-      if (!bestCard && (bot.hand.length <= 10 || minOppCards <= 8)) {
-        bestCard = forgeCandidates.find((c) => rankCounts[c.rankIndex] === 1 && rankCounts[c.rankIndex + 1] >= 1);
+      if (!bestCard && (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 7)) {
+        // Ưu tiên rèn lá lẻ cô lập mà bậc kế tiếp đã có sẵn bài -> biến rác lẻ thành Đôi/Sám Cô!
+        bestCard = forgeCandidates.find(
+          (c) =>
+            rankCounts[c.rankIndex] === 1 &&
+            !struct.criticalStraightRanks.has(c.rankIndex) &&
+            rankCounts[c.rankIndex + 1] >= 1
+        );
+      }
+      if (!bestCard && (!this.currentCombo || plannedMove) && bot.hand.length <= 5) {
+        // Cuối ván: nâng lá K -> A♥ hoặc Q -> K♥ để làm chủ ván
+        bestCard = forgeCandidates.find((c) => c.rankIndex >= 9 && rankCounts[c.rankIndex] === 1);
       }
       if (bestCard) {
         shouldCast = true;
         preferredIds = [bestCard.id];
       }
     } else if (charId === 'skirk') {
-      // Chỉ tráo bài khi Bot có lá lẻ rác thấp (3..8) đứng cô lập để đẩy rác sang đối thủ và lấy bài lớn về
-      const struct = this.analyzeBotHandStructure(bot.hand);
-      const isolatedLowTrash = sortCardsAsc(bot.hand).find(
-        (c) =>
-          c.rankIndex <= 5 &&
-          rankCounts[c.rankIndex] === 1 &&
-          !struct.bombRanks.has(c.rankIndex) &&
-          !struct.criticalStraightRanks.has(c.rankIndex)
-      );
-      if (isolatedLowTrash && (minOppCards <= 8 || validMoves.length === 0)) {
-        shouldCast = true;
-        preferredIds = [isolatedLowTrash.id];
-      }
-    } else if (charId === 'furina') {
-      // Bật Luật Sân Khấu khi đối thủ còn <= 5 lá (cấm đối thủ đánh Heo lẻ về bài!) hoặc khi đảo chất giúp Bot chặn được bài trên bàn
-      if (minOppCards <= 5) {
-        shouldCast = true;
-      } else if (this.currentCombo && validMoves.length === 0 && this.currentCombo.highRank < 12) {
-        const prevRev = activeFurinaReverseSuit;
-        activeFurinaReverseSuit = true;
-        const movesWithReverse = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false);
-        activeFurinaReverseSuit = prevRev;
-        if (movesWithReverse.length > 0) {
+      // Vì Skirk tráo ngẫu nhiên 1 lá trên tay với 1 đối thủ ngẫu nhiên:
+      // Chỉ dùng khi tay Bot KHÔNG giữ Hàng và KHÔNG giữ Heo (tránh bị mất Heo/Hàng oan), đồng thời bài đang xấu hoặc tắc đường!
+      const hasTwos = rankCounts[12] > 0;
+      const hasBombs = struct.bombRanks.size > 0;
+      const lowCardsCount = bot.hand.filter((c) => c.rankIndex <= 6).length;
+      if (!hasTwos && !hasBombs && bot.hand.length >= 2) {
+        if ((!plannedMove && this.currentCombo) || lowCardsCount >= Math.ceil(bot.hand.length * 0.5)) {
           shouldCast = true;
         }
       }
+    } else if (charId === 'furina') {
+      // TH1: Đang bị chặn bởi bài < 2, thử bật đảo ngược chất (♠ > ♣ > ♦ > ♥) xem có tạo ra nước đè đồng số không!
+      if (this.currentCombo && !plannedMove && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
+        const prevRev = activeFurinaReverseSuit;
+        activeFurinaReverseSuit = true;
+        const movesWithReverse = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false);
+        const reverseChoice = this.chooseBotResponseMove(bot, movesWithReverse);
+        activeFurinaReverseSuit = prevRev;
+        if (reverseChoice) {
+          shouldCast = true;
+        }
+      }
+      // TH2: Bot chuẩn bị đánh bài Lẻ cao (10..A) khi đối thủ còn ít bài -> Bật Furina để CẤM đối thủ đập Heo lẻ!
+      if (
+        !shouldCast &&
+        plannedMove &&
+        unpassedOpps.length >= 1 &&
+        plannedMove.type === COMBO_TYPES.SINGLE &&
+        plannedMove.highRank >= 7 &&
+        plannedMove.highRank <= 11 &&
+        (minOppCards <= 7 || bot.hand.length <= 6)
+      ) {
+        shouldCast = true;
+      }
     } else if (charId === 'yaemiko') {
-      // Bật Hồ Ly Dụ Hoặc khi Bot đang mở vòng hoặc đang có bài mạnh đánh ra và đối thủ còn <= 7 lá (ép đối thủ phải xé bài/tung Heo)
-      if ((!this.currentCombo || validMoves.length > 0) && minOppCards <= 7) {
+      // Chỉ bật Hồ Ly Dụ Hoặc khi Bot CHẮC CHẮN ĐÁNH BÀI (plannedMove !== null) và còn đối thủ trong vòng:
+      // Dùng khi đánh bài khá mạnh (9..A) hoặc khi có Hàng chờ chặt Heo, ép đối thủ không được Bỏ lượt giấu Heo!
+      if (
+        plannedMove &&
+        unpassedOpps.length >= 1 &&
+        plannedMove.highRank >= 6 &&
+        plannedMove.highRank <= 11 &&
+        (struct.bombRanks.size > 0 || minOppCards <= 7 || bot.hand.length <= 6)
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'hutao') {
-      // Yểm Bùa Vãng Sinh khi mở vòng hoặc khi đánh đè mà vẫn còn đối thủ chưa bỏ lượt để thu tối đa tiền thuế từ đối thủ
-      const unpassedOpps = activeOpponents.filter((p) => !p.passed).length;
-      if (unpassedOpps >= 1 && (!this.currentCombo || validMoves.length > 0) && (bot.hand.length <= 9 || minOppCards <= 8)) {
+      // Chỉ yểm Bùa Vãng Sinh khi Bot CHẮC CHẮN ĐÁNH ra một bộ bài vừa phải (<= Q) và còn ít nhất 2 đối thủ chưa bỏ lượt
+      // để các đối thủ đè nhau liên tục nhiều lượt -> thu tối đa tiền thuế!
+      if (
+        plannedMove &&
+        unpassedOpps.length >= 2 &&
+        plannedMove.highRank <= 9 &&
+        !plannedMove.isBomb &&
+        (bot.hand.length <= 10 || minOppCards <= 9)
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'ayaka') {
-      // Đóng băng khi đối thủ kế tiếp chưa bỏ lượt đang còn ít bài (<= 6 lá) hoặc khi Bot đang cần giữ cái mở vòng
-      let nextOpp = null;
-      for (let step = 1; step <= 3; step++) {
-        const cand = this.players[(bot.id + step) % 4];
-        if (cand && cand.active && cand.finishRank === null && cand.hand.length > 0 && !cand.passed) {
-          nextOpp = cand;
-          break;
-        }
-      }
-      if (nextOpp && (nextOpp.hand.length <= 6 || (!this.currentCombo && bot.hand.length <= 6))) {
+      // Chỉ đóng băng khi Bot CHẮC CHẮN ĐÁNH BÀI và cần khóa bớt đối thủ để giữ cái hoặc ngăn đối thủ ít bài về nhất
+      if (
+        plannedMove &&
+        unpassedOpps.length >= 1 &&
+        plannedMove.highRank < 12 &&
+        (minOppCards <= 6 || bot.hand.length <= 6)
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'clorinde') {
-      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      if (unpassedOpps.length >= 2 && (minOppCards <= 6 || bot.hand.length <= 6)) {
-        shouldCast = true;
-      } else if (unpassedOpps.length === 1 && minOppCards <= 5) {
+      // Chỉ mở Quyết Đấu 1v1 khi Bot CHẮC CHẮN ĐÁNH BÀI và trong vòng ĐANG CÓ TỪ 2 ĐỐI THỦ CHƯA BỎ LƯỢT TRỞ LÊN
+      // (nếu chỉ còn 1 đối thủ chưa bỏ lượt thì vốn dĩ đã là 1v1 rồi, không bao giờ tung phí skill!)
+      if (
+        plannedMove &&
+        unpassedOpps.length >= 2 &&
+        (bot.hand.length <= 7 || minOppCards <= 6 || plannedMove.highRank >= 7)
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'yelan') {
-      if (minOppCards <= 6 || (this.currentCombo && this.currentCombo.highRank >= 9 && bot.hand.length <= 8)) {
+      // Chỉ thấu thị khi Bot CHẮC CHẮN ĐÁNH BÀI ở giai đoạn giữa/cuối ván (tránh tung xong rồi Bỏ lượt)
+      if (plannedMove && (minOppCards <= 6 || bot.hand.length <= 7)) {
         shouldCast = true;
       }
     }
@@ -6784,6 +6901,8 @@ class TienLenGame {
     const myCoins = me ? me.coins : this.savedCoins;
     const lobbyBal = document.getElementById('lobby-balance-display');
     if (lobbyBal) lobbyBal.textContent = myCoins.toLocaleString();
+    const modeSetupBal = document.getElementById('mode-setup-balance');
+    if (modeSetupBal) modeSetupBal.textContent = myCoins.toLocaleString();
 
     if (grid) {
       grid.innerHTML = BET_TIERS.map((t) => {
@@ -6791,19 +6910,20 @@ class TienLenGame {
         const isLocked = myCoins < t.minCoins;
         const reqText =
           t.minCoins === 0
-            ? '✅ Mở tự do'
+            ? '✅ Tự do'
             : isLocked
-            ? `🔒 Cần ${t.minCoins.toLocaleString()} Xu`
-            : `✅ Tối thiểu ${t.minCoins.toLocaleString()} Xu`;
+            ? `🔒 Cần ${t.minCoins.toLocaleString()}`
+            : `✅ Mở`;
 
         return `
-          <div class="bet-tier-card ${isSelected ? 'active' : ''} ${
+          <div class="bet-tier-card compact-tier-card ${isSelected ? 'active' : ''} ${
           isLocked ? 'locked-tier' : ''
         }" onclick="window.tienLenGame.selectBetTier(${t.betPerCard})">
-            <div class="bet-tier-icon">${t.icon}</div>
-            <div class="bet-tier-name">${t.name}</div>
-            <div class="bet-tier-amount">${t.betPerCard.toLocaleString()} Xu / lá</div>
-            <div class="bet-tier-sub">${t.desc}</div>
+            <div class="compact-tier-top">
+              <span class="bet-tier-icon">${t.icon}</span>
+              <span class="bet-tier-name">${t.name}</span>
+            </div>
+            <div class="bet-tier-amount">${t.betPerCard.toLocaleString()} Xu/lá</div>
             <div class="bet-tier-req">${reqText}</div>
           </div>
         `;
@@ -6813,12 +6933,11 @@ class TienLenGame {
     const b = this.betPerCard || 100;
     if (preview) {
       preview.innerHTML = `
-        <span class="bet-rule-chip">🃏 Đếm lá: <strong>${b.toLocaleString()} xu/lá</strong></span>
-        <span class="bet-rule-chip">🥶 Cóng 13 lá: <strong>${(b * 26).toLocaleString()} xu</strong></span>
-        <span class="bet-rule-chip">🐷 Heo đen / đỏ: <strong>${Math.round(b * 2.5).toLocaleString()} / ${(b * 5).toLocaleString()} xu</strong></span>
-        <span class="bet-rule-chip">💣 3 Đôi thông / Tứ quý / 4 Đôi thông: <strong>${Math.round(b * 7.5).toLocaleString()} / ${(b * 10).toLocaleString()} / ${Math.round(b * 12.5).toLocaleString()} xu</strong></span>
-        <span class="bet-rule-chip">♠️ Đút 3♠: <strong>${Math.round(b * 7.5).toLocaleString()} xu</strong></span>
-        <span class="bet-rule-chip">👑 Tới trắng: <strong>${(b * 15).toLocaleString()} xu</strong></span>
+        <span class="bet-rule-chip">🃏 Đếm lá: <strong>${b.toLocaleString()}</strong></span>
+        <span class="bet-rule-chip">🥶 Cóng: <strong>${(b * 26).toLocaleString()}</strong></span>
+        <span class="bet-rule-chip">🐷 Heo đen/đỏ: <strong>${Math.round(b * 2.5).toLocaleString()}/${(b * 5).toLocaleString()}</strong></span>
+        <span class="bet-rule-chip">💣 Tứ quý: <strong>${(b * 10).toLocaleString()}</strong></span>
+        <span class="bet-rule-chip">👑 Tới trắng: <strong>${(b * 15).toLocaleString()}</strong></span>
       `;
     }
 
@@ -6852,7 +6971,7 @@ class TienLenGame {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
     if (roomParam) {
-      this.selectLobbyMode('human');
+      this.openModeSetupModal('human');
       document.getElementById('input-room-code').value = roomParam.toUpperCase();
       document.getElementById('input-player-name').value =
         this.savedPlayerName && this.savedPlayerName !== 'Nhà Lữ Hành'
@@ -6928,6 +7047,8 @@ class TienLenGame {
     document.getElementById('wifi-status-label').textContent = `Phòng ${code}`;
     document.getElementById('display-room-code').textContent = code;
     document.getElementById('share-link-input').value = this.getShareableRoomUrl(code);
+    document.getElementById('human-create-join-row')?.classList.add('hidden');
+    document.getElementById('mode-setup-bet-section')?.classList.add('hidden');
     document.getElementById('wifi-room-box').classList.remove('hidden');
 
     this.updateBetBadges();
@@ -6963,6 +7084,8 @@ class TienLenGame {
     document.getElementById('wifi-status-label').textContent = `Phòng ${code}`;
     document.getElementById('display-room-code').textContent = code;
     document.getElementById('share-link-input').value = this.getShareableRoomUrl(code);
+    document.getElementById('human-create-join-row')?.classList.add('hidden');
+    document.getElementById('mode-setup-bet-section')?.classList.add('hidden');
     document.getElementById('wifi-room-box').classList.remove('hidden');
 
     // Gửi sự kiện JOIN qua cả Local WiFi API và PeerJS
@@ -7419,6 +7542,7 @@ class TienLenGame {
     // Tự động đóng bảng chờ nếu chủ phòng đã bắt đầu chia bài
     const me = this.players[this.mySeatId];
     if (me && me.hand && me.hand.length > 0 && !this.isGameOver && !this.modalWifi.classList.contains('hidden')) {
+      document.getElementById('mode-setup-modal')?.classList.add('hidden');
       this.modalWifi.classList.add('hidden');
     }
 
@@ -8246,20 +8370,23 @@ class TienLenGame {
 
       const rx = this.getSpecialPlayReaction(player, combo);
       combo.reaction = rx;
-      this.triggerArenaReactionFlash(rx);
       const chopTitleUpper = isStackedChop ? 'CHẶT CHỒNG' : 'CHẶT';
       const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} ${chopTitleUpper.toLowerCase()} ${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()} xu)!`;
       const chopBurstId = this.getPlayerActiveCharId(player);
       if (player.hand.length > 0) {
         this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
         this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
+      } else {
+        this.triggerArenaReactionFlash(rx);
       }
       this.showComboBanner(`${rx.badge} • ${chopTitleUpper} +${totalChopValue.toLocaleString()} XU!`, rx.cssClass);
       this.addLog(
         `💥 <strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> tung <strong>${combo.label}</strong> ${chopTitleUpper.toLowerCase()} <strong>${targetDisplayLabel}</strong> của <strong>${victim.name}</strong> (+${totalChopValue.toLocaleString()} xu)!`,
         'log-chop'
       );
-      this.saveShopProfile();
+      setTimeout(() => {
+        this.saveShopProfile();
+      }, 350);
     } else {
       const isUltra =
         combo.type === COMBO_TYPES.FOUR_OF_A_KIND ||

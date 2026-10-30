@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=40" />
+  <link rel="stylesheet" href="styles.css?v=41" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -272,7 +272,7 @@
       </aside>
     </main>
 
-    <!-- MÀN HÌNH CHỜ GAME APP (2 NÚT LỚN NHẤT Ở GIỮA: CHƠI VỚI BOT & CHƠI VỚI NGƯỜI + THANH DOCK BÊN DƯỚI) -->
+    <!-- MÀN HÌNH CHỜ GAME APP (2 NÚT LỚN NHẤT Ở GIỮA: CHƠI VỚI BOT & CHƠI VỚI NGƯỜI + THANH DOCK BÊN DƯỚI • KHÔNG CUỘN DỌC) -->
     <div class="modal-backdrop home-lobby-backdrop" id="wifi-modal">
       <div class="modal-card wifi-card home-lobby-card app-lobby-screen">
         <!-- THANH TRÊN CÙNG (APP TOP HUD: HỒ SƠ NGƯỜI CHƠI + XU + CHỦ ĐỀ BÀN) -->
@@ -310,19 +310,19 @@
         </div>
 
         <div class="modal-body wifi-body home-lobby-body app-lobby-main">
-          <!-- THÔNG BÁO TẠO TÀI KHOẢN GIỮ NGUYÊN DỮ LIỆU CHO NGƯỜI CHƠI CHƯA TẠO TÀI KHOẢN -->
-          <div class="account-guest-banner" id="lobby-account-guest-banner">
+          <!-- THÔNG BÁO TẠO TÀI KHOẢN GỌN 1 DÒNG CHO NGƯỜI CHƠI CHƯA ĐĂNG NHẬP -->
+          <div class="account-guest-banner compact-guest-banner" id="lobby-account-guest-banner">
             <div class="account-guest-banner-text">
-              🛡️ <strong>Bạn chưa đăng nhập Tài Khoản!</strong> Tạo Tài Khoản ngay để lưu Đám Mây — <strong>Giữ nguyên 100% Xu, Nhân Vật 5★, Skin Bài, Avatar &amp; Pity đang chơi!</strong>
+              🛡️ <strong>Chưa đăng nhập!</strong> Lưu Đám Mây giữ nguyên 100% Xu, Nộ 5★, Bài 4★ &amp; Avatar:
             </div>
             <button class="account-banner-cta" onclick="window.tienLenGame.openAccountModal('register')">
-              🔐 Tạo Tài Khoản Ngay
+              🔐 Tạo Tài Khoản
             </button>
           </div>
 
-          <!-- TÂM ĐIỂM GIỮA MÀN HÌNH: 2 NÚT CHẾ ĐỘ CHƠI TO NHẤT (CHƠI VỚI BOT & CHƠI VỚI NGƯỜI) -->
+          <!-- TÂM ĐIỂM GIỮA MÀN HÌNH: 2 NÚT CHẾ ĐỘ CHƠI TO NHẤT (BẤM VÀO MỞ CỬA SỔ RIÊNG) -->
           <div class="app-center-hero-modes">
-            <div class="mode-select-card hero-big-mode-card mode-bot-hero active" id="mode-card-bot" onclick="window.tienLenGame.selectLobbyMode('bot')">
+            <div class="mode-select-card hero-big-mode-card mode-bot-hero active" id="mode-card-bot" onclick="window.tienLenGame.openModeSetupModal('bot')">
               <div class="hero-mode-bg" style="background-image: url('fanart/raiden.jpg');"></div>
               <div class="hero-mode-glow"></div>
               <div class="mode-card-badge">⚡ CHẾ ĐỘ SOLO OFFLINE</div>
@@ -332,11 +332,11 @@
                   <div class="hero-mode-title">CHƠI VỚI BOT</div>
                   <div class="hero-mode-sub">Đấu trí cùng 10 Nhân Vật Genshin 5★ có Kỹ Năng Nộ riêng • Chọn bàn 2, 3 hoặc 4 người</div>
                 </div>
-                <div class="hero-mode-cta-pill">⚔️ CHỌN ĐẤU BOT ▸</div>
+                <div class="hero-mode-cta-pill">⚔️ MỞ BÀN BOT ▸</div>
               </div>
             </div>
 
-            <div class="mode-select-card hero-big-mode-card mode-human-hero" id="mode-card-human" onclick="window.tienLenGame.selectLobbyMode('human')">
+            <div class="mode-select-card hero-big-mode-card mode-human-hero" id="mode-card-human" onclick="window.tienLenGame.openModeSetupModal('human')">
               <div class="hero-mode-bg" style="background-image: url('fanart/furina.jpg');"></div>
               <div class="hero-mode-glow"></div>
               <div class="mode-card-badge mode-badge-online">🌐 CHẾ ĐỘ ONLINE / WIFI</div>
@@ -346,145 +346,8 @@
                   <div class="hero-mode-title">CHƠI VỚI NGƯỜI</div>
                   <div class="hero-mode-sub">Tạo phòng làm Chủ bàn hoặc nhập Mã phòng 4 số / gửi Link rủ bạn bè (2 – 4 người)</div>
                 </div>
-                <div class="hero-mode-cta-pill online-pill">🚀 TẠO / VÀO PHÒNG ▸</div>
+                <div class="hero-mode-cta-pill online-pill">🚀 MỞ PHÒNG ONLINE ▸</div>
               </div>
-            </div>
-          </div>
-
-          <!-- KHUNG THIẾT LẬP TRỰC TIẾP CỦA CHẾ ĐỘ ĐANG CHỌN -->
-          <!-- Khung Hành Động Chế Độ 1 (Chơi Với Bot) -->
-          <div class="lobby-action-panel" id="lobby-bot-panel">
-            <div class="bot-count-section">
-              <div class="lobby-section-label">👥 CHỌN SỐ NGƯỜI TRONG BÀN ĐẤU VỚI BOT:</div>
-              <div class="bot-count-grid" id="bot-count-grid">
-                <div class="bot-count-card" id="bot-count-2" onclick="window.tienLenGame.selectSoloPlayerCount(2)">
-                  <div class="bot-count-badge">SOLO 1v1</div>
-                  <div class="bot-count-title">⚔️ 2 Người (1 vs 1 Bot)</div>
-                  <div class="bot-count-desc" id="bot-desc-2">Đấu tay đôi trực diện với <strong>1 Nhân Vật Bot Ngẫu Nhiên 🎲</strong></div>
-                </div>
-
-                <div class="bot-count-card" id="bot-count-3" onclick="window.tienLenGame.selectSoloPlayerCount(3)">
-                  <div class="bot-count-badge">TAM HÙNG</div>
-                  <div class="bot-count-title">🔥 3 Người (1 vs 2 Bot)</div>
-                  <div class="bot-count-desc" id="bot-desc-3">Đấu cùng <strong>2 Nhân Vật Bot Genshin 🎲</strong></div>
-                </div>
-
-                <div class="bot-count-card active" id="bot-count-4" onclick="window.tienLenGame.selectSoloPlayerCount(4)">
-                  <div class="bot-count-badge">ĐỦ BÀN</div>
-                  <div class="bot-count-title">👑 4 Người (1 vs 3 Bot)</div>
-                  <div class="bot-count-desc" id="bot-desc-4">Đủ 4 nhà cùng <strong>3 Nhân Vật Bot Genshin 🎲</strong></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Thanh Random Nhân Vật Bot (10 Nhân Vật 5★ Có Kỹ Năng Nộ Riêng) -->
-            <div class="bot-random-bar" id="bot-random-bar">
-              <div class="bot-lineup-avatars" id="bot-lineup-avatars">
-                <!-- Populated dynamically by renderBotLineupPreview() -->
-              </div>
-              <div class="bot-random-controls">
-                <button class="tool-btn anime-random-bot-btn" id="btn-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)">
-                  🎲 Random Đối Thủ Bot (10 Nhân Vật Có Nộ 5★)
-                </button>
-                <label class="bot-auto-random-toggle" title="Tự động đổi ngẫu nhiên nhân vật Bot 5★ sau mỗi ván bài mới">
-                  <input type="checkbox" id="chk-auto-random-bots" checked onchange="window.tienLenGame.toggleAutoRandomBots(this.checked)" />
-                  <span>Tự động random Bot 5★ mỗi ván</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="bot-mode-summary">
-              <div id="bot-opponents-preview">
-                <strong>🤖 Bàn 4 Người (1v3 Bot):</strong> Bạn đấu với Bot Furina 💧, Bot Raiden Shogun ⚡ &amp; Bot Skirk 🌌
-              </div>
-              <div class="bot-mode-sub">
-                💡 Mỗi lượt có <strong>15 giây</strong> suy nghĩ — Quá 15s hệ thống tự động đánh bài hợp lệ!
-              </div>
-            </div>
-            <button class="primary-btn btn-lg lobby-big-cta" id="btn-solo-bot-mode">
-              ⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (4 Người • Cược: 100 Xu/lá)
-            </button>
-          </div>
-
-          <!-- Khung Hành Động Chế Độ 2 (Chơi Với Người) -->
-          <div class="lobby-action-panel hidden" id="lobby-human-panel">
-            <div class="human-mode-actions-row">
-              <div class="human-create-box">
-                <div class="human-box-title">🏠 Lựa chọn 1: Tạo Phòng Mới (Làm Chủ Bàn)</div>
-                <div class="human-box-desc">Tạo phòng với mức cược đang chọn và lấy Link / Mã phòng gửi bạn bè:</div>
-                <button class="primary-btn btn-lg" id="btn-create-room">
-                  🏠 Tạo Phòng Đấu Với Người (Theo Mức Cược Đang Chọn)
-                </button>
-              </div>
-
-              <div class="human-join-box">
-                <div class="human-box-title">🚀 Lựa chọn 2: Vào Phòng Của Bạn Bè</div>
-                <div class="human-box-desc">Nhập Mã phòng 4 chữ số do bạn bè gửi để vào bàn ngay:</div>
-                <div class="join-row">
-                  <input type="text" id="input-room-code" maxlength="8" placeholder="Nhập Mã phòng (VD: 8888)" />
-                  <button class="primary-btn" id="btn-join-room">🚀 Vào Phòng Ngay</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Khung Phòng Chờ Đang Hoạt Động (Hiện khi đã Tạo Phòng hoặc Vào Phòng) -->
-            <div class="wifi-room-box hidden" id="wifi-room-box">
-              <div class="share-banner">
-                <div class="share-left">
-                  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                    <div class="room-code-pill">
-                      MÃ PHÒNG: <strong id="display-room-code">----</strong>
-                    </div>
-                    <div class="room-code-pill" style="background:rgba(245,158,11,0.18);border-color:#fbbf24;color:#fde68a;">
-                      MỨC CƯỢC PHÒNG: <strong id="display-room-bet">100 Xu/lá</strong>
-                    </div>
-                  </div>
-                  <div class="share-url-wrap">
-                    <span>🔗 Link gửi bạn bè:</span>
-                    <input type="text" id="share-link-input" readonly />
-                    <button class="primary-btn btn-sm" id="btn-copy-link">📋 Copy Link</button>
-                  </div>
-                  <div class="share-hint" id="share-hint-text">
-                    💡 Bạn bè chỉ cần mở Link trên hoặc nhập Mã phòng 4 số là vào thẳng bàn của bạn!
-                  </div>
-                </div>
-              </div>
-
-              <!-- 4 Seats List (Minimum 2 players, Max 4 players) -->
-              <div class="lobby-seats-header">
-                <span>👥 Danh sách ghế trong phòng (<strong id="lobby-player-count">1</strong>/4 người • Tối thiểu 2 người để bắt đầu)</span>
-                <button class="clear-log-btn" id="btn-leave-room">✕ Rời phòng</button>
-              </div>
-
-              <div class="lobby-seats-grid" id="lobby-seats-grid">
-                <!-- Populated dynamically -->
-              </div>
-
-              <div style="display:flex;justify-content:flex-end;margin-top:10px;">
-                <button class="primary-btn btn-lg lobby-big-cta" id="btn-start-wifi-match" disabled>
-                  🃏 Bắt Đầu Chia Bài (Cần ít nhất 2 người)
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Chọn Mức Cược (Áp dụng cho cả Chế độ 1: Đấu Bot & Chế độ 2: Đấu Người) -->
-          <div class="lobby-bet-section">
-            <div class="lobby-section-header">
-              <span>💰 CHỌN MỨC CƯỢC BÀN BÀI (<strong id="selected-mode-label">Chế độ 1: Đấu Với Bot</strong>)</span>
-              <div class="custom-bet-inline">
-                <label for="input-custom-bet">Hoặc tự nhập mức cược (Xu/lá):</label>
-                <input type="number" id="input-custom-bet" min="20" step="20" value="100" />
-                <button class="tool-btn" id="btn-apply-custom-bet">Áp dụng</button>
-              </div>
-            </div>
-
-            <div class="bet-tiers-grid" id="bet-tiers-grid">
-              <!-- Populated dynamically by renderBetTiers() -->
-            </div>
-
-            <div class="bet-rules-preview" id="bet-rules-preview">
-              <!-- Populated dynamically with exact penalty amounts for selected bet -->
             </div>
           </div>
         </div>
@@ -522,6 +385,171 @@
           <button class="app-dock-btn dock-logout hidden" id="btn-lobby-logout" onclick="window.tienLenGame.logoutAccount()" title="Đăng xuất khỏi tài khoản hiện tại">
             <span class="dock-icon">🚪</span>
             <span class="dock-label">Đăng Xuất</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CỬA SỔ RIÊNG KHI BẤM "CHƠI VỚI BOT" HOẶC "CHƠI VỚI NGƯỜI" (THIẾT KẾ GỌN 1 KHUNG HÌNH HẠN CHẾ CUỘN TRÊN ĐIỆN THOẠI) -->
+    <div class="modal-backdrop hidden" id="mode-setup-modal">
+      <div class="modal-card mode-setup-card">
+        <div class="modal-header mode-setup-header">
+          <div class="mode-setup-header-left">
+            <button class="back-to-lobby-pill" onclick="window.tienLenGame.closeModeSetupModal()" title="Quay lại Sảnh Chờ chính">
+              ⬅️ Sảnh Chờ
+            </button>
+            <div>
+              <h2 id="mode-setup-modal-title">🤖 CHƠI VỚI BOT (SOLO AI)</h2>
+              <p id="mode-setup-modal-sub">Chọn số người • Đối thủ Bot 5★ • Mức cược bàn bài</p>
+            </div>
+          </div>
+          <div class="shop-header-right">
+            <div class="mode-switch-mini-tabs">
+              <button class="mode-mini-tab active" id="mini-tab-bot" onclick="window.tienLenGame.openModeSetupModal('bot')">🤖 Đấu Bot</button>
+              <button class="mode-mini-tab" id="mini-tab-human" onclick="window.tienLenGame.openModeSetupModal('human')">👥 Đấu Người</button>
+            </div>
+            <div class="shop-balance-pill">
+              🪙 <strong id="mode-setup-balance">20,000</strong> Xu
+            </div>
+            <button class="close-modal-btn" id="btn-close-mode-setup" onclick="window.tienLenGame.closeModeSetupModal()">✕</button>
+          </div>
+        </div>
+
+        <div class="modal-body mode-setup-body">
+          <!-- Khung Hành Động Chế Độ 1 (Chơi Với Bot) -->
+          <div class="lobby-action-panel compact-mode-panel" id="lobby-bot-panel">
+            <div class="bot-count-section compact-section">
+              <div class="lobby-section-label">👥 CHỌN SỐ NGƯỜI TRONG BÀN:</div>
+              <div class="bot-count-grid compact-bot-grid" id="bot-count-grid">
+                <div class="bot-count-card" id="bot-count-2" onclick="window.tienLenGame.selectSoloPlayerCount(2)">
+                  <div class="bot-count-badge">SOLO 1v1</div>
+                  <div class="bot-count-title">⚔️ 2 Người</div>
+                  <div class="bot-count-desc" id="bot-desc-2">1 vs 1 Bot</div>
+                </div>
+
+                <div class="bot-count-card" id="bot-count-3" onclick="window.tienLenGame.selectSoloPlayerCount(3)">
+                  <div class="bot-count-badge">TAM HÙNG</div>
+                  <div class="bot-count-title">🔥 3 Người</div>
+                  <div class="bot-count-desc" id="bot-desc-3">1 vs 2 Bot</div>
+                </div>
+
+                <div class="bot-count-card active" id="bot-count-4" onclick="window.tienLenGame.selectSoloPlayerCount(4)">
+                  <div class="bot-count-badge">ĐỦ BÀN</div>
+                  <div class="bot-count-title">👑 4 Người</div>
+                  <div class="bot-count-desc" id="bot-desc-4">1 vs 3 Bot</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thanh Random Nhân Vật Bot Gọn -->
+            <div class="bot-random-bar compact-random-bar" id="bot-random-bar">
+              <div class="bot-lineup-avatars" id="bot-lineup-avatars">
+                <!-- Populated dynamically -->
+              </div>
+              <div class="bot-random-controls">
+                <button class="tool-btn anime-random-bot-btn" id="btn-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)">
+                  🎲 Đổi Bot 5★
+                </button>
+                <label class="bot-auto-random-toggle" title="Tự động đổi ngẫu nhiên nhân vật Bot 5★ sau mỗi ván bài mới">
+                  <input type="checkbox" id="chk-auto-random-bots" checked onchange="window.tienLenGame.toggleAutoRandomBots(this.checked)" />
+                  <span>Tự random mỗi ván</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="bot-mode-summary compact-bot-summary">
+              <div id="bot-opponents-preview">
+                <strong>🤖 Bàn 4 Người (1v3 Bot):</strong> Bạn đấu với Bot Furina 💧, Bot Raiden Shogun ⚡ &amp; Bot Skirk 🌌
+              </div>
+            </div>
+          </div>
+
+          <!-- Khung Hành Động Chế Độ 2 (Chơi Với Người) -->
+          <div class="lobby-action-panel compact-mode-panel hidden" id="lobby-human-panel">
+            <div class="human-mode-actions-row compact-human-row" id="human-create-join-row">
+              <div class="human-create-box compact-box">
+                <div class="human-box-title">🏠 Tạo Phòng Mới (Làm Chủ Bàn)</div>
+                <div class="human-box-desc">Tạo phòng với mức cược bên dưới và gửi Mã / Link cho bạn bè:</div>
+                <button class="primary-btn" id="btn-create-room">
+                  🏠 Tạo Phòng Đấu Với Người
+                </button>
+              </div>
+
+              <div class="human-join-box compact-box">
+                <div class="human-box-title">🚀 Vào Phòng Bạn Bè</div>
+                <div class="human-box-desc">Nhập Mã phòng 4 chữ số do bạn bè gửi để vào bàn ngay:</div>
+                <div class="join-row">
+                  <input type="text" id="input-room-code" maxlength="8" placeholder="Mã phòng (VD: 8888)" />
+                  <button class="primary-btn" id="btn-join-room">🚀 Vào Phòng</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Khung Phòng Chờ Đang Hoạt Động (Hiện khi đã Tạo Phòng hoặc Vào Phòng) -->
+            <div class="wifi-room-box compact-room-box hidden" id="wifi-room-box">
+              <div class="share-banner compact-share-banner">
+                <div class="share-left">
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                      <div class="room-code-pill">
+                        MÃ PHÒNG: <strong id="display-room-code">----</strong>
+                      </div>
+                      <div class="room-code-pill" style="background:rgba(245,158,11,0.18);border-color:#fbbf24;color:#fde68a;">
+                        CƯỢC: <strong id="display-room-bet">100 Xu/lá</strong>
+                      </div>
+                    </div>
+                    <button class="clear-log-btn" id="btn-leave-room">✕ Rời phòng</button>
+                  </div>
+                  <div class="share-url-wrap">
+                    <span>🔗 Link:</span>
+                    <input type="text" id="share-link-input" readonly />
+                    <button class="primary-btn btn-sm" id="btn-copy-link">📋 Copy Link</button>
+                  </div>
+                  <div class="share-hint" id="share-hint-text" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- 4 Seats List (Minimum 2 players, Max 4 players) -->
+              <div class="lobby-seats-header" style="margin-top:4px;">
+                <span>👥 Ghế trong phòng (<strong id="lobby-player-count">1</strong>/4 người • Tối thiểu 2 người)</span>
+              </div>
+
+              <div class="lobby-seats-grid compact-seats-grid" id="lobby-seats-grid">
+                <!-- Populated dynamically -->
+              </div>
+
+              <div style="display:flex;justify-content:center;margin-top:6px;">
+                <button class="primary-btn btn-lg lobby-big-cta" id="btn-start-wifi-match" style="width:100%;" disabled>
+                  🃏 Bắt Đầu Chia Bài (Cần ít nhất 2 người)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chọn Mức Cược Gọn (Áp dụng cho cả Chế độ 1: Đấu Bot & Chế độ 2: Đấu Người) -->
+          <div class="lobby-bet-section compact-bet-section" id="mode-setup-bet-section">
+            <div class="lobby-section-header compact-bet-header">
+              <span>💰 MỨC CƯỢC (<strong id="selected-mode-label">Đấu Với Bot</strong>)</span>
+              <div class="custom-bet-inline">
+                <label for="input-custom-bet">Tự nhập (Xu/lá):</label>
+                <input type="number" id="input-custom-bet" min="20" step="20" value="100" />
+                <button class="tool-btn" id="btn-apply-custom-bet">Áp dụng</button>
+              </div>
+            </div>
+
+            <div class="bet-tiers-grid compact-bet-tiers-grid" id="bet-tiers-grid">
+              <!-- Populated dynamically by renderBetTiers() -->
+            </div>
+
+            <div class="bet-rules-preview compact-bet-rules" id="bet-rules-preview">
+              <!-- Populated dynamically with exact penalty amounts for selected bet -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer mode-setup-footer" id="mode-setup-bot-footer">
+          <button class="primary-btn btn-lg lobby-big-cta" id="btn-solo-bot-mode" style="width:100%;">
+            ⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (4 Người • Cược: 100 Xu/lá)
           </button>
         </div>
       </div>
@@ -1015,6 +1043,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=40"></script>
+  <script src="game.js?v=41"></script>
 </body>
 </html>

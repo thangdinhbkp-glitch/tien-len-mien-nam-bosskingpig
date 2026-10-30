@@ -1092,7 +1092,9 @@ body {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-header {
@@ -1102,6 +1104,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: static !important;
+  flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -1125,7 +1129,8 @@ body {
 
 .modal-body {
   padding: 16px 20px;
-  overflow-y: auto;
+  overflow-y: visible;
+  flex-shrink: 0;
 }
 
 .toi-trang-banner {
@@ -6804,6 +6809,62 @@ body {
   pointer-events: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
 }
+
+/* ============================================================================
+   STATIC PAGE BUTTONS ON MOBILE & ALL SCREENS (NO STICKY/FOLLOWING SCROLLBARS)
+   Các nút nhỏ nằm cố định tại vị trí trên trang, khi kéo/cuộn xuống sẽ cuộn tự nhiên
+   theo trang chứ KHÔNG chạy theo màn hình gây chắn tầm nhìn trên điện thoại!
+   ============================================================================ */
+.app-lobby-screen {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-lobby-topbar,
+.app-lobby-dock,
+.modal-header,
+.modal-footer,
+.mode-setup-header,
+.mode-setup-footer,
+.gacha-results-header,
+.gacha-results-footer,
+.top-bar,
+.player-action-bar {
+  position: static !important;
+  flex-shrink: 0;
+}
+
+.home-lobby-body,
+.app-lobby-main,
+.mode-setup-body,
+.shop-body,
+.modal-body {
+  overflow-y: visible !important;
+  max-height: none !important;
+  flex: 1 0 auto;
+}
+
+@media (max-width: 900px), (max-height: 640px) {
+  .app-lobby-screen {
+    justify-content: flex-start !important;
+    gap: 12px;
+  }
+  .app-lobby-main {
+    flex: 0 0 auto !important;
+  }
+  .modal-card,
+  .mode-setup-card,
+  .shop-card,
+  .inventory-modal-card,
+  .quests-modal-card,
+  .pause-modal-card {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 
 
 

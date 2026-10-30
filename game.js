@@ -2061,6 +2061,7 @@ class TienLenGame {
       (id) => document.getElementById(id)?.classList.add('hidden')
     );
     this.modalWifi?.classList.remove('hidden');
+    this.setupCrossDeviceCloudSync();
     if (this.dailyRecoveredOnLoad) {
       this.addLog(
         `🌅 <strong>Quà Hồi Phục Hàng Ngày:</strong> Tài khoản của bạn vừa được hồi <strong>+${DAILY_RECOVERY_COINS.toLocaleString()} xu</strong> cho ngày mới!`,
@@ -2555,15 +2556,14 @@ class TienLenGame {
       const backups = this.readBackupPayloads();
       backups.forEach((data, idx) => {
         if (!data || typeof data !== 'object') return;
-        // Nếu đang đăng nhập tài khoản cụ thể, chỉ gộp backup nếu backup thuộc cùng tài khoản hoặc chưa gắn tài khoản.
+        // Nếu đang đăng nhập tài khoản cụ thể, CHỈ nhận backup có đúng accountUsername === activeUser (không lấy backup khách của máy khác!)
         // Nếu đã Đăng Xuất (activeUser === ''), bỏ qua các backup có gắn accountUsername của tài khoản cũ!
         if (
-          (activeUser && data.accountUsername && data.accountUsername !== activeUser) ||
+          (activeUser && data.accountUsername !== activeUser) ||
           (!activeUser && data.accountUsername)
         ) {
           return;
         }
-        // Ưu tiên localStorage (idx === 0) và window.name hơn cookie cũ chưa có updatedAtMs
         const fallbackTime = idx === 1 ? 0 : 1;
         candidates.push({
           ...data,
@@ -2582,16 +2582,24 @@ class TienLenGame {
               2,
           });
         }
+      } else if (activeUser) {
+        this.currentAccountUsername = activeUser;
       }
 
       // Sắp xếp từ cũ đến mới để bản lưu mới nhất (localStorage / Account DB) luôn quyết định trang bị cuối cùng!
       candidates.sort((a, b) => (Number(a.updatedAtMs) || 0) - (Number(b.updatedAtMs) || 0));
+      let maxStoredUpdatedAtMs = 0;
       candidates.forEach((data) => {
+        const t = Number(data.updatedAtMs) || 0;
+        if (t > maxStoredUpdatedAtMs) maxStoredUpdatedAtMs = t;
         this.applyProfileDataObject(data, today);
       });
+      this.profileUpdatedAtMs = maxStoredUpdatedAtMs;
 
       // Nếu bước sang ngày mới: tự động reset 4 Nhiệm Vụ Hàng Ngày & lượt cứu trợ
+      let dayChanged = false;
       if (this.lastDailyDate !== today) {
+        dayChanged = true;
         this.lastDailyDate = today;
         this.dailyReliefUsed = 0;
         this.dailyQuestsDate = today;
@@ -2602,14 +2610,17 @@ class TienLenGame {
         }
       }
 
-      this.saveShopProfile();
-      setTimeout(() => this.syncExistingAccountsToCloudOnBoot(), 350);
+      // QUAN TRỌNG: Khi vừa mở trang (Boot), KHÔNG tự ý gán Date.now() đè lên updatedAtMs cũ của máy này,
+      // để khi kéo dữ liệu từ Đám Mây về sau 80ms sẽ lấy đúng dữ liệu mới nhất từ máy kia!
+      this.saveShopProfile({ bumpTimestamp: dayChanged && !this.currentAccountUsername, syncCloud: false });
+      setTimeout(() => this.syncExistingAccountsToCloudOnBoot(), 80);
     } catch (_) {}
   }
 
   // ============================================================================
   // ĐỒNG BỘ TÀI KHOẢN ĐÁM MÂY TỰ ĐỘNG (MULTI-CLOUD REALTIME ACCOUNT SYNC)
   // Đăng nhập bằng Tên Tài Khoản + Mật Khẩu trên BẤT KỲ MÁY / ĐIỆN THOẠI NÀO!
+  // 1 Tài Khoản trên 2 Máy là 1 Tài Khoản Duy Nhất đồng bộ 2 chiều thời gian thực!
   // ============================================================================
   getCloudSafeUserKey(usernameKey) {
     return String(usernameKey || '')
@@ -2678,8 +2689,8 @@ class TienLenGame {
           .join('') || '4e67756f6943686f69';
     } catch (_) {}
 
-    const updatedSec36 = Math.floor((accObj.updatedAtMs || Date.now()) / 1000).toString(36);
-    return `v2-${passHash}-${coins36}-${bursts36}-${skins36}-${avatars36}-${equipPack}-${pityPack}-${questsPack}-${nameHex}-${updatedSec36}`;
+    const updatedMs36 = Math.max(1, Math.round(Number(accObj.updatedAtMs) || Date.now())).toString(36);
+    return `v2-${passHash}-${coins36}-${bursts36}-${skins36}-${avatars36}-${equipPack}-${pityPack}-${questsPack}-${nameHex}-${updatedMs36}`;
   }
 
   unpackCloudAccountV2(usernameKey, packedStr) {
@@ -2689,7 +2700,8 @@ class TienLenGame {
       if (parts.length < 11) return null;
       const [, passHash, coins36, bursts36, skins36, avatars36, equipPack, pityPack, questsPack, nameHex, updatedSec36] = parts;
 
-      const coins = parseInt(coins36, 36) || INITIAL_COINS;
+      const coins = parseInt(coins36, 36);
+      const safeCoins = Number.isFinite(coins) ? coins : INITIAL_COINS;
       const bMask = parseInt(bursts36, 36) || 0;
       const sMask = parseInt(skins36, 36) || 0;
       const aMask = parseInt(avatars36, 36) || 0;
@@ -2746,7 +2758,8 @@ class TienLenGame {
         }
       } catch (_) {}
 
-      const updatedAtMs = (parseInt(updatedSec36 || '0', 36) || 0) * 1000;
+      const rawTs = parseInt(updatedSec36 || '0', 36) || 0;
+      const updatedAtMs = rawTs > 1e11 ? rawTs : rawTs * 1000;
       const nowStr = new Date(updatedAtMs || Date.now()).toLocaleString('vi-VN');
 
       return {
@@ -2759,7 +2772,7 @@ class TienLenGame {
         profile: {
           accountUsername: usernameKey,
           updatedAtMs,
-          coins,
+          coins: safeCoins,
           playerName: displayName,
           betPerCard: 100,
           soloPlayerCount: 4,
@@ -2797,8 +2810,30 @@ class TienLenGame {
     const acc = accountsDb[usernameKey];
     if (!acc || !acc.passwordHash) return false;
 
+    // Trước khi đẩy lên Cloud, gộp nhanh các vật phẩm đã mở khóa từ Cloud (nếu có) để máy này không bao giờ ghi đè mất đồ vừa mở ở máy kia!
+    try {
+      const existingCloud = await this.fetchCloudAccount(usernameKey);
+      if (existingCloud && existingCloud.profile && acc.profile) {
+        const cProf = existingCloud.profile;
+        acc.profile.unlockedBursts = Array.from(new Set([...(acc.profile.unlockedBursts || []), ...(cProf.unlockedBursts || [])]));
+        acc.profile.unlockedSkins = Array.from(new Set([...(acc.profile.unlockedSkins || ['classic']), ...(cProf.unlockedSkins || ['classic'])]));
+        acc.profile.unlockedAvatars = Array.from(new Set([...(acc.profile.unlockedAvatars || ['default_player']), ...(cProf.unlockedAvatars || ['default_player'])]));
+        if (usernameKey === this.currentAccountUsername) {
+          acc.profile.unlockedBursts.forEach((id) => this.unlockedBursts.add(id));
+          acc.profile.unlockedSkins.forEach((id) => this.unlockedSkins.add(id));
+          acc.profile.unlockedAvatars.forEach((id) => this.unlockedAvatars.add(id));
+        }
+      }
+    } catch (_) {}
+
     const safeKey = this.getCloudSafeUserKey(usernameKey);
-    acc.updatedAtMs = acc.updatedAtMs || Date.now();
+    acc.updatedAtMs = Math.max(Number(acc.updatedAtMs) || 0, Date.now());
+    if (acc.profile) acc.profile.updatedAtMs = acc.updatedAtMs;
+    if (usernameKey === this.currentAccountUsername) {
+      this.profileUpdatedAtMs = acc.updatedAtMs;
+    }
+    this.saveAccountsDb(accountsDb);
+
     const cleanDisp = this.resolveCleanPlayerName(acc.displayName || acc.profile?.playerName, usernameKey);
     const cloudRecord = {
       v: 26,
@@ -2810,6 +2845,7 @@ class TienLenGame {
       updatedAtMs: acc.updatedAtMs,
       profile: {
         ...(acc.profile || {}),
+        updatedAtMs: acc.updatedAtMs,
         playerName: cleanDisp,
         gachaHistory: ((acc.profile && acc.profile.gachaHistory) || []).slice(0, 60),
       },
@@ -2847,7 +2883,7 @@ class TienLenGame {
         this.lastCloudSyncTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const statusEl = document.getElementById('account-cloud-sync-badge');
         if (statusEl) {
-          statusEl.innerHTML = `☁️ Đã đồng bộ Đám Mây lúc ${this.lastCloudSyncTime} (Vào máy khác chỉ cần nhập TK + MK!)`;
+          statusEl.innerHTML = `☁️ Đã đồng bộ Đám Mây 2 chiều lúc ${this.lastCloudSyncTime} (Mọi máy dùng chung 1 tài khoản thực thời gian thực!)`;
         }
       }
       return ok;
@@ -2859,10 +2895,11 @@ class TienLenGame {
   async fetchCloudAccount(usernameKey) {
     if (!usernameKey) return null;
     const safeKey = this.getCloudSafeUserKey(usernameKey);
+    const cacheBust = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const candidates = [];
 
-    // 1. Fetch từ Primary Cloud DB (textdb.dev)
-    const pTextDb = fetch(`https://textdb.dev/api/data/tlmn_bkp_acc_${safeKey}`, {
+    // 1. Fetch từ Primary Cloud DB (textdb.dev) kèm cache-buster chống trình duyệt di động lưu cache cũ
+    const pTextDb = fetch(`https://textdb.dev/api/data/tlmn_bkp_acc_${safeKey}?t=${cacheBust}`, {
       method: 'GET',
       cache: 'no-store',
     })
@@ -2877,9 +2914,9 @@ class TienLenGame {
       })
       .catch(() => null);
 
-    // 2. Fetch từ Secondary Cloud DB (keyvalue.immanuel.co)
+    // 2. Fetch từ Secondary Cloud DB (keyvalue.immanuel.co) kèm cache-buster
     const fetchKv = (appKey) =>
-      fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/${appKey}/tlacc_${safeKey}`, {
+      fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/${appKey}/tlacc_${safeKey}?t=${cacheBust}`, {
         method: 'GET',
         cache: 'no-store',
       })
@@ -2903,10 +2940,29 @@ class TienLenGame {
     });
     if (candidates.length === 0) return null;
 
-    // Ưu tiên bản ghi có dữ liệu đầy đủ nhất / mới nhất
-    candidates.sort((a, b) => (b.updatedAtMs || 0) - (a.updatedAtMs || 0));
+    // Ưu tiên bản ghi có timestamp mới nhất (nếu chênh lệch < 1500ms do làm tròn giây ở v2 thì ưu tiên bản ghi đầy đủ từ textdb.dev)
+    candidates.sort((a, b) => {
+      const diff = (Number(b.updatedAtMs) || 0) - (Number(a.updatedAtMs) || 0);
+      if (Math.abs(diff) <= 1500 && (a.v === 26) !== (b.v === 26)) {
+        return b.v === 26 ? 1 : -1;
+      }
+      return diff;
+    });
     const best = candidates[0];
-    // Nếu có bản ghi từ textdb.dev có lịch sử Gacha thì giữ lại gachaHistory
+    if (best.profile) {
+      // Hợp nhất toàn bộ vật phẩm đã mở khóa từ mọi cụm Cloud để không bao giờ sót đồ
+      const allBursts = new Set(best.profile.unlockedBursts || []);
+      const allSkins = new Set(best.profile.unlockedSkins || ['classic']);
+      const allAvatars = new Set(best.profile.unlockedAvatars || ['default_player']);
+      candidates.forEach((c) => {
+        (c.profile?.unlockedBursts || []).forEach((id) => allBursts.add(id));
+        (c.profile?.unlockedSkins || []).forEach((id) => allSkins.add(id));
+        (c.profile?.unlockedAvatars || []).forEach((id) => allAvatars.add(id));
+      });
+      best.profile.unlockedBursts = Array.from(allBursts);
+      best.profile.unlockedSkins = Array.from(allSkins);
+      best.profile.unlockedAvatars = Array.from(allAvatars);
+    }
     const withHistory = candidates.find((c) => Array.isArray(c.profile?.gachaHistory) && c.profile.gachaHistory.length > 0);
     if (withHistory && best.profile && (!best.profile.gachaHistory || best.profile.gachaHistory.length === 0)) {
       best.profile.gachaHistory = withHistory.profile.gachaHistory;
@@ -2914,35 +2970,44 @@ class TienLenGame {
     return best;
   }
 
-  mergeTwoAccountProfiles(baseProfile, incomingProfile) {
+  mergeTwoAccountProfiles(baseProfile, incomingProfile, preferIncoming = false) {
     if (!baseProfile) return incomingProfile;
     if (!incomingProfile) return baseProfile;
     const baseTime = Number(baseProfile.updatedAtMs) || 0;
     const incTime = Number(incomingProfile.updatedAtMs) || 0;
-    const newer = incTime >= baseTime ? incomingProfile : baseProfile;
-    const older = incTime >= baseTime ? baseProfile : incomingProfile;
+    const incomingWins = preferIncoming || incTime >= baseTime;
+    const newer = incomingWins ? incomingProfile : baseProfile;
+    const older = incomingWins ? baseProfile : incomingProfile;
+    const maxUpdatedAtMs = Math.max(baseTime, incTime);
 
     const mergedSkins = Array.from(new Set([...(older.unlockedSkins || ['classic']), ...(newer.unlockedSkins || ['classic'])]));
     const mergedAvatars = Array.from(new Set([...(older.unlockedAvatars || ['default_player']), ...(newer.unlockedAvatars || ['default_player'])]));
     const mergedBursts = Array.from(new Set([...(older.unlockedBursts || []), ...(newer.unlockedBursts || [])]));
-    const mergedHistory =
-      (newer.gachaHistory || []).length >= (older.gachaHistory || []).length
-        ? newer.gachaHistory || []
-        : older.gachaHistory || [];
+
+    // Gộp lịch sử Gacha không trùng lặp
+    const historyMap = new Map();
+    [...(newer.gachaHistory || []), ...(older.gachaHistory || [])].forEach((item) => {
+      if (!item || typeof item !== 'object') return;
+      const key = `${item.pullNo || 0}_${item.id || ''}_${item.timeStr || ''}`;
+      if (!historyMap.has(key)) historyMap.set(key, item);
+    });
+    const mergedHistory = Array.from(historyMap.values())
+      .sort((a, b) => (Number(b.pullNo) || 0) - (Number(a.pullNo) || 0))
+      .slice(0, 300);
 
     const resolvedSkin =
-      newer.equippedSkin && newer.equippedSkin !== 'classic' && mergedSkins.includes(newer.equippedSkin)
+      newer.equippedSkin && mergedSkins.includes(newer.equippedSkin)
         ? newer.equippedSkin
-        : older.equippedSkin && older.equippedSkin !== 'classic' && mergedSkins.includes(older.equippedSkin)
+        : older.equippedSkin && mergedSkins.includes(older.equippedSkin)
           ? older.equippedSkin
-          : newer.equippedSkin || older.equippedSkin || 'classic';
+          : 'classic';
 
     const resolvedAvatar =
-      newer.equippedAvatar && newer.equippedAvatar !== 'default_player' && mergedAvatars.includes(newer.equippedAvatar)
+      newer.equippedAvatar && mergedAvatars.includes(newer.equippedAvatar)
         ? newer.equippedAvatar
-        : older.equippedAvatar && older.equippedAvatar !== 'default_player' && mergedAvatars.includes(older.equippedAvatar)
+        : older.equippedAvatar && mergedAvatars.includes(older.equippedAvatar)
           ? older.equippedAvatar
-          : newer.equippedAvatar || older.equippedAvatar || 'default_player';
+          : 'default_player';
 
     const newerChar = newer.equippedActiveChar || newer.equippedChopBurst || newer.equippedWinBurst || 'none';
     const olderChar = older.equippedActiveChar || older.equippedChopBurst || older.equippedWinBurst || 'none';
@@ -2951,11 +3016,29 @@ class TienLenGame {
         ? newerChar
         : olderChar && olderChar !== 'none' && mergedBursts.includes(olderChar)
           ? olderChar
-          : 'none';
+          : mergedBursts[0] || 'none';
+
+    const today = this.getTodayKey();
+    const mergedQuestsState = this.getDefaultDailyQuestsState();
+    [older, newer].forEach((prof) => {
+      if (prof && prof.dailyQuestsDate === today && prof.dailyQuestsState) {
+        DAILY_QUESTS_CONFIG.forEach((q) => {
+          const sq = prof.dailyQuestsState[q.id];
+          if (sq && mergedQuestsState[q.id]) {
+            mergedQuestsState[q.id].progress = Math.min(
+              q.target,
+              Math.max(mergedQuestsState[q.id].progress || 0, Number(sq.progress) || 0)
+            );
+            mergedQuestsState[q.id].claimed = !!(mergedQuestsState[q.id].claimed || sq.claimed);
+          }
+        });
+      }
+    });
 
     return {
       ...older,
       ...newer,
+      updatedAtMs: maxUpdatedAtMs,
       coins: typeof newer.coins === 'number' ? newer.coins : older.coins ?? INITIAL_COINS,
       totalWishes: Math.max(Number(newer.totalWishes) || 0, Number(older.totalWishes) || 0),
       unlockedSkins: mergedSkins,
@@ -2967,6 +3050,8 @@ class TienLenGame {
       equippedChopBurst: resolvedActiveChar,
       equippedWinBurst: resolvedActiveChar,
       gachaHistory: mergedHistory,
+      dailyQuestsDate: today,
+      dailyQuestsState: mergedQuestsState,
     };
   }
 
@@ -2974,36 +3059,205 @@ class TienLenGame {
     if (!this.currentAccountUsername) return;
     clearTimeout(this.cloudSyncDebounceTimer);
     this.cloudSyncDebounceTimer = setTimeout(() => {
+      this.cloudSyncDebounceTimer = null;
       if (this.currentAccountUsername) {
         this.pushAccountToCloud(this.currentAccountUsername);
       }
-    }, 1000);
+    }, 650);
+  }
+
+  setupCrossDeviceCloudSync() {
+    if (this._crossDeviceSyncInitialized) return;
+    this._crossDeviceSyncInitialized = true;
+
+    // Khi người chơi chuyển tab / mở màn hình điện thoại hoặc bấm vào cửa sổ game ➔ kéo dữ liệu mới nhất từ Đám Mây ngay!
+    window.addEventListener('focus', () => {
+      if (this.currentAccountUsername) {
+        this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+      }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && this.currentAccountUsername) {
+        this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+      }
+    });
+
+    // Tự động đồng bộ ngầm mỗi 8 giây để 2 máy đang mở cùng 1 tài khoản luôn khớp Xu, Nhân Vật 5★, Skin Bài, Avatar & Pity!
+    this.cloudAutoPullInterval = setInterval(() => {
+      if (
+        !document.hidden &&
+        this.currentAccountUsername &&
+        !this.cloudSyncDebounceTimer &&
+        !this.isBurstPlaying
+      ) {
+        this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+      }
+    }, 8000);
+  }
+
+  async pullAccountFromCloudAndSync(usernameKey = this.currentAccountUsername, options = {}) {
+    const targetUser = (usernameKey || this.currentAccountUsername || '').trim().toLowerCase();
+    if (!targetUser || this._isPullingCloud) return false;
+    const { forceCloud = false } = options || {};
+
+    // Nếu máy hiện tại vừa thay đổi dữ liệu và đang chờ đẩy lên Cloud thì đẩy lên trước khi kéo về
+    if (this.cloudSyncDebounceTimer && !forceCloud) {
+      clearTimeout(this.cloudSyncDebounceTimer);
+      this.cloudSyncDebounceTimer = null;
+      await this.pushAccountToCloud(targetUser);
+      return true;
+    }
+
+    this._isPullingCloud = true;
+    try {
+      const cloudAcc = await this.fetchCloudAccount(targetUser);
+      const accountsDb = this.loadAccountsDb();
+      const localAcc = accountsDb[targetUser] || null;
+
+      if (!cloudAcc) {
+        if (localAcc && localAcc.passwordHash) {
+          await this.pushAccountToCloud(targetUser);
+        }
+        return false;
+      }
+
+      const cloudTime = Number(cloudAcc.updatedAtMs) || Number(cloudAcc.profile?.updatedAtMs) || 0;
+      const localTime =
+        targetUser === this.currentAccountUsername
+          ? Math.max(Number(this.profileUpdatedAtMs) || 0, Number(localAcc?.updatedAtMs) || 0)
+          : Number(localAcc?.updatedAtMs) || 0;
+
+      const cProf = cloudAcc.profile || {};
+      const hasNewCloudUnlock =
+        (cProf.unlockedBursts || []).some((id) => !this.unlockedBursts.has(id)) ||
+        (cProf.unlockedSkins || []).some((id) => !this.unlockedSkins.has(id)) ||
+        (cProf.unlockedAvatars || []).some((id) => !this.unlockedAvatars.has(id));
+
+      const hasNewLocalUnlock =
+        targetUser === this.currentAccountUsername &&
+        (Array.from(this.unlockedBursts).some((id) => !(cProf.unlockedBursts || []).includes(id)) ||
+          Array.from(this.unlockedSkins).some((id) => !(cProf.unlockedSkins || []).includes(id)) ||
+          Array.from(this.unlockedAvatars).some((id) => !(cProf.unlockedAvatars || []).includes(id)));
+
+      const cloudIsNewerOrForced = forceCloud || cloudTime > localTime;
+      const stateDiffers =
+        typeof cProf.coins === 'number' &&
+        (cProf.coins !== this.savedCoins ||
+          cProf.equippedActiveChar !== this.equippedActiveChar ||
+          cProf.equippedSkin !== this.equippedSkin ||
+          cProf.equippedAvatar !== this.equippedAvatar ||
+          cProf.gachaPity5 !== this.gachaPity5 ||
+          cProf.gachaPity4 !== this.gachaPity4 ||
+          cProf.playerName !== this.savedPlayerName);
+
+      if (!cloudIsNewerOrForced && !hasNewCloudUnlock && !(cloudTime === localTime && stateDiffers)) {
+        if (hasNewLocalUnlock || localTime > cloudTime) {
+          await this.pushAccountToCloud(targetUser);
+        }
+        return false;
+      }
+
+      const baseProf =
+        targetUser === this.currentAccountUsername
+          ? {
+              ...(localAcc?.profile || {}),
+              accountUsername: targetUser,
+              updatedAtMs: localTime,
+              coins: this.savedCoins,
+              playerName: this.savedPlayerName,
+              betPerCard: this.betPerCard,
+              soloPlayerCount: this.soloPlayerCount,
+              arenaTheme: this.arenaTheme,
+              unlockedSkins: Array.from(this.unlockedSkins),
+              equippedSkin: this.equippedSkin,
+              unlockedAvatars: Array.from(this.unlockedAvatars),
+              equippedAvatar: this.equippedAvatar,
+              unlockedBursts: Array.from(this.unlockedBursts),
+              equippedActiveChar: this.equippedActiveChar,
+              equippedChopBurst: this.equippedChopBurst,
+              equippedWinBurst: this.equippedWinBurst,
+              gachaPity5: this.gachaPity5,
+              gachaPity4: this.gachaPity4,
+              gachaGuaranteed5: this.gachaGuaranteed5,
+              gachaGuaranteed4: this.gachaGuaranteed4,
+              selectedBannerBurstId: this.selectedBannerBurstId,
+              totalWishes: this.totalWishes,
+              gachaHistory: this.gachaHistory,
+              dailyQuestsDate: this.dailyQuestsDate,
+              dailyQuestsState: this.dailyQuestsState,
+            }
+          : { ...(localAcc?.profile || {}), updatedAtMs: localTime };
+
+      const mergedProfile = this.mergeTwoAccountProfiles(
+        baseProf,
+        { ...cProf, updatedAtMs: cloudTime },
+        cloudIsNewerOrForced
+      );
+
+      // Nếu đang đánh dở ván bài trên máy này mà không phải ép đồng bộ lúc đăng nhập, giữ nguyên số Xu đang đánh trên bàn
+      if (targetUser === this.currentAccountUsername && this.isMidMatch() && !forceCloud) {
+        mergedProfile.coins = this.savedCoins;
+      }
+
+      const syncedTime = Math.max(localTime, cloudTime, Date.now() - 500);
+      mergedProfile.updatedAtMs = Math.max(localTime, cloudTime);
+
+      accountsDb[targetUser] = {
+        username: targetUser,
+        displayName: this.resolveCleanPlayerName(
+          mergedProfile.playerName || cloudAcc.displayName || localAcc?.displayName,
+          targetUser
+        ),
+        passwordHash: cloudAcc.passwordHash || localAcc?.passwordHash,
+        createdAt: cloudAcc.createdAt || localAcc?.createdAt || new Date().toLocaleString('vi-VN'),
+        updatedAt: new Date().toLocaleString('vi-VN'),
+        updatedAtMs: mergedProfile.updatedAtMs || syncedTime,
+        profile: mergedProfile,
+      };
+      this.saveAccountsDb(accountsDb);
+
+      if (targetUser === this.currentAccountUsername) {
+        this.resetProfileMemoryToDefaults();
+        this.currentAccountUsername = targetUser;
+        this.applyProfileDataObject(mergedProfile, this.getTodayKey());
+        this.profileUpdatedAtMs = mergedProfile.updatedAtMs || syncedTime;
+        this.saveShopProfile({ bumpTimestamp: false, syncCloud: false });
+        this.syncLoadedProfileToLivePlayer();
+        if (!document.getElementById('account-modal')?.classList.contains('hidden')) {
+          this.renderAccountModal();
+        }
+        if (!document.getElementById('inventory-modal')?.classList.contains('hidden')) {
+          this.renderInventoryModal();
+        }
+      }
+
+      if (hasNewLocalUnlock) {
+        await this.pushAccountToCloud(targetUser);
+      }
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      this._isPullingCloud = false;
+    }
   }
 
   async syncExistingAccountsToCloudOnBoot() {
     try {
       const accountsDb = this.loadAccountsDb();
-      const usernames = Object.keys(accountsDb);
+      const usernames = new Set(Object.keys(accountsDb));
+      if (this.currentAccountUsername) usernames.add(this.currentAccountUsername);
+
       for (const u of usernames) {
-        const localAcc = accountsDb[u];
-        if (!localAcc || !localAcc.passwordHash) continue;
-        const cloudAcc = await this.fetchCloudAccount(u);
-        if (!cloudAcc) {
-          // Tài khoản vừa được tạo từ bản cũ chưa lên Cloud ➔ Tự động đẩy lên Cloud ngay!
-          await this.pushAccountToCloud(u);
-        } else if (u === this.currentAccountUsername) {
-          // Gộp dữ liệu Cloud và Local nếu người chơi vừa chơi ở máy khác
-          const mergedProfile = this.mergeTwoAccountProfiles(
-            { ...(localAcc.profile || {}), updatedAtMs: localAcc.updatedAtMs || 0 },
-            { ...(cloudAcc.profile || {}), updatedAtMs: cloudAcc.updatedAtMs || 0 }
-          );
-          localAcc.profile = mergedProfile;
-          localAcc.displayName = mergedProfile.playerName || cloudAcc.displayName || localAcc.displayName;
-          localAcc.updatedAtMs = Math.max(localAcc.updatedAtMs || 0, cloudAcc.updatedAtMs || 0);
-          this.saveAccountsDb(accountsDb);
-          this.applyProfileDataObject(mergedProfile, this.getTodayKey());
-          this.syncLoadedProfileToLivePlayer();
-          await this.pushAccountToCloud(u);
+        if (u === this.currentAccountUsername) {
+          await this.pullAccountFromCloudAndSync(u, { forceCloud: false });
+        } else {
+          const localAcc = accountsDb[u];
+          if (!localAcc || !localAcc.passwordHash) continue;
+          const cloudAcc = await this.fetchCloudAccount(u);
+          if (!cloudAcc) {
+            await this.pushAccountToCloud(u);
+          }
         }
       }
     } catch (_) {}
@@ -3011,18 +3265,20 @@ class TienLenGame {
 
   async manualSyncCloudNow() {
     if (!this.currentAccountUsername) return;
-    this.saveShopProfile();
+    await this.pullAccountFromCloudAndSync(this.currentAccountUsername, { forceCloud: false });
+    this.saveShopProfile({ bumpTimestamp: true, syncCloud: false });
     const ok = await this.pushAccountToCloud(this.currentAccountUsername);
     if (ok) {
       sfx.win();
-      alert(`☁️ Đã đồng bộ tài khoản @${this.currentAccountUsername} lên Đám Mây thành công!\nBạn có thể mở bất kỳ máy hay điện thoại nào, nhập Tên Tài Khoản + Mật Khẩu là vào thẳng nick ngay!`);
+      alert(`☁️ Đã đồng bộ 2 chiều tài khoản @${this.currentAccountUsername} với Đám Mây thành công!\nCả 2 máy hiện dùng chung 100% Xu (${this.savedCoins.toLocaleString()} Xu), Nhân Vật 5★ (${this.unlockedBursts.size}/${GENSHIN_BURSTS.length}), Skin Bài & Pity!`);
     } else {
       alert('⚠️ Kết nối mạng đang chập chờn, hệ thống sẽ tự động thử đồng bộ lại sau ít giây.');
     }
   }
 
-  saveShopProfile() {
+  saveShopProfile(options = {}) {
     try {
+      const { bumpTimestamp = true, syncCloud = true } = options || {};
       const today = this.getTodayKey();
       if (this.dailyQuestsDate !== today) {
         this.dailyQuestsDate = today;
@@ -3040,14 +3296,12 @@ class TienLenGame {
         }
       }
 
-      // Gộp (Union) với dữ liệu v9 đã lưu nếu cùng tài khoản (hoặc đang chơi khách chưa tạo tài khoản)
+      // Gộp (Union) với dữ liệu v9 đã lưu CHỈ KHI cùng đúng tài khoản (tuyệt đối không gộp dữ liệu khách vào tài khoản đã đăng nhập!)
       const backups = this.readBackupPayloads();
       backups.forEach((old) => {
         if (!old || typeof old !== 'object') return;
         if (
-          (this.currentAccountUsername &&
-            old.accountUsername &&
-            old.accountUsername !== this.currentAccountUsername) ||
+          (this.currentAccountUsername && old.accountUsername !== this.currentAccountUsername) ||
           (!this.currentAccountUsername && old.accountUsername)
         ) {
           return;
@@ -3076,7 +3330,7 @@ class TienLenGame {
       });
 
       this.savedPlayerName = this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
-      const nowMs = Date.now();
+      const nowMs = bumpTimestamp ? Date.now() : Number(this.profileUpdatedAtMs) || 0;
       this.profileUpdatedAtMs = nowMs;
 
       const payload = {
@@ -3123,7 +3377,9 @@ class TienLenGame {
           accountsDb[this.currentAccountUsername].updatedAtMs = nowMs;
           accountsDb[this.currentAccountUsername].profile = payload;
           this.saveAccountsDb(accountsDb);
-          this.scheduleCloudAccountSync();
+          if (syncCloud && bumpTimestamp) {
+            this.scheduleCloudAccountSync();
+          }
         }
       }
 
@@ -3169,6 +3425,9 @@ class TienLenGame {
     this.renderAccountModal();
     modal.classList.remove('hidden');
     sfx.click();
+    if (this.currentAccountUsername) {
+      this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+    }
   }
 
   switchAccountModalTab(tab) {
@@ -3343,10 +3602,16 @@ class TienLenGame {
       return;
     }
 
-    // Gộp dữ liệu mới nhất giữa Cloud và Local (nếu có cả 2) để không bao giờ mất đồ
+    // Gộp dữ liệu mới nhất giữa Cloud và Local (ưu tiên Cloud khi đăng nhập từ máy khác để 2 máy là 1 tài khoản duy nhất)
+    const preferCloudOnLogin =
+      !!cloudAcc &&
+      (this.currentAccountUsername !== usernameKey ||
+        !localAcc ||
+        (Number(cloudAcc.updatedAtMs) || 0) >= (Number(localAcc?.updatedAtMs) || 0));
     const finalProfile = this.mergeTwoAccountProfiles(
       localAcc ? { ...(localAcc.profile || {}), updatedAtMs: localAcc.updatedAtMs || 0 } : null,
-      cloudAcc ? { ...(cloudAcc.profile || {}), updatedAtMs: cloudAcc.updatedAtMs || 0 } : null
+      cloudAcc ? { ...(cloudAcc.profile || {}), updatedAtMs: cloudAcc.updatedAtMs || 0 } : null,
+      preferCloudOnLogin
     );
 
     const nowStr = new Date().toLocaleString('vi-VN');
@@ -3354,8 +3619,14 @@ class TienLenGame {
       finalProfile?.playerName || targetAcc.displayName,
       usernameKey
     );
+    const mergedTimestamp = Math.max(
+      Number(cloudAcc?.updatedAtMs) || 0,
+      Number(localAcc?.updatedAtMs) || 0,
+      Date.now()
+    );
     if (finalProfile) {
       finalProfile.playerName = resolvedLoginName;
+      finalProfile.updatedAtMs = mergedTimestamp;
     }
     accountsDb[usernameKey] = {
       username: usernameKey,
@@ -3363,22 +3634,24 @@ class TienLenGame {
       passwordHash: inputHash,
       createdAt: targetAcc.createdAt || nowStr,
       updatedAt: nowStr,
-      updatedAtMs: Math.max(Date.now(), targetAcc.updatedAtMs || 0),
+      updatedAtMs: mergedTimestamp,
       profile: finalProfile,
     };
     this.saveAccountsDb(accountsDb);
 
+    this.clearActiveMatchSnapshot();
     this.resetProfileMemoryToDefaults();
     this.currentAccountUsername = usernameKey;
     localStorage.setItem('tlmn_active_account_v1', usernameKey);
 
     if (finalProfile) {
-      const jsonStr = JSON.stringify({ ...finalProfile, accountUsername: usernameKey });
+      const jsonStr = JSON.stringify({ ...finalProfile, accountUsername: usernameKey, updatedAtMs: mergedTimestamp });
       localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
       window.name = `TLMN_VAULT_V9:${jsonStr}`;
       this.applyProfileDataObject(finalProfile, this.getTodayKey());
+      this.profileUpdatedAtMs = mergedTimestamp;
     }
-    this.saveShopProfile();
+    this.saveShopProfile({ bumpTimestamp: false, syncCloud: false });
     await this.pushAccountToCloud(usernameKey);
     this.syncLoadedProfileToLivePlayer();
     sfx.win();
@@ -3764,6 +4037,9 @@ class TienLenGame {
     this.renderInventoryModal();
     document.getElementById('inventory-modal')?.classList.remove('hidden');
     sfx.click();
+    if (this.currentAccountUsername) {
+      this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+    }
   }
 
   closeInventoryModal() {
@@ -3776,6 +4052,9 @@ class TienLenGame {
     this.renderShopModal();
     this.modalShop?.classList.remove('hidden');
     this.switchShopTab('gacha');
+    if (this.currentAccountUsername) {
+      this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+    }
   }
 
   switchInventoryTab(tabName) {

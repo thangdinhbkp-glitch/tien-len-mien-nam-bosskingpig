@@ -1193,7 +1193,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'ineffa',
     name: 'Ineffa — Mệnh Lệnh Tối Thượng: Quét Sạch Toàn Diện',
-    desc: '[Huyền Thoại] Cơ khí Lôi nguyên tố phát Xung Điện Cộng Hưởng: Quét toàn bộ tay đối thủ, làm đoản mạch các lá bài TRÙNG BẬC SỐ với chủ lực của Ineffa tụt về 3♠/4♠ & gây tê liệt mất lượt!',
+    desc: '[Huyền Thoại] Cơ khí Lôi nguyên tố phát Xung Điện Cộng Hưởng: Quét toàn bộ tay đối thủ, làm đoản mạch các lá bài TRÙNG BẬC SỐ với chủ lực của Ineffa tụt thẳng về 3♠/4♠!',
     price: 155000,
     mp4Url: 'ineffa_burst.mp4?v=64',
     audioUrl: 'ineffa_burst.ogg?v=64',
@@ -1874,7 +1874,7 @@ const CHARACTER_SKILLS = {
     charName: 'Ineffa',
     icon: '🤖',
     name: 'Xung Điện Cộng Hưởng',
-    shortDesc: 'Phát xung điện từ theo bậc số chủ lực của Ineffa: Quét toàn bộ tay đối thủ, làm đoản mạch các lá bài TRÙNG BẬC SỐ tụt thẳng xuống phế liệu 3♠/4♠ và gây tê liệt mất lượt trong vòng này!',
+    shortDesc: 'Phát xung điện từ theo bậc số chủ lực của Ineffa: Quét toàn bộ tay đối thủ, làm đoản mạch các lá bài TRÙNG BẬC SỐ tụt thẳng xuống phế liệu 3♠/4♠!',
   },
   flins: {
     id: 'flins',
@@ -11547,10 +11547,7 @@ class TienLenGame {
           oppZapStr.push(`${oldStr}➔${c.rank}♠`);
         });
         opp.hand = sortHandByMode(opp.hand, opp.id === this.mySeatId ? this.sortMode : 'asc');
-        if (!opp.passed && matchedCards.some((c) => resonanceRanks.has(c.rankIndex))) {
-          opp.passed = true;
-          shockedLogs.push(`${opp.name} (${oppZapStr.join(', ')} ⚡Tê Liệt)`);
-        } else {
+        if (oppZapStr.length > 0) {
           shockedLogs.push(`${opp.name} (${oppZapStr.join(', ')})`);
         }
       });

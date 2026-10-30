@@ -5994,7 +5994,7 @@ class TienLenGame {
       this.modalWifi.classList.add('hidden');
       if (!this.isMultiplayer) {
         const curActiveCount = this.players.filter((p) => p.active).length;
-        if ((wasInitial || this.isGameOver) && curActiveCount !== (this.soloPlayerCount || 4)) {
+        if (wasInitial || this.isGameOver || curActiveCount !== (this.soloPlayerCount || 4)) {
           this.switchToSoloBotMode();
           return;
         }
@@ -10806,7 +10806,25 @@ class TienLenGame {
       this.matchCount++;
     }
 
-    const deck = shuffleDeck(createDeck());
+    const isFirstMatch = this.lastWinnerId === null || !this.players[this.lastWinnerId]?.active;
+    const preventInstantWinOnBootOrFirstDeal = Boolean(this.inInitialLobby || resetHistory);
+    let deck = shuffleDeck(createDeck());
+    for (let attempt = 0; attempt < 25; attempt++) {
+      let hasToiTrang = false;
+      let offset = 0;
+      for (const p of this.players) {
+        if (!p.active) continue;
+        const testHand = deck.slice(offset * 13, (offset + 1) * 13);
+        offset++;
+        if (preventInstantWinOnBootOrFirstDeal && checkToiTrang(testHand, isFirstMatch)) {
+          hasToiTrang = true;
+          break;
+        }
+      }
+      if (!hasToiTrang) break;
+      deck = shuffleDeck(createDeck());
+    }
+
     let dealOffset = 0;
     this.players.forEach((p) => {
       if (p.active) {
@@ -10878,7 +10896,6 @@ class TienLenGame {
       ? `Ván #${this.matchCount} • Phòng ${this.roomId} (${activePlayers.length} người) • Cược ${b.toLocaleString()} xu/lá`
       : `Ván #${this.matchCount} • Bàn ${activePlayers.length} Người • ${tierMeta.name} (${b.toLocaleString()} xu/lá)`;
 
-    const isFirstMatch = this.lastWinnerId === null || !this.players[this.lastWinnerId]?.active;
     if (isFirstMatch) {
       let lowestPlayer = activePlayers[0];
       let lowestCardVal = 999;
@@ -10913,15 +10930,24 @@ class TienLenGame {
 
     this.renderAll();
 
-    // Kiểm tra Tới Trắng
-    for (let offset = 0; offset < 4; offset++) {
-      const pid = (this.currentTurn + offset) % 4;
-      const p = this.players[pid];
-      if (!p.active) continue;
-      const reason = checkToiTrang(p.hand, isFirstMatch);
-      if (reason) {
-        this.handleToiTrang(pid, reason);
-        return;
+    // Khi mới mở trang web (đang ở Sảnh Chờ hoặc màn hình Tạo Tài Khoản, chưa bắt đầu chơi trận nào):
+    // Tuyệt đối KHÔNG xét Tới Trắng và KHÔNG chạy lượt đánh ngầm phía sau!
+    if (this.inInitialLobby) {
+      this.stopTurnCountdown();
+      return;
+    }
+
+    // Kiểm tra Tới Trắng (chỉ áp dụng từ Ván #2 trở đi sau khi người chơi đã thực sự chơi ít nhất 1 ván)
+    if (!resetHistory) {
+      for (let offset = 0; offset < 4; offset++) {
+        const pid = (this.currentTurn + offset) % 4;
+        const p = this.players[pid];
+        if (!p.active) continue;
+        const reason = checkToiTrang(p.hand, isFirstMatch);
+        if (reason) {
+          this.handleToiTrang(pid, reason);
+          return;
+        }
       }
     }
 
@@ -11043,6 +11069,7 @@ class TienLenGame {
   }
 
   isTurnTimerPausedByModal() {
+    if (this.inInitialLobby) return true;
     if (this.isBurstPlaying) return true;
     const burstOv = document.getElementById('genshin-burst-overlay');
     if (burstOv && !burstOv.classList.contains('hidden')) return true;
@@ -11051,6 +11078,7 @@ class TienLenGame {
     if (!this.isMultiplayer) {
       const modalIds = [
         'wifi-modal',
+        'mode-setup-modal',
         'pause-modal',
         'shop-modal',
         'inventory-modal',

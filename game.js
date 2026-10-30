@@ -3485,10 +3485,10 @@ class TienLenGame {
       clearTimeout(this.botTimer);
       clearInterval(this.turnCountdownInterval);
       this.openAccountModal('register');
-    } else if (!this.tutorialCompleted && this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0) {
-      setTimeout(() => this.startNewbieTutorial(1), 120);
-    } else if (!this.tutorialCompleted && this.tutorialStep >= 1 && this.tutorialStep <= 6) {
+    } else if (!this.tutorialCompleted && this.tutorialStep >= 2 && this.tutorialStep <= 6) {
       setTimeout(() => this.resumeNewbieTutorialOnBoot(), 120);
+    } else if (!this.tutorialCompleted && (this.tutorialStep === 1 || (this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0))) {
+      setTimeout(() => this.startNewbieTutorial(false), 120);
     }
     this.setupCrossDeviceCloudSync();
     if (this.dailyRecoveredOnLoad) {
@@ -3990,10 +3990,10 @@ class TienLenGame {
     if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
     if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
     if (typeof data.tutorialCompleted === 'boolean') {
-      this.tutorialCompleted = this.tutorialCompleted || data.tutorialCompleted;
+      this.tutorialCompleted = isNewerOrEqual ? data.tutorialCompleted : (this.tutorialCompleted || data.tutorialCompleted);
     }
     if (typeof data.beginnerBannerUsed === 'boolean') {
-      this.beginnerBannerUsed = this.beginnerBannerUsed || data.beginnerBannerUsed;
+      this.beginnerBannerUsed = isNewerOrEqual ? data.beginnerBannerUsed : (this.beginnerBannerUsed || data.beginnerBannerUsed);
     }
     if (typeof data.tutorialStep === 'number' && isNewerOrEqual) {
       this.tutorialStep = data.tutorialStep;
@@ -4617,9 +4617,18 @@ class TienLenGame {
       equippedChopBurst: resolvedActiveChar,
       equippedWinBurst: resolvedActiveChar,
       gachaHistory: mergedHistory,
-      tutorialCompleted: Boolean(baseProf.tutorialCompleted || incomingProf.tutorialCompleted || mergedBursts.length > 0),
-      beginnerBannerUsed: Boolean(baseProf.beginnerBannerUsed || incomingProf.beginnerBannerUsed || mergedBursts.length > 0),
-      tutorialStep: Math.max(Number(baseProf.tutorialStep) || 0, Number(incomingProf.tutorialStep) || 0),
+      tutorialCompleted:
+        typeof newer.tutorialCompleted === 'boolean'
+          ? newer.tutorialCompleted
+          : Boolean(older.tutorialCompleted || (mergedBursts.length > 0 && !newer.tutorialStep)),
+      beginnerBannerUsed:
+        typeof newer.beginnerBannerUsed === 'boolean'
+          ? newer.beginnerBannerUsed
+          : Boolean(older.beginnerBannerUsed || (mergedBursts.length > 0 && !newer.tutorialStep)),
+      tutorialStep:
+        typeof newer.tutorialStep === 'number' && newer.tutorialStep > 0
+          ? newer.tutorialStep
+          : Number(older.tutorialStep) || 0,
       dailyQuestsDate: today,
       dailyQuestsState: mergedQuestsState,
     };
@@ -4783,6 +4792,9 @@ class TienLenGame {
               selectedBannerBurstId: this.selectedBannerBurstId,
               totalWishes: this.totalWishes,
               gachaHistory: this.gachaHistory,
+              tutorialCompleted: this.tutorialCompleted,
+              beginnerBannerUsed: this.beginnerBannerUsed,
+              tutorialStep: this.tutorialStep,
               dailyQuestsDate: this.dailyQuestsDate,
               dailyQuestsState: this.dailyQuestsState,
             }
@@ -4820,9 +4832,18 @@ class TienLenGame {
       localStorage.setItem(migKey, '1');
 
       if (targetUser === this.currentAccountUsername) {
+        const prevTutorialActive = !this.tutorialCompleted && this.tutorialStep >= 1 && this.tutorialStep <= 6;
+        const prevTutorialStep = this.tutorialStep;
+        const prevTutorialCompleted = this.tutorialCompleted;
+        const prevBeginnerBannerUsed = this.beginnerBannerUsed;
         this.resetProfileMemoryToDefaults();
         this.currentAccountUsername = targetUser;
         this.applyProfileDataObject(mergedProfile, this.getTodayKey());
+        if (prevTutorialActive) {
+          this.tutorialCompleted = prevTutorialCompleted;
+          this.beginnerBannerUsed = prevBeginnerBannerUsed;
+          this.tutorialStep = Math.max(prevTutorialStep, Number(this.tutorialStep) || 0);
+        }
         this.profileUpdatedAtMs = mergedProfile.updatedAtMs;
         this.profileSyncRev = syncedRev;
         // QUAN TRỌNG: Gọi syncLoadedProfileToLivePlayer() TRƯỚC saveShopProfile để me.coins nhận đúng số Xu từ Cloud!
@@ -4833,6 +4854,9 @@ class TienLenGame {
         }
         if (!document.getElementById('inventory-modal')?.classList.contains('hidden')) {
           this.renderInventoryModal();
+        }
+        if (!this.tutorialCompleted && this.tutorialStep >= 1) {
+          this.renderTravelerGuide();
         }
       }
 
@@ -5086,6 +5110,9 @@ class TienLenGame {
     this.renderLobbyModal();
     this.renderAll();
     this.syncAccountButtonsUI();
+    if (!this.tutorialCompleted && this.tutorialStep >= 1) {
+      this.renderTravelerGuide();
+    }
   }
 
   async registerAccount() {
@@ -5884,6 +5911,9 @@ class TienLenGame {
     this.updateMidMatchLockUI();
     document.getElementById('pause-modal')?.classList.remove('hidden');
     sfx.click();
+    if (!this.tutorialCompleted && this.tutorialStep >= 1) {
+      this.renderTravelerGuide();
+    }
   }
 
   closePauseModal() {
@@ -5895,6 +5925,9 @@ class TienLenGame {
         clearTimeout(this.botTimer);
         this.promptCurrentTurn();
       }
+    }
+    if (!this.tutorialCompleted && this.tutorialStep >= 1) {
+      this.renderTravelerGuide();
     }
   }
 
@@ -6741,6 +6774,9 @@ class TienLenGame {
     }
 
     this.renderInventoryModal();
+    if (!this.tutorialCompleted && this.tutorialStep >= 1) {
+      this.renderTravelerGuide();
+    }
   }
 
   renderInventoryModal() {
@@ -19285,6 +19321,15 @@ class TienLenGame {
     this.tutorialStep = nextStep;
 
     if (nextStep === 3) {
+      // Đảm bảo Banner Tân Thủ luôn hiển thị ở Bước 3 và đưa người chơi về đúng Sảnh Chờ (#wifi-modal) nơi có nút "🌠 Cầu Nguyện"
+      this.beginnerBannerUsed = false;
+      if (this.modalSummary) this.modalSummary.classList.add('hidden');
+      document.getElementById('pause-modal')?.classList.add('hidden');
+      this.inInitialLobby = true;
+      if (this.modalWifi && (!this.modalShop || this.modalShop.classList.contains('hidden'))) {
+        this.modalWifi.classList.remove('hidden');
+        this.renderLobbyModal();
+      }
       // Nhà Lữ Hành nâng tiền người chơi mới lên đủ 20,000 Vàng để roll Banner Tân Thủ (16,000 Vàng) và dư vốn đánh bài
       const localP = this.getLocalPlayer();
       const curCoins = localP ? localP.coins : this.savedCoins;
@@ -19487,16 +19532,33 @@ class TienLenGame {
 
     // BƯỚC 2: Ván 1 kết thúc ➔ Chỉ mũi tên vào nút "🏠 Đổi Chế Độ / Đổi Mức Cược" có sẵn trên màn hình để về Sảnh Chờ
     if (step === 2) {
+      const wifiOpen = this.modalWifi && !this.modalWifi.classList.contains('hidden');
+      if (wifiOpen) {
+        this.advanceTutorialStep(3);
+        return;
+      }
       stepPill.textContent = 'Bước 2/6 • Về Màn Hình Chờ';
       textEl.innerHTML = `
         Ván khởi động kết thúc rồi! Bạn thấy <strong>3 con Bot vừa xài Kỹ Năng Nhân Vật 5★</strong> rất lợi hại mà bạn chưa có phải không? 😊<br>
         Đừng lo, mình sẽ hướng dẫn bạn sở hữu ngay! Hãy bấm vào nút <strong>🏠 Đổi Chế Độ / Đổi Mức Cược</strong> đang có mũi tên chỉ vào để về <strong>Màn Hình Chờ</strong> nhé!
       `;
       const summaryOpen = this.modalSummary && !this.modalSummary.classList.contains('hidden');
-      const targetBtn = summaryOpen
-        ? document.getElementById('btn-summary-change-bet')
-        : document.getElementById('btn-wifi');
-      this.pointToScreenElement(targetBtn, 'BẤM VÀO ĐÂY ĐỂ VỀ SẢNH CHỜ');
+      const pauseModal = document.getElementById('pause-modal');
+      const pauseOpen = pauseModal && !pauseModal.classList.contains('hidden');
+      let targetBtn = null;
+      let pointerLabel = 'BẤM VÀO ĐÂY ĐỂ VỀ SẢNH CHỜ';
+      if (summaryOpen) {
+        targetBtn = document.getElementById('btn-summary-change-bet');
+      } else if (pauseOpen) {
+        targetBtn = document.getElementById('btn-wifi');
+      } else if (this.btnShowSummary && !this.btnShowSummary.classList.contains('hidden')) {
+        targetBtn = this.btnShowSummary;
+        pointerLabel = 'BẤM MỞ BẢNG TỔNG KẾT';
+      } else {
+        targetBtn = document.getElementById('btn-pause-game');
+        pointerLabel = 'BẤM MENU ĐỂ VỀ SẢNH CHỜ';
+      }
+      this.pointToScreenElement(targetBtn, pointerLabel);
       return;
     }
 
@@ -19519,15 +19581,18 @@ class TienLenGame {
           : document.getElementById('btn-skip-gacha-meteor');
         this.pointToScreenElement(targetBtn, resultsVisible ? 'BẤM THU NHẬN 5★ RAIDEN SHOGUN' : 'BẤM ĐỂ XEM KẾT QUẢ');
       } else if (!shopOpen) {
+        if (!this.modalWifi || this.modalWifi.classList.contains('hidden')) {
+          if (this.modalSummary) this.modalSummary.classList.add('hidden');
+          document.getElementById('pause-modal')?.classList.add('hidden');
+          this.inInitialLobby = true;
+          this.modalWifi?.classList.remove('hidden');
+        }
         textEl.innerHTML = `
           🎁 Mình vừa nâng tiền của bạn lên đủ <strong>20,000 Vàng</strong> rồi đấy!<br>
-          Thấy Bot xài kỹ năng mà bạn chưa có — đừng lo! Hãy bấm vào nút <strong>🌠 Cầu Nguyện</strong> ở thanh công cụ bên dưới để mở <strong>Banner Tân Thủ</strong> (chỉ roll duy nhất 1 lần ×10 rồi biến mất, cam kết 100% nổ <strong>5★ Limited Raiden Shogun ⚡</strong>)!
+          Thấy Bot xài kỹ năng mà bạn chưa có — đừng lo! Hãy bấm vào nút <strong>🌠 Cầu Nguyện</strong> đang có mũi tên chỉ vào ở thanh công cụ bên dưới để mở <strong>Banner Tân Thủ</strong> (cam kết 100% nổ <strong>5★ Limited Raiden Shogun ⚡</strong>)!
         `;
-        const wifiOpen = this.modalWifi && !this.modalWifi.classList.contains('hidden');
-        const targetBtn = wifiOpen
-          ? document.getElementById('btn-lobby-open-shop')
-          : document.getElementById('btn-shop');
-        this.pointToScreenElement(targetBtn, 'BẤM MỞ SẢNH CẦU NGUYỆN');
+        const targetBtn = document.getElementById('btn-lobby-open-shop') || document.getElementById('btn-shop');
+        this.pointToScreenElement(targetBtn, 'BẤM VÀO NÚT CẦU NGUYỆN');
       } else {
         textEl.innerHTML = `
           🌟 Đây là <strong>Banner Tân Thủ Đặc Biệt</strong> (chỉ xuất hiện <strong>duy nhất 1 lần ×10</strong> với <strong>16,000 Vàng</strong> rồi biến mất vĩnh viễn)!<br>

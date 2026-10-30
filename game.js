@@ -2436,6 +2436,16 @@ class TienLenGame {
 
     if (typeof data.coins === 'number' && isNewerOrEqual) {
       this.savedCoins = data.coins;
+      if (this.players) {
+        const me = this.getLocalPlayer();
+        const isTrulyMe =
+          !this.isMultiplayer ||
+          (me && me.clientId === this.myClientId) ||
+          (this.isHost && this.mySeatId === 0);
+        if (me && isTrulyMe) {
+          me.coins = data.coins;
+        }
+      }
     }
     if (data.playerName && isNewerOrEqual) {
       this.savedPlayerName = this.resolveCleanPlayerName(data.playerName, data.accountUsername || this.currentAccountUsername);
@@ -2790,7 +2800,7 @@ class TienLenGame {
       const nowStr = new Date(updatedAtMs || Date.now()).toLocaleString('vi-VN');
 
       return {
-        v: verTag === 'v2' && syncRev > 0 ? 27 : 25,
+        v: verTag === 'v2' && syncRev > 0 ? 28 : 25,
         username: usernameKey,
         displayName,
         passwordHash: passHash,
@@ -2876,7 +2886,7 @@ class TienLenGame {
 
     const cleanDisp = this.resolveCleanPlayerName(acc.displayName || acc.profile?.playerName, usernameKey);
     const cloudRecord = {
-      v: 27,
+      v: 28,
       username: usernameKey,
       displayName: cleanDisp,
       passwordHash: acc.passwordHash,
@@ -3015,8 +3025,9 @@ class TienLenGame {
   }
 
   mergeTwoAccountProfiles(baseProfile, incomingProfile, preferIncoming = false, takeMaxCoins = false) {
-    if (!baseProfile) return incomingProfile;
-    if (!incomingProfile) return baseProfile;
+    if (!baseProfile && !incomingProfile) return null;
+    if (!baseProfile) baseProfile = incomingProfile;
+    if (!incomingProfile) incomingProfile = baseProfile;
     const baseRev = Number(baseProfile.syncRev) || 0;
     const incRev = Number(incomingProfile.syncRev) || 0;
     const baseTime = Number(baseProfile.updatedAtMs) || 0;
@@ -3085,11 +3096,17 @@ class TienLenGame {
       }
     });
 
-    const resolvedCoins = takeMaxCoins
+    const maxTotalWishes = Math.max(Number(newer.totalWishes) || 0, Number(older.totalWishes) || 0);
+    let resolvedCoins = takeMaxCoins
       ? Math.max(Number(newer.coins) || 0, Number(older.coins) || 0)
       : typeof newer.coins === 'number'
         ? newer.coins
         : older.coins ?? INITIAL_COINS;
+
+    // Khôi phục 1 lần (v28) cho tài khoản có Nhân Vật 5★ / lượt Cầu Nguyện bị ghi đè nhầm 20,000 Xu khi đăng nhập máy mới ở bản cũ
+    if (takeMaxCoins && resolvedCoins <= 22000 && (mergedBursts.length > 0 || maxTotalWishes > 0)) {
+      resolvedCoins = Math.max(resolvedCoins, 80000);
+    }
 
     return {
       ...older,
@@ -3097,7 +3114,7 @@ class TienLenGame {
       updatedAtMs: maxUpdatedAtMs,
       syncRev: maxSyncRev,
       coins: resolvedCoins,
-      totalWishes: Math.max(Number(newer.totalWishes) || 0, Number(older.totalWishes) || 0),
+      totalWishes: maxTotalWishes,
       unlockedSkins: mergedSkins,
       equippedSkin: resolvedSkin,
       unlockedAvatars: mergedAvatars,
@@ -3167,11 +3184,11 @@ class TienLenGame {
     if (!targetUser || this._isPullingCloud) return false;
     const { forceCloud = false } = options || {};
 
-    const migKey = `tlmn_v27_migrated_${targetUser}`;
-    const alreadyMigratedV27 = localStorage.getItem(migKey) === '1';
+    const migKey = `tlmn_v28_migrated_${targetUser}`;
+    const alreadyMigratedV28 = localStorage.getItem(migKey) === '1';
 
-    // Nếu máy hiện tại đã qua bước đồng nhất v27 và vừa thay đổi dữ liệu đang chờ đẩy lên Cloud thì đẩy lên trước
-    if (alreadyMigratedV27 && this.cloudSyncDebounceTimer && !forceCloud) {
+    // Nếu máy hiện tại đã qua bước đồng nhất v28 và vừa thay đổi dữ liệu đang chờ đẩy lên Cloud thì đẩy lên trước
+    if (alreadyMigratedV28 && this.cloudSyncDebounceTimer && !forceCloud) {
       clearTimeout(this.cloudSyncDebounceTimer);
       this.cloudSyncDebounceTimer = null;
       await this.pushAccountToCloud(targetUser);
@@ -3216,7 +3233,7 @@ class TienLenGame {
           Array.from(this.unlockedSkins).some((id) => !(cProf.unlockedSkins || []).includes(id)) ||
           Array.from(this.unlockedAvatars).some((id) => !(cProf.unlockedAvatars || []).includes(id)));
 
-      const needsInitialV27Reconcile = !alreadyMigratedV27 || (cloudAcc.v || 0) < 27;
+      const needsInitialV28Reconcile = !alreadyMigratedV28 || (cloudAcc.v || 0) < 28;
       const cloudIsNewerOrForced =
         forceCloud ||
         cloudRev > localRev ||
@@ -3232,7 +3249,7 @@ class TienLenGame {
           cProf.playerName !== this.savedPlayerName);
 
       if (
-        !needsInitialV27Reconcile &&
+        !needsInitialV28Reconcile &&
         !cloudIsNewerOrForced &&
         !hasNewCloudUnlock &&
         !(cloudRev === localRev && cloudTime === localTime && stateDiffers)
@@ -3276,13 +3293,13 @@ class TienLenGame {
           : { ...(localAcc?.profile || {}), updatedAtMs: localTime, syncRev: localRev };
 
       const localHasMoreCoinsInMigration =
-        needsInitialV27Reconcile && (Number(baseProf.coins) || 0) > (Number(cProf.coins) || 0);
+        needsInitialV28Reconcile && (Number(baseProf.coins) || 0) > (Number(cProf.coins) || 0);
 
       const mergedProfile = this.mergeTwoAccountProfiles(
         baseProf,
         { ...cProf, updatedAtMs: cloudTime, syncRev: cloudRev },
         cloudIsNewerOrForced && !localHasMoreCoinsInMigration,
-        needsInitialV27Reconcile
+        needsInitialV28Reconcile
       );
 
       const syncedTime = Math.max(localTime, cloudTime, Date.now() - 200);
@@ -3312,8 +3329,9 @@ class TienLenGame {
         this.applyProfileDataObject(mergedProfile, this.getTodayKey());
         this.profileUpdatedAtMs = mergedProfile.updatedAtMs;
         this.profileSyncRev = syncedRev;
-        this.saveShopProfile({ bumpTimestamp: false, syncCloud: false });
+        // QUAN TRỌNG: Gọi syncLoadedProfileToLivePlayer() TRƯỚC saveShopProfile để me.coins nhận đúng số Xu từ Cloud!
         this.syncLoadedProfileToLivePlayer();
+        this.saveShopProfile({ bumpTimestamp: false, syncCloud: false, preserveSavedCoins: true });
         if (!document.getElementById('account-modal')?.classList.contains('hidden')) {
           this.renderAccountModal();
         }
@@ -3322,7 +3340,7 @@ class TienLenGame {
         }
       }
 
-      if (needsInitialV27Reconcile || hasNewLocalUnlock || localHasMoreCoinsInMigration) {
+      if (needsInitialV28Reconcile || hasNewLocalUnlock || localHasMoreCoinsInMigration) {
         await this.pushAccountToCloud(targetUser);
       }
       return true;
@@ -3369,7 +3387,7 @@ class TienLenGame {
 
   saveShopProfile(options = {}) {
     try {
-      const { bumpTimestamp = true, syncCloud = true } = options || {};
+      const { bumpTimestamp = true, syncCloud = true, preserveSavedCoins = false } = options || {};
       const today = this.getTodayKey();
       if (this.dailyQuestsDate !== today) {
         this.dailyQuestsDate = today;
@@ -3383,7 +3401,11 @@ class TienLenGame {
           (me && me.clientId === this.myClientId) ||
           (this.isHost && this.mySeatId === 0);
         if (me && isTrulyMe && typeof me.coins === 'number') {
-          this.savedCoins = me.coins;
+          if (preserveSavedCoins || !bumpTimestamp) {
+            me.coins = this.savedCoins;
+          } else {
+            this.savedCoins = me.coins;
+          }
         }
       }
 
@@ -3627,7 +3649,7 @@ class TienLenGame {
     this.savedPlayerName = displayName;
     this.currentAccountUsername = usernameKey;
     localStorage.setItem('tlmn_active_account_v1', usernameKey);
-    localStorage.setItem(`tlmn_v27_migrated_${usernameKey}`, '1');
+    localStorage.setItem(`tlmn_v28_migrated_${usernameKey}`, '1');
 
     const nowStr = new Date().toLocaleString('vi-VN');
     accountsDb[usernameKey] = {
@@ -3641,6 +3663,7 @@ class TienLenGame {
       profile: null,
     };
     this.saveAccountsDb(accountsDb);
+    this.syncLoadedProfileToLivePlayer();
     this.saveShopProfile();
     await this.pushAccountToCloud(usernameKey);
     this.syncLoadedProfileToLivePlayer();
@@ -3705,8 +3728,8 @@ class TienLenGame {
       return;
     }
 
-    const migKey = `tlmn_v27_migrated_${usernameKey}`;
-    const alreadyMigrated = localStorage.getItem(migKey) === '1';
+    const migKey = `tlmn_v28_migrated_${usernameKey}`;
+    const alreadyMigrated = localStorage.getItem(migKey) === '1' && (cloudAcc?.v || 0) >= 28;
     const cloudRev = Number(cloudAcc?.syncRev || cloudAcc?.profile?.syncRev || 0);
     const localRev = Number(localAcc?.syncRev || localAcc?.profile?.syncRev || 0);
     const cloudTime = Number(cloudAcc?.updatedAtMs || cloudAcc?.profile?.updatedAtMs || 0);
@@ -3768,7 +3791,9 @@ class TienLenGame {
       this.profileUpdatedAtMs = mergedTimestamp;
       this.profileSyncRev = mergedRev;
     }
-    this.saveShopProfile({ bumpTimestamp: false, syncCloud: false });
+    // QUAN TRỌNG: Phải gọi syncLoadedProfileToLivePlayer() TRƯỚC saveShopProfile để me.coins nhận đúng số Xu vừa tải từ Cloud!
+    this.syncLoadedProfileToLivePlayer();
+    this.saveShopProfile({ bumpTimestamp: false, syncCloud: false, preserveSavedCoins: true });
     await this.pushAccountToCloud(usernameKey);
     this.syncLoadedProfileToLivePlayer();
     sfx.win();
@@ -8305,7 +8330,8 @@ class TienLenGame {
 
   encodeCloudPayload(obj) {
     try {
-      return 'TLRM2:' + encodeURIComponent(JSON.stringify(obj));
+      const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+      return 'TLRM3:' + b64;
     } catch (_) {
       return '';
     }
@@ -8313,9 +8339,19 @@ class TienLenGame {
 
   decodeCloudPayload(raw) {
     if (!raw || typeof raw !== 'string') return null;
-    const trimmed = raw.trim();
+    let trimmed = raw.trim();
     if (!trimmed) return null;
     try {
+      if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+        trimmed = JSON.parse(trimmed);
+      }
+    } catch (_) {}
+    try {
+      if (trimmed.startsWith('TLRM3:')) {
+        const b64 = trimmed.slice(6).replace(/-/g, '+').replace(/_/g, '/');
+        const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+        return JSON.parse(decodeURIComponent(escape(atob(b64 + pad))));
+      }
       if (trimmed.startsWith('TLRM2:')) {
         return JSON.parse(decodeURIComponent(trimmed.slice(6)));
       }
@@ -8350,27 +8386,52 @@ class TienLenGame {
   async fetchCloudRoomsDirectory() {
     const now = Date.now();
     const mapById = new Map();
-    try {
-      const res = await fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2?_t=${now}`, {
-        cache: 'no-store',
-      });
-      if (res.ok) {
-        const text = await res.text();
-        const parsed = this.decodeCloudPayload(text);
-        const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.rooms) ? parsed.rooms : [];
-        arr.forEach((r) => {
-          if (!r || !r.roomId || r.closed) return;
-          const age = now - (Number(r.updatedAtMs) || 0);
-          if (age <= 240000 && Number(r.playerCount) > 0) {
-            mapById.set(String(r.roomId).toUpperCase(), r);
+    const ingestArr = (arr) => {
+      if (!Array.isArray(arr)) return;
+      arr.forEach((r) => {
+        if (!r || !r.roomId || r.closed) return;
+        const age = now - (Number(r.updatedAtMs) || 0);
+        if (age <= 240000 && Number(r.playerCount) > 0) {
+          const key = String(r.roomId).toUpperCase();
+          const prev = mapById.get(key);
+          if (!prev || (Number(r.updatedAtMs) || 0) >= (Number(prev.updatedAtMs) || 0)) {
+            mapById.set(key, r);
           }
-        });
-      }
-    } catch (_) {}
+        }
+      });
+    };
+
+    const pTextDb = fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2?_t=${now}`, {
+      cache: 'no-store',
+    })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        const text = await res.text();
+        return this.decodeCloudPayload(text);
+      })
+      .catch(() => null);
+
+    const fetchKvDir = (appKey) =>
+      fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/${appKey}/tldir_v2?_t=${now}`, {
+        cache: 'no-store',
+      })
+        .then(async (res) => {
+          if (!res.ok) return null;
+          const text = await res.text();
+          return this.decodeCloudPayload(text);
+        })
+        .catch(() => null);
+
+    const results = await Promise.all([pTextDb, fetchKvDir('w3crt6ib'), fetchKvDir('iykuu08k')]);
+    results.forEach((parsed) => {
+      if (!parsed) return;
+      const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.rooms) ? parsed.rooms : [];
+      ingestArr(arr);
+    });
 
     if (this.isMultiplayer && this.roomId) {
       const myEntry = this.buildCurrentRoomDirectoryEntry(false);
-      if (myEntry) {
+      if (myEntry && !myEntry.closed) {
         mapById.set(String(this.roomId).toUpperCase(), myEntry);
       }
     }
@@ -8394,6 +8455,8 @@ class TienLenGame {
       this.players?.[this.mySeatId] ||
       this.players?.[0];
     const hostName = hostPlayer?.name || this.savedPlayerName || 'Chủ Phòng';
+    const effectivePlayerCount = Math.max(activePlayers.length, this.isMultiplayer ? 1 : 0);
+    const effectiveHumanCount = Math.max(humanPlayers.length, this.isMultiplayer ? 1 : 0);
     return {
       roomId: String(this.roomId).toUpperCase(),
       title: this.roomTitle || `Bàn của ${hostName}`,
@@ -8403,14 +8466,14 @@ class TienLenGame {
       betPerCard: this.betPerCard || 100,
       hasPassword: !!this.roomPasswordHash,
       passwordHash: this.roomPasswordHash || '',
-      playerCount: activePlayers.length,
-      humanCount: humanPlayers.length,
+      playerCount: effectivePlayerCount,
+      humanCount: effectiveHumanCount,
       maxPlayers: 4,
       inMatch: !!(this.matchCount >= 1 && !this.isGameOver && this.isMidMatch()),
       matchCount: this.matchCount || 0,
-      seatNames: activePlayers.map((p) => p.name),
+      seatNames: activePlayers.length > 0 ? activePlayers.map((p) => p.name) : [hostName],
       updatedAtMs: Date.now(),
-      closed: !!closed || humanPlayers.length === 0,
+      closed: !!closed,
     };
   }
 
@@ -8438,20 +8501,13 @@ class TienLenGame {
     this.renderMultiplayerTablesList();
 
     try {
-      const res = await fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2?_t=${now}`, {
-        cache: 'no-store',
+      const remoteList = await this.fetchCloudRoomsDirectory();
+      remoteList.forEach((r) => {
+        if (!r || !r.roomId || r.roomId === myEntry.roomId || r.closed) return;
+        if (now - (Number(r.updatedAtMs) || 0) <= 240000 && Number(r.playerCount) > 0) {
+          mapById.set(String(r.roomId).toUpperCase(), r);
+        }
       });
-      if (res.ok) {
-        const text = await res.text();
-        const parsed = this.decodeCloudPayload(text);
-        const remoteArr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.rooms) ? parsed.rooms : [];
-        remoteArr.forEach((r) => {
-          if (!r || !r.roomId || r.roomId === myEntry.roomId || r.closed) return;
-          if (now - (Number(r.updatedAtMs) || 0) <= 240000 && Number(r.playerCount) > 0) {
-            mapById.set(String(r.roomId).toUpperCase(), r);
-          }
-        });
-      }
     } catch (_) {}
 
     if (myEntry.closed) {
@@ -8461,18 +8517,29 @@ class TienLenGame {
     }
     const mergedList = Array.from(mapById.values())
       .sort((a, b) => (Number(b.updatedAtMs) || 0) - (Number(a.updatedAtMs) || 0))
-      .slice(0, 30);
+      .slice(0, 25);
     this.multiplayerRoomsList = mergedList;
     this.renderMultiplayerTablesList();
 
-    try {
-      const bodyStr = this.encodeCloudPayload(mergedList);
-      await fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2`, {
+    const bodyStr = this.encodeCloudPayload(mergedList);
+    const urlSafeStr = bodyStr.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    const tasks = [
+      fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2`, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        headers: { 'Content-Type': 'text/plain' },
         body: bodyStr,
+      }).catch(() => null),
+    ];
+    if (urlSafeStr.length < 3500) {
+      ['w3crt6ib', 'iykuu08k'].forEach((appKey) => {
+        tasks.push(
+          fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${appKey}/tldir_v2/${urlSafeStr}`, {
+            method: 'POST',
+          }).catch(() => null)
+        );
       });
-    } catch (_) {}
+    }
+    await Promise.allSettled(tasks);
   }
 
   async removeRoomFromDirectory(code) {
@@ -8483,11 +8550,25 @@ class TienLenGame {
     try {
       const list = await this.fetchCloudRoomsDirectory();
       const filtered = list.filter((r) => r.roomId !== cleanCode);
-      await fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-        body: this.encodeCloudPayload(filtered),
-      });
+      const bodyStr = this.encodeCloudPayload(filtered);
+      const urlSafeStr = bodyStr.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+      const tasks = [
+        fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: bodyStr,
+        }).catch(() => null),
+      ];
+      if (urlSafeStr.length < 3500) {
+        ['w3crt6ib', 'iykuu08k'].forEach((appKey) => {
+          tasks.push(
+            fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${appKey}/tldir_v2/${urlSafeStr}`, {
+              method: 'POST',
+            }).catch(() => null)
+          );
+        });
+      }
+      await Promise.allSettled(tasks);
     } catch (_) {}
   }
 
@@ -8512,12 +8593,12 @@ class TienLenGame {
       events: Array.isArray(overrideEvents) ? overrideEvents : (this.cloudPendingEvents || []).slice(-12),
     };
     try {
-      await fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${code}`, {
+      const res = await fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${code}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        headers: { 'Content-Type': 'text/plain' },
         body: this.encodeCloudPayload(payload),
       });
-      return true;
+      return res.ok;
     } catch (_) {
       return false;
     }
@@ -8624,20 +8705,40 @@ class TienLenGame {
 
   renderMultiplayerTablesList() {
     const grid = document.getElementById('multiplayer-tables-grid');
+    const countNumEl = document.getElementById('mp-tables-count');
     const countBadge = document.getElementById('mp-tables-count-badge');
+    const searchActiveBadge = document.getElementById('mp-search-active-badge');
     const filterBanner = document.getElementById('mp-search-filter-banner');
     if (!grid) return;
 
-    const allRooms = Array.isArray(this.multiplayerRoomsList) ? this.multiplayerRoomsList : [];
+    let allRooms = Array.isArray(this.multiplayerRoomsList) ? [...this.multiplayerRoomsList] : [];
+    if (this.isMultiplayer && this.roomId) {
+      const myEntry = this.buildCurrentRoomDirectoryEntry(false);
+      if (myEntry && !myEntry.closed && !allRooms.some((r) => String(r.roomId).toUpperCase() === myEntry.roomId)) {
+        allRooms = [myEntry, ...allRooms];
+      }
+    }
+
     const filterId = (this.searchedRoomIdFilter || '').trim().toUpperCase();
     const displayRooms = filterId
       ? allRooms.filter((r) => String(r.roomId).toUpperCase() === filterId)
       : allRooms;
 
+    if (countNumEl) {
+      countNumEl.textContent = String(displayRooms.length);
+    }
     if (countBadge) {
       countBadge.textContent = filterId
         ? `Kết quả tìm ID #${filterId}: ${displayRooms.length} bàn`
         : `${allRooms.length} bàn đang mở`;
+    }
+    if (searchActiveBadge) {
+      if (filterId) {
+        searchActiveBadge.classList.remove('hidden');
+        searchActiveBadge.textContent = `🔍 Lọc ID: #${filterId}`;
+      } else {
+        searchActiveBadge.classList.add('hidden');
+      }
     }
 
     if (filterBanner) {
@@ -8686,6 +8787,10 @@ class TienLenGame {
             ? `<span class="mp-seat-dot occupied">👤 ${pName}</span>`
             : `<span class="mp-seat-dot">Ghế #${idx + 1} trống</span>`;
         }).join('');
+        const hostAvatarHtml = getAvatarHtml(r.hostAvatar || 'default_player').replace(
+          '<img ',
+          '<img style="width:100%;height:100%;max-width:40px;max-height:40px;object-fit:cover;border-radius:50%;display:block;" '
+        );
 
         return `
           <div class="mp-table-card ${r.hasPassword ? 'has-pass' : ''} ${isMyRoom ? 'my-active-room' : ''}" onclick="window.tienLenGame.onClickTableCard('${r.roomId}')">
@@ -8694,7 +8799,7 @@ class TienLenGame {
               ${passBadge}
             </div>
             <div class="mp-table-title-row">
-              <span class="mp-table-host-avatar">${getAvatarHtml(r.hostAvatar || 'default_player')}</span>
+              <span class="mp-table-host-avatar" style="width:40px;height:40px;min-width:40px;max-width:40px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">${hostAvatarHtml}</span>
               <div class="mp-table-title-info">
                 <div class="mp-table-title-text">${r.title || `Bàn của ${r.hostName}`}</div>
                 <div class="mp-table-host-sub">👑 Chủ bàn: <strong>${r.hostName}</strong> • ${statusText}</div>
@@ -9760,7 +9865,7 @@ class TienLenGame {
           cloudRoom.events = evts.slice(-15);
           await fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${this.roomId}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            headers: { 'Content-Type': 'text/plain' },
             body: this.encodeCloudPayload(cloudRoom),
           });
         }

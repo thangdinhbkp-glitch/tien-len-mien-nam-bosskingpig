@@ -569,7 +569,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'zibai',
     name: 'Zibai — Tam Hoàng Chi Uy',
-    desc: '[Sử Thi] Tiên nhân Bạch Mã Liyue phi nước đại nhảy cóc qua đầu đối thủ kế tiếp (ép họ mất lượt vòng này) và nâng +1 bậc Cơ ♥ cho 1 lá bài nhỏ (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Tiên nhân Bạch Mã chỉ định đối thủ nhiều bài nhất phải đỡ bài kế tiếp và dựng Rào Cản Bạch Mã: Mọi đối thủ muốn đè bài trong vòng này bắt buộc phải lớn hơn tối thiểu +2 bậc số (Video + Giọng lồng tiếng thật).',
     price: 110000,
     mp4Url: 'zibai_burst.mp4',
     audioUrl: 'zibai_burst.ogg?v=54',
@@ -577,7 +577,7 @@ const GENSHIN_BURSTS = [
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🐎 KỸ NĂNG NỘ • ZIBAI (TRI-SPHERE EMINENCE)',
-    title: 'TIÊN NHÂN BẠCH MÃ: BẠCH MÃ NƯỚC ĐẠI',
+    title: 'TIÊN NHÂN BẠCH MÃ: BẠCH MÃ VƯỢT TUYẾN',
     quote: '“Ánh Trăng Tiên Nhân — Khai Mở Thiên Địa!”',
   },
   {
@@ -639,7 +639,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'vesna',
     name: 'Vesna — Vì Nữ Hoàng Băng Giá!',
-    desc: '[Huyền Thoại] Nữ kiếm sĩ Hệ Phong vung kiếm gió xuân làm giảm 2 bậc số của 2 lá bài cao nhất (dưới Heo) trên tay đối thủ (Video + Giọng lồng tiếng thật).',
+    desc: '[Huyền Thoại] Nữ kiếm sĩ Hệ Phong gieo Gió Xuân Đoạt Cái: Nhuộm 2 lá Đen nhỏ trên tay thành Cơ ♥ (+1 bậc) & nếu đối thủ kết thúc vòng bằng bộ bài có lá Đỏ (♥/♦) sẽ bị Vesna TỊCH THU QUYỀN CẦM CÁI mở vòng mới (Video + Giọng lồng tiếng thật).',
     price: 140000,
     mp4Url: 'vesna_burst.mp4',
     audioUrl: 'vesna_burst.ogg?v=55',
@@ -647,7 +647,7 @@ const GENSHIN_BURSTS = [
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🍃 KỸ NĂNG NỘ • VESNA (FOR THE TSARITSA!)',
-    title: 'KIẾM VŨ PHONG XUÂN: VÌ NỮ HOÀNG!',
+    title: 'KIẾM VŨ PHONG XUÂN: GIÓ XUÂN ĐOẠT CÁI',
     quote: '“Đã Khóa Mục Tiêu — Vì Nữ Hoàng Băng Giá!”',
   },
   {
@@ -1405,6 +1405,7 @@ let activeWriothesleyPairSmash = false;
 let activeVarkaSumSlash = false;
 let activeAlhaithamAllowedRanks = null;
 let activeEmilieStepCap = false;
+let activeZibaiMinStep = false;
 let activeBaizhuShield = false;
 
 const CHARACTER_SKILLS = {
@@ -1552,8 +1553,8 @@ const CHARACTER_SKILLS = {
     id: 'zibai',
     charName: 'Zibai',
     icon: '🐎',
-    name: 'Bạch Mã Nước Đại',
-    shortDesc: 'Cưỡi Bạch Mã nhảy cóc qua đầu đối thủ ngồi kế tiếp trong vòng (ép họ bị bỏ qua mất lượt đỡ bài vòng này) và nâng +1 bậc chất Cơ ♥ cho 1 lá bài nhỏ!',
+    name: 'Bạch Mã Vượt Tuyến',
+    shortDesc: 'Chỉ định thẳng đối thủ NHIỀU BÀI NHẤT phải đỡ bài kế tiếp (lướt qua các nhà ít bài ngồi giữa) & ép mọi đối thủ muốn đè bài trong vòng này phải lớn hơn tối thiểu +2 bậc số (cấm đè đồng số hoặc +1 bậc)!',
   },
   lauma: {
     id: 'lauma',
@@ -1587,8 +1588,8 @@ const CHARACTER_SKILLS = {
     id: 'vesna',
     charName: 'Vesna',
     icon: '🍃',
-    name: 'Lốc Xoáy Tuyết Xuân',
-    shortDesc: 'Cuốn bay sức mạnh làm giảm 2 bậc số của 2 lá bài lớn nhất (dưới Heo) trên tay đối thủ đang giữ ít bài nhất',
+    name: 'Gió Xuân Đoạt Cái',
+    shortDesc: 'Nở hoa biến 2 lá chất Đen (♠/♣) nhỏ nhất trên tay thành Cơ ♥ (+1 bậc) & yểm Gió Xuân: Nếu vòng này kết thúc bằng bộ bài có lá chất Đỏ (♥/♦) của đối thủ, Vesna sẽ TỊCH THU QUYỀN CẦM CÁI mở vòng mới!',
   },
   sandrone: {
     id: 'sandrone',
@@ -2743,6 +2744,20 @@ function canBeatCombo(candidate, current) {
     };
   }
 
+  // Bạch Mã Vượt Tuyến (Zibai): Đối thủ khi đè bài thường bắt buộc phải lớn hơn tối thiểu +2 bậc số (cấm đè đồng số khác chất hoặc +1 bậc)
+  if (
+    activeZibaiMinStep &&
+    !candidate.isBomb &&
+    !current.isBomb &&
+    candidate.highRank < current.highRank + 2
+  ) {
+    return {
+      ok: false,
+      isChop: false,
+      reason: `🐎 Bạch Mã Vượt Tuyến (Zibai): Vòng này bắt buộc phải đè cao hơn tối thiểu +2 bậc (≥ ${RANKS[Math.min(12, current.highRank + 2)]})!`,
+    };
+  }
+
   // Luật Sân Khấu Fontaine (Furina): Cấm đánh Heo lẻ (2 lẻ) chặn bài trong vòng này
   if (activeFurinaReverseSuit && candidate.type === COMBO_TYPES.SINGLE && candidate.highRank === 12) {
     return {
@@ -3351,6 +3366,10 @@ class TienLenGame {
     this.emilieStepCapOwnerId = null;
     this.emilieStepCapRound = false;
     activeEmilieStepCap = false;
+    this.zibaiMinStepOwnerId = null;
+    this.zibaiRedirectTargetId = null;
+    activeZibaiMinStep = false;
+    this.vesnaSpringOwnerId = null;
     this.yelanPuppetTargetId = null;
     this.yelanPuppetOwnerId = null;
     this.matchGraveyardCards = [];
@@ -9137,6 +9156,18 @@ class TienLenGame {
         `<span class="round-skill-pill">🧪 Hương Hoa Emilie (${emp ? emp.name : 'Emilie'}): Đối thủ chỉ được đè cao hơn bài trên bàn tối đa +2 bậc số!</span>`
       );
     }
+    if (this.zibaiMinStepOwnerId !== null) {
+      const zp = this.players[this.zibaiMinStepOwnerId];
+      pills.push(
+        `<span class="round-skill-pill">🐎 Bạch Mã Vượt Tuyến (${zp ? zp.name : 'Zibai'}): Đối thủ muốn đè bài bắt buộc phải lớn hơn tối thiểu +2 bậc số!</span>`
+      );
+    }
+    if (this.vesnaSpringOwnerId !== null) {
+      const vp = this.players[this.vesnaSpringOwnerId];
+      pills.push(
+        `<span class="round-skill-pill">🍃 Gió Xuân Đoạt Cái (${vp ? vp.name : 'Vesna'}): Nếu đối thủ thắng vòng bằng bộ bài có lá Đỏ (♥/♦), ${vp ? vp.name : 'Vesna'} sẽ TỊCH THU QUYỀN CẦM CÁI mở vòng mới!</span>`
+      );
+    }
     if (this.wriothesleyCounterOwnerId !== null) {
       const wp = this.players[this.wriothesleyCounterOwnerId];
       pills.push(
@@ -9202,6 +9233,11 @@ class TienLenGame {
       activeEmilieStepCap = true;
     } else {
       activeEmilieStepCap = false;
+    }
+    if (this.zibaiMinStepOwnerId !== null && actingPlayerId !== this.zibaiMinStepOwnerId) {
+      activeZibaiMinStep = true;
+    } else {
+      activeZibaiMinStep = false;
     }
   }
 
@@ -9444,6 +9480,12 @@ class TienLenGame {
     }
     if (charId === 'yelan' && this.yelanPuppetTargetId !== null) {
       return { ok: false, reason: 'Dây Tơ Thao Túng đã trói đối thủ trong vòng này' };
+    }
+    if (charId === 'zibai' && this.zibaiMinStepOwnerId !== null) {
+      return { ok: false, reason: 'Bạch Mã Vượt Tuyến đã kích hoạt trong vòng này' };
+    }
+    if (charId === 'vesna' && this.vesnaSpringOwnerId !== null) {
+      return { ok: false, reason: 'Gió Xuân Đoạt Cái đã kích hoạt trong vòng này' };
     }
     if (charId === 'sandrone' && player.hand.length < 3) {
       return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để chế tạo Sảnh 3 lá liên tiếp' };
@@ -10041,45 +10083,32 @@ class TienLenGame {
         skillSummary = `🍰 [Tuyệt Kỹ Đôi Thông] ${player.name} lập tức thêm lá ${newCard.rank}${newCard.suit} vào tay và bỏ lá bài rác ${trashLabel} ➔ Hoàn thành ngay bộ ${setup.label}!`;
       }
     } else if (charId === 'zibai') {
-      const step = this.turnDirection === -1 ? -1 : 1;
-      let skippedOpp = null;
-      for (let i = 1; i < 4; i++) {
-        const nextId = (player.id + i * step + 40) % 4;
-        const cand = this.players[nextId];
-        if (cand && cand.active && cand.finishRank === null && !cand.passed && cand.hand.length > 0) {
-          skippedOpp = cand;
-          break;
+      this.zibaiMinStepOwnerId = player.id;
+      this.syncRoundRuleGlobals(player.id);
+      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
+      const candOpps = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
+      const maxCardOpp = [...candOpps].sort((a, b) => b.hand.length - a.hand.length)[0];
+      let redirectNote = '';
+      if (maxCardOpp) {
+        this.zibaiRedirectTargetId = maxCardOpp.id;
+        // Các đối thủ ngồi chen giữa Zibai và người nhiều bài nhất bị Bạch Mã phóng vọt qua đầu
+        const dir = this.turnDirection === -1 ? -1 : 1;
+        const skippedNames = [];
+        for (let step = 1; step < 4; step++) {
+          const midId = (player.id + step * dir + 16) % 4;
+          if (midId === maxCardOpp.id) break;
+          const midP = this.players[midId];
+          if (midP && midP.active && midP.finishRank === null && !midP.passed && midP.hand.length > 0) {
+            midP.passed = true;
+            skippedNames.push(midP.name);
+          }
         }
+        redirectNote =
+          skippedNames.length > 0
+            ? ` chỉ định thẳng ${maxCardOpp.name} (${maxCardOpp.hand.length} lá) phải đỡ bài kế tiếp (vượt qua ${skippedNames.join(', ')}) và`
+            : ` chỉ định ${maxCardOpp.name} (${maxCardOpp.hand.length} lá) đỡ bài kế tiếp và`;
       }
-      if (!skippedOpp) {
-        skippedOpp = activeOpponents[0] || null;
-      }
-      if (skippedOpp) {
-        skippedOpp.passed = true;
-      }
-      const struct = this.analyzeBotHandStructure(player.hand);
-      const lowCand =
-        sortCardsAsc(player.hand).find((c) => c.rankIndex <= 10 && !struct.bombRanks.has(c.rankIndex)) ||
-        sortCardsAsc(player.hand).find((c) => c.rankIndex <= 10);
-      let boostNote = '';
-      if (lowCand) {
-        const oldStr = `${lowCand.rank}${lowCand.suit}`;
-        const newRank = Math.min(11, lowCand.rankIndex + 1);
-        lowCand.rankIndex = newRank;
-        lowCand.rank = RANKS[newRank];
-        lowCand.suitIndex = 3;
-        lowCand.suit = '♥';
-        lowCand.isRed = true;
-        lowCand.value = newRank * 4 + 3;
-        lowCand.id = `${lowCand.rank}♥_zibai_${Date.now()}`;
-        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-        this.selectedCardIds = new Set([lowCand.id]);
-        this.companionCardIds.clear();
-        boostNote = ` và nâng ${oldStr} ➔ ${lowCand.rank}♥`;
-      }
-      skillSummary = `🐎 [Bạch Mã Nước Đại] ${player.name} thúc Bạch Mã phóng vọt nhảy cóc qua mặt ${
-        skippedOpp ? skippedOpp.name : 'đối thủ kế bên'
-      } (ép mất lượt trong vòng này)${boostNote}!`;
+      skillSummary = `🐎 [Bạch Mã Vượt Tuyến] ${player.name} thúc Bạch Mã${redirectNote} dựng Rào Cản Tốc Độ: Mọi đối thủ muốn đánh đè bài trong vòng này BẮT BUỘC phải lớn hơn tối thiểu +2 bậc số (CẤM đè đồng số hoặc +1 bậc)!`;
     } else if (charId === 'lauma') {
       if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
         const oldLabel = this.currentCombo.label;
@@ -10247,22 +10276,31 @@ class TienLenGame {
       this.odettePlaysRemaining = 2;
       skillSummary = `🦢 [Khúc Ca Hồ Thiên Nga] ${player.name} ngân vang Khúc Ca Màn Kết: Đặt đồng hồ đếm ngược đúng 2 nước đánh nữa cho cả bàn — Hết 2 nước đánh, vòng đấu lập tức hạ màn và ${player.name} CƯỚP CÁI mở vòng mới!`;
     } else if (charId === 'vesna') {
-      const target = [...activeOpponents].sort((a, b) => a.hand.length - b.hand.length)[0];
-      if (target && target.hand.length > 0) {
-        const oppCards = sortCardsAsc(target.hand).filter((c) => c.rankIndex <= 11).reverse().slice(0, 2);
-        const lowered = [];
-        oppCards.forEach((c) => {
-          const oldR = c.rank;
-          const newR = Math.max(0, c.rankIndex - 2);
-          c.rankIndex = newR;
-          c.rank = RANKS[newR];
-          c.value = newR * 4 + c.suitIndex;
-          c.id = `${c.rank}${c.suit}_vesna_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`;
-          lowered.push(`${oldR}➔${c.rank}`);
-        });
-        target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
-        skillSummary = `🍃 [Lốc Phong Xoáy Ngược] ${player.name} cuốn lốc phong làm giảm 2 bậc cho ${lowered.length} lá bài lớn trên tay ${target.name} (${lowered.join(', ')})!`;
+      this.vesnaSpringOwnerId = player.id;
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const sorted = sortCardsAsc(player.hand);
+      const blackCands = sorted.filter((c) => c.suitIndex <= 1 && c.rankIndex <= 10 && !struct.bombRanks.has(c.rankIndex));
+      const targets = (blackCands.length > 0 ? blackCands : sorted.filter((c) => c.rankIndex <= 10 && !struct.bombRanks.has(c.rankIndex))).slice(0, 2);
+      const bloomLogs = [];
+      targets.forEach((c, idx) => {
+        const oldStr = `${c.rank}${c.suit}`;
+        const newR = Math.min(11, c.rankIndex + 1);
+        c.rankIndex = newR;
+        c.rank = RANKS[newR];
+        c.suitIndex = 3;
+        c.suit = '♥';
+        c.isRed = true;
+        c.value = newR * 4 + 3;
+        c.id = `${c.rank}♥_vesna_${Date.now()}_${idx}`;
+        bloomLogs.push(`${oldStr}➔${c.rank}♥`);
+      });
+      player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+      if (targets.length > 0) {
+        this.selectedCardIds = new Set([targets[targets.length - 1].id]);
+        this.companionCardIds.clear();
       }
+      const bloomNote = bloomLogs.length > 0 ? ` (nở hoa ${bloomLogs.join(', ')}) và ` : ': ';
+      skillSummary = `🍃 [Gió Xuân Đoạt Cái] ${player.name} thổi Gió Xuân${bloomNote}yểm Lời Nguyền Bài Đỏ lên bàn: Nếu vòng này kết thúc mà bộ bài thắng vòng của đối thủ có chứa lá Đỏ (♥/♦), ${player.name} sẽ TỊCH THU QUYỀN CẦM CÁI mở vòng mới!`;
     } else if (charId === 'sandrone') {
       const struct = this.analyzeBotHandStructure(player.hand);
       const isolated = sortCardsAsc(player.hand).filter(
@@ -11750,7 +11788,15 @@ class TienLenGame {
         shouldCast = true;
       }
     } else if (charId === 'vesna') {
-      if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 8 || minOppCards <= 6)) {
+      // Gió Xuân Đoạt Cái: Nâng 2 lá Đen thành Cơ +1 bậc VÀ nếu bộ kết vòng của đối thủ có lá Đỏ thì Vesna cướp Cái mở vòng mới!
+      const tableHasRed =
+        this.currentCombo &&
+        Array.isArray(this.currentCombo.cards) &&
+        this.currentCombo.cards.some((c) => c.suitIndex >= 2);
+      if (
+        ((!this.currentCombo || plannedMove) && (bot.hand.length <= 8 || minOppCards <= 6)) ||
+        (tableHasRed && !plannedMove && (bot.hand.length <= 9 || minOppCards <= 7))
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'columbina') {
@@ -14848,6 +14894,10 @@ class TienLenGame {
     this.emilieStepCapOwnerId = null;
     this.emilieStepCapRound = false;
     activeEmilieStepCap = false;
+    this.zibaiMinStepOwnerId = null;
+    this.zibaiRedirectTargetId = null;
+    activeZibaiMinStep = false;
+    this.vesnaSpringOwnerId = null;
     this.yelanPuppetTargetId = null;
     this.yelanPuppetOwnerId = null;
     this.matchGraveyardCards = [];
@@ -16148,6 +16198,30 @@ class TienLenGame {
   }
 
   startNewRoundAfterAllPass() {
+    // Gió Xuân Đoạt Cái của Vesna: Khi vòng kết thúc, nếu bộ bài thắng vòng cuối cùng của đối thủ có chứa lá Đỏ (♥/♦) -> Vesna tịch thu quyền Cầm Cái mở vòng mới!
+    if (
+      this.vesnaSpringOwnerId !== null &&
+      this.trickOwnerId !== null &&
+      this.trickOwnerId !== this.vesnaSpringOwnerId &&
+      this.currentCombo &&
+      Array.isArray(this.currentCombo.cards) &&
+      this.currentCombo.cards.some((c) => c.suitIndex >= 2)
+    ) {
+      const vesnaOwner = this.players[this.vesnaSpringOwnerId];
+      const prevWinner = this.players[this.trickOwnerId];
+      if (vesnaOwner && vesnaOwner.active && vesnaOwner.finishRank === null && vesnaOwner.hand.length > 0) {
+        this.trickOwnerId = vesnaOwner.id;
+        this.showComboBanner(
+          `🍃 GIÓ XUÂN ĐOẠT CÁI: ${vesnaOwner.name.toUpperCase()} TỊCH THU QUYỀN MỞ VÒNG MỚI!`,
+          'reaction-bloom'
+        );
+        this.addLog(
+          `🍃 <strong>[Gió Xuân Đoạt Cái]</strong> Bộ bài kết vòng của <strong>${prevWinner ? prevWinner.name : 'đối thủ'}</strong> có chứa <strong>lá bài Đỏ (♥/♦)</strong> nên <strong>${vesnaOwner.name}</strong> lập tức <strong>tịch thu quyền Cầm Cái mở vòng mới</strong>!`,
+          'log-win'
+        );
+      }
+    }
+
     this.players.forEach((p) => {
       p.passed = false;
       p.declinedFourPairsCut = false;
@@ -16208,6 +16282,10 @@ class TienLenGame {
     this.emilieStepCapOwnerId = null;
     this.emilieStepCapRound = false;
     activeEmilieStepCap = false;
+    this.zibaiMinStepOwnerId = null;
+    this.zibaiRedirectTargetId = null;
+    activeZibaiMinStep = false;
+    this.vesnaSpringOwnerId = null;
     this.yelanPuppetTargetId = null;
     this.yelanPuppetOwnerId = null;
     this.ayatoCloneReady = false;

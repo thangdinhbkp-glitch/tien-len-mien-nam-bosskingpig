@@ -9213,7 +9213,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'vodyanitsa',
     name: 'Vodyanitsa — Khúc Hát Kết: Cùng Người Chìm Đắm',
-    desc: '[Thần Thoại] Mỹ nhân ngư Hệ Thủy dùng Gương Nước Phản Chiếu biến các lá rác nhỏ nhất thành bộ bài cùng loại nhưng lớn hơn +1 bậc so với bộ trên bàn để đè ngay (Video + Giọng lồng tiếng thật).',
+    desc: '[Thần Thoại] Mỹ nhân ngư Hệ Thủy dùng Gương Nước Phản Chiếu đổi ngẫu nhiên các lá bài trên tay thành bộ bài VỪA ĐỦ lớn hơn (nhỉnh hơn đúng 1 nấc chất/số hoặc Tứ Quý nhỏ nhất) để chặt/đè ngay bộ bài của đối thủ (Video + Giọng lồng tiếng thật).',
     price: 185000,
     mp4Url: 'vodyanitsa_burst.mp4',
     audioUrl: 'vodyanitsa_burst.ogg?v=55',
@@ -10146,7 +10146,7 @@ const CHARACTER_SKILLS = {
     charName: 'Vodyanitsa',
     icon: '🌊',
     name: 'Gương Nước Phản Chiếu',
-    shortDesc: 'Mặt nước biến các lá rác nhỏ nhất trên tay thành bộ bài CÙNG LOẠI nhưng LỚN HƠN +1 BẬC so với bộ đang trên bàn để đè lại ngay!',
+    shortDesc: 'Đổi ngẫu nhiên lá bài trên tay thành bộ bài VỪA ĐỦ (lớn hơn đúng 1 nấc chất/số hoặc ghép Hàng nhỏ nhất) để chặt/đè ngay bộ bài của đối thủ trên bàn!',
   },
   lohen: {
     id: 'lohen',
@@ -17975,6 +17975,153 @@ class TienLenGame {
     return null;
   }
 
+  findVodyanitsaMinimalBeatSpec(hand, currentCombo, playerId = null) {
+    if (!currentCombo || !Array.isArray(hand) || hand.length === 0) return null;
+    if (playerId !== null) {
+      this.syncRoundRuleGlobals(playerId);
+    }
+
+    const makeSpecCard = (r, s, idx = 0) => ({
+      rankIndex: r,
+      suitIndex: s,
+      rank: RANKS[r],
+      suit: SUITS[s],
+      value: r * 4 + s,
+      isRed: s >= 2,
+      id: `vody_spec_${r}_${s}_${idx}`,
+    });
+    const testSpecs = (specs) => {
+      if (!specs || specs.length === 0 || hand.length < specs.length) return false;
+      const cards = specs.map((sp, i) => makeSpecCard(sp.rankIndex, sp.suitIndex, i));
+      const combo = classifyCombo(cards);
+      return Boolean(combo && canBeatCombo(combo, currentCombo).ok);
+    };
+
+    const rankOrder = activeKokomiReverseRank
+      ? [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 12]
+      : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const suitOrder = activeFurinaReverseSuit ? [3, 2, 1, 0] : [0, 1, 2, 3];
+
+    // 1. Khi trên bàn là Bài Lẻ (SINGLE): tìm lá lẻ nhỏ nhất VỪA ĐỦ đè (nhỉnh hơn đúng 1 chất hoặc 1 bậc)
+    if (currentCombo.type === COMBO_TYPES.SINGLE) {
+      for (const r of rankOrder) {
+        for (const s of suitOrder) {
+          const specs = [{ rankIndex: r, suitIndex: s }];
+          if (testSpecs(specs)) {
+            return { specs };
+          }
+        }
+      }
+      // Nếu lá lẻ trên bàn là 2♥ (hoặc bị khóa đánh lẻ 2) và tay còn >= 4 lá -> Ghép Tứ Quý nhỏ nhất VỪA ĐỦ chặt Heo!
+      if (hand.length >= 4 && !currentCombo.baizhuShielded) {
+        for (let r = 0; r <= 11; r++) {
+          const quadSpecs = [0, 1, 2, 3].map((s) => ({ rankIndex: r, suitIndex: s }));
+          if (testSpecs(quadSpecs)) {
+            return { specs: quadSpecs };
+          }
+        }
+      }
+      return null;
+    }
+
+    // 2. Khi trên bàn là Đôi (PAIR): tìm Đôi nhỏ nhất VỪA ĐỦ đè (ưu tiên giữ lại 1 lá cùng số trên tay nếu có)
+    if (currentCombo.type === COMBO_TYPES.PAIR) {
+      if (hand.length >= 2) {
+        for (const r of rankOrder) {
+          const existingSameRank = hand.find((c) => c.rankIndex === r);
+          const suitPairs = [];
+          for (let i = 0; i < 4; i++) {
+            for (let j = i + 1; j < 4; j++) {
+              const sLow = suitOrder[i];
+              const sHigh = suitOrder[j];
+              const matchesExisting =
+                existingSameRank &&
+                (existingSameRank.suitIndex === sLow || existingSameRank.suitIndex === sHigh)
+                  ? 0
+                  : 1;
+              suitPairs.push({ sLow, sHigh, highIdx: j, lowIdx: i, matchesExisting });
+            }
+          }
+          suitPairs.sort(
+            (a, b) => a.highIdx - b.highIdx || a.matchesExisting - b.matchesExisting || a.lowIdx - b.lowIdx
+          );
+          for (const sp of suitPairs) {
+            const specs = [
+              { rankIndex: r, suitIndex: sp.sLow },
+              { rankIndex: r, suitIndex: sp.sHigh },
+            ];
+            if (testSpecs(specs)) {
+              return { specs };
+            }
+          }
+        }
+      }
+      // Nếu trên bàn là Đôi 2 có 2♥ và tay còn >= 4 lá -> Ghép Tứ Quý nhỏ nhất VỪA ĐỦ chặt Đôi 2!
+      if (hand.length >= 4 && !currentCombo.baizhuShielded) {
+        for (let r = 0; r <= 11; r++) {
+          const quadSpecs = [0, 1, 2, 3].map((s) => ({ rankIndex: r, suitIndex: s }));
+          if (testSpecs(quadSpecs)) {
+            return { specs: quadSpecs };
+          }
+        }
+      }
+      return null;
+    }
+
+    // 3. Khi trên bàn là Sám Cô (TRIPLE): tìm Sám Cô nhỏ nhất VỪA ĐỦ đè
+    if (currentCombo.type === COMBO_TYPES.TRIPLE && hand.length >= 3) {
+      for (const r of rankOrder) {
+        const existingSuits = hand.filter((c) => c.rankIndex === r).map((c) => c.suitIndex);
+        const chosenSuits = [...new Set([...existingSuits, ...suitOrder])].slice(0, 3);
+        const specs = chosenSuits.map((s) => ({ rankIndex: r, suitIndex: s }));
+        if (testSpecs(specs)) {
+          return { specs };
+        }
+      }
+      return null;
+    }
+
+    // 4. Khi trên bàn là Sảnh (STRAIGHT): tìm Sảnh cùng độ dài nhỏ nhất VỪA ĐỦ đè (nhỉnh hơn đúng 1 chất ở lá đầu tàu hoặc +1 bậc chất nhỏ nhất)
+    if (currentCombo.type === COMBO_TYPES.STRAIGHT && hand.length >= currentCombo.length) {
+      const len = currentCombo.length;
+      const validTopRanks = rankOrder.filter((r) => r >= len - 1 && r <= 11);
+      for (const topRank of validTopRanks) {
+        const startRank = topRank - len + 1;
+        for (const topSuit of suitOrder) {
+          const specs = [];
+          for (let idx = 0; idx < len; idx++) {
+            const r = startRank + idx;
+            if (idx === len - 1) {
+              specs.push({ rankIndex: r, suitIndex: topSuit });
+            } else {
+              const existingInHand = hand.find((c) => c.rankIndex === r);
+              specs.push({
+                rankIndex: r,
+                suitIndex: existingInHand ? existingInHand.suitIndex : suitOrder[0],
+              });
+            }
+          }
+          if (testSpecs(specs)) {
+            return { specs };
+          }
+        }
+      }
+      return null;
+    }
+
+    // 5. Khi trên bàn là Hàng (3 Đôi Thông / Tứ Quý) và tay còn >= 4 lá: tìm Tứ Quý nhỏ nhất VỪA ĐỦ chặt!
+    if (currentCombo.isBomb && hand.length >= 4 && !currentCombo.baizhuShielded) {
+      for (let r = 0; r <= 11; r++) {
+        const quadSpecs = [0, 1, 2, 3].map((s) => ({ rankIndex: r, suitIndex: s }));
+        if (testSpecs(quadSpecs)) {
+          return { specs: quadSpecs };
+        }
+      }
+    }
+
+    return null;
+  }
+
   canUseCharacterSkill(player) {
     if (!player || !player.active || player.skillUsed || this.isGameOver) return { ok: false, reason: 'Đã dùng kỹ năng trong ván này' };
 
@@ -18154,11 +18301,15 @@ class TienLenGame {
       }
     }
     if (charId === 'vodyanitsa') {
-      if (!this.currentCombo || this.currentCombo.isBomb || this.currentCombo.highRank >= 12) {
-        return { ok: false, reason: 'Chỉ dùng khi trên bàn đang có bộ bài thường (Lẻ, Đôi, Sám, Sảnh dưới Heo) để Gương Nước sao chép +1 bậc!' };
+      if (!this.currentCombo) {
+        return { ok: false, reason: 'Chỉ dùng khi đối thủ vừa đánh bài trên bàn để Gương Nước đổi lá ngẫu nhiên vừa đủ chặt/đè đối thủ!' };
       }
-      if (player.hand.length < this.currentCombo.length) {
-        return { ok: false, reason: `Cần còn ít nhất ${this.currentCombo.length} lá bài trên tay để sao chép bộ bài trên bàn!` };
+      const plan = this.findVodyanitsaMinimalBeatSpec(player.hand, this.currentCombo, player.id);
+      if (!plan) {
+        return {
+          ok: false,
+          reason: `Số lá trên tay (${player.hand.length} lá) hoặc luật vòng hiện tại không đủ để ghép bộ vừa đủ chặt ${this.currentCombo.label}!`,
+        };
       }
     }
     if (charId === 'lohen') {
@@ -18424,6 +18575,14 @@ class TienLenGame {
     };
 
     player.skillUsed = true;
+    player._skillForcedComboIds = null;
+    player._skillBoostedCardIds = null;
+    const savedHumanSelectedIds = new Set(this.selectedCardIds);
+    const savedHumanCompanionIds = new Set(this.companionCardIds);
+    if (player.id !== this.mySeatId) {
+      this.selectedCardIds.clear();
+      this.companionCardIds.clear();
+    }
 
     // Hiệu ứng sáng rực Ô Nhân Vật Đang Xài cạnh Name Tag của người vừa tung kỹ năng
     const visualSlot = (player.id - this.mySeatId + 4) % 4;
@@ -18996,56 +19155,70 @@ class TienLenGame {
       this.columbinaExtraTurnReady = true;
       skillSummary = `🕊️ [Khúc Ca Thiên Thần] ${player.name} ngân vang thánh ca: Sau khi đánh 1 bộ bài trong lượt này, Columbina được đánh bồi thêm 1 bộ nữa ngay lập tức!`;
     } else if (charId === 'vodyanitsa') {
-      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
-        const needLen = this.currentCombo.length;
+      const plan = this.findVodyanitsaMinimalBeatSpec(player.hand, this.currentCombo, player.id);
+      if (plan && plan.specs && plan.specs.length > 0) {
+        const specs = plan.specs;
+        const needLen = specs.length;
         const struct = this.analyzeBotHandStructure(player.hand);
-        const sorted = sortCardsAsc(player.hand);
-        const isolated = sorted.filter(
-          (c) => c.rankIndex <= 11 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
-        );
-        const nonBomb = sorted.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
-        const chosenTrash = [];
-        for (const c of [...isolated, ...nonBomb, ...sorted]) {
-          if (chosenTrash.length >= needLen) break;
-          if (!chosenTrash.some((x) => x.id === c.id)) {
-            chosenTrash.push(c);
+
+        // Giữ lại tối đa (needLen - 1) lá trên tay nếu đã trùng khớp sẵn với một phần bộ mục tiêu,
+        // và ĐỔI NGẪU NHIÊN các lá còn lại trên tay thành các mảnh ghép còn thiếu để VỪA ĐỦ chặt/đè đối thủ!
+        const keptCards = [];
+        const remainingSpecs = [];
+        const usedHandIds = new Set();
+
+        for (let i = 0; i < specs.length; i++) {
+          const sp = specs[i];
+          // Luôn để dành ít nhất 1 vị trí (lá chủ lực cuối cùng) để đổi ngẫu nhiên từ tay bài
+          if (keptCards.length < needLen - 1) {
+            const exactMatch = player.hand.find(
+              (c) => !usedHandIds.has(c.id) && c.rankIndex === sp.rankIndex && c.suitIndex === sp.suitIndex
+            );
+            if (exactMatch) {
+              keptCards.push(exactMatch);
+              usedHandIds.add(exactMatch.id);
+              continue;
+            }
           }
+          remainingSpecs.push(sp);
         }
-        const targetHighRank = Math.min(11, this.currentCombo.highRank + 1);
-        const oldCardsStr = chosenTrash.map((c) => `${c.rank}${c.suit}`).join(', ');
-        if (this.currentCombo.type === COMBO_TYPES.STRAIGHT && needLen >= 3) {
-          const topRank = Math.max(needLen - 1, targetHighRank);
-          const startRank = topRank - needLen + 1;
-          chosenTrash.forEach((c, idx) => {
-            const rIdx = startRank + idx;
-            const sIdx = idx === needLen - 1 ? 3 : idx % 3;
-            c.rankIndex = rIdx;
-            c.rank = RANKS[rIdx];
-            c.suitIndex = sIdx;
-            c.suit = SUITS[sIdx];
-            c.isRed = sIdx >= 2;
-            c.value = rIdx * 4 + sIdx;
-            c.id = `${c.rank}${c.suit}_vody_${Date.now()}_${idx}`;
-          });
-        } else {
-          const suitsOrder = [3, 2, 1, 0];
-          chosenTrash.forEach((c, idx) => {
-            const sIdx = suitsOrder[idx % 4];
-            c.rankIndex = targetHighRank;
-            c.rank = RANKS[targetHighRank];
-            c.suitIndex = sIdx;
-            c.suit = SUITS[sIdx];
-            c.isRed = sIdx >= 2;
-            c.value = targetHighRank * 4 + sIdx;
-            c.id = `${c.rank}${c.suit}_vody_${Date.now()}_${idx}`;
-          });
-        }
+
+        const availableHand = player.hand.filter((c) => !usedHandIds.has(c.id));
+        const nonBombPool = shuffleDeck(
+          availableHand.filter((c) => !struct.bombRanks.has(c.rankIndex) && !(this.mustPlay3Spade && c.value === 0))
+        );
+        const fallbackPool = shuffleDeck(
+          availableHand.filter((c) => !nonBombPool.some((nb) => nb.id === c.id))
+        );
+        const randomCandidates = [...nonBombPool, ...fallbackPool].slice(0, remainingSpecs.length);
+
+        const swappedOldLabels = [];
+        const swappedNewLabels = [];
+        randomCandidates.forEach((c, idx) => {
+          const sp = remainingSpecs[idx];
+          if (!sp) return;
+          swappedOldLabels.push(`${c.rank}${c.suit}`);
+          c.rankIndex = sp.rankIndex;
+          c.rank = RANKS[sp.rankIndex];
+          c.suitIndex = sp.suitIndex;
+          c.suit = SUITS[sp.suitIndex];
+          c.isRed = sp.suitIndex >= 2;
+          c.value = sp.rankIndex * 4 + sp.suitIndex;
+          c.id = `${c.rank}${c.suit}_vody_${Date.now()}_${idx}`;
+          swappedNewLabels.push(`${c.rank}${c.suit}`);
+        });
+
+        const finalComboCards = sortCardsAsc([...keptCards, ...randomCandidates]);
+        const finalIds = finalComboCards.map((c) => c.id);
         player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-        this.selectedCardIds = new Set(chosenTrash.map((c) => c.id));
-        this.companionCardIds.clear();
-        const mirroredCombo = classifyCombo(chosenTrash);
-        const newLabel = mirroredCombo ? mirroredCombo.label : chosenTrash.map((c) => `${c.rank}${c.suit}`).join(' ');
-        skillSummary = `🪞 [Gương Nước Phản Chiếu] ${player.name} biến (${oldCardsStr}) thành ${newLabel} (+1 bậc so với ${this.currentCombo.label} trên bàn) để đè ngay lập tức!`;
+        player._skillForcedComboIds = finalIds;
+        if (player.id === this.mySeatId) {
+          this.selectedCardIds = new Set(finalIds);
+          this.companionCardIds.clear();
+        }
+        const mirroredCombo = classifyCombo(finalComboCards);
+        const newLabel = mirroredCombo ? mirroredCombo.label : finalComboCards.map((c) => `${c.rank}${c.suit}`).join(' ');
+        skillSummary = `🌊 [Gương Nước Phản Chiếu] ${player.name} đổi ngẫu nhiên (${swappedOldLabels.join(', ')}) ➔ (${swappedNewLabels.join(', ')}) tạo thành ${newLabel} VỪA ĐỦ chặt/đè ${this.currentCombo.label} của đối thủ!`;
       }
     } else if (charId === 'lohen') {
       if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12 && prevTrickOwner) {
@@ -19923,6 +20096,41 @@ class TienLenGame {
       this.applyElementalReactionBonus(player, prevTrickOwner, rx);
     }
 
+    // Lưu lại các lá bài vừa được Kỹ Năng tạo ra / nâng cấp để Bot ưu tiên đánh ngay sau khi hết Hoạt Ảnh Nộ,
+    // đồng thời khôi phục nguyên vẹn lựa chọn bài trên tay của người chơi thật!
+    const createdBySkillIds = Array.from(this.selectedCardIds);
+    if (createdBySkillIds.length > 0) {
+      player._skillBoostedCardIds = createdBySkillIds;
+      const comboFromSkill = classifyCombo(player.hand.filter((c) => createdBySkillIds.includes(c.id)));
+      if (
+        comboFromSkill &&
+        (!this.currentCombo || canBeatCombo(comboFromSkill, this.currentCombo).ok) &&
+        [
+          'vodyanitsa',
+          'escoffier',
+          'linnea',
+          'nefer',
+          'sandrone',
+          'chasca',
+          'tartaglia',
+          'varka',
+          'xianyun',
+          'nilou',
+          'wriothesley',
+          'xiao',
+          'durin',
+          'albedo',
+          'mavuika',
+        ].includes(charId)
+      ) {
+        player._skillForcedComboIds = createdBySkillIds;
+      }
+    }
+    if (player.id !== this.mySeatId) {
+      this.selectedCardIds = savedHumanSelectedIds;
+      this.companionCardIds = savedHumanCompanionIds;
+    }
+
     this.lastBurstEffect = {
       id: Date.now(),
       type: charId,
@@ -19984,23 +20192,28 @@ class TienLenGame {
     let preferredIds = [];
 
     if (charId === 'raiden') {
-      // Cắt vòng khi trên bàn là Lẻ/Đôi <= J mà Bot không muốn/không thể đỡ (hoặc phải tốn Heo mới đỡ được), hoặc khi cần cướp cái gấp
+      // Cắt vòng khi trên bàn là Lẻ/Đôi <= J mà Bot không muốn/không thể đỡ (hoặc phải tốn Heo/xé bộ mới đỡ được), hoặc khi cần cướp cái mở vòng mới
       const wouldSpendTwo = plannedMove && plannedMove.highRank === 12;
+      const expensiveBreak = plannedMove && this.evaluateMoveBreakCost(plannedMove, struct) >= 70;
       if (
         this.currentCombo &&
         (this.currentCombo.type === COMBO_TYPES.SINGLE || this.currentCombo.type === COMBO_TYPES.PAIR) &&
         this.currentCombo.highRank <= 8 &&
         !this.currentCombo.isBomb &&
-        (!plannedMove || wouldSpendTwo || bot.hand.length <= 5 || minOppCards <= 4)
+        (!plannedMove || wouldSpendTwo || expensiveBreak || bot.hand.length <= 7 || minOppCards <= 6)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'eula') {
-      // Chế độ 1: Trên bàn có bộ bài thường (6..A) mà Bot không đỡ được bằng bài thường (sắp phải Bỏ lượt hoặc tốn Heo),
+      // Chế độ 1: Trên bàn có bộ bài thường (5..A) mà Bot không đỡ được (hoặc phải tốn bài lớn >= K / xé bộ),
       // nhưng sau khi Eula chém giảm 2 bậc thì Bot có bài thường đỡ được ngay!
-      if (this.currentCombo && this.currentCombo.highRank >= 3 && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
-        const hasGoodNormalMoveNow = plannedMove && plannedMove.highRank < 12 && !plannedMove.isBomb;
-        if (!hasGoodNormalMoveNow) {
+      if (this.currentCombo && this.currentCombo.highRank >= 2 && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
+        const hasCheapNormalNow =
+          plannedMove &&
+          plannedMove.highRank < 10 &&
+          !plannedMove.isBomb &&
+          this.evaluateMoveBreakCost(plannedMove, struct) < 75;
+        if (!hasCheapNormalNow) {
           const loweredRank = Math.max(0, this.currentCombo.highRank - 2);
           const fakeLowerCombo = {
             ...this.currentCombo,
@@ -20014,22 +20227,25 @@ class TienLenGame {
             shouldCast = true;
           }
         }
-      } else if (!this.currentCombo && plannedMove && !plannedMove.isBomb && plannedMove.highRank >= 5 && plannedMove.highRank <= 9) {
-        // Chế độ 2: Khi Bot mở vòng mới bằng bộ ghép (Đôi/Sám/Sảnh tầm trung 8..Q) và còn <= 8 lá -> Cường hóa +2 bậc thành 10..A khó đỡ!
+      } else if (!this.currentCombo && plannedMove && !plannedMove.isBomb && plannedMove.highRank >= 3 && plannedMove.highRank <= 9) {
+        // Chế độ 2: Khi Bot mở vòng mới bằng bộ bài tầm trung -> Cường hóa +2 bậc khó đỡ!
         if (
-          (plannedMove.type !== COMBO_TYPES.SINGLE && bot.hand.length <= 8) ||
-          (bot.hand.length <= 4 && minOppCards <= 5)
+          (plannedMove.type !== COMBO_TYPES.SINGLE && (bot.hand.length <= 9 || minOppCards <= 7)) ||
+          (bot.hand.length <= 6 || minOppCards <= 6)
         ) {
           shouldCast = true;
         }
       }
     } else if (charId === 'mavuika') {
-      // Rèn +1 bậc ♥ cho 1 lá (3..K) để đỡ bài trên bàn hoặc ghép lá lẻ cô lập thành Đôi/Sám Cô
+      // Rèn +1 bậc ♥ cho 1 lá (3..K) để đỡ bài trên bàn hoặc ghép lá lẻ cô lập thành Đôi/Sám Cô/Sảnh
       const forgeCandidates = sortCardsAsc(bot.hand).filter(
         (c) => c.rankIndex <= 10 && !struct.bombRanks.has(c.rankIndex)
       );
       let bestCard = null;
-      const needHelpToBeat = this.currentCombo && (!plannedMove || plannedMove.highRank === 12) && !this.currentCombo.isBomb;
+      const needHelpToBeat =
+        this.currentCombo &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 80) &&
+        !this.currentCombo.isBomb;
       if (needHelpToBeat) {
         bestCard = forgeCandidates.find((c) => {
           const newRank = Math.min(11, c.rankIndex + 1);
@@ -20046,7 +20262,7 @@ class TienLenGame {
           return false;
         });
       }
-      if (!bestCard && (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 7)) {
+      if (!bestCard && (!this.currentCombo || plannedMove) && (bot.hand.length <= 10 || minOppCards <= 8)) {
         // Ưu tiên rèn lá lẻ cô lập mà bậc kế tiếp đã có sẵn bài -> biến rác lẻ thành Đôi/Sám Cô!
         bestCard = forgeCandidates.find(
           (c) =>
@@ -20055,116 +20271,139 @@ class TienLenGame {
             rankCounts[c.rankIndex + 1] >= 1
         );
       }
-      if (!bestCard && (!this.currentCombo || plannedMove) && bot.hand.length <= 5) {
-        // Cuối ván: nâng lá K -> A♥ hoặc Q -> K♥ để làm chủ ván
-        bestCard = forgeCandidates.find((c) => c.rankIndex >= 9 && rankCounts[c.rankIndex] === 1);
+      if (!bestCard && (!this.currentCombo || plannedMove) && (bot.hand.length <= 7 || minOppCards <= 6)) {
+        // Giữa/cuối ván: nâng lá lẻ cao (10..K -> J♥..A♥) hoặc lá rác lẻ nhỏ nhất
+        bestCard =
+          forgeCandidates.find((c) => c.rankIndex >= 7 && rankCounts[c.rankIndex] === 1) ||
+          forgeCandidates.find((c) => rankCounts[c.rankIndex] === 1);
       }
       if (bestCard) {
         shouldCast = true;
         preferredIds = [bestCard.id];
       }
     } else if (charId === 'skirk') {
-      // Vì Skirk tráo ngẫu nhiên 1 lá trên tay với 1 đối thủ ngẫu nhiên:
-      // Chỉ dùng khi tay Bot KHÔNG giữ Hàng và KHÔNG giữ Heo (tránh bị mất Heo/Hàng oan), đồng thời bài đang xấu hoặc tắc đường!
       const hasTwos = rankCounts[12] > 0;
       const hasBombs = struct.bombRanks.size > 0;
       const lowCardsCount = bot.hand.filter((c) => c.rankIndex <= 6).length;
-      if (!hasTwos && !hasBombs && bot.hand.length >= 2) {
-        if ((!plannedMove && this.currentCombo) || lowCardsCount >= Math.ceil(bot.hand.length * 0.5)) {
+      if (!hasBombs && (!hasTwos || minOppCards <= 4) && bot.hand.length >= 2) {
+        if (
+          (!plannedMove && this.currentCombo) ||
+          lowCardsCount >= Math.ceil(bot.hand.length * 0.45) ||
+          minOppCards <= 5
+        ) {
           shouldCast = true;
         }
       }
     } else if (charId === 'furina') {
       // TH1: Đang bị chặn bởi bài < 2, thử bật đảo ngược chất (♠ > ♣ > ♦ > ♥) xem có tạo ra nước đè đồng số không!
-      if (this.currentCombo && !plannedMove && this.currentCombo.highRank < 12 && !this.currentCombo.isBomb) {
+      if (
+        this.currentCombo &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 75) &&
+        this.currentCombo.highRank < 12 &&
+        !this.currentCombo.isBomb
+      ) {
         const prevRev = activeFurinaReverseSuit;
         activeFurinaReverseSuit = true;
         const movesWithReverse = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false);
         const reverseChoice = this.chooseBotResponseMove(bot, movesWithReverse);
         activeFurinaReverseSuit = prevRev;
-        if (reverseChoice) {
+        if (reverseChoice && reverseChoice.highRank < 12) {
           shouldCast = true;
         }
       }
-      // TH2: Bot chuẩn bị đánh bài Lẻ cao (10..A) khi đối thủ còn ít bài -> Bật Furina để CẤM đối thủ đập Heo lẻ!
+      // TH2: Bot chuẩn bị đánh bài Lẻ khá-cao (8..A) -> Bật Furina để CẤM đối thủ đập Heo lẻ!
       if (
         !shouldCast &&
         plannedMove &&
         unpassedOpps.length >= 1 &&
         plannedMove.type === COMBO_TYPES.SINGLE &&
-        plannedMove.highRank >= 7 &&
+        plannedMove.highRank >= 5 &&
         plannedMove.highRank <= 11 &&
-        (minOppCards <= 7 || bot.hand.length <= 6)
+        (minOppCards <= 8 || bot.hand.length <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'yaemiko') {
-      // Chỉ bật Hồ Ly Dụ Hoặc khi Bot CHẮC CHẮN ĐÁNH BÀI (plannedMove !== null) và còn đối thủ trong vòng:
-      // Dùng khi đánh bài khá mạnh (9..A) hoặc khi có Hàng chờ chặt Heo, ép đối thủ không được Bỏ lượt giấu Heo!
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
-        plannedMove.highRank >= 6 &&
+        plannedMove.highRank >= 5 &&
         plannedMove.highRank <= 11 &&
-        (struct.bombRanks.size > 0 || minOppCards <= 7 || bot.hand.length <= 6)
+        (struct.bombRanks.size > 0 || minOppCards <= 8 || bot.hand.length <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'hutao') {
-      // Chỉ yểm Bùa Vãng Sinh khi Bot CHẮC CHẮN ĐÁNH ra một bộ bài vừa phải (<= Q) và còn ít nhất 2 đối thủ chưa bỏ lượt
-      // để các đối thủ đè nhau liên tục nhiều lượt -> thu tối đa tiền thuế!
+      // Yểm Bùa Vãng Sinh khi Bot CHẮC CHẮN ĐÁNH BÀI (hỗ trợ cả bàn Solo 1v1 lẫn bàn 3-4 người!)
+      const minRequiredUnpassed = Math.min(2, activeOpponents.length);
       if (
         plannedMove &&
-        unpassedOpps.length >= 2 &&
-        plannedMove.highRank <= 9 &&
+        unpassedOpps.length >= minRequiredUnpassed &&
+        plannedMove.highRank <= 10 &&
         !plannedMove.isBomb &&
         (bot.hand.length <= 10 || minOppCards <= 9)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'ayaka') {
-      // Chỉ đóng băng khi Bot CHẮC CHẮN ĐÁNH BÀI và cần khóa bớt đối thủ để giữ cái hoặc ngăn đối thủ ít bài về nhất
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
         plannedMove.highRank < 12 &&
-        (minOppCards <= 6 || bot.hand.length <= 6)
+        (minOppCards <= 8 || bot.hand.length <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'clorinde') {
-      // Chỉ mở Quyết Đấu 1v1 khi Bot CHẮC CHẮN ĐÁNH BÀI và trong vòng ĐANG CÓ TỪ 2 ĐỐI THỦ CHƯA BỎ LƯỢT TRỞ LÊN
-      // (nếu chỉ còn 1 đối thủ chưa bỏ lượt thì vốn dĩ đã là 1v1 rồi, không bao giờ tung phí skill!)
       if (
         plannedMove &&
-        unpassedOpps.length >= 2 &&
-        (bot.hand.length <= 7 || minOppCards <= 6 || plannedMove.highRank >= 7)
+        unpassedOpps.length >= Math.min(2, activeOpponents.length) &&
+        (bot.hand.length <= 8 || minOppCards <= 7 || plannedMove.highRank >= 6)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'yelan') {
-      // Chỉ thấu thị khi Bot CHẮC CHẮN ĐÁNH BÀI ở giai đoạn giữa/cuối ván (tránh tung xong rồi Bỏ lượt)
-      if (plannedMove && (minOppCards <= 6 || bot.hand.length <= 7)) {
+      // Sòng Bạc Dạ Lan: Nâng 1 lá lẻ thấp nhất +1 bậc ♥, thấu thị 2 lá đối thủ và khóa vòng cùng Chẵn/Lẻ
+      const lowCand =
+        sortCardsAsc(bot.hand).find(
+          (c) => c.rankIndex <= 10 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
+        ) || sortCardsAsc(bot.hand).find((c) => c.rankIndex <= 10);
+      const canUpgradeHelpBeat =
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        (!plannedMove || plannedMove.highRank === 12) &&
+        lowCand &&
+        (() => {
+          const newR = Math.min(11, lowCand.rankIndex + 1);
+          const newVal = newR * 4 + 3;
+          if (this.currentCombo.type === COMBO_TYPES.SINGLE) {
+            return newVal > this.currentCombo.highValue;
+          }
+          if (this.currentCombo.type === COMBO_TYPES.PAIR && rankCounts[newR] >= 1) {
+            return newVal > this.currentCombo.highValue;
+          }
+          return false;
+        })();
+      if (canUpgradeHelpBeat || (plannedMove && (minOppCards <= 8 || bot.hand.length <= 9))) {
         shouldCast = true;
       }
     } else if (charId === 'navia') {
-      // Khóa 3 lá bài của đối thủ ít bài nhất trong vòng khi Bot CHẮC CHẮN ĐÁNH BÀI (đặc biệt khi đối thủ còn <= 6 lá, khóa 3 lá là tê liệt tay bài!)
       const minUnpassedCards = unpassedOpps.length > 0 ? Math.min(...unpassedOpps.map((p) => p.hand.length)) : 99;
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
-        (minUnpassedCards <= 6 || (bot.hand.length <= 6 && plannedMove.highRank >= 6))
+        (minUnpassedCards <= 8 || (bot.hand.length <= 8 && plannedMove.highRank >= 5))
       ) {
         shouldCast = true;
       }
     } else if (charId === 'shenhe') {
-      // TH1: Trên bàn đang là Đôi/Sám/Sảnh mà Bot không đỡ được (hoặc phải tốn Đôi Heo) -> Phong ấn biến bộ trên bàn về 1 lá Lẻ nhỏ nhất để Bot đè!
       const wouldSpendTwoCombo = plannedMove && plannedMove.highRank === 12;
+      const expensiveCombo = plannedMove && this.evaluateMoveBreakCost(plannedMove, struct) >= 75;
       if (
         this.currentCombo &&
         !this.currentCombo.isBomb &&
         this.currentCombo.type !== COMBO_TYPES.SINGLE &&
-        (!plannedMove || wouldSpendTwoCombo)
+        (!plannedMove || wouldSpendTwoCombo || expensiveCombo)
       ) {
         const lowestOnTable = sortCardsAsc(this.currentCombo.cards)[0];
         const fakeSingle = classifyCombo([lowestOnTable]);
@@ -20172,13 +20411,12 @@ class TienLenGame {
           (m) =>
             !m.isBomb &&
             !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)) &&
-            (m.highRank < 12 || minOppCards <= 5)
+            (m.highRank < 12 || minOppCards <= 6)
         );
         if (singleMoves.length > 0) {
           shouldCast = true;
         }
       }
-      // TH2: Bot chuẩn bị đánh Bài Lẻ và muốn cấm đối thủ xả Đôi/Sám/Sảnh (khi đối thủ sắp về <= 5 lá hoặc tay Bot nhiều lá lẻ)
       const isolatedSingleCount = bot.hand.filter(
         (c) =>
           c.rankIndex < 12 &&
@@ -20191,18 +20429,15 @@ class TienLenGame {
         plannedMove &&
         plannedMove.type === COMBO_TYPES.SINGLE &&
         unpassedOpps.length >= 1 &&
-        (minOppCards <= 5 || (bot.hand.length <= 6 && isolatedSingleCount >= 2 && plannedMove.highRank >= 6))
+        (minOppCards <= 7 || (bot.hand.length <= 8 && isolatedSingleCount >= 2 && plannedMove.highRank >= 5))
       ) {
         shouldCast = true;
       }
     } else if (charId === 'ganyu') {
-      // Bật Sảnh Khuyết khi:
-      // 1) Đang bị Sảnh trên bàn chặn (hoặc phải xé bộ nặng mới đỡ được) mà bật Sảnh Khuyết có ngay Sảnh đè được!
-      // 2) Khi mở vòng mới và Sảnh Khuyết giúp nối các lá lẻ rời rạc thành Sảnh dài (hoặc đánh 1 phát hết bài) mà không làm gãy Hàng!
       const needHelpAgainstStraight =
         this.currentCombo &&
         this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
-        (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 90);
+        (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75);
       if (!this.currentCombo || needHelpAgainstStraight) {
         const prevGap = activeGanyuGapStraight;
         activeGanyuGapStraight = true;
@@ -20215,20 +20450,19 @@ class TienLenGame {
         } else if (
           !this.currentCombo &&
           gapMoves.some(
-            (m) => m.length === bot.hand.length || this.evaluateMoveBreakCost(m, struct) <= 45
+            (m) => m.length === bot.hand.length || this.evaluateMoveBreakCost(m, struct) <= 55
           )
         ) {
           shouldCast = true;
         }
       }
     } else if (charId === 'kokomi') {
-      // TH1: Đang bị chặn bởi bài cao (10..A) trên bàn mà Bot chỉ có bài nhỏ -> Bật Thủy Triều Đảo Ngược (3 > 4 > ... > A) để lấy bài nhỏ đè bài lớn!
       if (
         this.currentCombo &&
-        this.currentCombo.highRank >= 7 &&
+        this.currentCombo.highRank >= 6 &&
         this.currentCombo.highRank < 12 &&
         !this.currentCombo.isBomb &&
-        (!plannedMove || plannedMove.highRank === 12)
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 75)
       ) {
         const prevRevRank = activeKokomiReverseRank;
         activeKokomiReverseRank = true;
@@ -20243,21 +20477,19 @@ class TienLenGame {
           shouldCast = true;
         }
       }
-      // TH2: Mở vòng bằng bộ bài nhỏ (3..6) khi tay cầm nhiều bài nhỏ (3..6) ở giữa/cuối ván -> Biến toàn bộ bài nhỏ thành bài trùm!
-      const lowBossCards = bot.hand.filter((c) => c.rankIndex <= 3).length;
+      const lowBossCards = bot.hand.filter((c) => c.rankIndex <= 4).length;
       if (
         !shouldCast &&
         !this.currentCombo &&
         plannedMove &&
-        plannedMove.highRank <= 3 &&
+        plannedMove.highRank <= 4 &&
         !plannedMove.isBomb &&
         lowBossCards >= 2 &&
-        (bot.hand.length <= 9 || minOppCards <= 7)
+        (bot.hand.length <= 10 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'yoimiya') {
-      // TH1 (KẾT LIỄU VÁN BÀI NGAY LẬP TỨC): Nếu có nước đi >= 2 lá mà đánh xong chỉ còn đúng 1 lá lẻ trên tay -> Bật Yoimiya đốt luôn lá cuối để Về Nhất ngay!
       const instantBurnWinMove = validMoves.find(
         (m) => m.length >= 2 && bot.hand.length - m.length === 1
       );
@@ -20268,14 +20500,13 @@ class TienLenGame {
         plannedMove.length >= 2 &&
         !plannedMove.isBomb &&
         bot.hand.length > plannedMove.length &&
-        (bot.hand.length <= 10 || minOppCards <= 8)
+        (bot.hand.length <= 11 || minOppCards <= 9)
       ) {
-        // TH2: Chỉ bật khi ngoài bộ sắp đánh ra, trên tay thực sự có ít nhất 1 lá rác lẻ cô lập (<= J) để đốt mà không làm hỏng Đôi/Sảnh/Heo/Hàng!
         const plannedIds = new Set(plannedMove.cards.map((c) => c.id));
         const remCards = bot.hand.filter((c) => !plannedIds.has(c.id));
         const hasTrueTrashSingle = remCards.some(
           (c) =>
-            c.rankIndex <= 9 &&
+            c.rankIndex <= 10 &&
             struct.rankCounts[c.rankIndex] === 1 &&
             !struct.bombRanks.has(c.rankIndex) &&
             !struct.criticalStraightRanks.has(c.rankIndex)
@@ -20286,29 +20517,24 @@ class TienLenGame {
       }
     } else if (charId === 'xilonen') {
       if (activeOpponents.length >= 2) {
-        // Bàn 3-4 người (xào tung bài giữa các đối thủ): Chỉ tung khi đối thủ sắp về (<= 6 lá) để phá nát Đôi/Sảnh chờ về của đối phương!
-        if ((!this.currentCombo || plannedMove) && minOppCards <= 6) {
+        if ((!this.currentCombo || plannedMove) && (minOppCards <= 7 || bot.hand.length <= 8)) {
           shouldCast = true;
         }
       } else if (activeOpponents.length === 1) {
-        // Bàn Solo 1v1 (đổi 2 lá ngẫu nhiên của Xilonen lấy 2 lá ngẫu nhiên của đối thủ):
-        // Chỉ tung khi tay Xilonen không giữ Heo và không giữ Hàng (tránh mất oan Heo/Hàng), hoặc đối thủ sắp về (<= 5 lá) cần phá bộ đối phương!
         const hasTwos = rankCounts[12] > 0;
         const hasBombs = struct.bombRanks.size > 0;
         const lowCardsCount = bot.hand.filter((c) => c.rankIndex <= 6).length;
-        if (!hasBombs && (!hasTwos || minOppCards <= 4) && bot.hand.length >= 2) {
+        if (!hasBombs && (!hasTwos || minOppCards <= 5) && bot.hand.length >= 2) {
           if (
-            minOppCards <= 5 ||
+            minOppCards <= 6 ||
             (!plannedMove && this.currentCombo) ||
-            lowCardsCount >= Math.ceil(bot.hand.length * 0.5)
+            lowCardsCount >= Math.ceil(bot.hand.length * 0.45)
           ) {
             shouldCast = true;
           }
         }
       }
     } else if (charId === 'citlali') {
-      // Đảo chiều vòng đánh thông minh khi có >= 2 đối thủ:
-      // So sánh đối thủ kế tiếp theo chiều hiện tại (curNextOpp) với đối thủ kế tiếp nếu đảo chiều (revNextOpp)
       if (plannedMove && activeOpponents.length >= 2) {
         const findNextOppInDir = (stepDir) => {
           let idx = bot.id;
@@ -20326,18 +20552,19 @@ class TienLenGame {
         const revNextOpp = findNextOppInDir(-curDir);
         if (curNextOpp && revNextOpp && curNextOpp.id !== revNextOpp.id) {
           const skipDangerousNext =
-            curNextOpp.hand.length <= 4 && revNextOpp.hand.length > curNextOpp.hand.length;
+            curNextOpp.hand.length <= 5 && revNextOpp.hand.length > curNextOpp.hand.length;
           const exploitPassedNeighbor =
-            !curNextOpp.passed && revNextOpp.passed && (minOppCards <= 7 || bot.hand.length <= 7);
+            !curNextOpp.passed && revNextOpp.passed && (minOppCards <= 8 || bot.hand.length <= 8);
           const muchSaferReverse =
-            curNextOpp.hand.length <= 6 && revNextOpp.hand.length >= curNextOpp.hand.length + 2;
+            curNextOpp.hand.length <= 7 && revNextOpp.hand.length >= curNextOpp.hand.length + 2;
           if (skipDangerousNext || exploitPassedNeighbor || muchSaferReverse) {
             shouldCast = true;
           }
         }
+      } else if (plannedMove && activeOpponents.length === 1 && (minOppCards <= 6 || bot.hand.length <= 7)) {
+        shouldCast = true;
       }
     } else if (charId === 'mualani') {
-      // Khi trên bàn có Bài Lẻ hoặc Đôi: Bật Cá Mập Đè Khác Loại nếu có Đôi/Sám/Sảnh không chạm Hàng đè được
       if (
         this.currentCombo &&
         !this.currentCombo.isBomb &&
@@ -20356,27 +20583,26 @@ class TienLenGame {
         if (crossMoves.length > 0) {
           const canInstantWinCross = crossMoves.some((m) => m.length === bot.hand.length);
           const needCrossToBeat =
-            (!plannedMove || plannedMove.highRank === 12) &&
+            (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 75) &&
             crossMoves.some(
               (m) =>
-                this.evaluateMoveBreakCost(m, struct) <= 45 ||
-                bot.hand.length <= 6 ||
-                minOppCards <= 5
+                this.evaluateMoveBreakCost(m, struct) <= 55 ||
+                bot.hand.length <= 7 ||
+                minOppCards <= 6
             );
           const canDumpLongComboEndgame =
-            bot.hand.length <= 6 &&
-            crossMoves.some((m) => m.length >= 3 && this.evaluateMoveBreakCost(m, struct) === 0);
+            bot.hand.length <= 8 &&
+            crossMoves.some((m) => m.length >= 2 && this.evaluateMoveBreakCost(m, struct) === 0);
           if (canInstantWinCross || needCrossToBeat || canDumpLongComboEndgame) {
             shouldCast = true;
           }
         }
       }
     } else if (charId === 'varesa') {
-      // Khi trên bàn là Đôi/Sám/Sảnh (hoặc Lẻ cao) mà Bot không đỡ được (hoặc phải tốn Heo) -> Dậm vỡ thành 1 lá Lẻ thấp để Bot đè!
       if (
         this.currentCombo &&
         !this.currentCombo.isBomb &&
-        (!plannedMove || plannedMove.highRank === 12)
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 75)
       ) {
         let stompedCombo = null;
         if (this.currentCombo.length >= 2) {
@@ -20401,8 +20627,8 @@ class TienLenGame {
             movesAfterStomp.some(
               (m) =>
                 this.evaluateMoveBreakCost(m, struct) <= 95 ||
-                minOppCards <= 5 ||
-                bot.hand.length <= 6
+                minOppCards <= 6 ||
+                bot.hand.length <= 7
             )
           ) {
             shouldCast = true;
@@ -20416,12 +20642,10 @@ class TienLenGame {
         preferredIds = [pairRunSetup.trashCard.id];
       }
     } else if (charId === 'zibai') {
-      // Bạch Mã Nước Đại: Nhảy cóc bỏ qua đối thủ kế tiếp + nâng 1 lá bài
-      if (plannedMove && unpassedOpps.length >= 1 && (bot.hand.length <= 8 || minOppCards <= 7)) {
+      if (plannedMove && unpassedOpps.length >= 1 && (bot.hand.length <= 9 || minOppCards <= 8)) {
         shouldCast = true;
       }
     } else if (charId === 'linnea') {
-      // Ảo Thuật Ghép Đôi: Biến lá lẻ nhỏ nhất thành bản sao cùng số với 1 lá lẻ thường (<= A) trên tay để tạo thành Đôi
       const singleNormals = sortCardsAsc(bot.hand).filter(
         (c) =>
           c.rankIndex <= 11 &&
@@ -20441,29 +20665,34 @@ class TienLenGame {
             (c) => c.id !== lowest.id && c.rankIndex > this.currentCombo.highRank
           );
         }
-        if (!bestTarget && (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6)) {
+        if (!bestTarget && (!this.currentCombo || plannedMove) && (bot.hand.length <= 10 || minOppCards <= 8)) {
           bestTarget = [...singleNormals]
             .reverse()
             .find((c) => c.id !== lowest.id && !struct.criticalStraightRanks.has(c.rankIndex));
         }
-        if (bestTarget && lowest.rankIndex <= 8) {
+        if (bestTarget && lowest.rankIndex <= 9) {
           shouldCast = true;
           preferredIds = [bestTarget.id];
         }
       }
     } else if (charId === 'nefer') {
-      // Ảo Ảnh Sa Mạc: Nâng cấp 1 Đôi trên tay thành Sám Cô (hoặc tạo Đôi lớn)
       const hasPairAndTrash =
         bot.hand.length >= 3 &&
         struct.rankCounts.slice(0, 12).some((cnt) => cnt === 2) &&
-        bot.hand.some((c) => c.rankIndex <= 8 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex));
-      if (hasPairAndTrash && (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.TRIPLE && !plannedMove))) {
-        if (bot.hand.length <= 10 || minOppCards <= 7) {
+        bot.hand.some((c) => c.rankIndex <= 9 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex));
+      if (
+        hasPairAndTrash &&
+        (!this.currentCombo ||
+          plannedMove ||
+          (this.currentCombo.type === COMBO_TYPES.TRIPLE &&
+            !plannedMove &&
+            struct.rankCounts.slice(this.currentCombo.highRank + 1, 12).some((cnt) => cnt === 2)))
+      ) {
+        if (bot.hand.length <= 10 || minOppCards <= 8) {
           shouldCast = true;
         }
       }
     } else if (charId === 'sandrone') {
-      // Dây Cót Con Rối: Gom 3 lá lẻ cô lập thành Sảnh 3 lá liên tiếp
       const isolatedSingles = sortCardsAsc(bot.hand).filter(
         (c) =>
           c.rankIndex <= 11 &&
@@ -20481,68 +20710,66 @@ class TienLenGame {
         }
       }
     } else if (charId === 'lauma') {
-      // Nguyệt Quang Hồi Phục: Thu hồi lá lớn nhất trên bàn về tay (nếu bàn chỉ có 1 lá Lẻ thì xóa bàn và cướp cái luôn!)
       if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
         if (
-          (this.currentCombo.length === 1 && this.currentCombo.highRank >= 6 && (!plannedMove || plannedMove.highRank === 12 || minOppCards <= 6)) ||
-          (this.currentCombo.length >= 2 && this.currentCombo.highRank >= 7 && (!plannedMove || minOppCards <= 5))
+          (this.currentCombo.length === 1 && this.currentCombo.highRank >= 5 && (!plannedMove || plannedMove.highRank === 12 || minOppCards <= 7)) ||
+          (this.currentCombo.length >= 2 && this.currentCombo.highRank >= 6 && (plannedMove || minOppCards <= 5))
         ) {
           shouldCast = true;
         }
-      } else if (!this.currentCombo && bot.hand.length <= 8) {
+      } else if (!this.currentCombo && (bot.hand.length <= 9 || minOppCards <= 8)) {
         shouldCast = true;
       }
     } else if (charId === 'vesna') {
-      // Gió Xuân Đoạt Cái: Nâng 2 lá Đen thành Cơ +1 bậc VÀ nếu bộ kết vòng của đối thủ có lá Đỏ thì Vesna cướp Cái mở vòng mới!
       const tableHasRed =
         this.currentCombo &&
         Array.isArray(this.currentCombo.cards) &&
         this.currentCombo.cards.some((c) => c.suitIndex >= 2);
       if (
-        ((!this.currentCombo || plannedMove) && (bot.hand.length <= 8 || minOppCards <= 6)) ||
-        (tableHasRed && !plannedMove && (bot.hand.length <= 9 || minOppCards <= 7))
+        ((!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 8)) ||
+        (tableHasRed && !plannedMove && (bot.hand.length <= 10 || minOppCards <= 8))
       ) {
         shouldCast = true;
       }
     } else if (charId === 'columbina') {
-      // Khúc Ca Thiên Thần: Đánh 1 bộ rồi được đánh bồi thêm 1 bộ nữa ngay lập tức!
       if (bot.hand.length >= 2 && (!this.currentCombo || plannedMove)) {
         const firstMove = plannedMove || validMoves[0];
         if (firstMove) {
           const usedIds = new Set(firstMove.cards.map((c) => c.id));
           const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
           const canInstantWinOnExtraTurn = remHand.length > 0 && Boolean(classifyCombo(remHand));
-          if (canInstantWinOnExtraTurn || bot.hand.length <= 8 || minOppCards <= 6) {
+          if (canInstantWinOnExtraTurn || bot.hand.length <= 9 || minOppCards <= 7) {
             shouldCast = true;
           }
         }
       }
     } else if (charId === 'odette') {
-      // Khúc Ca Hồ Thiên Nga: Đếm ngược 2 nước đánh rồi hạ màn cướp Cái!
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
-        (bot.hand.length <= 8 || minOppCards <= 7)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'vodyanitsa') {
-      // Gương Nước Phản Chiếu: Biến N lá bài rác trên tay thành bộ bài cao hơn bộ trên bàn +1 bậc để đè ngay!
-      if (
-        this.currentCombo &&
-        !this.currentCombo.isBomb &&
-        this.currentCombo.highRank < 12 &&
-        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 85 || minOppCards <= 5)
-      ) {
-        const nonBombUnder2 = bot.hand.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
-        if (nonBombUnder2.length >= this.currentCombo.length) {
-          shouldCast = true;
+      // Gương Nước Phản Chiếu: Đổi ngẫu nhiên các lá bài trên tay thành bộ bài VỪA ĐỦ chặt/đè bộ bài trên bàn!
+      if (this.currentCombo) {
+        const plan = this.findVodyanitsaMinimalBeatSpec(bot.hand, this.currentCombo, bot.id);
+        if (plan) {
+          const isChoppingTwoOrBomb = this.currentCombo.highRank === 12 || this.currentCombo.isBomb;
+          const needHelp =
+            !plannedMove ||
+            plannedMove.highRank === 12 ||
+            this.evaluateMoveBreakCost(plannedMove, struct) >= 65 ||
+            minOppCards <= 6 ||
+            bot.hand.length <= 7;
+          if (isChoppingTwoOrBomb || needHelp) {
+            shouldCast = true;
+          }
         }
       }
     } else if (charId === 'lohen') {
-      // Khiên Phản Đòn Tây Phong: Phản ngược bộ bài trên bàn trả lại cho chính đối thủ vừa đánh, biến thành bài của Lohen!
-      // Chỉ phản đòn khi bộ trên bàn đủ mạnh (>= 9 hoặc Sám/Sảnh >= 3 lá, hoặc đối thủ sắp về <= 5 lá) và Bot không có nước đỡ rẻ!
       if (
         this.currentCombo &&
         !this.currentCombo.isBomb &&
@@ -20551,49 +20778,43 @@ class TienLenGame {
         this.trickOwnerId !== bot.id
       ) {
         const isStrongTablePlay =
-          this.currentCombo.highRank >= 6 ||
-          this.currentCombo.length >= 3 ||
-          minOppCards <= 5;
+          this.currentCombo.highRank >= 5 ||
+          this.currentCombo.length >= 2 ||
+          minOppCards <= 6;
         const needDefense =
           !plannedMove ||
           plannedMove.highRank === 12 ||
-          this.evaluateMoveBreakCost(plannedMove, struct) >= 80 ||
-          minOppCards <= 4;
+          this.evaluateMoveBreakCost(plannedMove, struct) >= 70 ||
+          minOppCards <= 5;
         if (isStrongTablePlay && needDefense) {
           shouldCast = true;
         }
       }
     } else if (charId === 'durin') {
-      // Trái Tim Rồng Đỏ: Biến 1 lá bài cao nhất (dưới 2) trên tay thành con Heo Cơ 2♥ (value 51 — lá bài mạnh nhất bàn)!
       const sortedDesc = [...sortCardsAsc(bot.hand)].reverse();
       const highCand =
         sortedDesc.find((c) => c.rankIndex < 12 && !struct.bombRanks.has(c.rankIndex)) ||
         sortedDesc.find((c) => c.rankIndex < 12);
       if (highCand) {
-        // TH1: Trên bàn đang đánh Lẻ (kể cả Heo 2♠/2♣/2♦ hoặc bài lớn J..A) mà Bot không đỡ được -> Hoá 2♥ đập chết ngay!
         const canCutSingleWith2Heart =
           this.currentCombo &&
           this.currentCombo.type === COMBO_TYPES.SINGLE &&
           this.currentCombo.highValue < 51 &&
-          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 85 || this.currentCombo.highRank >= 9);
-        // TH2: Trên bàn đang đánh Đôi lớn (J..2) mà Bot đang có sẵn 1 con Heo -> Hoá thêm 2♥ tạo Đôi Heo đè luôn!
+          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75 || this.currentCombo.highRank >= 8);
         const canFormPairOfTwos =
           this.currentCombo &&
           this.currentCombo.type === COMBO_TYPES.PAIR &&
           this.currentCombo.highValue < 51 &&
           rankCounts[12] >= 1 &&
-          (!plannedMove || this.currentCombo.highRank >= 9);
-        // TH3: Khi đang cầm cái hoặc chuẩn bị đánh ở giữa/cuối ván -> Hoá lá cao nhất dưới 2 thành 2♥ để nắm chắc quyền cướp cái!
+          (!plannedMove || this.currentCombo.highRank >= 8);
         const goodMidEndgameUpgrade =
-          (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6);
+          (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 7);
         if (canCutSingleWith2Heart || canFormPairOfTwos || goodMidEndgameUpgrade) {
           shouldCast = true;
           preferredIds = [highCand.id];
         }
       }
     } else if (charId === 'xiao') {
-      // Không Trung Đạp Kích: Chỉ dùng khi trên bàn ĐANG LÀ ĐÔI, SÁM CÔ HOẶC SẢNH (length >= 2)
-      // và Xiao thực sự có ít nhất 1 lá Lẻ (rankIndex >= currentCombo.highRank) ngoài Hàng để đâm thủng!
       if (
         this.currentCombo &&
         !this.currentCombo.isBomb &&
@@ -20606,7 +20827,7 @@ class TienLenGame {
           (m) =>
             m.isXiaoPlunge &&
             !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)) &&
-            (m.highRank < 12 || minOppCards <= 4 || bot.hand.length <= 2)
+            (m.highRank < 12 || minOppCards <= 5 || bot.hand.length <= 3)
         );
         activeXiaoPlungeSingle = prevXiao;
         if (plungeMoves.length > 0) {
@@ -20617,16 +20838,13 @@ class TienLenGame {
           const lacksCleanNormalResponse =
             !plannedMove ||
             plannedMove.highRank === 12 ||
-            this.evaluateMoveBreakCost(plannedMove, struct) >= 80;
-          if (canInstantWinPlunge || lacksCleanNormalResponse || (hasIsolatedPlungeCard && (bot.hand.length <= 8 || minOppCards <= 6))) {
+            this.evaluateMoveBreakCost(plannedMove, struct) >= 70;
+          if (canInstantWinPlunge || lacksCleanNormalResponse || (hasIsolatedPlungeCard && (bot.hand.length <= 9 || minOppCards <= 7))) {
             shouldCast = true;
           }
         }
       }
     } else if (charId === 'kinich') {
-      // Gài Bom Hẹn Giờ Ajaw: Chỉ đặt bom khi Kinich CHẮC CHẮN ĐÁNH BÀI trong lượt này,
-      // sau khi đánh vẫn còn >= 2 lá trên tay (để có lá rác nhét vào tay đối thủ nếu bom nổ),
-      // và nước sắp đánh không phải là 2♥ bất khả chiến bại!
       const moveLen = plannedMove ? plannedMove.length : 1;
       const isUnbeatableMove = plannedMove && (plannedMove.highValue === 51 || plannedMove.isBomb);
       if (
@@ -20634,25 +20852,21 @@ class TienLenGame {
         unpassedOpps.length >= 1 &&
         bot.hand.length - moveLen >= 2 &&
         !isUnbeatableMove &&
-        (bot.hand.length <= 10 || minOppCards <= 7)
+        (bot.hand.length <= 10 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'venti') {
-      // Hố Đen Phong Thần: Hút 1 lá lớn nhất (<= A) của mọi đối thủ và thổi trả lá rác nhỏ nhất của Venti!
-      // Chỉ tung khi trên tay Venti thực sự có lá rác nhỏ (<= 10) để tráo đi, hoặc khi đối thủ sắp về (<= 5 lá) cần tước quân chủ lực!
       const nonBombCards = sortCardsAsc(bot.hand).filter((c) => !struct.bombRanks.has(c.rankIndex));
       const lowestNonBomb = nonBombCards[0];
       if (
         lowestNonBomb &&
-        (lowestNonBomb.rankIndex <= 7 || (minOppCards <= 5 && lowestNonBomb.rankIndex <= 9)) &&
+        (lowestNonBomb.rankIndex <= 8 || (minOppCards <= 6 && lowestNonBomb.rankIndex <= 10)) &&
         (!this.currentCombo || plannedMove || (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank <= 11))
       ) {
         shouldCast = true;
       }
     } else if (charId === 'wanderer') {
-      // Cuồng Phong Đảo Mệnh: Gom toàn bộ bài trên bàn xáo trộn rồi chia lại!
-      // Tuyệt đối KHÔNG dùng nếu Wanderer sắp thắng hoặc đang giữ Hàng / nhiều Heo, TRỪ KHI đối thủ chỉ còn <= 2 lá sắp thắng!
       const canWinNow = plannedMove && plannedMove.length === bot.hand.length;
       const hasBombs = struct.bombRanks.size > 0;
       const twosCount = rankCounts[12];
@@ -20661,23 +20875,23 @@ class TienLenGame {
         const emergencyStopOpponent = minOppCards <= 3 && twosCount <= 1 && bot.hand.length >= minOppCards + 2;
         const terribleHandBailout =
           twosCount === 0 &&
-          lowCardsCount >= Math.ceil(bot.hand.length * 0.55) &&
-          ((!plannedMove && this.currentCombo) || minOppCards <= 6);
+          lowCardsCount >= Math.ceil(bot.hand.length * 0.5) &&
+          ((!plannedMove && this.currentCombo) || minOppCards <= 7);
         if (emergencyStopOpponent || terribleHandBailout) {
           shouldCast = true;
         }
       }
     } else if (charId === 'klee') {
-      if ((!this.currentCombo || plannedMove) && (minOppCards <= 7 || bot.hand.length <= 8)) {
+      if ((!this.currentCombo || plannedMove) && (minOppCards <= 8 || bot.hand.length <= 9)) {
         shouldCast = true;
       }
     } else if (charId === 'albedo') {
       const hasStrongGrave =
-        this.matchGraveyardCards && this.matchGraveyardCards.some((c) => c.rankIndex >= 10);
+        this.matchGraveyardCards && this.matchGraveyardCards.some((c) => c.rankIndex >= 9);
       if (
-        hasStrongGrave &&
+        (hasStrongGrave || !this.matchGraveyardCards || this.matchGraveyardCards.length === 0) &&
         (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.SINGLE && !plannedMove)) &&
-        (bot.hand.length <= 9 || minOppCards <= 7)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
@@ -20687,12 +20901,12 @@ class TienLenGame {
         this.currentCombo.type === COMBO_TYPES.SINGLE &&
         !this.currentCombo.isBomb &&
         bot.hand.length >= 2 &&
-        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 80)
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 70)
       ) {
         shouldCast = true;
       } else if (!this.currentCombo && bot.hand.length === 2 && bot.hand[0].rankIndex !== bot.hand[1].rankIndex) {
         shouldCast = true;
-      } else if (!this.currentCombo && bot.hand.length >= 3 && bot.hand.length <= 6) {
+      } else if (!this.currentCombo && bot.hand.length >= 3 && (bot.hand.length <= 8 || minOppCards <= 7)) {
         shouldCast = true;
       }
     } else if (charId === 'nicole') {
@@ -20704,29 +20918,29 @@ class TienLenGame {
         );
         activeNicoleSuitOnlyRound = prevNic;
         if (nicMoves.length > 0) shouldCast = true;
-      } else if (!this.currentCombo && plannedMove && plannedMove.highCard?.suitIndex === 3 && bot.hand.length <= 8) {
+      } else if ((!this.currentCombo || plannedMove) && plannedMove?.highCard?.suitIndex === 3 && (bot.hand.length <= 9 || minOppCards <= 8)) {
         shouldCast = true;
       }
     } else if (charId === 'zhongli') {
-      if ((!this.currentCombo || plannedMove) && unpassedOpps.length >= 1 && (minOppCards <= 7 || bot.hand.length <= 8)) {
+      if ((!this.currentCombo || plannedMove) && unpassedOpps.length >= 1 && (minOppCards <= 8 || bot.hand.length <= 9)) {
         shouldCast = true;
       }
     } else if (charId === 'baizhu') {
       if (
         plannedMove &&
-        (plannedMove.highRank === 12 || plannedMove.isBomb || bot.hand.length <= 7 || minOppCards <= 6)
+        (plannedMove.highRank === 12 || plannedMove.isBomb || bot.hand.length <= 8 || minOppCards <= 7)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'xianyun') {
       const needStepStraight =
         !this.currentCombo ||
-        (this.currentCombo.type === COMBO_TYPES.STRAIGHT && (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 80));
-      if (needStepStraight && bot.hand.length >= 3 && (bot.hand.length <= 9 || minOppCards <= 7)) {
+        (this.currentCombo.type === COMBO_TYPES.STRAIGHT && (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75));
+      if (needStepStraight && bot.hand.length >= 3 && (bot.hand.length <= 9 || minOppCards <= 8)) {
         shouldCast = true;
       }
     } else if (charId === 'kazuha') {
-      if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 8 || minOppCards <= 7)) {
+      if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 8)) {
         shouldCast = true;
       }
     } else if (charId === 'itto') {
@@ -20734,7 +20948,7 @@ class TienLenGame {
         plannedMove &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
-        (bot.hand.length <= 8 || minOppCards <= 7)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
@@ -20742,28 +20956,39 @@ class TienLenGame {
       if (
         plannedMove &&
         !plannedMove.isBomb &&
-        plannedMove.highRank >= 6 &&
+        plannedMove.highRank >= 5 &&
         plannedMove.highRank <= 11 &&
         bot.hand.length - plannedMove.length >= 1 &&
-        (bot.hand.length <= 9 || minOppCards <= 7)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'cyno') {
-      const oppHasTwoOrAce = activeOpponents.some((opp) => opp.hand.some((c) => c.rankIndex >= 11));
-      if (oppHasTwoOrAce && (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank <= 11))) {
+      // Thiết Quân Luật Mahamatra: Cấm đối thủ đánh J, Q, K, A, 2 (chỉ cho đánh 3..10) & hạ bài lớn trên bàn xuống 9!
+      const canDemoteAndBeat =
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank >= 8 &&
+        this.currentCombo.highRank <= 11 &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 70) &&
+        bot.hand.some((c) => c.rankIndex >= 5 && c.rankIndex <= 7);
+      const canLockOpponents =
+        (!this.currentCombo || plannedMove) &&
+        unpassedOpps.length >= 1 &&
+        (minOppCards <= 8 || bot.hand.length <= 9);
+      if (canDemoteAndBeat || canLockOpponents) {
         shouldCast = true;
       }
     } else if (charId === 'nilou') {
       const pairCount = struct.rankCounts.slice(0, 11).filter((cnt) => cnt === 2).length;
       if (
         (pairCount >= 1 && (!this.currentCombo || plannedMove || this.currentCombo.type === COMBO_TYPES.PAIR)) ||
-        (!this.currentCombo && bot.hand.length <= 7)
+        ((!this.currentCombo || this.currentCombo.type === COMBO_TYPES.PAIR) && (bot.hand.length <= 8 || minOppCards <= 7))
       ) {
         shouldCast = true;
       }
     } else if (charId === 'nahida') {
-      if ((!this.currentCombo || plannedMove) && (minOppCards <= 7 || bot.hand.length <= 8)) {
+      if ((!this.currentCombo || plannedMove) && (minOppCards <= 8 || bot.hand.length <= 9)) {
         shouldCast = true;
       }
     } else if (charId === 'alhaitham') {
@@ -20771,7 +20996,7 @@ class TienLenGame {
         plannedMove &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
-        (bot.hand.length <= 8 || minOppCards <= 7)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
@@ -20779,51 +21004,59 @@ class TienLenGame {
       if (
         bot.hand.length >= 2 &&
         (!this.currentCombo || plannedMove) &&
-        (bot.hand.length <= 8 || minOppCards <= 7)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'wriothesley') {
-      if (
-        (this.currentCombo &&
-          !this.currentCombo.isBomb &&
-          this.currentCombo.highRank < 12 &&
-          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 80)) ||
-        (!this.currentCombo && plannedMove && bot.hand.length - plannedMove.length >= 1 && (bot.hand.length <= 8 || minOppCards <= 7))
-      ) {
+      // Đấu Trường Ngục Tù: Cấm đối thủ đánh Lẻ (1 lá), đấm văng lá Lẻ (< 2) trên bàn để cướp Cái & rèn Đôi!
+      const canSmashSingleOnTable =
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.type === COMBO_TYPES.SINGLE &&
+        this.currentCombo.highRank < 12 &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 65 || bot.hand.length <= 8 || minOppCards <= 7);
+      const canForgePairToBeatTable =
+        this.currentCombo &&
+        this.currentCombo.type === COMBO_TYPES.PAIR &&
+        this.currentCombo.highRank < 11 &&
+        (!plannedMove || plannedMove.highRank === 12);
+      const canLockNoSingleRound =
+        (!this.currentCombo || (plannedMove && plannedMove.length >= 2)) &&
+        bot.hand.length >= 2 &&
+        (bot.hand.length <= 9 || minOppCards <= 8);
+      if (canSmashSingleOnTable || canForgePairToBeatTable || canLockNoSingleRound) {
         shouldCast = true;
       }
     } else if (charId === 'sigewinne') {
-      if (
-        (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank <= 11)) &&
-        (minOppCards <= 7 || bot.hand.length <= 8)
-      ) {
+      // Trạm Y Tế Meropide: Nâng +2 bậc cho 3 lá bài nhỏ & gắn viện phí 3x cược lên người thắng vòng!
+      if (minOppCards <= 9 || bot.hand.length <= 10) {
         shouldCast = true;
       }
     } else if (charId === 'emilie') {
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
-        plannedMove.highRank <= 8 &&
+        plannedMove.highRank <= 9 &&
         !plannedMove.isBomb &&
-        (bot.hand.length <= 9 || minOppCards <= 7)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'chasca') {
       if (
-        (!this.currentCombo && bot.hand.length >= 3 && bot.hand.length <= 9) ||
-        (this.currentCombo && this.currentCombo.type === COMBO_TYPES.STRAIGHT && !plannedMove)
+        (!this.currentCombo && bot.hand.length >= 3 && (bot.hand.length <= 10 || minOppCards <= 8)) ||
+        (this.currentCombo && this.currentCombo.type === COMBO_TYPES.STRAIGHT && (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75))
       ) {
         shouldCast = true;
       }
     } else if (charId === 'tartaglia') {
       if (
-        (!this.currentCombo && bot.hand.length >= 3 && bot.hand.length <= 8) ||
+        (!this.currentCombo && bot.hand.length >= 3 && (bot.hand.length <= 9 || minOppCards <= 8)) ||
         (this.currentCombo &&
           (this.currentCombo.type === COMBO_TYPES.TRIPLE ||
             (this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3)) &&
-          !plannedMove)
+          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75))
       ) {
         shouldCast = true;
       }
@@ -20832,8 +21065,8 @@ class TienLenGame {
         plannedMove &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
-        plannedMove.highRank >= 6 &&
-        (bot.hand.length <= 9 || minOppCards <= 7)
+        plannedMove.highRank >= 5 &&
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
@@ -20841,16 +21074,17 @@ class TienLenGame {
       if (
         (!this.currentCombo || plannedMove) &&
         unpassedOpps.length >= 1 &&
-        (bot.hand.length <= 8 || minOppCards <= 7)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'flins') {
+      const minRequiredUnpassed = Math.min(2, activeOpponents.length);
       if (
         plannedMove &&
-        unpassedOpps.length >= 2 &&
-        plannedMove.highRank >= 5 &&
-        (bot.hand.length <= 9 || minOppCards <= 7)
+        unpassedOpps.length >= minRequiredUnpassed &&
+        plannedMove.highRank >= 4 &&
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
@@ -24953,6 +25187,10 @@ class TienLenGame {
     this.ayatoCloneReady = false;
     this.arlecchinoBondOwnerId = null;
     this.flinsLanternOwnerId = null;
+    this.players.forEach((p) => {
+      p._skillForcedComboIds = null;
+      p._skillBoostedCardIds = null;
+    });
     this.renderRoundSkillStatusBar();
 
     let leaderId = this.trickOwnerId;
@@ -25001,7 +25239,43 @@ class TienLenGame {
       }
     }
 
+    // Nếu có bộ đánh 1 phát hết sạch bài trên tay luôn -> Đánh thắng ngay lập tức!
+    const isYoimiyaBurnInstant =
+      this.yoimiyaBurnTrashReady && this.getPlayerActiveCharId(bot) === 'yoimiya';
+    const instantWinMove = validMoves.find(
+      (m) =>
+        m.length === bot.hand.length ||
+        (isYoimiyaBurnInstant && m.length >= 2 && m.length === bot.hand.length - 1)
+    );
+    if (instantWinMove) {
+      bot._skillForcedComboIds = null;
+      bot._skillBoostedCardIds = null;
+      this.playCombo(bot, instantWinMove);
+      return;
+    }
+
+    // Nếu Bot vừa kích hoạt Kỹ Năng tạo / ghép ra một bộ bài hoàn chỉnh (Vodyanitsa, Escoffier, Linnea, Nefer, Sandrone, Chasca, Tartaglia, Varka, Xianyun, Xiao, Durin...)
+    // thì ngay sau khi hết Hoạt Ảnh Nộ, Bot tung ngay bộ bài vừa được rèn ra để chặt/đè bàn!
+    if (Array.isArray(bot._skillForcedComboIds) && bot._skillForcedComboIds.length > 0) {
+      const forcedSet = new Set(bot._skillForcedComboIds);
+      bot._skillForcedComboIds = null;
+      const forcedCards = bot.hand.filter((c) => forcedSet.has(c.id));
+      const forcedCombo = classifyCombo(forcedCards);
+      const isForcedLegal =
+        forcedCombo &&
+        (!onlyFourPairs || forcedCombo.type === COMBO_TYPES.FOUR_PAIRS) &&
+        (!this.mustPlay3Spade || forcedCombo.cards.some((c) => c.value === 0)) &&
+        (!this.currentCombo || canBeatCombo(forcedCombo, this.currentCombo).ok);
+      if (isForcedLegal) {
+        bot._skillBoostedCardIds = null;
+        this.playCombo(bot, forcedCombo);
+        return;
+      }
+    }
+
     if (validMoves.length === 0) {
+      bot._skillForcedComboIds = null;
+      bot._skillBoostedCardIds = null;
       if (this.currentCombo) {
         this.passTurn(bot);
       } else if (bot.hand.length > 0) {
@@ -25017,6 +25291,8 @@ class TienLenGame {
       try {
         chosen = this.chooseBotLeadMove(bot, validMoves);
       } catch (_) {}
+      bot._skillForcedComboIds = null;
+      bot._skillBoostedCardIds = null;
       if (!chosen) chosen = validMoves[0];
       this.playCombo(bot, chosen);
       return;
@@ -25026,6 +25302,8 @@ class TienLenGame {
     try {
       chosen = this.chooseBotResponseMove(bot, validMoves);
     } catch (_) {}
+    bot._skillForcedComboIds = null;
+    bot._skillBoostedCardIds = null;
     // Nếu đang trúng Hồ Ly Dụ Hoặc của Yae Miko thì bắt buộc phải đánh lá hợp lệ nhỏ nhất
     if (!chosen && this.yaeForcePlayRound && validMoves.length > 0) {
       chosen = validMoves[0];
@@ -25299,12 +25577,23 @@ class TienLenGame {
         score -= breakCost * breakWeight;
       }
 
-      // Ưu tiên tuyệt đối nước đi phát huy Kỹ Năng vừa bật trong lượt này (Ganyu Sảnh Khuyết / Yoimiya Pháo Hoa Thiêu Rác)
+      // Ưu tiên tuyệt đối nước đi phát huy Kỹ Năng vừa bật trong lượt này (Ganyu Sảnh Khuyết / Xianyun Sảnh Đằng Vân / Yoimiya Pháo Hoa Thiêu Rác / Bộ bài vừa nâng cấp)
       if (this.ganyuGapStraightTurn && move.isGapStraight && !touchesBomb) {
+        score += 340;
+      }
+      if (this.xianyunStepStraightTurn && move.isStepStraight && !touchesBomb) {
         score += 340;
       }
       if (isYoimiyaBurnActive && move.length >= 2 && !touchesBomb) {
         score += 190;
+      }
+      if (
+        !touchesBomb &&
+        Array.isArray(bot._skillBoostedCardIds) &&
+        bot._skillBoostedCardIds.length > 0 &&
+        move.cards.some((c) => bot._skillBoostedCardIds.includes(c.id))
+      ) {
+        score += 180 + move.length * 25;
       }
 
       // CHIẾN THUẬT ĐÁNH LẺ DỤ HEO KHI ĐANG ÔM TỨ QUÝ / ĐÔI THÔNG:
@@ -25468,10 +25757,16 @@ class TienLenGame {
       const holdTwoPenalty =
         isTwo && !sit.isLosingSoon && bot.hand.length > 4 ? 48 : 0;
 
-      // Ưu tiên mạnh các bộ bài kích hoạt đúng hiệu ứng Kỹ Năng vừa bật (Ganyu Sảnh Khuyết, Mualani Đè Khác Loại, Yoimiya Đốt Rác, Xiao Đạp Kích, Columbina Hiệp Phụ)
+      // Ưu tiên mạnh các bộ bài kích hoạt đúng hiệu ứng Kỹ Năng vừa bật (Ganyu Sảnh Khuyết, Xianyun Sảnh Đằng Vân, Mualani Đè Khác Loại, Yoimiya Đốt Rác, Xiao Đạp Kích, Varka Song Kiếm, Columbina Hiệp Phụ, hoặc các lá vừa được Kỹ Năng cường hóa)
       let skillSynergyBonus = 0;
       if (!touchesBomb) {
         if (this.ganyuGapStraightTurn && move.isGapStraight) {
+          skillSynergyBonus -= 340;
+        }
+        if (this.xianyunStepStraightTurn && move.isStepStraight) {
+          skillSynergyBonus -= 340;
+        }
+        if (this.varkaSumSlashTurn && move.isVarkaSumSlash) {
           skillSynergyBonus -= 340;
         }
         if (
@@ -25484,7 +25779,7 @@ class TienLenGame {
         }
         if (
           this.xiaoPlungeSingleTurn &&
-          move.isXiaoPlunge &&
+          move.type === COMBO_TYPES.SINGLE &&
           this.currentCombo &&
           this.currentCombo.length >= 2
         ) {
@@ -25501,6 +25796,13 @@ class TienLenGame {
         }
         if (isYoimiyaBurnActive && move.length >= 2) {
           skillSynergyBonus -= 190;
+        }
+        if (
+          Array.isArray(bot._skillBoostedCardIds) &&
+          bot._skillBoostedCardIds.length > 0 &&
+          move.cards.some((c) => bot._skillBoostedCardIds.includes(c.id))
+        ) {
+          skillSynergyBonus -= 260 + move.length * 25;
         }
       }
 

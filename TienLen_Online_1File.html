@@ -7959,6 +7959,10 @@ body.pseudo-fullscreen-mode {
             <span class="dock-icon">📖</span>
             <span class="dock-label">Luật Chơi</span>
           </button>
+          <button class="app-dock-btn dock-tutorial" id="btn-lobby-tutorial" onclick="window.tienLenGame.replayNewbieTutorialFromRules()" title="Mở Hướng Dẫn Tân Thủ cùng Nhà Lữ Hành Aether">
+            <span class="dock-icon"><img src="fanart/aether.png" alt="Aether" style="width:22px;height:22px;border-radius:50%;border:1.5px solid #fde047;object-fit:cover;display:block;" /></span>
+            <span class="dock-label">Hướng Dẫn</span>
+          </button>
           <button class="app-dock-btn" id="btn-lobby-fullscreen" onclick="window.tienLenGame.toggleFullscreen()" title="Bật / Tắt chế độ Toàn màn hình trên điện thoại &amp; máy tính">
             <span class="dock-icon">⛶</span>
             <span class="dock-label" id="lobby-fullscreen-label">Toàn Màn Hình</span>
@@ -8309,6 +8313,9 @@ body.pseudo-fullscreen-mode {
             </button>
             <button class="pause-tool-btn icon-btn" id="btn-rules">
               📖 Luật chơi
+            </button>
+            <button class="pause-tool-btn icon-btn" id="btn-pause-tutorial" onclick="window.tienLenGame.closePauseModal(); window.tienLenGame.replayNewbieTutorialFromRules();">
+              <img src="fanart/aether.png" alt="Aether" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #fde047;vertical-align:middle;margin-right:4px;object-fit:cover;" /> Hướng Dẫn (Aether)
             </button>
             <button class="pause-tool-btn account-top-btn" id="btn-top-account" onclick="window.tienLenGame.closePauseModal(); window.tienLenGame.openAccountModal();">
               🔐 <span id="top-account-label">Tạo TK (Lưu Dữ Liệu)</span>

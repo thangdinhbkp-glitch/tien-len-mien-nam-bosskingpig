@@ -1689,6 +1689,12 @@ class TienLenGame {
     this.endMatchDelayTimer = null;
     this.queuedNextMatchBots = null;
     this.mavuikaSelectingCard = false;
+    this.activeInventoryTab = 'bursts';
+    this.inventoryFilter = 'all';
+    this.turnTimeLimitSec = 15;
+    this.turnRemainingSec = 15;
+    this.turnTimerComboSig = '';
+    this.turnCountdownInterval = null;
 
     this.bindDOM();
     sfx.onTrackChanged = () => this.syncBGMButtonsUI();
@@ -3361,16 +3367,17 @@ class TienLenGame {
   }
 
   switchShopTab(tabName) {
+    if (['bursts', 'skins', 'avatars'].includes(tabName)) {
+      this.openInventoryModal(tabName);
+      return;
+    }
     this.activeShopTab = tabName;
-    const tabs = ['gacha', 'quests', 'bursts', 'skins', 'avatars', 'history'];
+    const tabs = ['gacha', 'quests', 'history'];
     tabs.forEach((t) => {
       document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tabName);
     });
     document.getElementById('shop-gacha-panel')?.classList.toggle('hidden', tabName !== 'gacha');
     document.getElementById('shop-quests-panel')?.classList.toggle('hidden', tabName !== 'quests');
-    document.getElementById('shop-bursts-grid')?.classList.toggle('hidden', tabName !== 'bursts');
-    document.getElementById('shop-skins-grid')?.classList.toggle('hidden', tabName !== 'skins');
-    document.getElementById('shop-avatars-grid')?.classList.toggle('hidden', tabName !== 'avatars');
     document.getElementById('shop-history-panel')?.classList.toggle('hidden', tabName !== 'history');
     sfx.click();
     this.renderShopModal();
@@ -3381,7 +3388,77 @@ class TienLenGame {
       this.selectedBannerBurstId = charId;
     }
     this.saveShopProfile();
+    document.getElementById('inventory-modal')?.classList.add('hidden');
+    document.getElementById('pause-modal')?.classList.add('hidden');
+    this.modalShop?.classList.remove('hidden');
     this.switchShopTab('gacha');
+  }
+
+  openInventoryModal(defaultTab = null) {
+    if (defaultTab && ['bursts', 'skins', 'avatars'].includes(defaultTab)) {
+      this.activeInventoryTab = defaultTab;
+    } else if (!['bursts', 'skins', 'avatars'].includes(this.activeInventoryTab)) {
+      this.activeInventoryTab = 'bursts';
+    }
+    document.getElementById('pause-modal')?.classList.add('hidden');
+    this.renderInventoryModal();
+    document.getElementById('inventory-modal')?.classList.remove('hidden');
+    sfx.click();
+  }
+
+  closeInventoryModal() {
+    document.getElementById('inventory-modal')?.classList.add('hidden');
+    sfx.click();
+  }
+
+  openGachaFromInventory() {
+    document.getElementById('inventory-modal')?.classList.add('hidden');
+    this.renderShopModal();
+    this.modalShop?.classList.remove('hidden');
+    this.switchShopTab('gacha');
+  }
+
+  switchInventoryTab(tabName) {
+    if (!['bursts', 'skins', 'avatars'].includes(tabName)) tabName = 'bursts';
+    this.activeInventoryTab = tabName;
+    ['bursts', 'skins', 'avatars'].forEach((t) => {
+      document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tabName);
+    });
+    document.getElementById('shop-bursts-grid')?.classList.toggle('hidden', tabName !== 'bursts');
+    document.getElementById('shop-skins-grid')?.classList.toggle('hidden', tabName !== 'skins');
+    document.getElementById('shop-avatars-grid')?.classList.toggle('hidden', tabName !== 'avatars');
+    sfx.click();
+    this.renderInventoryModal();
+  }
+
+  setInventoryFilter(filterVal = 'all') {
+    this.inventoryFilter = filterVal === 'owned' ? 'owned' : 'all';
+    document.getElementById('inv-filter-all')?.classList.toggle('active', this.inventoryFilter === 'all');
+    document.getElementById('inv-filter-owned')?.classList.toggle('active', this.inventoryFilter === 'owned');
+    sfx.click();
+    this.renderInventoryModal();
+  }
+
+  openPauseModal() {
+    this.renderShopModal();
+    this.renderInventoryModal();
+    this.renderDailyQuestsUI();
+    this.syncAccountButtonsUI();
+    this.updateMidMatchLockUI();
+    document.getElementById('pause-modal')?.classList.remove('hidden');
+    sfx.click();
+  }
+
+  closePauseModal() {
+    document.getElementById('pause-modal')?.classList.add('hidden');
+    sfx.click();
+    if (!this.isGameOver && !this.inInitialLobby) {
+      this.updateTurnTimerUI();
+      if (!this.isMultiplayer && this.players[this.currentTurn]?.isBot) {
+        clearTimeout(this.botTimer);
+        this.promptCurrentTurn();
+      }
+    }
   }
 
   rollSingleWish() {
@@ -3888,154 +3965,6 @@ class TienLenGame {
       `;
     }
 
-    // 2. RENDER TAB KHO ĐỒ 5★ NHÂN VẬT & KỸ NĂNG NỘ (CHỈ SỞ HỮU NỘ 5★ MỚI ĐƯỢC XÀI KỸ NĂNG NHÂN VẬT ĐÓ)
-    const burstsGrid = document.getElementById('shop-bursts-grid');
-    if (burstsGrid && activeTab === 'bursts') {
-      const currentCharId = this.getPlayerActiveCharId(me);
-      burstsGrid.innerHTML = GENSHIN_BURSTS.map((b) => {
-        const owned = this.unlockedBursts.has(b.id);
-        const isEquipped = owned && currentCharId === b.id;
-        const sk = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
-
-        let actionsHtml = '';
-        if (!owned) {
-          actionsHtml = `
-            <button class="shop-buy-btn buy-btn" onclick="window.tienLenGame.openGachaForCharacter('${b.id}')">
-              🌠 Chưa sở hữu Nộ 5★ ➔ Chọn Banner Cầu Nguyện
-            </button>
-          `;
-        } else {
-          actionsHtml = `
-            <div class="shop-burst-actions">
-              <button class="shop-buy-btn ${isEquipped ? 'equipped-btn' : 'equip-btn'}" style="width:100%;" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}')">
-                ${isEquipped ? '✅ Đang Xài (Kỹ Năng + Nộ Chặt Heo & Về Nhất)' : '⚡ Chọn Nhân Vật Này (Dùng Chung Kỹ Năng & Nộ)'}
-              </button>
-            </div>
-          `;
-        }
-
-        return `
-          <div class="shop-item-card ${isEquipped ? 'equipped' : ''}">
-            <div class="rarity-stars-badge rarity-5">⭐⭐⭐⭐⭐ NHÂN VẬT &amp; NỘ 5★ ${isEquipped ? '• ĐANG XÀI' : owned ? '• ĐÃ SỞ HỮU' : '• CHƯA SỞ HỮU'}</div>
-            <div class="shop-burst-preview-wrap">
-              <img src="${b.posterUrl}" alt="${b.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" referrerpolicy="no-referrer" />
-              <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem & Nghe Thử Video Nộ: ${b.name}!')">
-                🔊 Xem Video + Tiếng
-              </button>
-            </div>
-            <div class="shop-item-title">${b.name}</div>
-            <div class="shop-item-desc">${b.desc}</div>
-            <div style="font-size:11.5px;color:#fde68a;background:rgba(15,23,42,0.72);border:1px solid rgba(250,204,21,0.35);border-radius:8px;padding:6px 8px;margin-bottom:6px;line-height:1.35;">
-              <strong>${sk.icon} Kỹ Năng [Phím E]: ${sk.name}</strong> — ${sk.shortDesc}
-            </div>
-            ${actionsHtml}
-          </div>
-        `;
-      }).join('');
-    }
-
-    // 3. RENDER TAB KHO ĐỒ 4★ DECOR BÀI
-    const skinsGrid = document.getElementById('shop-skins-grid');
-    if (skinsGrid && activeTab === 'skins') {
-      skinsGrid.innerHTML = ANIME_CARD_SKINS.map((skin) => {
-        const owned = this.unlockedSkins.has(skin.id);
-        const equipped = this.equippedSkin === skin.id;
-
-        let btnClass = 'buy-btn';
-        let btnLabel = '🌠 Mở từ Sảnh Cầu Nguyện (4★)';
-        if (equipped) {
-          btnClass = 'equipped-btn';
-          btnLabel = '✨ Đang trang bị';
-        } else if (owned) {
-          btnClass = 'equip-btn';
-          btnLabel = '🃏 Trang bị ngay';
-        }
-
-        const crestHtml = skin.crest
-          ? `<span class="card-anime-crest">${skin.crest}</span>`
-          : '';
-        const bgArtHtml = skin.imgUrl
-          ? `<div class="card-anime-art" style="background-image:url('${skin.imgUrl}')"></div>`
-          : '';
-
-        return `
-          <div class="shop-item-card ${equipped ? 'equipped' : ''}">
-            <div class="rarity-stars-badge rarity-4">${skin.id === 'classic' ? '🃏 MẶC ĐỊNH' : `⭐⭐⭐⭐ DECOR BÀI 4 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}`}</div>
-            <div class="shop-card-preview-wrap">
-              <div class="playing-card red-card is-two skin-${skin.id}" style="width:68px;height:96px;cursor:default;">
-                ${bgArtHtml}
-                <div class="card-corner top-left">
-                  <span class="card-rank">2</span>
-                  <span class="card-suit-small">♥</span>
-                </div>
-                ${crestHtml}
-                <div class="card-center-art" style="font-size:1.7rem;">♥</div>
-                <div class="card-corner bottom-right">
-                  <span class="card-rank">2</span>
-                  <span class="card-suit-small">♥</span>
-                </div>
-              </div>
-              <div class="playing-card black-card skin-${skin.id}" style="width:68px;height:96px;cursor:default;">
-                ${bgArtHtml}
-                <div class="card-corner top-left">
-                  <span class="card-rank">A</span>
-                  <span class="card-suit-small">♠</span>
-                </div>
-                ${crestHtml}
-                <div class="card-center-art" style="font-size:1.7rem;">♠</div>
-                <div class="card-corner bottom-right">
-                  <span class="card-rank">A</span>
-                  <span class="card-suit-small">♠</span>
-                </div>
-              </div>
-            </div>
-            <div class="shop-item-title">${skin.name}</div>
-            <div class="shop-item-desc">${skin.desc}</div>
-            <button class="shop-buy-btn ${btnClass}" onclick="window.tienLenGame.buyOrEquipSkin('${skin.id}')">
-              ${btnLabel}
-            </button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // 4. RENDER TAB KHO ĐỒ 3★ AVATAR
-    const avatarsGrid = document.getElementById('shop-avatars-grid');
-    if (avatarsGrid && activeTab === 'avatars') {
-      avatarsGrid.innerHTML = ANIME_AVATARS.map((av) => {
-        const owned = this.unlockedAvatars.has(av.id);
-        const equipped = this.equippedAvatar === av.id;
-
-        let btnClass = 'buy-btn';
-        let btnLabel = '🌠 Mở từ Sảnh Cầu Nguyện (3★)';
-        if (equipped) {
-          btnClass = 'equipped-btn';
-          btnLabel = '✨ Đang dùng';
-        } else if (owned) {
-          btnClass = 'equip-btn';
-          btnLabel = '🎭 Chọn Avatar';
-        }
-
-        const previewHtml = av.imgUrl
-          ? `<img class="anime-avatar-img" src="${av.imgUrl}" alt="${av.name}" loading="lazy" referrerpolicy="no-referrer" />`
-          : `<span style="font-size:38px;">${av.emoji || '😎'}</span>`;
-
-        return `
-          <div class="shop-item-card ${equipped ? 'equipped' : ''}">
-            <div class="rarity-stars-badge rarity-3">${av.id === 'default_player' ? '😎 MẶC ĐỊNH' : `⭐⭐⭐ AVATAR 3 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}`}</div>
-            <div class="shop-avatar-preview-wrap">
-              ${previewHtml}
-            </div>
-            <div class="shop-item-title">${av.name}</div>
-            <div class="shop-item-desc">${av.desc}</div>
-            <button class="shop-buy-btn ${btnClass}" onclick="window.tienLenGame.buyOrEquipAvatar('${av.id}')">
-              ${btnLabel}
-            </button>
-          </div>
-        `;
-      }).join('');
-    }
-
     // 5. RENDER TAB TOÀN BỘ LỊCH SỬ CẦU NGUYỆN & BẢNG TỶ LỆ TĂNG DẦN THEO SỐ ROLL
     const historyPanel = document.getElementById('shop-history-panel');
     if (historyPanel && activeTab === 'history') {
@@ -4136,6 +4065,267 @@ class TienLenGame {
           <div class="gacha-history-list full-history-scroll">${historyItemsHtml}</div>
         </div>
       `;
+    }
+
+    this.renderInventoryModal();
+  }
+
+  renderInventoryModal() {
+    const me = this.getLocalPlayer();
+    const invBal = document.getElementById('inventory-balance');
+    if (invBal && me) {
+      invBal.textContent = me.coins.toLocaleString();
+    }
+    const pauseBal = document.getElementById('pause-balance-display');
+    if (pauseBal && me) {
+      pauseBal.textContent = me.coins.toLocaleString();
+    }
+    const lobbyAvatar = document.getElementById('lobby-avatar-preview');
+    if (lobbyAvatar) {
+      lobbyAvatar.innerHTML = getAvatarHtml(this.equippedAvatar || 'default_player');
+    }
+    const pauseInvSummary = document.getElementById('pause-inv-summary');
+    if (pauseInvSummary) {
+      pauseInvSummary.textContent = `5★ Nộ (${this.unlockedBursts.size}/${GENSHIN_BURSTS.length}) • 4★ Decor (${this.unlockedSkins.size}/${ANIME_CARD_SKINS.length}) • 3★ Avatar (${this.unlockedAvatars.size}/${ANIME_AVATARS.length})`;
+    }
+
+    const tabBurstsBtn = document.getElementById('tab-btn-bursts');
+    const tabSkinsBtn = document.getElementById('tab-btn-skins');
+    const tabAvatarsBtn = document.getElementById('tab-btn-avatars');
+    if (tabBurstsBtn) {
+      tabBurstsBtn.textContent = `⭐⭐⭐⭐⭐ Nhân Vật & Nộ 5★ (${this.unlockedBursts.size}/${GENSHIN_BURSTS.length})`;
+    }
+    if (tabSkinsBtn) {
+      tabSkinsBtn.textContent = `⭐⭐⭐⭐ Decor Bài 4★ (${this.unlockedSkins.size}/${ANIME_CARD_SKINS.length})`;
+    }
+    if (tabAvatarsBtn) {
+      tabAvatarsBtn.textContent = `⭐⭐⭐ Avatar 3★ (${this.unlockedAvatars.size}/${ANIME_AVATARS.length})`;
+    }
+
+    const activeInvTab = this.activeInventoryTab || 'bursts';
+    const onlyOwned = this.inventoryFilter === 'owned';
+
+    ['bursts', 'skins', 'avatars'].forEach((t) => {
+      document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === activeInvTab);
+    });
+    document.getElementById('shop-bursts-grid')?.classList.toggle('hidden', activeInvTab !== 'bursts');
+    document.getElementById('shop-skins-grid')?.classList.toggle('hidden', activeInvTab !== 'skins');
+    document.getElementById('shop-avatars-grid')?.classList.toggle('hidden', activeInvTab !== 'avatars');
+
+    // Render Thanh Tóm Tắt Trang Bị Hiện Tại (#inventory-equipped-bar)
+    const equippedBar = document.getElementById('inventory-equipped-bar');
+    if (equippedBar) {
+      const currentCharId = this.getPlayerActiveCharId(me);
+      const hasChar = currentCharId && currentCharId !== 'none' && CHARACTER_SKILLS[currentCharId];
+      const charSkill = hasChar ? CHARACTER_SKILLS[currentCharId] : null;
+      const skinMeta = getCardSkinMeta(this.equippedSkin || 'classic');
+      const avMeta = ANIME_AVATARS.find((a) => a.id === this.equippedAvatar) || ANIME_AVATARS[0];
+
+      equippedBar.innerHTML = `
+        <div class="inv-equip-slot ${activeInvTab === 'bursts' ? 'active-slot' : ''}" onclick="window.tienLenGame.switchInventoryTab('bursts')">
+          <div class="inv-equip-thumb">
+            ${
+              hasChar
+                ? `<img src="fanart/${currentCharId}.jpg" alt="${charSkill.charName}" />`
+                : `<span style="font-size:20px;">🔒</span>`
+            }
+          </div>
+          <div class="inv-equip-meta">
+            <span class="inv-equip-label">⭐⭐⭐⭐⭐ Nhân Vật &amp; Nộ 5★ Đang Xài</span>
+            <strong class="inv-equip-val">${hasChar ? `${charSkill.icon} ${charSkill.charName} (${charSkill.name})` : 'Chưa sở hữu Nộ 5★'}</strong>
+          </div>
+        </div>
+        <div class="inv-equip-slot ${activeInvTab === 'skins' ? 'active-slot' : ''}" onclick="window.tienLenGame.switchInventoryTab('skins')">
+          <div class="inv-equip-thumb">
+            ${
+              skinMeta.imgUrl
+                ? `<img src="${skinMeta.imgUrl}" alt="${skinMeta.name}" />`
+                : `<span style="font-size:20px;">🃏</span>`
+            }
+          </div>
+          <div class="inv-equip-meta">
+            <span class="inv-equip-label">⭐⭐⭐⭐ Decor Bài 4★ Đang Trang Bị</span>
+            <strong class="inv-equip-val">${skinMeta.name}</strong>
+          </div>
+        </div>
+        <div class="inv-equip-slot ${activeInvTab === 'avatars' ? 'active-slot' : ''}" onclick="window.tienLenGame.switchInventoryTab('avatars')">
+          <div class="inv-equip-thumb">
+            ${
+              avMeta.imgUrl
+                ? `<img src="${avMeta.imgUrl}" alt="${avMeta.name}" />`
+                : `<span style="font-size:20px;">${avMeta.emoji || '😎'}</span>`
+            }
+          </div>
+          <div class="inv-equip-meta">
+            <span class="inv-equip-label">⭐⭐⭐ Avatar 3★ Đang Dùng</span>
+            <strong class="inv-equip-val">${avMeta.name}</strong>
+          </div>
+        </div>
+      `;
+    }
+
+    // 1. RENDER TAB KHO ĐỒ 5★ NHÂN VẬT & KỸ NĂNG NỘ
+    const burstsGrid = document.getElementById('shop-bursts-grid');
+    if (burstsGrid && activeInvTab === 'bursts') {
+      const currentCharId = this.getPlayerActiveCharId(me);
+      const list = onlyOwned ? GENSHIN_BURSTS.filter((b) => this.unlockedBursts.has(b.id)) : GENSHIN_BURSTS;
+      if (list.length === 0) {
+        burstsGrid.innerHTML = `
+          <div class="inv-empty-notice" style="grid-column: 1 / -1;">
+            <div>🔒 Bạn chưa sở hữu Hoạt Ảnh Kỹ Năng Nộ 5★ nào trong Kho Đồ!</div>
+            <button class="primary-btn" onclick="window.tienLenGame.openGachaFromInventory()">🌠 Tới Sảnh Cầu Nguyện Mở Khóa 5★ Ngay</button>
+          </div>
+        `;
+      } else {
+        burstsGrid.innerHTML = list
+          .map((b) => {
+            const owned = this.unlockedBursts.has(b.id);
+            const isEquipped = owned && currentCharId === b.id;
+            const sk = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
+
+            let actionsHtml = '';
+            if (!owned) {
+              actionsHtml = `
+                <button class="shop-buy-btn buy-btn" onclick="window.tienLenGame.openGachaForCharacter('${b.id}')">
+                  🌠 Chưa sở hữu Nộ 5★ ➔ Chọn Banner Cầu Nguyện
+                </button>
+              `;
+            } else {
+              actionsHtml = `
+                <div class="shop-burst-actions">
+                  <button class="shop-buy-btn ${isEquipped ? 'equipped-btn' : 'equip-btn'}" style="width:100%;" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}')">
+                    ${isEquipped ? '✅ Đang Xài (Kỹ Năng + Nộ Chặt Heo & Về Nhất)' : '⚡ Trang Bị Nhân Vật Này (Kỹ Năng & Nộ)'}
+                  </button>
+                </div>
+              `;
+            }
+
+            return `
+              <div class="shop-item-card ${isEquipped ? 'equipped' : ''}">
+                <div class="rarity-stars-badge rarity-5">⭐⭐⭐⭐⭐ NHÂN VẬT &amp; NỘ 5★ ${isEquipped ? '• ĐANG XÀI' : owned ? '• ĐÃ SỞ HỮU' : '• CHƯA SỞ HỮU'}</div>
+                <div class="shop-burst-preview-wrap">
+                  <img src="${b.posterUrl}" alt="${b.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" referrerpolicy="no-referrer" />
+                  <button class="shop-burst-preview-btn" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem & Nghe Thử Video Nộ: ${b.name}!')">
+                    🔊 Xem Video + Tiếng
+                  </button>
+                </div>
+                <div class="shop-item-title">${b.name}</div>
+                <div class="shop-item-desc">${b.desc}</div>
+                <div style="font-size:11.5px;color:#fde68a;background:rgba(15,23,42,0.72);border:1px solid rgba(250,204,21,0.35);border-radius:8px;padding:6px 8px;margin-bottom:6px;line-height:1.35;">
+                  <strong>${sk.icon} Kỹ Năng [Phím E]: ${sk.name}</strong> — ${sk.shortDesc}
+                </div>
+                ${actionsHtml}
+              </div>
+            `;
+          })
+          .join('');
+      }
+    }
+
+    // 2. RENDER TAB KHO ĐỒ 4★ DECOR BÀI
+    const skinsGrid = document.getElementById('shop-skins-grid');
+    if (skinsGrid && activeInvTab === 'skins') {
+      const list = onlyOwned ? ANIME_CARD_SKINS.filter((s) => this.unlockedSkins.has(s.id)) : ANIME_CARD_SKINS;
+      skinsGrid.innerHTML = list
+        .map((skin) => {
+          const owned = this.unlockedSkins.has(skin.id);
+          const equipped = this.equippedSkin === skin.id;
+
+          let btnClass = 'buy-btn';
+          let btnLabel = '🌠 Mở từ Sảnh Cầu Nguyện (4★)';
+          if (equipped) {
+            btnClass = 'equipped-btn';
+            btnLabel = '✨ Đang trang bị';
+          } else if (owned) {
+            btnClass = 'equip-btn';
+            btnLabel = '🃏 Trang bị ngay';
+          }
+
+          const crestHtml = skin.crest ? `<span class="card-anime-crest">${skin.crest}</span>` : '';
+          const bgArtHtml = skin.imgUrl
+            ? `<div class="card-anime-art" style="background-image:url('${skin.imgUrl}')"></div>`
+            : '';
+
+          return `
+            <div class="shop-item-card ${equipped ? 'equipped' : ''}">
+              <div class="rarity-stars-badge rarity-4">${skin.id === 'classic' ? '🃏 MẶC ĐỊNH' : `⭐⭐⭐⭐ DECOR BÀI 4 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}`}</div>
+              <div class="shop-card-preview-wrap">
+                <div class="playing-card red-card is-two skin-${skin.id}" style="width:68px;height:96px;cursor:default;">
+                  ${bgArtHtml}
+                  <div class="card-corner top-left">
+                    <span class="card-rank">2</span>
+                    <span class="card-suit-small">♥</span>
+                  </div>
+                  ${crestHtml}
+                  <div class="card-center-art" style="font-size:1.7rem;">♥</div>
+                  <div class="card-corner bottom-right">
+                    <span class="card-rank">2</span>
+                    <span class="card-suit-small">♥</span>
+                  </div>
+                </div>
+                <div class="playing-card black-card skin-${skin.id}" style="width:68px;height:96px;cursor:default;">
+                  ${bgArtHtml}
+                  <div class="card-corner top-left">
+                    <span class="card-rank">A</span>
+                    <span class="card-suit-small">♠</span>
+                  </div>
+                  ${crestHtml}
+                  <div class="card-center-art" style="font-size:1.7rem;">♠</div>
+                  <div class="card-corner bottom-right">
+                    <span class="card-rank">A</span>
+                    <span class="card-suit-small">♠</span>
+                  </div>
+                </div>
+              </div>
+              <div class="shop-item-title">${skin.name}</div>
+              <div class="shop-item-desc">${skin.desc}</div>
+              <button class="shop-buy-btn ${btnClass}" onclick="window.tienLenGame.buyOrEquipSkin('${skin.id}')">
+                ${btnLabel}
+              </button>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    // 3. RENDER TAB KHO ĐỒ 3★ AVATAR
+    const avatarsGrid = document.getElementById('shop-avatars-grid');
+    if (avatarsGrid && activeInvTab === 'avatars') {
+      const list = onlyOwned ? ANIME_AVATARS.filter((a) => this.unlockedAvatars.has(a.id)) : ANIME_AVATARS;
+      avatarsGrid.innerHTML = list
+        .map((av) => {
+          const owned = this.unlockedAvatars.has(av.id);
+          const equipped = this.equippedAvatar === av.id;
+
+          let btnClass = 'buy-btn';
+          let btnLabel = '🌠 Mở từ Sảnh Cầu Nguyện (3★)';
+          if (equipped) {
+            btnClass = 'equipped-btn';
+            btnLabel = '✨ Đang dùng';
+          } else if (owned) {
+            btnClass = 'equip-btn';
+            btnLabel = '🎭 Chọn Avatar';
+          }
+
+          const previewHtml = av.imgUrl
+            ? `<img class="anime-avatar-img" src="${av.imgUrl}" alt="${av.name}" loading="lazy" referrerpolicy="no-referrer" />`
+            : `<span style="font-size:38px;">${av.emoji || '😎'}</span>`;
+
+          return `
+            <div class="shop-item-card ${equipped ? 'equipped' : ''}">
+              <div class="rarity-stars-badge rarity-3">${av.id === 'default_player' ? '😎 MẶC ĐỊNH' : `⭐⭐⭐ AVATAR 3 SAO ${owned ? '• ĐÃ SỞ HỮU' : '• GACHA'}`}</div>
+              <div class="shop-avatar-preview-wrap">
+                ${previewHtml}
+              </div>
+              <div class="shop-item-title">${av.name}</div>
+              <div class="shop-item-desc">${av.desc}</div>
+              <button class="shop-buy-btn ${btnClass}" onclick="window.tienLenGame.buyOrEquipAvatar('${av.id}')">
+                ${btnLabel}
+              </button>
+            </div>
+          `;
+        })
+        .join('');
     }
   }
 
@@ -4753,11 +4943,17 @@ class TienLenGame {
       sfx.click();
     });
 
-    document.getElementById('btn-top-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
+    document.getElementById('btn-top-watch-ad')?.addEventListener('click', () => {
+      document.getElementById('pause-modal')?.classList.add('hidden');
+      this.startRickRollAd();
+    });
     document.getElementById('btn-lobby-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
     document.getElementById('btn-shop-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
 
-    document.getElementById('btn-top-quests')?.addEventListener('click', () => this.openDailyQuestsModal());
+    document.getElementById('btn-top-quests')?.addEventListener('click', () => {
+      document.getElementById('pause-modal')?.classList.add('hidden');
+      this.openDailyQuestsModal();
+    });
     document.getElementById('btn-lobby-quests')?.addEventListener('click', () => this.openDailyQuestsModal());
     document.getElementById('btn-close-quests')?.addEventListener('click', () => {
       document.getElementById('quests-modal')?.classList.add('hidden');
@@ -4792,9 +4988,10 @@ class TienLenGame {
 
     if (this.btnShop && this.modalShop) {
       this.btnShop.addEventListener('click', () => {
+        document.getElementById('pause-modal')?.classList.add('hidden');
         this.renderShopModal();
         this.modalShop.classList.remove('hidden');
-        sfx.click();
+        this.switchShopTab('gacha');
       });
 
       document.getElementById('btn-close-shop')?.addEventListener('click', () => {
@@ -4809,15 +5006,22 @@ class TienLenGame {
 
       document.getElementById('tab-btn-gacha')?.addEventListener('click', () => this.switchShopTab('gacha'));
       document.getElementById('tab-btn-quests')?.addEventListener('click', () => this.switchShopTab('quests'));
-      document.getElementById('tab-btn-bursts')?.addEventListener('click', () => this.switchShopTab('bursts'));
-      document.getElementById('tab-btn-skins')?.addEventListener('click', () => this.switchShopTab('skins'));
-      document.getElementById('tab-btn-avatars')?.addEventListener('click', () => this.switchShopTab('avatars'));
       document.getElementById('tab-btn-history')?.addEventListener('click', () => this.switchShopTab('history'));
 
       document.getElementById('btn-claim-bonus')?.addEventListener('click', () => {
         this.claimFreeBonus();
       });
     }
+
+    // Kho Đồ Trang Bị Cá Nhân (#inventory-modal)
+    document.getElementById('tab-btn-bursts')?.addEventListener('click', () => this.switchInventoryTab('bursts'));
+    document.getElementById('tab-btn-skins')?.addEventListener('click', () => this.switchInventoryTab('skins'));
+    document.getElementById('tab-btn-avatars')?.addEventListener('click', () => this.switchInventoryTab('avatars'));
+    document.getElementById('btn-close-inventory')?.addEventListener('click', () => this.closeInventoryModal());
+    document.getElementById('btn-ok-inventory')?.addEventListener('click', () => this.closeInventoryModal());
+    document.getElementById('btn-close-pause')?.addEventListener('click', () => this.closePauseModal());
+    document.getElementById('btn-pause-resume')?.addEventListener('click', () => this.closePauseModal());
+    document.getElementById('btn-pause-game')?.addEventListener('click', () => this.openPauseModal());
 
     this.renderDailyQuestsUI();
 
@@ -4897,6 +5101,7 @@ class TienLenGame {
         alert('⛔ Đang trong trận đấu! Bạn phải đánh hết ván hiện tại mới được chia ván mới.');
         return;
       }
+      document.getElementById('pause-modal')?.classList.add('hidden');
       this.inInitialLobby = false;
       this.startNewMatch(false);
     });
@@ -4906,7 +5111,7 @@ class TienLenGame {
       if (this.roomId) {
         document.getElementById('share-link-input').value = this.getShareableRoomUrl(this.roomId);
       }
-      ['shop-modal', 'quests-modal', 'rules-modal', 'account-modal', 'char-skill-detail-modal', 'summary-modal'].forEach(
+      ['pause-modal', 'inventory-modal', 'shop-modal', 'quests-modal', 'rules-modal', 'account-modal', 'char-skill-detail-modal', 'summary-modal'].forEach(
         (id) => document.getElementById(id)?.classList.add('hidden')
       );
       this.modalWifi.classList.remove('hidden');
@@ -5076,6 +5281,7 @@ class TienLenGame {
     });
 
     this.btnRules.addEventListener('click', () => {
+      document.getElementById('pause-modal')?.classList.add('hidden');
       this.modalRules.classList.remove('hidden');
       sfx.click();
     });
@@ -5093,11 +5299,35 @@ class TienLenGame {
     });
 
     window.addEventListener('keydown', (e) => {
+      const pauseModal = document.getElementById('pause-modal');
+      const invModal = document.getElementById('inventory-modal');
+
+      if (e.code === 'Escape') {
+        if (pauseModal && !pauseModal.classList.contains('hidden')) {
+          this.closePauseModal();
+          return;
+        }
+        if (invModal && !invModal.classList.contains('hidden')) {
+          this.closeInventoryModal();
+          return;
+        }
+        if (this.selectedCardIds.size > 0 || this.mavuikaSelectingCard) {
+          this.clearSelection();
+          return;
+        }
+        if (this.modalWifi.classList.contains('hidden')) {
+          this.openPauseModal();
+          return;
+        }
+      }
+
       if (
         !this.modalSummary.classList.contains('hidden') ||
         !this.modalRules.classList.contains('hidden') ||
         !this.modalWifi.classList.contains('hidden') ||
-        (this.modalShop && !this.modalShop.classList.contains('hidden'))
+        (this.modalShop && !this.modalShop.classList.contains('hidden')) ||
+        (pauseModal && !pauseModal.classList.contains('hidden')) ||
+        (invModal && !invModal.classList.contains('hidden'))
       ) {
         return;
       }
@@ -5119,8 +5349,6 @@ class TienLenGame {
           e.preventDefault();
           this.onHumanUseSkill();
         }
-      } else if (e.code === 'Escape') {
-        this.clearSelection();
       }
     });
   }
@@ -7193,10 +7421,24 @@ class TienLenGame {
     this.renderRoundSkillStatusBar();
     this.renderLobbyModal();
     this.renderAll();
+    if (this.isGameOver) {
+      this.stopTurnCountdown();
+    } else {
+      this.startTurnCountdown(false);
+    }
   }
 
   renderLobbyModal() {
     this.renderBetTiers();
+    const me = this.getLocalPlayer();
+    const lobbyAvatar = document.getElementById('lobby-avatar-preview');
+    if (lobbyAvatar) {
+      lobbyAvatar.innerHTML = getAvatarHtml(this.equippedAvatar || 'default_player');
+    }
+    const lobbyBal = document.getElementById('lobby-balance-display');
+    if (lobbyBal && me) {
+      lobbyBal.textContent = me.coins.toLocaleString();
+    }
     const grid = document.getElementById('lobby-seats-grid');
     if (!grid) return;
 
@@ -7409,6 +7651,7 @@ class TienLenGame {
     this.eulaNextPlayBoost = false;
     this.mavuikaSelectingCard = false;
     this.yelanRevealedByPlayer = {};
+    this.turnTimerComboSig = '';
     this.isGameOver = false;
     this.updateArenaBackdropCharacters();
     this.renderRoundSkillStatusBar();
@@ -7475,6 +7718,7 @@ class TienLenGame {
 
   handleToiTrang(winnerId, reason) {
     this.isGameOver = true;
+    this.stopTurnCountdown();
     this.clearActiveMatchSnapshot();
     this.updateMidMatchLockUI();
     this.btnShowSummary.classList.remove('hidden');
@@ -7575,9 +7819,246 @@ class TienLenGame {
     return moves.length > 0;
   }
 
+  getTurnStateSignature() {
+    const comboKey = this.currentCombo
+      ? `${this.currentCombo.type}_${this.currentCombo.highValue}_${this.currentCombo.cards.map((c) => c.id).join(',')}`
+      : 'lead';
+    const curHandLen = this.players[this.currentTurn]?.hand?.length || 0;
+    return `${this.matchCount}:${this.currentTurn}:${this.trickOwnerId ?? 'none'}:${comboKey}:${curHandLen}`;
+  }
+
+  isTurnTimerPausedByModal() {
+    if (this.isBurstPlaying) return true;
+    const burstOv = document.getElementById('genshin-burst-overlay');
+    if (burstOv && !burstOv.classList.contains('hidden')) return true;
+    const adOv = document.getElementById('rickroll-ad-overlay');
+    if (adOv && !adOv.classList.contains('hidden')) return true;
+    if (!this.isMultiplayer) {
+      const modalIds = [
+        'wifi-modal',
+        'pause-modal',
+        'shop-modal',
+        'inventory-modal',
+        'quests-modal',
+        'rules-modal',
+        'account-modal',
+      ];
+      for (const id of modalIds) {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden')) return true;
+      }
+    }
+    return false;
+  }
+
+  stopTurnCountdown() {
+    if (this.turnCountdownInterval) {
+      clearInterval(this.turnCountdownInterval);
+      this.turnCountdownInterval = null;
+    }
+    document.getElementById('turn-timer-hud')?.classList.add('hidden');
+    document.getElementById('top-turn-timer-pill')?.classList.add('hidden');
+  }
+
+  updateTurnTimerUI() {
+    const hudEl = document.getElementById('turn-timer-hud');
+    const secEl = document.getElementById('turn-timer-sec');
+    const fillEl = document.getElementById('turn-timer-fill');
+    const topPillEl = document.getElementById('top-turn-timer-pill');
+    const topSecEl = document.getElementById('top-turn-timer-sec');
+
+    if (this.isGameOver || this.inInitialLobby) {
+      hudEl?.classList.add('hidden');
+      topPillEl?.classList.add('hidden');
+      return;
+    }
+
+    const limit = this.turnTimeLimitSec || 15;
+    const rem = Math.max(0, Math.min(limit, this.turnRemainingSec ?? limit));
+    const pct = Math.max(0, Math.min(100, Math.round((rem / limit) * 100)));
+    const isUrgent = rem <= 5;
+    const isMyTurn = this.currentTurn === this.mySeatId;
+
+    if (hudEl) {
+      hudEl.classList.remove('hidden');
+      hudEl.classList.toggle('urgent', isUrgent);
+      hudEl.classList.toggle('is-my-turn', isMyTurn);
+    }
+    if (secEl) {
+      secEl.textContent = `${rem}s`;
+    }
+    if (fillEl) {
+      fillEl.style.width = `${pct}%`;
+    }
+    if (topPillEl) {
+      topPillEl.classList.remove('hidden');
+      topPillEl.classList.toggle('urgent', isUrgent);
+      topPillEl.classList.toggle('is-my-turn', isMyTurn);
+    }
+    if (topSecEl) {
+      topSecEl.textContent = `${rem}s`;
+    }
+  }
+
+  startTurnCountdown(forceReset = false) {
+    if (this.isGameOver || this.inInitialLobby) {
+      this.stopTurnCountdown();
+      return;
+    }
+
+    const sig = this.getTurnStateSignature();
+    if (forceReset || sig !== this.turnTimerComboSig) {
+      this.turnTimerComboSig = sig;
+      this.turnRemainingSec = this.turnTimeLimitSec || 15;
+    }
+
+    this.updateTurnTimerUI();
+
+    if (this.turnCountdownInterval) {
+      clearInterval(this.turnCountdownInterval);
+    }
+
+    this.turnCountdownInterval = setInterval(() => {
+      if (this.isGameOver || this.inInitialLobby) {
+        this.stopTurnCountdown();
+        return;
+      }
+      if (this.isTurnTimerPausedByModal()) {
+        return;
+      }
+      this.turnRemainingSec = Math.max(0, (this.turnRemainingSec || 0) - 1);
+      if (this.turnRemainingSec > 0 && this.turnRemainingSec <= 5 && this.currentTurn === this.mySeatId) {
+        sfx.click();
+      }
+      this.updateTurnTimerUI();
+      if (this.turnRemainingSec <= 0) {
+        clearInterval(this.turnCountdownInterval);
+        this.turnCountdownInterval = null;
+        this.handleTurnTimeout();
+      }
+    }, 1000);
+  }
+
+  handleTurnTimeout() {
+    if (this.isGameOver || this.isBurstPlaying) return;
+    this.mavuikaSelectingCard = false;
+    const currentPlayer = this.players[this.currentTurn];
+    if (!currentPlayer || !currentPlayer.active) return;
+
+    if (this.currentTurn === this.mySeatId) {
+      this.autoPlayForHuman();
+    } else if (currentPlayer.isBot && (!this.isMultiplayer || this.isHost)) {
+      this.executeBotTurn(currentPlayer);
+    } else if (this.isMultiplayer && this.isHost && !currentPlayer.isBot) {
+      // Nếu khách trong phòng Multiplayer treo máy quá 15s (cộng 1s trễ mạng), Chủ phòng tự động đánh thay để bàn không bị kẹt
+      setTimeout(() => {
+        if (!this.isGameOver && this.currentTurn === currentPlayer.id) {
+          this.autoPlayForSeatOnHost(currentPlayer);
+        }
+      }, 900);
+    }
+  }
+
+  autoPlayForSeatOnHost(seatPlayer) {
+    if (this.isGameOver || !seatPlayer || !seatPlayer.active || this.currentTurn !== seatPlayer.id) return;
+    const onlyFourPairs = seatPlayer.passed && this.canPlayerCutWithFourPairs(seatPlayer);
+    const validMoves = getValidMoves(seatPlayer.hand, this.currentCombo, this.mustPlay3Spade, onlyFourPairs);
+    if (validMoves.length > 0) {
+      let chosen = null;
+      try {
+        chosen = !this.currentCombo
+          ? this.chooseBotLeadMove(seatPlayer, validMoves)
+          : this.chooseBotResponseMove(seatPlayer, validMoves) || validMoves[0];
+      } catch (_) {}
+      if (!chosen) chosen = validMoves[0];
+      this.addLog(
+        `⏰ <strong>[Hết 15s]</strong> Hệ thống tự động đánh <strong>${chosen.label}</strong> cho <strong>${seatPlayer.name}</strong>!`,
+        'log-play'
+      );
+      this.playCombo(seatPlayer, chosen);
+    } else if (this.currentCombo) {
+      this.addLog(`⏰ <strong>[Hết 15s]</strong> Tự động bỏ lượt cho <strong>${seatPlayer.name}</strong>.`, 'log-pass');
+      this.passTurn(seatPlayer);
+    } else if (seatPlayer.hand.length > 0) {
+      const fallback = classifyCombo([seatPlayer.hand[0]]);
+      if (fallback) this.playCombo(seatPlayer, fallback);
+    }
+  }
+
+  autoPlayForHuman() {
+    if (this.isGameOver || this.isBurstPlaying || this.currentTurn !== this.mySeatId) return;
+    const human = this.getLocalPlayer();
+    if (!human || !human.active || human.hand.length === 0) return;
+
+    // 1. Nếu người chơi đang chọn sẵn 1 bộ bài hợp lệ trên tay thì tự động đánh bộ đang chọn đó ngay!
+    const selectedCards = this.getSelectedCards();
+    const selCombo = classifyCombo(selectedCards);
+    const onlyFourPairs = human.passed && this.canPlayerCutWithFourPairs(human);
+    if (
+      selCombo &&
+      (!onlyFourPairs || selCombo.type === COMBO_TYPES.FOUR_PAIRS) &&
+      canBeatCombo(selCombo, this.currentCombo).ok
+    ) {
+      this.showComboBanner(`⏰ HẾT 15 GIÂY! TỰ ĐỘNG ĐÁNH: ${selCombo.label.toUpperCase()}`);
+      this.addLog(
+        `⏰ <strong>[Hết 15s suy nghĩ]</strong> Tự động đánh bộ bài đang chọn: <strong>${selCombo.label}</strong>!`,
+        'log-play'
+      );
+      this.onHumanPlay();
+      return;
+    }
+
+    // 2. Tìm toàn bộ nước đi hợp lệ trên tay
+    const validMoves = getValidMoves(human.hand, this.currentCombo, this.mustPlay3Spade, onlyFourPairs);
+    if (validMoves.length > 0) {
+      let chosenMove = null;
+      try {
+        if (!this.currentCombo) {
+          chosenMove = this.chooseBotLeadMove(human, validMoves);
+        } else {
+          chosenMove = this.chooseBotResponseMove(human, validMoves) || validMoves[0];
+        }
+      } catch (_) {}
+      if (!chosenMove) {
+        validMoves.sort((a, b) => a.length - b.length || a.highValue - b.highValue);
+        chosenMove = validMoves[0];
+      }
+
+      this.selectedCardIds = new Set(chosenMove.cards.map((c) => c.id));
+      this.companionCardIds.clear();
+      this.showComboBanner(`⏰ HẾT 15 GIÂY! TỰ ĐỘNG ĐÁNH: ${chosenMove.label.toUpperCase()}`);
+      this.addLog(
+        `⏰ <strong>[Hết 15s suy nghĩ]</strong> Hệ thống tự động chọn &amp; đánh <strong>${chosenMove.label}</strong>!`,
+        'log-play'
+      );
+      this.onHumanPlay();
+      return;
+    }
+
+    // 3. Nếu đang đỡ bài và không có bộ nào chặn được (hoặc từ chối chặt 4 đôi thông) -> Tự động Bỏ lượt
+    if (this.currentCombo) {
+      this.showComboBanner('⏰ HẾT 15 GIÂY! TỰ ĐỘNG BỎ LƯỢT');
+      this.addLog(
+        '⏰ <strong>[Hết 15s suy nghĩ]</strong> Không có bộ bài chặn được ➔ Tự động <strong>Bỏ lượt</strong>.',
+        'log-pass'
+      );
+      this.onHumanPass();
+      return;
+    }
+
+    // 4. Phòng hộ khi mở vòng mới: đánh lá nhỏ nhất trên tay
+    const fallbackSingle = classifyCombo([human.hand[0]]);
+    if (fallbackSingle) {
+      this.selectedCardIds = new Set(fallbackSingle.cards.map((c) => c.id));
+      this.companionCardIds.clear();
+      this.onHumanPlay();
+    }
+  }
+
   promptCurrentTurn() {
     clearTimeout(this.botTimer);
     if (this.isGameOver) {
+      this.stopTurnCountdown();
       this.clearActiveMatchSnapshot();
       this.updateMidMatchLockUI();
       return;
@@ -7592,6 +8073,7 @@ class TienLenGame {
     this.saveActiveMatchSnapshot();
     this.updateMidMatchLockUI();
     this.renderAll();
+    this.startTurnCountdown(false);
 
     if (this.isMultiplayer && !this.isHost) {
       return;
@@ -7603,8 +8085,8 @@ class TienLenGame {
 
     if (currentPlayer.isBot) {
       this.elTurnBanner.textContent = `⏳ Đang đợi ${currentPlayer.name} suy nghĩ...`;
-      if (!this.isMultiplayer && this.modalWifi && !this.modalWifi.classList.contains('hidden')) {
-        // Nếu Sảnh Chờ đang mở thì tự động kiểm tra lại sau 450ms để ngay khi đóng Sảnh Chờ là Bot đánh liền!
+      if (!this.isMultiplayer && this.isTurnTimerPausedByModal()) {
+        // Nếu Sảnh Chờ hoặc Menu Tạm Dừng đang mở thì tự động kiểm tra lại sau 450ms để ngay khi đóng là Bot đánh liền!
         this.botTimer = setTimeout(() => this.promptCurrentTurn(), 450);
         return;
       }
@@ -7616,15 +8098,15 @@ class TienLenGame {
       }, this.botDelay);
     } else if (currentPlayer.id === this.mySeatId) {
       if (!this.currentCombo) {
-        this.elTurnBanner.textContent = '👉 Lượt của bạn mở vòng mới! Bạn được đánh bộ bất kỳ.';
+        this.elTurnBanner.textContent = '👉 Lượt của bạn mở vòng mới! Bạn được đánh bộ bất kỳ (15s).';
       } else if (currentPlayer.passed && this.canPlayerCutWithFourPairs(currentPlayer)) {
-        this.elTurnBanner.textContent = '🔥 Bạn có 4 ĐÔI THÔNG! Có thể chặt không cần vòng hoặc Bỏ qua.';
+        this.elTurnBanner.textContent = '🔥 Bạn có 4 ĐÔI THÔNG! Có thể chặt không cần vòng hoặc Bỏ qua (15s).';
       } else {
-        this.elTurnBanner.textContent = `👉 Lượt của bạn! Đánh chặn ${this.currentCombo.label} hoặc Bỏ lượt.`;
+        this.elTurnBanner.textContent = `👉 Lượt của bạn! Đánh chặn ${this.currentCombo.label} hoặc Bỏ lượt (15s).`;
       }
       this.updateHumanActionButtons();
     } else {
-      this.elTurnBanner.textContent = `⏳ Đang tới lượt của ${currentPlayer.name}...`;
+      this.elTurnBanner.textContent = `⏳ Đang tới lượt của ${currentPlayer.name} (15s)...`;
     }
   }
 
@@ -7836,6 +8318,7 @@ class TienLenGame {
     this.currentTurn = player.id;
     this.mustPlay3Spade = false;
     this.hintIndex = 0;
+    this.turnTimerComboSig = '';
     player.passed = false;
     this.players.forEach((p) => {
       p.declinedFourPairsCut = false;
@@ -7899,6 +8382,7 @@ class TienLenGame {
       player.declinedFourPairsCut = true;
     }
     player.passed = true;
+    this.turnTimerComboSig = '';
     this.addLog(`<em>${player.name} bỏ lượt.</em>`, 'log-pass');
     this.advanceTurn();
     if (this.isMultiplayer && this.isHost) {
@@ -7999,6 +8483,7 @@ class TienLenGame {
 
     this.trickOwnerId = null;
     this.currentTurn = leaderId;
+    this.turnTimerComboSig = '';
     this.promptCurrentTurn();
   }
 
@@ -8841,6 +9326,7 @@ class TienLenGame {
   // ============================================================================
   endMatch(winnerId, wonBy3Spade = false) {
     this.isGameOver = true;
+    this.stopTurnCountdown();
     this.clearActiveMatchSnapshot();
     this.updateMidMatchLockUI();
     this.btnShowSummary.classList.remove('hidden');

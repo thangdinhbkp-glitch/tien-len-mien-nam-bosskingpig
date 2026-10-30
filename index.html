@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=38" />
+  <link rel="stylesheet" href="styles.css?v=39" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -27,50 +27,14 @@
         <div class="rule-badge" id="first-turn-badge" title="Quy định lượt đầu">
           ♠️ Ván đầu: Ai có 3♠ đi trước
         </div>
-        <button class="wifi-btn" id="btn-wifi" title="Mở Màn Hình Chờ để chọn Chế Độ (Đấu Bot / Đấu Người) & Mức Cược">
-          🏠 Sảnh Chờ (<span id="wifi-status-label">Chọn Chế Độ / Cược</span>)
-        </button>
-        <button class="account-top-btn" id="btn-top-account" onclick="window.tienLenGame.openAccountModal()" title="Tài Khoản & Mật Khẩu — Tạo tài khoản giữ nguyên 100% dữ liệu đang chơi">
-          🔐 <span id="top-account-label">Tạo TK (Lưu Dữ Liệu)</span>
-        </button>
-        <button class="clear-log-btn hidden" id="btn-top-logout" onclick="window.tienLenGame.logoutAccount()" title="Đăng xuất khỏi tài khoản hiện tại (Dữ liệu đã được lưu an toàn trên Đám Mây)" style="padding:6px 10px;font-weight:800;border-radius:999px;">
-          🚪 Đăng Xuất
-        </button>
-        <button class="shop-btn" id="btn-shop" title="Cầu Nguyện (Gacha Genshin Impact) mở khóa Kỹ Năng Nộ 5★, Decor Bài 4★ & Avatar 3★">
-          🌠 Cầu Nguyện (Gacha)
-        </button>
-        <button class="quest-top-btn" id="btn-top-quests" title="Hệ thống Nhiệm Vụ Hàng Ngày (4 Nhiệm Vụ • Mỗi nhiệm vụ nhận 2.5 Roll = +4,000 Xu)">
-          🧭 Nhiệm Vụ (<span id="top-quest-badge">0/4</span>)
-        </button>
-        <button class="ad-reward-btn" id="btn-top-watch-ad" title="Xem Video Quảng Cáo Rick Roll (15 giây) để nhận ngay 1 Roll (+1,600 Xu)!">
-          📺 Xem QC (+1 Roll)
-        </button>
-        <button class="icon-btn anime-theme-btn" id="btn-arena-theme" title="Đổi Chủ Đề Sân Đấu Anime (Inazuma / Fontaine / Vực Sâu / Natlan / Băng Tuyết)">
-          🌸 Sân: <span id="arena-theme-label">Inazuma ⚡</span>
-        </button>
-        <button class="icon-btn anime-theme-btn" id="btn-top-random-bots" title="Random ngẫu nhiên nhân vật Bot từ 10 nhân vật 5★ có Hoạt Ảnh Kỹ Năng Nộ riêng">
-          🎲 Đổi Nhân Vật Bot (5★)
-        </button>
-        <button class="icon-btn anime-theme-btn" id="btn-bgm" title="Nhạc nền Genshin Impact tự động đổi bài (Auto 🔄) — Bấm để chuyển bài tiếp theo hoặc Tắt Nhạc Nền">
-          🎵 Nhạc: <span id="bgm-label">Auto 🔄: Inazuma 🌸</span>
-        </button>
+        <div class="top-turn-timer-pill" id="top-turn-timer-pill" title="Giới hạn 15 giây mỗi lượt — Quá 15s hệ thống sẽ tự động đánh bài!">
+          ⏱️ <span id="top-turn-timer-sec">15s</span>
+        </div>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
         </button>
-        <button class="icon-btn" id="btn-speed" title="Đổi tốc độ Bot">
-          ⚡ Tốc độ: <span id="speed-label">Chuẩn</span>
-        </button>
-        <button class="icon-btn" id="btn-fullscreen" title="Phóng to toàn màn hình (ẩn thanh địa chỉ trên điện thoại)">
-          ⛶ Toàn màn hình
-        </button>
-        <button class="icon-btn" id="btn-sound" title="Bật/Tắt âm thanh">
-          🔊 Âm thanh
-        </button>
-        <button class="icon-btn" id="btn-rules" title="Xem luật chơi">
-          📖 Luật chơi
-        </button>
-        <button class="primary-btn btn-sm" id="btn-new-game">
-          🔄 Ván mới
+        <button class="pause-game-btn" id="btn-pause-game" onclick="window.tienLenGame.openPauseModal()" title="Tạm dừng ván đấu & Mở Menu (Về Sảnh Chờ, Kho Đồ, Cầu Nguyện, Cài Đặt — Phím ESC)">
+          ⏸️ Tạm Dừng
         </button>
       </div>
     </header>
@@ -175,8 +139,19 @@
 
           <!-- CENTER PLAY AREA -->
           <div class="center-stage">
-            <div class="turn-banner" id="turn-banner">
-              Nhấn "Ván mới" để bắt đầu ván đấu!
+            <div class="turn-banner-row">
+              <div class="turn-banner" id="turn-banner">
+                Nhấn "Ván mới" để bắt đầu ván đấu!
+              </div>
+              <div class="turn-timer-hud" id="turn-timer-hud" title="Giới hạn 15 giây mỗi lượt — Không đánh hệ thống sẽ tự động đánh!">
+                <div class="turn-timer-head">
+                  <span class="turn-timer-clock">⏱️</span>
+                  <span class="turn-timer-seconds" id="turn-timer-sec">15s</span>
+                </div>
+                <div class="turn-timer-track">
+                  <div class="turn-timer-fill" id="turn-timer-fill" style="width: 100%;"></div>
+                </div>
+              </div>
             </div>
 
             <div class="round-skill-status-bar hidden" id="round-skill-status-bar"></div>
@@ -297,133 +272,87 @@
       </aside>
     </main>
 
-    <!-- MÀN HÌNH CHỜ CHÍNH (CHỌN 2 CHẾ ĐỘ: 1. ĐẤU VỚI BOT / 2. ĐẤU VỚI NGƯỜI + CHỌN MỨC CƯỢC) -->
+    <!-- MÀN HÌNH CHỜ GAME APP (2 NÚT LỚN NHẤT Ở GIỮA: CHƠI VỚI BOT & CHƠI VỚI NGƯỜI + THANH DOCK BÊN DƯỚI) -->
     <div class="modal-backdrop home-lobby-backdrop" id="wifi-modal">
-      <div class="modal-card wifi-card home-lobby-card">
-        <div class="modal-header home-lobby-header">
-          <div class="lobby-brand-title">
-            <h2>🃏 SẢNH CHỜ TIẾN LÊN MIỀN NAM • GENSHIN EDITION</h2>
-            <p>Chọn Chế Độ Chơi (1. Đấu Với Bot • 2. Đấu Với Người) và Chọn Mức Cược để vào bàn!</p>
-          </div>
-          <div class="lobby-profile-bar">
+      <div class="modal-card wifi-card home-lobby-card app-lobby-screen">
+        <!-- THANH TRÊN CÙNG (APP TOP HUD: HỒ SƠ NGƯỜI CHƠI + XU + CHỦ ĐỀ BÀN) -->
+        <div class="modal-header home-lobby-header app-lobby-topbar">
+          <div class="app-player-capsule">
+            <div class="app-player-avatar-btn" id="lobby-avatar-preview" onclick="window.tienLenGame.openInventoryModal('avatars')" title="Bấm để mở Kho Đồ đổi Avatar &amp; Trang Bị">
+              😎
+            </div>
+            <div class="app-player-name-wrap">
+              <label for="input-player-name">👤 Tên nhân vật:</label>
+              <input type="text" id="input-player-name" value="Nhà Lữ Hành" maxlength="18" placeholder="Nhập tên của bạn..." />
+            </div>
             <div class="lobby-coin-pill" title="Số dư Xu hiện tại của bạn">
               🪙 <strong id="lobby-balance-display">20,000</strong> Xu
             </div>
-            <button class="account-top-btn" id="btn-lobby-account" onclick="window.tienLenGame.openAccountModal()" title="Tạo Tài Khoản / Đăng Nhập bằng Mật Khẩu (Giữ nguyên 100% dữ liệu đang chơi)">
-              🔐 <span id="lobby-account-label">Tạo TK (Giữ Dữ Liệu)</span>
+          </div>
+
+          <div class="lobby-brand-title app-center-brand">
+            <h2>🃏 TIẾN LÊN MIỀN NAM • GENSHIN IMPACT</h2>
+            <p>Nhất Ăn Tất • Đếm Lá • Thời Gian Lượt 15 Giây</p>
+          </div>
+
+          <div class="app-topbar-right">
+            <div class="arena-theme-pills" id="lobby-arena-theme-pills" title="Chọn Sân Đấu Anime">
+              <button class="arena-pill active" data-theme="inazuma" onclick="window.tienLenGame.selectArenaTheme('inazuma')">⚡ Inazuma</button>
+              <button class="arena-pill" data-theme="fontaine" onclick="window.tienLenGame.selectArenaTheme('fontaine')">💧 Fontaine</button>
+              <button class="arena-pill" data-theme="abyss" onclick="window.tienLenGame.selectArenaTheme('abyss')">🌌 Vực Sâu</button>
+              <button class="arena-pill" data-theme="natlan" onclick="window.tienLenGame.selectArenaTheme('natlan')">🔥 Natlan</button>
+              <button class="arena-pill" data-theme="cryo" onclick="window.tienLenGame.selectArenaTheme('cryo')">❄️ Băng Hoa</button>
+            </div>
+            <button class="close-modal-btn app-return-match-btn" id="btn-close-wifi" title="Đóng Sảnh Chờ để vào bàn đang đánh">
+              ▶️ Vào Bàn
             </button>
-            <button class="clear-log-btn hidden" id="btn-lobby-logout" onclick="window.tienLenGame.logoutAccount()" title="Đăng xuất khỏi tài khoản hiện tại (Dữ liệu đã được lưu an toàn trên Đám Mây)" style="padding:6px 12px;font-weight:800;border-radius:999px;">
-              🚪 Đăng Xuất
-            </button>
-            <button class="shop-btn" id="btn-lobby-open-shop" title="Mở Sảnh Cầu Nguyện Gacha Genshin Impact & Kho Đồ">
-              🌠 Cầu Nguyện (Gacha)
-            </button>
-            <button class="quest-top-btn" id="btn-lobby-quests" title="Hệ thống Nhiệm Vụ Hàng Ngày (4 Nhiệm Vụ • Mỗi nhiệm vụ nhận 2.5 Roll = +4,000 Xu)">
-              🧭 Nhiệm Vụ (<span id="lobby-quest-badge">0/4</span>)
-            </button>
-            <button class="ad-reward-btn" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay 1 Roll (+1,600 Xu)!">
-              📺 Xem QC (+1 Roll)
-            </button>
-            <button class="icon-btn anime-theme-btn" id="btn-lobby-bgm" title="Nhạc nền Genshin Impact tự động đổi bài (Auto 🔄) — Bấm để chuyển bài tiếp theo hoặc Tắt Nhạc Nền">
-              🎵 Nhạc: <span id="lobby-bgm-label">Auto 🔄: Inazuma 🌸</span>
-            </button>
-            <button class="icon-btn" id="btn-lobby-open-rules" title="Xem luật chơi">
-              📖 Luật
-            </button>
-            <button class="close-modal-btn" id="btn-close-wifi" title="Đóng Sảnh Chờ để quay lại bàn đang đánh">✕</button>
           </div>
         </div>
 
-        <div class="modal-body wifi-body home-lobby-body">
-          <!-- ANIME HERO BANNER & CHỌN CHỦ ĐỀ BÀN ĐẤU ANIME -->
-          <div class="lobby-anime-showcase" id="lobby-anime-showcase">
-            <div class="lobby-anime-art-strip">
-              <img src="fanart/raiden.jpg" alt="Raiden Shogun" class="lobby-strip-img" />
-              <img src="fanart/furina.jpg" alt="Furina" class="lobby-strip-img" />
-              <img src="fanart/mavuika.jpg" alt="Mavuika" class="lobby-strip-img" />
-              <img src="fanart/skirk.jpg" alt="Skirk" class="lobby-strip-img" />
-              <img src="fanart/columbina.jpg" alt="Columbina" class="lobby-strip-img" />
-              <img src="fanart/hutao.jpg" alt="Hu Tao" class="lobby-strip-img" />
-              <img src="fanart/navia.jpg" alt="Navia" class="lobby-strip-img" />
-            </div>
-            <div class="lobby-anime-overlay">
-              <div class="lobby-anime-badge">🌸 SẢNH ĐẤU ANIME TEYVAT • 29 NHÂN VẬT FANART</div>
-              <div class="lobby-anime-theme-bar">
-                <span class="theme-bar-label">🎨 Chọn Bàn Đấu Anime:</span>
-                <div class="arena-theme-pills" id="lobby-arena-theme-pills">
-                  <button class="arena-pill active" data-theme="inazuma" onclick="window.tienLenGame.selectArenaTheme('inazuma')">⚡ Inazuma</button>
-                  <button class="arena-pill" data-theme="fontaine" onclick="window.tienLenGame.selectArenaTheme('fontaine')">💧 Fontaine</button>
-                  <button class="arena-pill" data-theme="abyss" onclick="window.tienLenGame.selectArenaTheme('abyss')">🌌 Vực Sâu</button>
-                  <button class="arena-pill" data-theme="natlan" onclick="window.tienLenGame.selectArenaTheme('natlan')">🔥 Natlan</button>
-                  <button class="arena-pill" data-theme="cryo" onclick="window.tienLenGame.selectArenaTheme('cryo')">❄️ Băng Hoa</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div class="modal-body wifi-body home-lobby-body app-lobby-main">
           <!-- THÔNG BÁO TẠO TÀI KHOẢN GIỮ NGUYÊN DỮ LIỆU CHO NGƯỜI CHƠI CHƯA TẠO TÀI KHOẢN -->
           <div class="account-guest-banner" id="lobby-account-guest-banner">
             <div class="account-guest-banner-text">
-              🛡️ <strong>Bạn đang chơi mà chưa tạo Tài Khoản!</strong> Tạo Tài Khoản &amp; Mật Khẩu ngay để bảo vệ tiến độ — <strong>Toàn bộ Xu, Nhân Vật 5★, Skin Bài, Avatar &amp; Pity đang chơi được GIỮ NGUYÊN 100%!</strong>
+              🛡️ <strong>Bạn chưa đăng nhập Tài Khoản!</strong> Tạo Tài Khoản ngay để lưu Đám Mây — <strong>Giữ nguyên 100% Xu, Nhân Vật 5★, Skin Bài, Avatar &amp; Pity đang chơi!</strong>
             </div>
             <button class="account-banner-cta" onclick="window.tienLenGame.openAccountModal('register')">
               🔐 Tạo Tài Khoản Ngay
             </button>
           </div>
 
-          <!-- Hàng 1: Nhập Tên & Chọn 1 trong 2 Chế Độ -->
-          <div class="lobby-top-row">
-            <div class="lobby-name-box">
-              <label>👤 Tên hiển thị của bạn trên bàn:</label>
-              <input type="text" id="input-player-name" value="Nhà Lữ Hành" maxlength="18" placeholder="Nhập tên của bạn..." />
+          <!-- TÂM ĐIỂM GIỮA MÀN HÌNH: 2 NÚT CHẾ ĐỘ CHƠI TO NHẤT (CHƠI VỚI BOT & CHƠI VỚI NGƯỜI) -->
+          <div class="app-center-hero-modes">
+            <div class="mode-select-card hero-big-mode-card mode-bot-hero active" id="mode-card-bot" onclick="window.tienLenGame.selectLobbyMode('bot')">
+              <div class="hero-mode-bg" style="background-image: url('fanart/raiden.jpg');"></div>
+              <div class="hero-mode-glow"></div>
+              <div class="mode-card-badge">⚡ CHẾ ĐỘ SOLO OFFLINE</div>
+              <div class="hero-mode-content">
+                <div class="hero-mode-icon">🤖</div>
+                <div class="hero-mode-text">
+                  <div class="hero-mode-title">CHƠI VỚI BOT</div>
+                  <div class="hero-mode-sub">Đấu trí cùng 10 Nhân Vật Genshin 5★ có Kỹ Năng Nộ riêng • Chọn bàn 2, 3 hoặc 4 người</div>
+                </div>
+                <div class="hero-mode-cta-pill">⚔️ CHỌN ĐẤU BOT ▸</div>
+              </div>
             </div>
 
-            <div class="lobby-mode-selector">
-              <div class="mode-select-card active" id="mode-card-bot" onclick="window.tienLenGame.selectLobbyMode('bot')">
-                <div class="mode-card-badge">CHẾ ĐỘ 1</div>
-                <div class="mode-card-main">
-                  <span class="mode-card-icon">🤖</span>
-                  <div>
-                    <div class="mode-card-title">1. ĐẤU VỚI BOT (2, 3 hoặc 4 Người)</div>
-                    <div class="mode-card-desc">Chọn bàn Solo 2 Người (1v1), 3 Người (1v2) hoặc 4 Người (1v3) cùng Bot Genshin</div>
-                  </div>
+            <div class="mode-select-card hero-big-mode-card mode-human-hero" id="mode-card-human" onclick="window.tienLenGame.selectLobbyMode('human')">
+              <div class="hero-mode-bg" style="background-image: url('fanart/furina.jpg');"></div>
+              <div class="hero-mode-glow"></div>
+              <div class="mode-card-badge mode-badge-online">🌐 CHẾ ĐỘ ONLINE / WIFI</div>
+              <div class="hero-mode-content">
+                <div class="hero-mode-icon">👥</div>
+                <div class="hero-mode-text">
+                  <div class="hero-mode-title">CHƠI VỚI NGƯỜI</div>
+                  <div class="hero-mode-sub">Tạo phòng làm Chủ bàn hoặc nhập Mã phòng 4 số / gửi Link rủ bạn bè (2 – 4 người)</div>
                 </div>
-              </div>
-
-              <div class="mode-select-card" id="mode-card-human" onclick="window.tienLenGame.selectLobbyMode('human')">
-                <div class="mode-card-badge mode-badge-online">CHẾ ĐỘ 2</div>
-                <div class="mode-card-main">
-                  <span class="mode-card-icon">👥</span>
-                  <div>
-                    <div class="mode-card-title">2. ĐẤU VỚI NGƯỜI (2 – 4 Người)</div>
-                    <div class="mode-card-desc">Tạo phòng làm Chủ bàn hoặc nhập Mã phòng / gửi Link rủ bạn bè</div>
-                  </div>
-                </div>
+                <div class="hero-mode-cta-pill online-pill">🚀 TẠO / VÀO PHÒNG ▸</div>
               </div>
             </div>
           </div>
 
-          <!-- Hàng 2: Chọn Mức Cược (Áp dụng cho cả Chế độ 1: Đấu Bot & Chế độ 2: Đấu Người) -->
-          <div class="lobby-bet-section">
-            <div class="lobby-section-header">
-              <span>💰 CHỌN MỨC CƯỢC BÀN BÀI (<strong id="selected-mode-label">Chế độ 1: Đấu Với Bot</strong>)</span>
-              <div class="custom-bet-inline">
-                <label for="input-custom-bet">Hoặc tự nhập mức cược (Xu/lá):</label>
-                <input type="number" id="input-custom-bet" min="20" step="20" value="100" />
-                <button class="tool-btn" id="btn-apply-custom-bet">Áp dụng</button>
-              </div>
-            </div>
-
-            <div class="bet-tiers-grid" id="bet-tiers-grid">
-              <!-- Populated dynamically by renderBetTiers() -->
-            </div>
-
-            <div class="bet-rules-preview" id="bet-rules-preview">
-              <!-- Populated dynamically with exact penalty amounts for selected bet -->
-            </div>
-          </div>
-
-          <!-- Hàng 3A: Khung Hành Động Chế Độ 1 (Đấu Với Bot: Chọn 2, 3 hoặc 4 Người) -->
+          <!-- KHUNG THIẾT LẬP TRỰC TIẾP CỦA CHẾ ĐỘ ĐANG CHỌN -->
+          <!-- Khung Hành Động Chế Độ 1 (Chơi Với Bot) -->
           <div class="lobby-action-panel" id="lobby-bot-panel">
             <div class="bot-count-section">
               <div class="lobby-section-label">👥 CHỌN SỐ NGƯỜI TRONG BÀN ĐẤU VỚI BOT:</div>
@@ -466,10 +395,10 @@
 
             <div class="bot-mode-summary">
               <div id="bot-opponents-preview">
-                <strong>🤖 Bàn 4 Người (1v3 Bot):</strong> Bạn đấu với Bot Furina 💧, Bot Raiden Shogun ⚡ & Bot Skirk 🌌
+                <strong>🤖 Bàn 4 Người (1v3 Bot):</strong> Bạn đấu với Bot Furina 💧, Bot Raiden Shogun ⚡ &amp; Bot Skirk 🌌
               </div>
               <div class="bot-mode-sub">
-                💡 Thắng ván bài nhận Xu để Cầu Nguyện (Gacha Genshin): Nổ 5★ Kỹ Năng Nộ, 4★ Decor Bài Fanart & 3★ Avatar (Trùng đồ hoàn lại Xu)!
+                💡 Mỗi lượt có <strong>15 giây</strong> suy nghĩ — Quá 15s hệ thống tự động đánh bài hợp lệ!
               </div>
             </div>
             <button class="primary-btn btn-lg lobby-big-cta" id="btn-solo-bot-mode">
@@ -477,12 +406,12 @@
             </button>
           </div>
 
-          <!-- Hàng 3B: Khung Hành Động Chế Độ 2 (Đấu Với Người) -->
+          <!-- Khung Hành Động Chế Độ 2 (Chơi Với Người) -->
           <div class="lobby-action-panel hidden" id="lobby-human-panel">
             <div class="human-mode-actions-row">
               <div class="human-create-box">
                 <div class="human-box-title">🏠 Lựa chọn 1: Tạo Phòng Mới (Làm Chủ Bàn)</div>
-                <div class="human-box-desc">Tạo phòng với mức cược bạn đã chọn ở trên và lấy Link / Mã phòng gửi bạn bè:</div>
+                <div class="human-box-desc">Tạo phòng với mức cược đang chọn và lấy Link / Mã phòng gửi bạn bè:</div>
                 <button class="primary-btn btn-lg" id="btn-create-room">
                   🏠 Tạo Phòng Đấu Với Người (Theo Mức Cược Đang Chọn)
                 </button>
@@ -490,7 +419,7 @@
 
               <div class="human-join-box">
                 <div class="human-box-title">🚀 Lựa chọn 2: Vào Phòng Của Bạn Bè</div>
-                <div class="human-box-desc">Nhập Mã phòng 4 chữ số do bạn bè gửi để vào bàn (tự động nhận mức cược của chủ phòng):</div>
+                <div class="human-box-desc">Nhập Mã phòng 4 chữ số do bạn bè gửi để vào bàn ngay:</div>
                 <div class="join-row">
                   <input type="text" id="input-room-code" maxlength="8" placeholder="Nhập Mã phòng (VD: 8888)" />
                   <button class="primary-btn" id="btn-join-room">🚀 Vào Phòng Ngay</button>
@@ -537,6 +466,149 @@
                 </button>
               </div>
             </div>
+          </div>
+
+          <!-- Chọn Mức Cược (Áp dụng cho cả Chế độ 1: Đấu Bot & Chế độ 2: Đấu Người) -->
+          <div class="lobby-bet-section">
+            <div class="lobby-section-header">
+              <span>💰 CHỌN MỨC CƯỢC BÀN BÀI (<strong id="selected-mode-label">Chế độ 1: Đấu Với Bot</strong>)</span>
+              <div class="custom-bet-inline">
+                <label for="input-custom-bet">Hoặc tự nhập mức cược (Xu/lá):</label>
+                <input type="number" id="input-custom-bet" min="20" step="20" value="100" />
+                <button class="tool-btn" id="btn-apply-custom-bet">Áp dụng</button>
+              </div>
+            </div>
+
+            <div class="bet-tiers-grid" id="bet-tiers-grid">
+              <!-- Populated dynamically by renderBetTiers() -->
+            </div>
+
+            <div class="bet-rules-preview" id="bet-rules-preview">
+              <!-- Populated dynamically with exact penalty amounts for selected bet -->
+            </div>
+          </div>
+        </div>
+
+        <!-- THANH DOCK CHỨC NĂNG GAME APP BÊN DƯỚI (CÁC NÚT NHỎ HƠN XẾP GỌN GÀNG) -->
+        <div class="app-lobby-dock">
+          <button class="app-dock-btn dock-inventory" id="btn-lobby-inventory" onclick="window.tienLenGame.openInventoryModal()" title="Mở Kho Đồ cá nhân để trang bị Nhân Vật 5★, Decor Bài 4★ &amp; Avatar 3★">
+            <span class="dock-icon">🎒</span>
+            <span class="dock-label">Kho Đồ</span>
+          </button>
+          <button class="app-dock-btn dock-gacha" id="btn-lobby-open-shop" title="Mở Sảnh Cầu Nguyện (Gacha Genshin Impact) săn Kỹ Năng Nộ 5★ &amp; Skin Bài 4★">
+            <span class="dock-icon">🌠</span>
+            <span class="dock-label">Cầu Nguyện</span>
+          </button>
+          <button class="app-dock-btn dock-quests" id="btn-lobby-quests" title="Hệ thống Nhiệm Vụ Hàng Ngày (4 Nhiệm Vụ • Nhận 10 Roll)">
+            <span class="dock-icon">🧭</span>
+            <span class="dock-label">Nhiệm Vụ (<span id="lobby-quest-badge">0/4</span>)</span>
+          </button>
+          <button class="app-dock-btn dock-ad" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay +1 Roll (1,600 Xu)!">
+            <span class="dock-icon">📺</span>
+            <span class="dock-label">Xem QC (+1 Roll)</span>
+          </button>
+          <button class="app-dock-btn" id="btn-lobby-bgm" title="Đổi bài nhạc nền Genshin Impact hoặc Tắt nhạc">
+            <span class="dock-icon">🎵</span>
+            <span class="dock-label" id="lobby-bgm-label">Auto 🔄: Inazuma 🌸</span>
+          </button>
+          <button class="app-dock-btn" id="btn-lobby-open-rules" title="Xem luật chơi &amp; bảng tính phạt">
+            <span class="dock-icon">📖</span>
+            <span class="dock-label">Luật Chơi</span>
+          </button>
+          <button class="app-dock-btn dock-account" id="btn-lobby-account" onclick="window.tienLenGame.openAccountModal()" title="Quản lý Tài Khoản &amp; Đồng bộ Đám Mây">
+            <span class="dock-icon">🔐</span>
+            <span class="dock-label" id="lobby-account-label">Tài Khoản</span>
+          </button>
+          <button class="app-dock-btn dock-logout hidden" id="btn-lobby-logout" onclick="window.tienLenGame.logoutAccount()" title="Đăng xuất khỏi tài khoản hiện tại">
+            <span class="dock-icon">🚪</span>
+            <span class="dock-label">Đăng Xuất</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÀN HÌNH TẠM DỪNG TRONG TRẬN (IN-GAME PAUSE MENU MODAL) -->
+    <div class="modal-backdrop hidden" id="pause-modal">
+      <div class="modal-card pause-modal-card">
+        <div class="modal-header">
+          <div>
+            <h2>⏸️ TẠM DỪNG VÁN ĐẤU • MENU TRONG TRẬN</h2>
+            <p id="pause-match-status">Thời gian đếm ngược lượt đang tạm dừng trong chế độ Solo</p>
+          </div>
+          <div class="shop-header-right">
+            <div class="shop-balance-pill">
+              Ví: 🪙 <strong id="pause-balance-display">20,000</strong> xu
+            </div>
+            <button class="close-modal-btn" id="btn-close-pause" onclick="window.tienLenGame.closePauseModal()">✕</button>
+          </div>
+        </div>
+
+        <div class="modal-body pause-modal-body">
+          <!-- Nút Tiếp Tục Lớn -->
+          <button class="pause-resume-hero-btn" id="btn-pause-resume" onclick="window.tienLenGame.closePauseModal()">
+            ▶️ TIẾP TỤC VÁN ĐẤU
+          </button>
+
+          <!-- 3 Nút Chính Trong Menu Pause: Về Sảnh Chờ • Kho Đồ • Cầu Nguyện -->
+          <div class="pause-primary-grid">
+            <button class="pause-feature-card card-lobby" id="btn-wifi" title="Mở Sảnh Chờ để đổi Chế Độ (Đấu Bot / Đấu Người) hoặc Mức Cược">
+              <span class="pause-card-icon">🏠</span>
+              <span class="pause-card-title">Về Sảnh Chờ</span>
+              <span class="pause-card-sub" id="wifi-status-label">Chọn Chế Độ / Đổi Cược</span>
+            </button>
+
+            <button class="pause-feature-card card-inventory" id="btn-pause-inventory" onclick="window.tienLenGame.openInventoryModal()" title="Mở Kho Đồ trang bị Nhân Vật 5★, Decor Bài 4★ &amp; Avatar 3★">
+              <span class="pause-card-icon">🎒</span>
+              <span class="pause-card-title">Kho Đồ Trang Bị</span>
+              <span class="pause-card-sub" id="pause-inv-summary">Đổi Nhân Vật 5★ • Bài • Avatar</span>
+            </button>
+
+            <button class="pause-feature-card card-gacha" id="btn-shop" title="Mở Sảnh Cầu Nguyện (Gacha Genshin) săn Kỹ Năng Nộ 5★">
+              <span class="pause-card-icon">🌠</span>
+              <span class="pause-card-title">Sảnh Cầu Nguyện</span>
+              <span class="pause-card-sub">Quay Gacha 5★ • 4★ • 3★</span>
+            </button>
+          </div>
+
+          <!-- Bảng Tiện Ích & Cài Đặt Nhanh Trong Màn Hình Pause -->
+          <div class="pause-section-title">⚙️ TIỆN ÍCH &amp; TUỲ CHỈNH BÀN ĐẤU</div>
+          <div class="pause-tools-grid">
+            <button class="pause-tool-btn quest-top-btn" id="btn-top-quests">
+              🧭 Nhiệm Vụ (<span id="top-quest-badge">0/4</span>)
+            </button>
+            <button class="pause-tool-btn ad-reward-btn" id="btn-top-watch-ad">
+              📺 Xem QC (+1 Roll)
+            </button>
+            <button class="pause-tool-btn primary-btn" id="btn-new-game">
+              🔄 Chia Ván Mới
+            </button>
+            <button class="pause-tool-btn icon-btn anime-theme-btn" id="btn-top-random-bots">
+              🎲 Đổi Nhân Vật Bot (5★)
+            </button>
+            <button class="pause-tool-btn icon-btn anime-theme-btn" id="btn-arena-theme">
+              🌸 Sân: <span id="arena-theme-label">Inazuma ⚡</span>
+            </button>
+            <button class="pause-tool-btn icon-btn anime-theme-btn" id="btn-bgm">
+              🎵 Nhạc: <span id="bgm-label">Auto 🔄: Inazuma 🌸</span>
+            </button>
+            <button class="pause-tool-btn icon-btn" id="btn-sound">
+              🔊 Âm thanh
+            </button>
+            <button class="pause-tool-btn icon-btn" id="btn-speed">
+              ⚡ Tốc độ Bot: <span id="speed-label">Chuẩn</span>
+            </button>
+            <button class="pause-tool-btn icon-btn" id="btn-fullscreen">
+              ⛶ Toàn màn hình
+            </button>
+            <button class="pause-tool-btn icon-btn" id="btn-rules">
+              📖 Luật chơi
+            </button>
+            <button class="pause-tool-btn account-top-btn" id="btn-top-account" onclick="window.tienLenGame.closePauseModal(); window.tienLenGame.openAccountModal();">
+              🔐 <span id="top-account-label">Tạo TK (Lưu Dữ Liệu)</span>
+            </button>
+            <button class="pause-tool-btn clear-log-btn hidden" id="btn-top-logout" onclick="window.tienLenGame.closePauseModal(); window.tienLenGame.logoutAccount();">
+              🚪 Đăng Xuất Tài Khoản
+            </button>
           </div>
         </div>
       </div>
@@ -628,15 +700,18 @@
       </div>
     </div>
 
-    <!-- Genshin Impact Wish (Gacha) & Inventory Modal -->
+    <!-- SẢNH CẦU NGUYỆN GENSHIN IMPACT (TÁCH RIÊNG KHỎI KHO ĐỒ) -->
     <div class="modal-backdrop hidden" id="shop-modal">
       <div class="modal-card shop-card">
         <div class="modal-header">
           <div>
-            <h2>🌠 SẢNH CẦU NGUYỆN GENSHIN IMPACT & KHO ĐỒ TRANG BỊ</h2>
-            <p>Cơ chế Gacha chuẩn Genshin Impact: ⭐⭐⭐⭐⭐ Kỹ Năng Nộ (5★) • ⭐⭐⭐⭐ Decor Bài (4★) • ⭐⭐⭐ Avatar (3★) • Trùng đồ hoàn Xu!</p>
+            <h2>🌠 SẢNH CẦU NGUYỆN GENSHIN IMPACT (GACHA BANNER)</h2>
+            <p>Cầu Nguyện mở khóa: ⭐⭐⭐⭐⭐ Nhân Vật &amp; Kỹ Năng Nộ (5★) • ⭐⭐⭐⭐ Decor Bài (4★) • ⭐⭐⭐ Avatar (3★) • Trùng đồ hoàn Xu!</p>
           </div>
           <div class="shop-header-right">
+            <button class="inventory-top-btn" onclick="window.tienLenGame.openInventoryModal()" title="Chuyển sang Kho Đồ để trang bị Nhân Vật 5★, Decor Bài &amp; Avatar đã mở khóa">
+              🎒 Mở Kho Đồ
+            </button>
             <div class="shop-balance-pill">
               Số dư: 🪙 <strong id="shop-balance">20,000</strong> xu
             </div>
@@ -647,42 +722,31 @@
         <div class="modal-body shop-body">
           <div class="shop-tabs">
             <button class="shop-tab active" id="tab-btn-gacha">
-              🌠 Sảnh Cầu Nguyện (Gacha)
+              🌠 Banner Cầu Nguyện (Gacha)
+            </button>
+            <button class="shop-tab" id="tab-btn-history">
+              📜 Lịch Sử Roll &amp; Tỷ Lệ Bảo Hiểm
             </button>
             <button class="shop-tab" id="tab-btn-quests">
               🧭 Nhiệm Vụ Ngày (4 NV • 10 Roll)
-            </button>
-            <button class="shop-tab" id="tab-btn-bursts">
-              ⭐⭐⭐⭐⭐ Kỹ Năng Nộ (5★)
-            </button>
-            <button class="shop-tab" id="tab-btn-skins">
-              ⭐⭐⭐⭐ Decor Bài (4★)
-            </button>
-            <button class="shop-tab" id="tab-btn-avatars">
-              ⭐⭐⭐ Avatar (3★)
-            </button>
-            <button class="shop-tab" id="tab-btn-history">
-              📜 Lịch Sử & Tỷ Lệ Gacha
             </button>
           </div>
 
           <!-- TAB 1: SẢNH CẦU NGUYỆN GENSHIN IMPACT (CHARACTER EVENT WISH) -->
           <div class="gacha-banner-panel" id="shop-gacha-panel"></div>
 
-          <!-- TAB NHIỆM VỤ HÀNG NGÀY (4 NHIỆM VỤ × 2.5 ROLL = 10 ROLL / NGÀY) -->
-          <div class="daily-quests-panel hidden" id="shop-quests-panel"></div>
-
-          <!-- TAB 2, 3, 4: KHO ĐỒ TRANG BỊ (5★ BURSTS, 4★ SKINS, 3★ AVATARS) -->
-          <div class="shop-grid hidden" id="shop-bursts-grid"></div>
-          <div class="shop-grid hidden" id="shop-skins-grid"></div>
-          <div class="shop-grid hidden" id="shop-avatars-grid"></div>
-
-          <!-- TAB 5: LỊCH SỬ CẦU NGUYỆN & PHÂN TÍCH TỶ LỆ BẢO HIỂM -->
+          <!-- TAB 2: LỊCH SỬ CẦU NGUYỆN & PHÂN TÍCH TỶ LỆ BẢO HIỂM -->
           <div class="gacha-history-panel hidden" id="shop-history-panel"></div>
+
+          <!-- TAB 3: NHIỆM VỤ HÀNG NGÀY -->
+          <div class="daily-quests-panel hidden" id="shop-quests-panel"></div>
         </div>
 
         <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="inventory-top-btn" onclick="window.tienLenGame.openInventoryModal()">
+              🎒 Vào Kho Đồ Trang Bị
+            </button>
             <button class="quest-top-btn" id="btn-claim-bonus" title="Mở 4 Nhiệm Vụ Hàng Ngày — Mỗi nhiệm vụ nhận 2.5 Roll (+4,000 Xu)">
               🧭 Làm 4 Nhiệm Vụ Ngày (+10 Roll / 16,000 Xu)
             </button>
@@ -699,6 +763,72 @@
             </button>
             <button class="primary-btn" id="btn-ok-shop">Đóng Sảnh Cầu Nguyện</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL KHO ĐỒ & TRANG BỊ CÁ NHÂN (TÁCH RIÊNG KHỎI SẢNH CẦU NGUYỆN) -->
+    <div class="modal-backdrop hidden" id="inventory-modal">
+      <div class="modal-card shop-card inventory-modal-card">
+        <div class="modal-header">
+          <div>
+            <h2>🎒 KHO ĐỒ &amp; TRANG BỊ CÁ NHÂN</h2>
+            <p>Quản lý bộ sưu tập và trang bị: ⭐⭐⭐⭐⭐ Nhân Vật &amp; Kỹ Năng Nộ (5★) • ⭐⭐⭐⭐ Decor Bài (4★) • ⭐⭐⭐ Avatar (3★)</p>
+          </div>
+          <div class="shop-header-right">
+            <button class="shop-btn" onclick="window.tienLenGame.openGachaFromInventory()" title="Sang Sảnh Cầu Nguyện để quay thêm vật phẩm mới">
+              🌠 Tới Sảnh Cầu Nguyện
+            </button>
+            <div class="shop-balance-pill">
+              Số dư: 🪙 <strong id="inventory-balance">20,000</strong> xu
+            </div>
+            <button class="close-modal-btn" id="btn-close-inventory" onclick="window.tienLenGame.closeInventoryModal()">✕</button>
+          </div>
+        </div>
+
+        <div class="modal-body shop-body">
+          <!-- Thanh Tóm Tắt Trang Bị Đang Dùng -->
+          <div class="inventory-equipped-bar" id="inventory-equipped-bar"></div>
+
+          <!-- Thanh Chọn Mục Kho Đồ & Bộ Lọc Sở Hữu -->
+          <div class="inventory-controls-row">
+            <div class="shop-tabs inventory-tabs" style="margin-bottom:0;flex:1;">
+              <button class="shop-tab active" id="tab-btn-bursts">
+                ⭐⭐⭐⭐⭐ Nhân Vật &amp; Nộ 5★
+              </button>
+              <button class="shop-tab" id="tab-btn-skins">
+                ⭐⭐⭐⭐ Decor Bài 4★
+              </button>
+              <button class="shop-tab" id="tab-btn-avatars">
+                ⭐⭐⭐ Avatar 3★
+              </button>
+            </div>
+            <div class="inventory-filter-pills">
+              <button class="gacha-filter-btn active" id="inv-filter-all" onclick="window.tienLenGame.setInventoryFilter('all')">
+                📦 Tất cả
+              </button>
+              <button class="gacha-filter-btn" id="inv-filter-owned" onclick="window.tienLenGame.setInventoryFilter('owned')">
+                ✅ Đã sở hữu
+              </button>
+            </div>
+          </div>
+
+          <!-- LƯỚI VẬT PHẨM KHO ĐỒ (5★ BURSTS, 4★ SKINS, 3★ AVATARS) -->
+          <div class="shop-grid" id="shop-bursts-grid"></div>
+          <div class="shop-grid hidden" id="shop-skins-grid"></div>
+          <div class="shop-grid hidden" id="shop-avatars-grid"></div>
+        </div>
+
+        <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="shop-btn" onclick="window.tienLenGame.openGachaFromInventory()">
+              🌠 Sang Sảnh Cầu Nguyện (Săn Thêm Đồ Mới)
+            </button>
+            <button class="quest-top-btn" onclick="window.tienLenGame.closeInventoryModal(); window.tienLenGame.openDailyQuestsModal();">
+              🧭 Làm Nhiệm Vụ Ngày (+10 Roll)
+            </button>
+          </div>
+          <button class="primary-btn" id="btn-ok-inventory" onclick="window.tienLenGame.closeInventoryModal()">✅ Xong &amp; Đóng Kho Đồ</button>
         </div>
       </div>
     </div>
@@ -885,6 +1015,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=38"></script>
+  <script src="game.js?v=39"></script>
 </body>
 </html>

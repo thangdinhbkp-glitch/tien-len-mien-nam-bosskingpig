@@ -7643,7 +7643,7 @@ body.pseudo-fullscreen-mode {
                 <div class="hero-mode-icon">🤖</div>
                 <div class="hero-mode-text">
                   <div class="hero-mode-title">CHƠI VỚI BOT</div>
-                  <div class="hero-mode-sub">Đấu trí cùng 35 Nhân Vật Genshin 5★ có Kỹ Năng Nộ riêng • Chọn bàn 2, 3 hoặc 4 người</div>
+                  <div class="hero-mode-sub">Đấu trí cùng 58 Nhân Vật Genshin 5★ có Kỹ Năng Nộ riêng • Chọn bàn 2, 3 hoặc 4 người</div>
                 </div>
                 <div class="hero-mode-cta-pill">⚔️ MỞ BÀN BOT ▸</div>
               </div>
@@ -7768,7 +7768,7 @@ body.pseudo-fullscreen-mode {
               </div>
               <div class="bot-random-controls" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                 <button class="tool-btn anime-random-bot-btn" id="btn-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)">
-                  🎲 Ngẫu Nhiên (35 Nhân Vật)
+                  🎲 Ngẫu Nhiên (58 Nhân Vật)
                 </button>
                 <button class="primary-btn" id="btn-open-bot-picker" onclick="window.tienLenGame.openBotPickerModal()" style="padding:8px 14px;font-size:13px;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);box-shadow:0 0 12px rgba(37,99,235,0.45);">
                   🎯 Chọn Bot Đấu Cùng
@@ -8443,12 +8443,12 @@ body.pseudo-fullscreen-mode {
       </div>
     </div>
 
-    <!-- MODAL CHỌN ĐỐI THỦ BOT 5★ ĐÁNH VỚI MÌNH (35 NHÂN VẬT) -->
+    <!-- MODAL CHỌN ĐỐI THỦ BOT 5★ ĐÁNH VỚI MÌNH (58 NHÂN VẬT) -->
     <div class="modal-backdrop hidden" id="bot-picker-modal" style="z-index: 9800;">
       <div class="modal-card" style="max-width: 860px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
         <div class="modal-header">
           <div>
-            <h2>🎯 CHỌN ĐỐI THỦ BOT 5★ (35 NHÂN VẬT GENSHIN)</h2>
+            <h2>🎯 CHỌN ĐỐI THỦ BOT 5★ (58 NHÂN VẬT GENSHIN)</h2>
             <p style="font-size:12.5px;color:#cbd5e1;margin:2px 0 0;">Bấm chọn ghế Bot rồi bấm vào nhân vật 5★ bạn muốn đối đầu trực tiếp</p>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
@@ -8646,6 +8646,29 @@ const BANNER_4STAR_RATEUPS = {
   wanderer: ['wanderer', 'durin', 'raiden'],
   kinich: ['kinich', 'mualani', 'mavuika'],
   venti: ['venti', 'xiao', 'wanderer'],
+  klee: ['klee', 'yoimiya', 'hutao'],
+  albedo: ['albedo', 'navia', 'zibai'],
+  varka: ['varka', 'eula', 'lohen'],
+  nicole: ['nicole', 'durin', 'mavuika'],
+  zhongli: ['zhongli', 'xiao', 'ganyu'],
+  baizhu: ['baizhu', 'shenhe', 'ganyu'],
+  xianyun: ['xianyun', 'xiao', 'shenhe'],
+  kazuha: ['kazuha', 'ayaka', 'yoimiya'],
+  itto: ['itto', 'yoimiya', 'yaemiko'],
+  ayato: ['ayato', 'ayaka', 'yaemiko'],
+  cyno: ['cyno', 'nefer', 'kinich'],
+  nilou: ['nilou', 'lauma', 'kokomi'],
+  nahida: ['nahida', 'nilou', 'cyno'],
+  alhaitham: ['alhaitham', 'nahida', 'cyno'],
+  neuvillette: ['neuvillette', 'furina', 'clorinde'],
+  wriothesley: ['wriothesley', 'clorinde', 'navia'],
+  sigewinne: ['sigewinne', 'wriothesley', 'furina'],
+  emilie: ['emilie', 'escoffier', 'navia'],
+  chasca: ['chasca', 'mualani', 'kinich'],
+  tartaglia: ['tartaglia', 'zhongli', 'skirk'],
+  arlecchino: ['arlecchino', 'columbina', 'sandrone'],
+  ineffa: ['ineffa', 'varesa', 'clorinde'],
+  flins: ['flins', 'vesna', 'odette'],
 };
 
 const GENSHIN_FANART_ROSTER = [
@@ -8692,6 +8715,29 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'tighnari', name: 'Tighnari (Đội Trưởng Kiểm Lâm Avidya)', desc: '[5★ Thường • Lệch Rate] Kiểm lâm rừng mưa tích ngay +0.5× cược mỗi khi đánh Sảnh (≥ 4 lá) hoặc Sám Cô.', avatarPrice: 60000, skinPrice: 95000, crest: '🌿' },
   { id: 'dehya', name: 'Dehya (Sư Tử Lửa Bờm Đỏ)', desc: '[5★ Thường • Lệch Rate] Nữ lính đánh thuê sa mạc giảm 25% tiền phạt các lá vượt ngưỡng 7 lá khi thua nặng.', avatarPrice: 60000, skinPrice: 95000, crest: '🔥' },
   { id: 'mizuki', name: 'Yumemizuki Mizuki (Bác Sĩ Tâm Lý Baku)', desc: '[5★ Thường • Lệch Rate] Đại cổ đông Phòng Tắm Hơi Aisa hồi cố định +1.5× cược sau mỗi ván bài.', avatarPrice: 65000, skinPrice: 100000, crest: '🍃' },
+  { id: 'klee', name: 'Klee (Mặt Trời Chạy Trốn)', desc: '[Huyền Thoại] Kỵ Sĩ Tia Lửa của Đội Kỵ Sĩ Tây Phong ném Bom Nảy phá nát bộ bài trên tay đối thủ.', avatarPrice: 75000, skinPrice: 115000, crest: '💣' },
+  { id: 'albedo', name: 'Albedo (Kreideprinz Giả Kim)', desc: '[Huyền Thoại] Giả kim thuật sĩ trưởng Đội Kỵ Sĩ Tây Phong luyện Đôi + lá rác thành Sảnh đồng chất Cơ ♥.', avatarPrice: 75000, skinPrice: 115000, crest: '⚜️' },
+  { id: 'varka', name: 'Varka (Đại Đoàn Trưởng Tây Phong)', desc: '[Thần Thoại] Kỵ Sĩ Bắc Phong vung đại kiếm chẻ đôi bộ bài trên bàn, quét bay nửa lớn hơn.', avatarPrice: 90000, skinPrice: 140000, crest: '🗡️' },
+  { id: 'nicole', name: 'Nicole Reeyn (Phù Thủy Hexenzirkel N)', desc: '[Thần Thoại] Phù thủy tiên tri Hội Ma Nữ viết lại quy luật: Mọi bậc số 3→A ngang nhau, đè bài thuần bằng Chất!', avatarPrice: 90000, skinPrice: 140000, crest: '🔮' },
+  { id: 'zhongli', name: 'Zhongli (Nham Vương Đế Quân)', desc: '[Thần Thoại] Nham Thần giáng Thiên Tinh hóa đá khóa toàn bộ lá bài chất Đen (♠, ♣) của mọi đối thủ.', avatarPrice: 95000, skinPrice: 145000, crest: '🪨' },
+  { id: 'baizhu', name: 'Baizhu (Chủ Nhà Thuốc Bubu)', desc: '[Huyền Thoại] Danh y Liyue bắt mạch bộ bài trên bàn và biến bài rác thành bộ cùng số chất Đỏ ♥/♦ cao nhất.', avatarPrice: 78000, skinPrice: 120000, crest: '🐍' },
+  { id: 'xianyun', name: 'Xianyun (Lưu Vân Tá Phong Chân Quân)', desc: '[Huyền Thoại] Tiên nhân Đằng Vân cho phép ghép và đánh Sảnh Nhảy Bậc Cách Đều +2 nút (VD: 3-5-7, 4-6-8-10).', avatarPrice: 80000, skinPrice: 125000, crest: '🦩' },
+  { id: 'kazuha', name: 'Kaedehara Kazuha (Lá Đỏ Đuổi Sóng)', desc: '[Huyền Thoại] Lãng khách Inazuma cuốn gió thu tráo đổi 1-lấy-1 lá rác của mình lấy lá cùng bậc số từ tay đối thủ.', avatarPrice: 85000, skinPrice: 130000, crest: '🍁' },
+  { id: 'itto', name: 'Arataki Itto (Quỷ Vương Nhất Đấu)', desc: '[Huyền Thoại] Đại ca Bang Arataki đúc Sám Cô thành Tứ Quý hoặc gom 3 lá rác đúc thành Sám Cô lớn.', avatarPrice: 78000, skinPrice: 120000, crest: '👹' },
+  { id: 'ayato', name: 'Kamisato Ayato (Trụ Cột Gia Tộc)', desc: '[Huyền Thoại] Gia chủ Kamisato tạo Thủy Ảnh Thế Thân tiêu hao lá rác thay cho lá bài chủ lực vừa đánh.', avatarPrice: 82000, skinPrice: 125000, crest: '🌊' },
+  { id: 'cyno', name: 'Cyno (Tổng Quản Mahamatra)', desc: '[Huyền Thoại] Phán quyết Thần Anubis giáng cấp lá bài lớn nhất của đối thủ xuống 3♠ và nâng lá rác lên A♦.', avatarPrice: 80000, skinPrice: 125000, crest: '🐺' },
+  { id: 'nilou', name: 'Nilou (Vũ Công Hoa Sen Zubayr)', desc: '[Huyền Thoại] Vũ điệu Hạt Nhân Căng Tràn nâng cấp đồng loạt TẤT CẢ các bộ Đôi trên tay tăng thêm +2 bậc số.', avatarPrice: 80000, skinPrice: 125000, crest: '🪷' },
+  { id: 'nahida', name: 'Nahida (Thảo Thần Kusanali)', desc: '[Thần Thoại] Thảo Thần kết nối Akasha lật ngửa 3 lá lớn nhất của CẢ 3 ĐỐI THỦ & giảm -1 bậc lá cao nhất của họ.', avatarPrice: 95000, skinPrice: 145000, crest: '🌱' },
+  { id: 'alhaitham', name: 'Alhaitham (Quan Thư Ký Giáo Viện)', desc: '[Huyền Thoại] Lăng Kính Khúc Xạ nối 2 lá rác nhỏ nhất vào lá đơn lớn nhất trên tay thành Sảnh Thượng Đẳng 3 lá.', avatarPrice: 82000, skinPrice: 125000, crest: '📗' },
+  { id: 'neuvillette', name: 'Neuvillette (Thẩm Phán Tối Cao Fontaine)', desc: '[Thần Thoại] Thủy Long Vương san bằng bậc số bộ bài trên bàn về mức trung bình để đè lại ngay lập tức.', avatarPrice: 95000, skinPrice: 145000, crest: '⚖️' },
+  { id: 'wriothesley', name: 'Wriothesley (Công Tước Pháo Đài Meropide)', desc: '[Huyền Thoại] Cú đấm móc băng giá cho phép dùng 1 bộ Đôi đấm vỡ và đè trực tiếp lên bất kỳ bộ Sảnh nào trên bàn.', avatarPrice: 82000, skinPrice: 125000, crest: '🥊' },
+  { id: 'sigewinne', name: 'Sigewinne (Y Tá Trưởng Melusine)', desc: '[Huyền Thoại] Bắn Bong Bóng Nước khóa cứng lá bài lớn nhất của TẤT CẢ đối thủ và nâng 1 lá rác thành A♥.', avatarPrice: 78000, skinPrice: 120000, crest: '💉' },
+  { id: 'emilie', name: 'Emilie (Nhà Điều Hương Fontaine)', desc: '[Huyền Thoại] Lọ Điều Hương đốt tiêu hủy vĩnh viễn 1 lá bài rác khỏi tay và cô đặc lá thứ 2 tăng vọt +4 bậc số.', avatarPrice: 80000, skinPrice: 125000, crest: '🧪' },
+  { id: 'chasca', name: 'Chasca (Người Hòa Giải Tlalocan)', desc: '[Huyền Thoại] Nạp 2 lá bài rác lẻ vào ổ súng Linh Hồn bắn nối dài bộ Sảnh trên tay thêm +2 lá liên tiếp.', avatarPrice: 82000, skinPrice: 125000, crest: '🔫' },
+  { id: 'tartaglia', name: 'Tartaglia (Childe Fatui #11)', desc: '[Huyền Thoại] Quan Chấp Hành thứ 11 chuyển đổi Cung Tên ⇄ Song Đao hoán đổi linh hoạt giữa Sảnh 3 lá và Sám Cô.', avatarPrice: 85000, skinPrice: 130000, crest: '🐳' },
+  { id: 'arlecchino', name: 'Arlecchino (The Knave Fatui #4)', desc: '[Thần Thoại] Quan Chấp Hành thứ 4 khắc Khế Ước Sinh Mệnh: Đối thủ nào Bỏ Lượt bị nhét 1 lá rác và phạt 2× cược.', avatarPrice: 95000, skinPrice: 145000, crest: '🩸' },
+  { id: 'ineffa', name: 'Ineffa (Cơ Khí Đồng Bộ Lôi)', desc: '[Huyền Thoại] Phát xung nhịp điện từ đồng bộ hóa các lá bài lẻ rời rạc thành 2 Đôi liên tiếp (Đôi Thông).', avatarPrice: 82000, skinPrice: 125000, crest: '🤖' },
+  { id: 'flins', name: 'Flins (Người Giữ Đèn Ratniki)', desc: '[Huyền Thoại] Treo Ngọn Đèn Dẫn Hồn: Ngay khi có bất kỳ đối thủ nào Bỏ Lượt sẽ lập tức kết thúc vòng và cướp Cái.', avatarPrice: 88000, skinPrice: 135000, crest: '🏮' },
 ];
 
 const ANIME_CARD_SKINS = [
@@ -8709,7 +8755,7 @@ const ANIME_CARD_SKINS = [
     desc: c.desc,
     price: c.skinPrice,
     crest: c.crest,
-    imgUrl: `fanart/${c.id}.jpg?v=57`,
+    imgUrl: `fanart/${c.id}.jpg?v=64`,
   })),
 ];
 
@@ -8727,7 +8773,7 @@ const ANIME_AVATARS = [
     name: c.name,
     desc: c.desc,
     price: c.avatarPrice,
-    imgUrl: `fanart/${c.id}.jpg?v=57`,
+    imgUrl: `fanart/${c.id}.jpg?v=64`,
   })),
 ];
 
@@ -9343,6 +9389,328 @@ const GENSHIN_BURSTS = [
     title: 'MỘNG ĐẸP AN THẦN: LIỆU PHÁP SUỐI MƠ',
     quote: '“Xua Tan Ác Mộng — Hãy Thả Lỏng Và Chìm Vào Giấc Mơ Đẹp Nhé~”',
   },
+  {
+    id: 'klee',
+    name: 'Klee — Tia Lửa Nảy Nổ',
+    desc: '[Huyền Thoại] Kỵ Sĩ Tia Lửa ném Bom Nảy phá nát 1 bộ bài ghép (Đôi/Sám/Sảnh) trên tay đối thủ thành các lá lẻ rời rạc bậc thấp (Video + Giọng Nhật thật).',
+    price: 135000,
+    mp4Url: 'klee_burst.mp4?v=64',
+    audioUrl: 'klee_burst.ogg?v=64',
+    posterUrl: 'fanart/klee.jpg?v=64',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '💣 KỸ NĂNG NỘ • KLEE (SPARKS \'N\' SPLASH)',
+    title: 'KỴ SĨ TIA LỬA: BOM NẢY JUMPY DUMPTY',
+    quote: '“Hoa Lửa Rực Trời — Nổ Tung Hết Đi Nào~!”',
+  },
+  {
+    id: 'albedo',
+    name: 'Albedo — Giả Kim Thuật: Đại Địa Trào Dâng',
+    desc: '[Huyền Thoại] Kreideprinz luyện 1 bộ Đôi + 1 lá rác nhỏ nhất thành bộ Sảnh 3 lá đồng chất Cơ ♥ cao hơn +2 bậc (Video + Giọng Nhật thật).',
+    price: 135000,
+    mp4Url: 'albedo_burst.mp4?v=64',
+    audioUrl: 'albedo_burst.ogg?v=64',
+    posterUrl: 'fanart/albedo.jpg?v=64',
+    theme: 'theme-geo',
+    sfxType: 'raiden',
+    tag: '⚜️ KỸ NĂNG NỘ • ALBEDO (RITE OF PROGENITURE)',
+    title: 'GIẢ KIM THUẬT: HOA MẶT TRỜI KHAI NỞ',
+    quote: '“Khoảnh Khắc Khai Sinh — Chào Đón Sự Chuyển Hóa!”',
+  },
+  {
+    id: 'varka',
+    name: 'Varka — Bão Kiếm Bắc Phong',
+    desc: '[Thần Thoại] Đại Đoàn Trưởng Tây Phong vung đại kiếm chẻ đôi bộ bài trên bàn và quét bay nửa lớn hơn, chỉ chừa lại nửa nhỏ nhất (Video + Giọng Nhật thật).',
+    price: 175000,
+    mp4Url: 'varka_burst.mp4?v=64',
+    audioUrl: 'varka_burst.ogg?v=64',
+    posterUrl: 'fanart/varka.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'raiden',
+    tag: '🗡️ KỸ NĂNG NỘ • VARKA (NORTHWIND TEMPEST)',
+    title: 'ĐẠI ĐOÀN TRƯỞNG TÂY PHONG: ĐẠI KIẾM CHẺ ĐÔI',
+    quote: '“Hỡi Ngọn Gió Phương Bắc — Chẻ Đôi Bầu Trời!”',
+  },
+  {
+    id: 'nicole',
+    name: 'Nicole Reeyn — Lời Tiên Tri Hexenzirkel',
+    desc: '[Thần Thoại] Phù thủy Hội Ma Nữ xóa nhòa khoảng cách bậc số (3→A ngang nhau) trong vòng này: Đè bài cùng loại xét thuần bằng Chất (♠ < ♣ < ♦ < ♥)!',
+    price: 175000,
+    mp4Url: 'nicole_burst.mp4?v=64',
+    audioUrl: 'nicole_burst.ogg?v=64',
+    posterUrl: 'fanart/nicole.jpg?v=64',
+    theme: 'theme-pyro',
+    sfxType: 'skirk',
+    tag: '🔮 KỸ NĂNG NỘ • NICOLE REEYN (FATE REWRITTEN)',
+    title: 'HỘI MA NỮ HEXENZIRKEL: SỬA ĐỔI ĐỊNH MỆNH',
+    quote: '“Hãy Lắng Nghe — Định Mệnh Của Thế Gian Đã Được Viết Lại!”',
+  },
+  {
+    id: 'zhongli',
+    name: 'Zhongli — Thiên Tinh',
+    desc: '[Thần Thoại] Nham Vương Đế Quân giáng Thiên Tinh Hóa Đá khóa cứng toàn bộ lá bài chất Đen (♠, ♣) của mọi đối thủ trong vòng này!',
+    price: 185000,
+    mp4Url: 'zhongli_burst.mp4?v=64',
+    audioUrl: 'zhongli_burst.ogg?v=64',
+    posterUrl: 'fanart/zhongli.jpg?v=64',
+    theme: 'theme-geo',
+    sfxType: 'raiden',
+    tag: '🪨 KỸ NĂNG NỘ • ZHONGLI (PLANET BEFALL)',
+    title: 'NHAM VƯƠNG ĐẾ QUÂN: THIÊN TINH HÓA ĐÁ',
+    quote: '“Thiên Động Vạn Tượng — Hóa Đá Vĩnh Hằng!”',
+  },
+  {
+    id: 'baizhu',
+    name: 'Baizhu — Phổ Độ Toàn Chân',
+    desc: '[Huyền Thoại] Chủ Nhà Thuốc Bubu bắt mạch bộ bài trên bàn rồi biến bài rác trên tay thành bộ bài cùng bậc số nhưng mang chất Đỏ (♥/♦) cao nhất để đè ngay!',
+    price: 145000,
+    mp4Url: 'baizhu_burst.mp4?v=64',
+    audioUrl: 'baizhu_burst.ogg?v=64',
+    posterUrl: 'fanart/baizhu.jpg?v=64',
+    theme: 'theme-geo',
+    sfxType: 'skirk',
+    tag: '🐍 KỸ NĂNG NỘ • BAIZHU (HOLISTIC REVIVIFICATION)',
+    title: 'Y THUẬT TRƯỜNG SINH: BỐC THUỐC SAO CHÉP',
+    quote: '“Sinh Tử Hữu Mệnh — Y Thuật Cứu Nhân Độ Thế!”',
+  },
+  {
+    id: 'xianyun',
+    name: 'Xianyun — Chạng Vạng Sao Trời',
+    desc: '[Huyền Thoại] Lưu Vân Tá Phong Chân Quân ban Bộ Pháp Đằng Vân: Cho phép ghép và đánh Sảnh Nhảy Bậc Cách Đều +2 nút (VD: 3-5-7, 4-6-8-10)!',
+    price: 150000,
+    mp4Url: 'xianyun_burst.mp4?v=64',
+    audioUrl: 'xianyun_burst.ogg?v=64',
+    posterUrl: 'fanart/xianyun.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '🦩 KỸ NĂNG NỘ • XIANYUN (STARS GATHER AT DUSK)',
+    title: 'LƯU VÂN CHÂN QUÂN: BỘ PHÁP ĐẰNG VÂN',
+    quote: '“Đạp Mây Lướt Gió — Nhảy Bậc Vượt Chín Tầng Trời!”',
+  },
+  {
+    id: 'kazuha',
+    name: 'Kaedehara Kazuha — Nhất Đao Vạn Diệp',
+    desc: '[Huyền Thoại] Lãng khách cuốn gió thu tráo đổi 1-lấy-1: Đưa 1 lá bài rác nhỏ nhất của Kazuha để đổi lấy 1 lá bài cùng bậc số từ tay đối thủ về ghép Đôi/Sám!',
+    price: 160000,
+    mp4Url: 'kazuha_burst.mp4?v=64',
+    audioUrl: 'kazuha_burst.ogg?v=64',
+    posterUrl: 'fanart/kazuha.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '🍁 KỸ NĂNG NỘ • KAEDEHARA KAZUHA (KAZUHA SLASH)',
+    title: 'NHẤT ĐAO VẠN DIỆP: GIÓ THU ĐỔI LÁ',
+    quote: '“Lá Đỏ Bay Theo Gió — Mây Trời Dừng Bước Chân!”',
+  },
+  {
+    id: 'itto',
+    name: 'Arataki Itto — Quỷ Vương Nhất Đấu',
+    desc: '[Huyền Thoại] Đại ca Bang Arataki hóa thân Nộ Mục Quỷ Vương: Đúc Sám Cô trên tay thành Tứ Quý (hoặc nâng Đôi thành Sám Cô / gom 3 lá rác thành Sám Cô lớn)!',
+    price: 145000,
+    mp4Url: 'itto_burst.mp4?v=64',
+    audioUrl: 'itto_burst.ogg?v=64',
+    posterUrl: 'fanart/itto.jpg?v=64',
+    theme: 'theme-geo',
+    sfxType: 'raiden',
+    tag: '👹 KỸ NĂNG NỘ • ARATAKI ITTO (ROYAL DESCENT)',
+    title: 'NỘ MỤC QUỶ VƯƠNG: CHÙY ĐÁ ĐÚC TỨ QUÝ',
+    quote: '“Haha! Đến Giờ Cho Bọn Ngươi Thấy Sức Mạnh Của Bang Arataki Rồi!”',
+  },
+  {
+    id: 'ayato',
+    name: 'Kamisato Ayato — Thủy囿 (Vườn Nước Thanh Tịnh)',
+    desc: '[Huyền Thoại] Gia chủ Kamisato tạo Thủy Ảnh Thế Thân: Khi đánh bộ bài trong lượt này, 1 lá rác nhỏ nhất sẽ bị tiêu hao thay thế còn lá chủ lực được giữ lại bản sao!',
+    price: 150000,
+    mp4Url: 'ayato_burst.mp4?v=64',
+    audioUrl: 'ayato_burst.ogg?v=64',
+    posterUrl: 'fanart/ayato.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '🌊 KỸ NĂNG NỘ • KAMISATO AYATO (KAMISATO ART: SUIYUU)',
+    title: 'KAMISATO LƯU: THỦY ẢNH THẾ THÂN',
+    quote: '“Tất Cả Đều Nằm Trong Nước Cờ Của Ta!”',
+  },
+  {
+    id: 'cyno',
+    name: 'Cyno — Nghi Lễ Thần Dẫn Đường',
+    desc: '[Huyền Thoại] Tổng Quản Mahamatra giáng Phán Quyết Anubis: Biến lá bài lớn nhất (2 hoặc A) của đối thủ tụt thẳng xuống thành 3♠ và nâng 1 lá rác của Cyno thành A♦!',
+    price: 150000,
+    mp4Url: 'cyno_burst.mp4?v=64',
+    audioUrl: 'cyno_burst.ogg?v=64',
+    posterUrl: 'fanart/cyno.jpg?v=64',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '🐺 KỸ NĂNG NỘ • CYNO (WOLF\'S SWIFTNESS)',
+    title: 'TỔNG QUẢN MAHAMATRA: PHÁN QUYẾT THẦN ANUBIS',
+    quote: '“Tội Lỗi Của Ngươi — Đã Đến Lúc Chịu Sự Phán Quyết!”',
+  },
+  {
+    id: 'nilou',
+    name: 'Nilou — Vũ Điệu Hoa Sen: Suối Nguồn Viễn Mộng',
+    desc: '[Huyền Thoại] Vũ công Nhà Hát Zubayr kích nổ Hạt Nhân Căng Tràn làm đồng loạt TẤT CẢ các bộ Đôi đang có trên tay Nilou tăng thêm +2 bậc số!',
+    price: 150000,
+    mp4Url: 'nilou_burst.mp4?v=64',
+    audioUrl: 'nilou_burst.ogg?v=64',
+    posterUrl: 'fanart/nilou.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '🪷 KỸ NĂNG NỘ • NILOU (DISTANT DREAMS, LISTENING SPRING)',
+    title: 'VŨ ĐIỆU HOA SEN: HẠT NHÂN CĂNG TRÀN',
+    quote: '“Tất Cả Ánh Nhìn — Hãy Cùng Hòa Vào Điệu Múa Này!”',
+  },
+  {
+    id: 'nahida',
+    name: 'Nahida — Ảo Ảnh Tâm Cảnh (Đền Maya)',
+    desc: '[Thần Thoại] Thảo Thần mở Đền Tri Thức: Lật ngửa xem trước 3 lá bài lớn nhất của CẢ 3 ĐỐI THỦ trong 10 giây VÀ giảm -1 bậc lá bài cao nhất (dưới Heo) của mọi đối thủ!',
+    price: 185000,
+    mp4Url: 'nahida_burst.mp4?v=64',
+    audioUrl: 'nahida_burst.ogg?v=64',
+    posterUrl: 'fanart/nahida.jpg?v=64',
+    theme: 'theme-geo',
+    sfxType: 'skirk',
+    tag: '🌱 KỸ NĂNG NỘ • NAHIDA (ILLUSORY HEART)',
+    title: 'THẢO THẦN KUSANALI: ĐỀN CHÂN LÝ AKASHA',
+    quote: '“Cùng Chia Sẻ Tri Thức — Mọi Bí Mật Đều Hiện Rõ!”',
+  },
+  {
+    id: 'alhaitham',
+    name: 'Alhaitham — Liên Kết Đặc Thù: Khung Cảnh Trói Buộc',
+    desc: '[Huyền Thoại] Quan Thư Ký Giáo Viện khúc xạ Lăng Kính: Nối 2 lá bài rác nhỏ nhất vào lá bài đơn lớn nhất (≤ A) trên tay thành 1 bộ Sảnh Thượng Đẳng 3 lá!',
+    price: 155000,
+    mp4Url: 'alhaitham_burst.mp4?v=64',
+    audioUrl: 'alhaitham_burst.ogg?v=64',
+    posterUrl: 'fanart/alhaitham.jpg?v=64',
+    theme: 'theme-geo',
+    sfxType: 'raiden',
+    tag: '📗 KỸ NĂNG NỘ • ALHAITHAM (FETTERS OF PHENOMENA)',
+    title: 'QUAN THƯ KÝ GIÁO VIỆN: LĂNG KÍNH KHÚC XẠ',
+    quote: '“Quá Trình Tư Duy Hoàn Tất — Phản Chiếu Sự Thật!”',
+  },
+  {
+    id: 'neuvillette',
+    name: 'Neuvillette — Hỡi Nước Biển, Ta Đã Trở Về',
+    desc: '[Thần Thoại] Thẩm Phán Tối Cao Fontaine đặt Cán Cân Thủy Long: San bằng bậc số giữa bộ bài trên bàn và bài rác của Neuvillette về mức trung bình để đè ngay lập tức!',
+    price: 185000,
+    mp4Url: 'neuvillette_burst.mp4?v=64',
+    audioUrl: 'neuvillette_burst.ogg?v=64',
+    posterUrl: 'fanart/neuvillette.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '⚖️ KỸ NĂNG NỘ • NEUVILLETTE (O TIDES, I HAVE RETURNED)',
+    title: 'THẨM PHÁN TỐI CAO: CÁN CÂN THỦY LONG',
+    quote: '“Thủy Triều Dâng Trào — Lắng Nghe Phán Quyết Cuối Cùng!”',
+  },
+  {
+    id: 'wriothesley',
+    name: 'Wriothesley — Cú Cắn Hắc Kim Lang',
+    desc: '[Huyền Thoại] Công Tước Pháo Đài Meropide tung Cú Đấm Móc Băng Giá: Cho phép dùng 1 bộ Đôi (2 lá cùng số) đấm vỡ và đè trực tiếp lên bất kỳ bộ Sảnh nào trên bàn!',
+    price: 155000,
+    mp4Url: 'wriothesley_burst.mp4?v=64',
+    audioUrl: 'wriothesley_burst.ogg?v=64',
+    posterUrl: 'fanart/wriothesley.jpg?v=64',
+    theme: 'theme-cryo',
+    sfxType: 'raiden',
+    tag: '🥊 KỸ NĂNG NỘ • WRIOTHESLEY (DARKGOLD WOLFBITE)',
+    title: 'CÔNG TƯỚC MEROPIDE: ĐÔI ĐẤM VỠ SẢNH',
+    quote: '“Giữ Bình Tĩnh Nào — Cú Đấm Này Sẽ Hơi Lạnh Đấy!”',
+  },
+  {
+    id: 'sigewinne',
+    name: 'Sigewinne — Ống Tiêm Siêu Đặc Biệt',
+    desc: '[Huyền Thoại] Y Tá Trưởng Melusine bắn Bong Bóng Nước khóa cứng 1 lá bài lớn nhất của TẤT CẢ các đối thủ trong vòng này, đồng thời nâng 1 lá rác của mình thành A♥!',
+    price: 145000,
+    mp4Url: 'sigewinne_burst.mp4?v=64',
+    audioUrl: 'sigewinne_burst.ogg?v=64',
+    posterUrl: 'fanart/sigewinne.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '💉 KỸ NĂNG NỘ • SIGEWINNE (SUPER SATURATED SYRINGING)',
+    title: 'Y TÁ TRƯỞNG MELUSINE: BONG BÓNG KHÓA CHỦ LỰC',
+    quote: '“Không Đau Chút Nào Đâu — Ngoan Ngoãn Tiêm Thuốc Nhé~!”',
+  },
+  {
+    id: 'emilie',
+    name: 'Emilie — Lọ Điều Hương Cấp Cao',
+    desc: '[Huyền Thoại] Nhà điều hương Fontaine đưa 2 lá bài rác vào Lọ Điều Hương: Đốt tiêu hủy vĩnh viễn 1 lá rác khỏi tay và cô đặc lá thứ 2 tăng vọt +4 bậc số (tối đa A♥)!',
+    price: 150000,
+    mp4Url: 'emilie_burst.mp4?v=64',
+    audioUrl: 'emilie_burst.ogg?v=64',
+    posterUrl: 'fanart/emilie.jpg?v=64',
+    theme: 'theme-geo',
+    sfxType: 'skirk',
+    tag: '🧪 KỸ NĂNG NỘ • EMILIE (AROMATIC EXPLICATION)',
+    title: 'NHÀ ĐIỀU HƯƠNG: CHƯNG CẤT NƯỚC HOA TINH HOA',
+    quote: '“Hương Thơm Tinh Khiết — Thanh Lọc Mọi Tạp Chất!”',
+  },
+  {
+    id: 'chasca',
+    name: 'Chasca — Đạn Linh Hồn Đoạt Mệnh',
+    desc: '[Huyền Thoại] Người Hòa Giải Tlalocan nạp 2 lá bài rác lẻ vào ổ súng Linh Hồn rồi bắn nối trực tiếp vào bộ Sảnh trên tay để kéo dài thêm +2 lá liên tiếp!',
+    price: 155000,
+    mp4Url: 'chasca_burst.mp4?v=64',
+    audioUrl: 'chasca_burst.ogg?v=64',
+    posterUrl: 'fanart/chasca.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'raiden',
+    tag: '🔫 KỸ NĂNG NỘ • CHASCA (SOULREAPER\'S FATAL ROUND)',
+    title: 'DÂY CƯƠNG TRUY ẢNH: ĐẠN LINH HỒN NỐI SẢNH',
+    quote: '“Đã Ngắm Chuẩn — Đạn Linh Hồn Không Bao Giờ Trượt!”',
+  },
+  {
+    id: 'tartaglia',
+    name: 'Tartaglia — Cực Ác Kỹ: Tận Diệt Thủy Quang',
+    desc: '[Huyền Thoại] Quan Chấp Hành thứ 11 chuyển đổi Cung Tên ⇄ Song Đao: Nếu có Sảnh 3 lá thì gom lại thành Sám Cô; nếu có Sám Cô / Đôi thì bắn trải ra thành Sảnh 3 lá!',
+    price: 160000,
+    mp4Url: 'tartaglia_burst.mp4?v=64',
+    audioUrl: 'tartaglia_burst.ogg?v=64',
+    posterUrl: 'fanart/tartaglia.jpg?v=64',
+    theme: 'theme-hydro',
+    sfxType: 'raiden',
+    tag: '🐳 KỸ NĂNG NỘ • TARTAGLIA (HAVOC: OBLITERATION)',
+    title: 'QUAN CHẤP HÀNH #11: CHUYỂN ĐỔI CUNG ĐAO',
+    quote: '“Thời Khắc Giải Trí Kết Thúc — Đỡ Lấy Một Chiêu Này!”',
+  },
+  {
+    id: 'arlecchino',
+    name: 'Arlecchino — Trăng Máu Trỗi Dậy',
+    desc: '[Thần Thoại] Quan Chấp Hành thứ 4 khắc Khế Ước Sinh Mệnh lên bàn: Bất kỳ đối thủ nào Bỏ Lượt trong vòng này sẽ bị nhét 1 lá rác của Arlecchino và nộp phạt 2× cược!',
+    price: 185000,
+    mp4Url: 'arlecchino_burst.mp4?v=64',
+    audioUrl: 'arlecchino_burst.ogg?v=64',
+    posterUrl: 'fanart/arlecchino.jpg?v=64',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '🩸 KỸ NĂNG NỘ • ARLECCHINO (BALEFUL MOON RISING)',
+    title: 'QUAN CHẤP HÀNH #4: KHẾ ƯỚC SINH MỆNH',
+    quote: '“Dưới Ánh Trăng Đỏ — Mọi Kẻ Hèn Nhát Đều Phải Trả Giá!”',
+  },
+  {
+    id: 'ineffa',
+    name: 'Ineffa — Mệnh Lệnh Tối Thượng: Quét Sạch Toàn Diện',
+    desc: '[Huyền Thoại] Cơ khí Lôi nguyên tố phát xung điện từ đồng bộ hóa các lá bài lẻ nhỏ nhất trên tay thành 2 bộ Đôi liên tiếp nhau (Đôi Thông)!',
+    price: 155000,
+    mp4Url: 'ineffa_burst.mp4?v=64',
+    audioUrl: 'ineffa_burst.ogg?v=64',
+    posterUrl: 'fanart/ineffa.jpg?v=64',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '🤖 KỸ NĂNG NỘ • INEFFA (SUPREME DIRECTIVE)',
+    title: 'XUNG NHỊP CƠ KHÍ: ĐỒNG BỘ ĐÔI THÔNG',
+    quote: '“Giao Thức Tối Thượng Đã Kích Hoạt — Đồng Bộ Hóa Hoàn Tất!”',
+  },
+  {
+    id: 'flins',
+    name: 'Flins — Nghi Thức Cổ Xưa: Khách Viếng Đêm Khuya',
+    desc: '[Huyền Thoại] Người Giữ Đèn Ratniki treo Ngọn Đèn Dẫn Hồn: Ngay khoảnh khắc có bất kỳ đối thủ nào Bỏ Lượt, lập tức kết thúc vòng đấu và trao thẳng quyền Cầm Cái về cho Flins!',
+    price: 165000,
+    mp4Url: 'flins_burst.mp4?v=64',
+    audioUrl: 'flins_burst.ogg?v=64',
+    posterUrl: 'fanart/flins.jpg?v=64',
+    theme: 'theme-electro',
+    sfxType: 'skirk',
+    tag: '🏮 KỸ NĂNG NỘ • FLINS (COMETH THE NIGHT)',
+    title: 'NGƯỜI GIỮ ĐÈN RATNIKI: NGỌN ĐÈN CƯỚP CÁI',
+    quote: '“Ngọn Đèn Đêm Khuya Đã Cháy — Màn Đêm Này Thuộc Về Ta!”',
+  },
 ];
 
 // ============================================================================
@@ -9392,6 +9760,29 @@ const CHARACTER_ELEMENTS = {
   tighnari: 'dendro',
   dehya: 'pyro',
   mizuki: 'anemo',
+  klee: 'pyro',
+  albedo: 'geo',
+  varka: 'anemo',
+  nicole: 'pyro',
+  zhongli: 'geo',
+  baizhu: 'dendro',
+  xianyun: 'anemo',
+  kazuha: 'anemo',
+  itto: 'geo',
+  ayato: 'hydro',
+  cyno: 'electro',
+  nilou: 'hydro',
+  nahida: 'dendro',
+  alhaitham: 'dendro',
+  neuvillette: 'hydro',
+  wriothesley: 'cryo',
+  sigewinne: 'hydro',
+  emilie: 'dendro',
+  chasca: 'anemo',
+  tartaglia: 'hydro',
+  arlecchino: 'pyro',
+  ineffa: 'electro',
+  flins: 'electro',
 };
 
 function checkGenuineGenshinReaction(elemA, elemB) {
@@ -9501,6 +9892,9 @@ let activeGanyuGapStraight = false;
 let activeKokomiReverseRank = false;
 let activeMualaniCrossBeat = false;
 let activeXiaoPlungeSingle = false;
+let activeNicoleSuitOnlyRound = false;
+let activeXianyunStepStraight = false;
+let activeWriothesleyPairSmash = false;
 
 const CHARACTER_SKILLS = {
   raiden: {
@@ -9811,6 +10205,167 @@ const CHARACTER_SKILLS = {
     isPassiveBet: true,
     name: 'Liệu Pháp Mộng Đẹp',
     shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Kết thúc mỗi ván bài (dù thắng hay thua), Baku của Mizuki luôn hồi cố định +1.5× Mức cược bàn Xu an ủi (kèm Hoạt Ảnh Nộ 5★).',
+  },
+  klee: {
+    id: 'klee',
+    charName: 'Klee',
+    icon: '💣',
+    name: 'Bom Nảy Jumpy Dumpty',
+    shortDesc: 'Ném Bom Nảy vào tay đối thủ đang ít bài nhất, nổ tung 1 bộ bài ghép (Đôi/Sám Cô/Sảnh) của họ thành các lá bài lẻ rời rạc bậc thấp (3→8)!',
+  },
+  albedo: {
+    id: 'albedo',
+    charName: 'Albedo',
+    icon: '⚜️',
+    name: 'Giả Kim Hoa Mặt Trời',
+    shortDesc: 'Luyện 1 bộ Đôi (≤ K) cùng 1 lá rác nhỏ nhất trên tay thành 1 bộ Sảnh 3 lá đồng chất Cơ (♥) có bậc cao hơn Đôi đó +2 bậc!',
+  },
+  varka: {
+    id: 'varka',
+    charName: 'Varka',
+    icon: '🗡️',
+    name: 'Đại Kiếm Chẻ Đôi',
+    shortDesc: 'Chẻ đôi bộ bài đang nằm trên bàn (Sảnh dài, Sám Cô hoặc Đôi), quét bay nửa lớn hơn và chỉ chừa lại nửa nhỏ nhất trên bàn!',
+  },
+  nicole: {
+    id: 'nicole',
+    charName: 'Nicole Reeyn',
+    icon: '🔮',
+    name: 'Sửa Đổi Định Mệnh',
+    shortDesc: 'Trong vòng này: Xóa nhòa khoảng cách bậc số (3→A ngang bằng nhau khi đè cùng loại) — đè bài xét thuần bằng Chất (♠ < ♣ < ♦ < ♥, VD: 4♥ đè A♦)!',
+  },
+  zhongli: {
+    id: 'zhongli',
+    charName: 'Zhongli',
+    icon: '🪨',
+    name: 'Thiên Tinh Hóa Đá',
+    shortDesc: 'Thả Thiên Tinh hóa đá khóa cứng toàn bộ các lá bài chất Đen (♠, ♣) trên tay TẤT CẢ đối thủ trong vòng này (chỉ được đánh bài Đỏ ♦, ♥) & tạo Khiên Ngọc!',
+  },
+  baizhu: {
+    id: 'baizhu',
+    charName: 'Baizhu',
+    icon: '🐍',
+    name: 'Bốc Thuốc Sao Chép',
+    shortDesc: 'Bắt mạch bộ bài thường trên bàn (1→3 lá) rồi biến các lá bài rác nhỏ nhất trên tay Baizhu thành bộ bài cùng bậc số nhưng mang chất Đỏ (♥/♦) cao nhất để đè ngay!',
+  },
+  xianyun: {
+    id: 'xianyun',
+    charName: 'Xianyun',
+    icon: '🦩',
+    name: 'Bộ Pháp Đằng Vân',
+    shortDesc: 'Trong lượt này: Cho phép ghép và đánh Sảnh Nhảy Bậc Cách Đều +2 nút (VD: 3-5-7, 4-6-8-10, 7-9-J-K) được tính là Sảnh hợp lệ!',
+  },
+  kazuha: {
+    id: 'kazuha',
+    charName: 'Kaedehara Kazuha',
+    icon: '🍁',
+    name: 'Gió Thu Đổi Lá Cùng Số',
+    shortDesc: 'Tráo đổi 1-lấy-1: Đưa 1 lá bài rác nhỏ nhất trên tay Kazuha đổi lấy 1 lá bài CÙNG BẬC SỐ với lá Kazuha đang có từ tay đối thủ về để ghép Đôi/Sám/Tứ Quý!',
+  },
+  itto: {
+    id: 'itto',
+    charName: 'Arataki Itto',
+    icon: '👹',
+    name: 'Quỷ Vương Đúc Tứ Quý',
+    shortDesc: 'Đập chùy biến 1 lá bài rác nhỏ nhất nhập vào 1 bộ Sám Cô trên tay để đúc thành Tứ Quý (hoặc nâng Đôi thành Sám Cô / gom 3 lá rác thành Sám Cô lớn)!',
+  },
+  ayato: {
+    id: 'ayato',
+    charName: 'Kamisato Ayato',
+    icon: '🌊',
+    name: 'Thủy Ảnh Thế Thân',
+    shortDesc: 'Bật Phân Thân Nước trong lượt này: Khi đánh bộ bài ra bàn, 1 lá rác nhỏ nhất trên tay sẽ bị tiêu hao thế chỗ, còn lá lớn nhất vừa đánh được giữ lại bản sao (-1 bậc)!',
+  },
+  cyno: {
+    id: 'cyno',
+    charName: 'Cyno',
+    icon: '🐺',
+    name: 'Phán Quyết Thần Anubis',
+    shortDesc: 'Giáng thiên phạt vào đối thủ đang giữ lá bài lớn nhất (2 hoặc A): Tịch thu giáng cấp lá lớn nhất đó tụt thẳng xuống 3♠, đồng thời nâng 1 lá rác của Cyno thành A♦!',
+  },
+  nilou: {
+    id: 'nilou',
+    charName: 'Nilou',
+    icon: '🪷',
+    name: 'Hạt Nhân Căng Tràn',
+    shortDesc: 'Kích nổ Hạt Nhân Sum Suê làm đồng loạt TẤT CẢ các bộ Đôi đang có trên tay Nilou cùng tăng thêm +2 bậc số (tối đa lên Đôi A)!',
+  },
+  nahida: {
+    id: 'nahida',
+    charName: 'Nahida',
+    icon: '🌱',
+    name: 'Đền Chân Lý Akasha',
+    shortDesc: 'Kết nối Ấn Skandha lật ngửa 3 lá bài lớn nhất của CẢ 3 ĐỐI THỦ trong 10 giây VÀ giảm -1 bậc số lá bài lớn nhất (dưới Heo) của toàn bộ đối thủ!',
+  },
+  alhaitham: {
+    id: 'alhaitham',
+    charName: 'Alhaitham',
+    icon: '📗',
+    name: 'Lăng Kính Khúc Xạ',
+    shortDesc: 'Khúc xạ 2 lá bài rác nhỏ nhất trên tay nối liền vào lá bài đơn lớn nhất (≤ A) đang có để tạo ngay 1 bộ Sảnh Thượng Đẳng 3 lá lớn (VD: Q-K-A)!',
+  },
+  neuvillette: {
+    id: 'neuvillette',
+    charName: 'Neuvillette',
+    icon: '⚖️',
+    name: 'Cán Cân Thẩm Phán',
+    shortDesc: 'San bằng bậc số giữa bộ bài trên bàn và các lá bài nhỏ nhất của Neuvillette về mức trung bình cộng (+1 bậc cho Neuvillette) để đè ngay lập tức!',
+  },
+  wriothesley: {
+    id: 'wriothesley',
+    charName: 'Wriothesley',
+    icon: '🥊',
+    name: 'Cú Đấm Đôi Vỡ Sảnh',
+    shortDesc: 'Trong lượt này: Cho phép dùng 1 bộ Đôi (2 lá cùng số có bậc ≥ bậc cao nhất của Sảnh) để đấm vỡ và đè trực tiếp lên bất kỳ bộ Sảnh nào trên bàn!',
+  },
+  sigewinne: {
+    id: 'sigewinne',
+    charName: 'Sigewinne',
+    icon: '💉',
+    name: 'Bong Bóng Khóa Chủ Lực',
+    shortDesc: 'Bắn Bong Bóng Nước khóa cứng 1 lá bài lớn nhất trên tay của TẤT CẢ đối thủ trong vòng này, đồng thời tiêm thuốc bổ biến 1 lá rác nhỏ nhất thành A♥!',
+  },
+  emilie: {
+    id: 'emilie',
+    charName: 'Emilie',
+    icon: '🧪',
+    name: 'Chưng Cất Nước Hoa',
+    shortDesc: 'Đưa 2 lá bài rác nhỏ nhất vào Lọ Điều Hương: Đốt tiêu hủy vĩnh viễn 1 lá rác khỏi tay (giảm ngay 1 lá) và cô đặc nâng lá còn lại tăng vọt +4 bậc số (tối đa A♥)!',
+  },
+  chasca: {
+    id: 'chasca',
+    charName: 'Chasca',
+    icon: '🔫',
+    name: 'Đạn Linh Hồn Nối Sảnh',
+    shortDesc: 'Nạp 2 lá bài rác lẻ nhỏ nhất vào ổ súng Linh Hồn rồi bắn nối trực tiếp vào bộ Sảnh trên tay để kéo dài thành Sảnh Lớn dài hơn thêm +2 lá!',
+  },
+  tartaglia: {
+    id: 'tartaglia',
+    charName: 'Tartaglia',
+    icon: '🐳',
+    name: 'Chuyển Đổi Cung ⇄ Đao',
+    shortDesc: 'Hoán đổi thế võ: Nếu có Sảnh 3 lá thì rút Song Đao gom về cùng bậc thành 1 bộ Sám Cô; nếu có Sám Cô / Đôi thì đổi Cung Tên bắn trải thành Sảnh 3 lá liên tiếp!',
+  },
+  arlecchino: {
+    id: 'arlecchino',
+    charName: 'Arlecchino',
+    icon: '🩸',
+    name: 'Khế Ước Sinh Mệnh',
+    shortDesc: 'Khắc Khế Ước Sinh Mệnh lên bàn trong vòng này: Bất kỳ đối thủ nào bấm Bỏ Lượt sẽ bị phạt nhận ngay 1 lá bài rác nhỏ nhất từ tay Arlecchino và nộp 2× mức cược Xu!',
+  },
+  ineffa: {
+    id: 'ineffa',
+    charName: 'Ineffa',
+    icon: '🤖',
+    name: 'Đồng Bộ Xung Nhịp',
+    shortDesc: 'Phát xung điện từ đồng bộ hóa các lá bài lẻ rời rạc nhỏ nhất trên tay thành 2 bộ Đôi liên tiếp nhau (2 Đôi Thông, hoặc nối thành 3 Đôi Thông)!',
+  },
+  flins: {
+    id: 'flins',
+    charName: 'Flins',
+    icon: '🏮',
+    name: 'Ngọn Đèn Dẫn Hồn',
+    shortDesc: 'Treo Ngọn Đèn Linh Hồn lên bàn trong vòng này: Ngay khoảnh khắc có bất kỳ 1 đối thủ nào Bỏ Lượt, lập tức kết thúc vòng đấu và trao thẳng quyền Mở Vòng Mới về cho Flins!',
   },
 };
 
@@ -10569,6 +11124,28 @@ function classifyCombo(cards) {
         };
       }
     }
+    // Bộ Pháp Đằng Vân (Xianyun): Cho phép đánh Sảnh Nhảy Bậc Cách Đều +2 nút (VD: 3-5-7, 4-6-8-10)
+    if (activeXianyunStepStraight) {
+      let isStep2 = true;
+      for (let i = 1; i < n; i++) {
+        if (sorted[i].rankIndex !== sorted[i - 1].rankIndex + 2) {
+          isStep2 = false;
+          break;
+        }
+      }
+      if (isStep2) {
+        return {
+          type: COMBO_TYPES.STRAIGHT,
+          cards: sorted,
+          length: n,
+          highCard,
+          highValue,
+          highRank,
+          isStepStraight: true,
+          label: `Sảnh Đằng Vân ${n} lá (${sorted[0].rank}→${highCard.rank}${highCard.suit} 🦩)`,
+        };
+      }
+    }
   }
 
   return null;
@@ -10577,7 +11154,7 @@ function classifyCombo(cards) {
 function canBeatCombo(candidate, current) {
   if (!candidate) return { ok: false, isChop: false };
 
-  // Pháo Kích Khóa Bài (Navia): Không thể đánh ra các lá bài đang bị khóa trong vòng này
+  // Pháo Kích Khóa Bài (Navia / Zhongli / Sigewinne): Không thể đánh ra các lá bài đang bị khóa trong vòng này
   if (
     activeNaviaLockedCardIds &&
     activeNaviaLockedCardIds.size > 0 &&
@@ -10587,7 +11164,7 @@ function canBeatCombo(candidate, current) {
     return {
       ok: false,
       isChop: false,
-      reason: '☂️ Pháo Kích Navia: Có lá bài đang bị khóa cứng trong vòng này!',
+      reason: '🔒 Có lá bài đang bị phong ấn/khóa cứng trong vòng này!',
     };
   }
 
@@ -10631,6 +11208,14 @@ function canBeatCombo(candidate, current) {
         : current.highCard
         ? current.highCard.suitIndex
         : 0;
+
+    // Sửa Đổi Định Mệnh (Nicole): Mọi bậc số thường (3→A) coi như ngang bằng nhau, đè bài xét thuần theo Chất (hoặc đồng chất thì bài cao hơn thắng)
+    if (activeNicoleSuitOnlyRound && !candidate.isBomb && !current.isBomb && candRank < 12 && curRank < 12) {
+      if (candSuit > curSuit || (candSuit === curSuit && candRank > curRank)) {
+        return { ok: true, isChop: false };
+      }
+      return { ok: false, isChop: false };
+    }
 
     const candVal = candRank * 4 + candSuit;
     const curVal = curRank * 4 + curSuit;
@@ -10677,6 +11262,27 @@ function canBeatCombo(candidate, current) {
     current.highRank < 12 &&
     current.length >= 2 &&
     candidate.type === COMBO_TYPES.SINGLE
+  ) {
+    let candRank = candidate.highRank;
+    let curRank = current.highRank;
+    if (activeKokomiReverseRank) {
+      if (candRank < 12) candRank = 11 - candRank;
+      if (curRank < 12) curRank = 11 - curRank;
+    }
+    if (candRank >= curRank) {
+      return {
+        ok: true,
+        isChop: false,
+      };
+    }
+  }
+
+  // Cú Đấm Đôi Vỡ Sảnh (Wriothesley): Dùng 1 bộ Đôi có bậc >= bậc cao nhất của Sảnh để đấm vỡ bất kỳ bộ Sảnh nào trên bàn!
+  if (
+    activeWriothesleyPairSmash &&
+    !current.isBomb &&
+    current.type === COMBO_TYPES.STRAIGHT &&
+    candidate.type === COMBO_TYPES.PAIR
   ) {
     let candRank = candidate.highRank;
     let curRank = current.highRank;
@@ -10845,6 +11451,33 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
           const gc = classifyCombo(gapCards);
           if (gc) combos.push(gc);
         }
+      }
+    }
+  }
+
+  // Bộ Pháp Đằng Vân (Xianyun): Sinh thêm các bộ Sảnh Nhảy Bậc Cách Đều +2 nút (VD: 3-5-7, 4-6-8-10)
+  if (activeXianyunStepStraight) {
+    const pickCardForRank = (r) => {
+      if (preferredCard && preferredCard.rankIndex === r) return preferredCard;
+      return byRank[r][0];
+    };
+    for (let start = 0; start <= 7; start++) {
+      if (byRank[start].length === 0) continue;
+      const stepRun = [pickCardForRank(start)];
+      for (let next = start + 2; next <= 11; next += 2) {
+        if (byRank[next].length === 0) break;
+        const highOfNext = byRank[next][byRank[next].length - 1];
+        const lowOfNext = pickCardForRank(next);
+        const candLow = [...stepRun, lowOfNext];
+        if (candLow.length >= 3) {
+          const sc = classifyCombo(candLow);
+          if (sc) combos.push(sc);
+        }
+        if (highOfNext.id !== lowOfNext.id && candLow.length >= 3) {
+          const scH = classifyCombo([...stepRun, highOfNext]);
+          if (scH) combos.push(scH);
+        }
+        stepRun.push(lowOfNext);
       }
     }
   }
@@ -11108,6 +11741,15 @@ class TienLenGame {
     this.xiaoPlungeSingleTurn = false;
     activeXiaoPlungeSingle = false;
     this.kinichBombOwnerId = null;
+    this.nicoleSuitOnlyRound = false;
+    activeNicoleSuitOnlyRound = false;
+    this.xianyunStepStraightTurn = false;
+    activeXianyunStepStraight = false;
+    this.wriothesleyPairSmashTurn = false;
+    activeWriothesleyPairSmash = false;
+    this.ayatoCloneReady = false;
+    this.arlecchinoBondOwnerId = null;
+    this.flinsLanternOwnerId = null;
     this.turnDirection = 1;
     this.mualaniCrossBeatTurn = false;
 
@@ -16379,14 +17021,14 @@ class TienLenGame {
           : me?.cardSkin && me.cardSkin !== 'classic'
           ? me.cardSkin
           : 'raiden';
-      leftEl.style.backgroundImage = `url('fanart/${leftArtId}.jpg?v=57')`;
+      leftEl.style.backgroundImage = `url('fanart/${leftArtId}.jpg?v=64')`;
     }
     if (rightEl) {
       const activeOpponents = this.players.filter((p) => p.active && p.id !== this.mySeatId);
       const mainOpp = activeOpponents.find((p) => p.id === 2) || activeOpponents[0] || this.players[2];
       const oppCharId = this.getPlayerActiveCharId(mainOpp);
       const rightArtId = oppCharId && oppCharId !== 'none' ? oppCharId : 'furina';
-      rightEl.style.backgroundImage = `url('fanart/${rightArtId}.jpg?v=57')`;
+      rightEl.style.backgroundImage = `url('fanart/${rightArtId}.jpg?v=64')`;
     }
   }
 
@@ -16423,7 +17065,7 @@ class TienLenGame {
 
       heroHtml = `
         <div class="char-detail-hero">
-          <img class="char-detail-art" src="fanart/${charId}.jpg?v=61" alt="${sk.charName}" />
+          <img class="char-detail-art" src="fanart/${charId}.jpg?v=64" alt="${sk.charName}" />
           <div style="flex:1;">
             <div style="font-size:11px;font-weight:900;color:#fde047;letter-spacing:0.5px;text-transform:uppercase;">
               ${isMe ? '👑 NHÂN VẬT 5★ BẠN ĐANG SỬ DỤNG' : `🎭 NHÂN VẬT ĐANG XÀI CỦA ${p.name.toUpperCase()}`}
@@ -16484,7 +17126,7 @@ class TienLenGame {
 
       return `
         <div class="char-detail-roster-item ${isCurrent ? 'active-char' : ''} ${!owned ? 'locked-char' : ''}" ${clickAttr}>
-          <img src="fanart/${b.id}.jpg?v=57" alt="${cSk.charName}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid ${
+          <img src="fanart/${b.id}.jpg?v=64" alt="${cSk.charName}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid ${
         owned ? '#fde047' : '#64748b'
       };" />
           <div style="flex:1;min-width:0;">
@@ -16570,10 +17212,10 @@ class TienLenGame {
       );
     }
     if (this.naviaLockedCardIds && this.naviaLockedCardIds.size > 0) {
-      const np = this.players[this.naviaLockedTargetId];
+      const np = this.naviaLockedTargetId !== null ? this.players[this.naviaLockedTargetId] : null;
       pills.push(
-        `<span class="round-skill-pill">☂️ Pháo Kích Navia: Đang khóa cứng ${this.naviaLockedCardIds.size} lá bài của ${
-          np ? np.name : 'đối thủ'
+        `<span class="round-skill-pill">🔒 Phong Ấn Khóa Bài: Đang khóa cứng ${this.naviaLockedCardIds.size} lá bài của ${
+          np ? np.name : 'các đối thủ'
         } trong vòng này</span>`
       );
     }
@@ -16616,6 +17258,38 @@ class TienLenGame {
     if (this.columbinaExtraTurnReady) {
       pills.push(
         `<span class="round-skill-pill">🕊️ Khúc Ca Thiên Thần Columbina: Sau khi đánh bộ bài lượt này được đánh bồi thêm 1 bộ nữa ngay lập tức!</span>`
+      );
+    }
+    if (this.nicoleSuitOnlyRound) {
+      pills.push(
+        `<span class="round-skill-pill">☕ Tiệc Trà Nicole: San bằng cấp số 3➔A — Vòng này đè bài cùng loại hoàn toàn bằng Chất (♠ &lt; ♣ &lt; ♦ &lt; ♥)!</span>`
+      );
+    }
+    if (this.xianyunStepStraightTurn) {
+      pills.push(
+        `<span class="round-skill-pill">🦩 Tiên Hạc Xianyun: Lượt này được đánh Sảnh Nhảy Bậc cách 2 đơn vị (VD: 3-5-7, 6-8-10)!</span>`
+      );
+    }
+    if (this.wriothesleyPairSmashTurn) {
+      pills.push(
+        `<span class="round-skill-pill">🥊 Thiết Quyền Wriothesley: Lượt này được dùng 1 Đôi đấm vỡ trực tiếp Sảnh trên bàn!</span>`
+      );
+    }
+    if (this.ayatoCloneReady) {
+      pills.push(
+        `<span class="round-skill-pill">🌊 Thủy Ảnh Ayato: Bộ bài sắp đánh dùng 1 lá rác thế thân, giữ lại Phân Thân Nước (-1 bậc) trên tay!</span>`
+      );
+    }
+    if (this.arlecchinoBondOwnerId !== null) {
+      const ap = this.players[this.arlecchinoBondOwnerId];
+      pills.push(
+        `<span class="round-skill-pill">🩸 Khế Ước Sinh Mệnh (${ap ? ap.name : 'Arlecchino'}): Đối thủ Bỏ Lượt vòng này bị nhận 1 lá rác &amp; nộp phạt ${(b * 2).toLocaleString()} Xu!</span>`
+      );
+    }
+    if (this.flinsLanternOwnerId !== null) {
+      const flp = this.players[this.flinsLanternOwnerId];
+      pills.push(
+        `<span class="round-skill-pill">🏮 Ngọn Đèn Đêm (${flp ? flp.name : 'Flins'}): Ngay khi có bất kỳ đối thủ nào Bỏ Lượt, ${flp ? flp.name : 'Flins'} lập tức cướp Cái mở vòng mới!</span>`
       );
     }
     if (this.turnDirection === -1) {
@@ -16834,6 +17508,120 @@ class TienLenGame {
     }
     if (charId === 'venti' && player.hand.length < 1) {
       return { ok: false, reason: 'Cần còn bài trên tay để tạo Hố Đen Phong Thần!' };
+    }
+    if (charId === 'albedo' && player.hand.length < 3) {
+      return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để Giả Kim Dương Hoa chuyển hóa thành Sảnh 3 lá Cơ ♥!' };
+    }
+    if (charId === 'varka') {
+      const canCleaveTable = this.currentCombo && !this.currentCombo.isBomb && (this.currentCombo.length >= 2 || this.currentCombo.highRank < 12);
+      const canForgeLead = !this.currentCombo && player.hand.length >= 3;
+      if (!canCleaveTable && !canForgeLead) {
+        return { ok: false, reason: 'Chỉ dùng khi trên bàn có bộ bài thường để Đại Kiếm Bắc Phong chém đứt đôi, hoặc khi mở vòng có ≥ 3 lá bài!' };
+      }
+    }
+    if (charId === 'nicole' && this.nicoleSuitOnlyRound) {
+      return { ok: false, reason: 'Tiệc Trà Tiên Tri đã bật trong vòng này' };
+    }
+    if (charId === 'zhongli' && this.naviaLockedCardIds && this.naviaLockedCardIds.size > 0) {
+      return { ok: false, reason: 'Thiên Tinh Hoá Đá đã phong ấn bài đối thủ trong vòng này' };
+    }
+    if (charId === 'baizhu') {
+      if (this.currentCombo) {
+        if (this.currentCombo.isBomb || this.currentCombo.highRank >= 12) {
+          return { ok: false, reason: 'Chỉ chẩn mạch đè được bộ bài thường (dưới Heo/Hàng) trên bàn!' };
+        }
+        const needLen = Math.min(3, this.currentCombo.length);
+        if (player.hand.length < needLen) {
+          return { ok: false, reason: `Cần còn ít nhất ${needLen} lá bài trên tay để Kê Đơn Bắt Mạch!` };
+        }
+      } else if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để Kê Đơn tạo Đôi Đỏ!' };
+      }
+    }
+    if (charId === 'xianyun') {
+      if (this.xianyunStepStraightTurn) {
+        return { ok: false, reason: 'Tiên Hạc Đạp Mây đã bật trong lượt này' };
+      }
+      if (player.hand.length < 3) {
+        return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để ghép Sảnh Nhảy Bậc (cách 2 đơn vị)!' };
+      }
+    }
+    if (charId === 'kazuha' && player.hand.length < 1) {
+      return { ok: false, reason: 'Cần còn ít nhất 1 lá bài trên tay để Gió Thu Tráo Lá (đổi 1-lấy-1 với đối thủ)!' };
+    }
+    if (charId === 'itto' && player.hand.length < 3) {
+      return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để Quỷ Vương Đúc Khối!' };
+    }
+    if (charId === 'ayato') {
+      if (this.ayatoCloneReady) {
+        return { ok: false, reason: 'Thủy Ảnh Thế Thân đã bật trong lượt này' };
+      }
+      if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để dùng lá rác thế thân và giữ lại Phân Thân Nước!' };
+      }
+    }
+    if (charId === 'cyno' && player.hand.length < 1) {
+      return { ok: false, reason: 'Cần còn bài trên tay để Phán Quyết Mausoleum!' };
+    }
+    if (charId === 'nilou' && player.hand.length < 2) {
+      return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để Vũ Điệu Hoa Sen thăng hoa các Đôi!' };
+    }
+    if (charId === 'alhaitham' && player.hand.length < 3) {
+      return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để Lăng Kính Khúc Xạ hội tụ thành Sảnh 3 lá lớn!' };
+    }
+    if (charId === 'neuvillette') {
+      if (this.currentCombo) {
+        if (this.currentCombo.isBomb || this.currentCombo.highRank >= 12) {
+          return { ok: false, reason: 'Chỉ Cân Bằng Thủy Triều được bộ bài thường (dưới Heo/Hàng) trên bàn!' };
+        }
+        if (player.hand.length < this.currentCombo.length) {
+          return { ok: false, reason: `Cần còn ít nhất ${this.currentCombo.length} lá bài trên tay để Cân Bằng Thủy Triều!` };
+        }
+      } else if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để Cân Bằng Thủy Triều!' };
+      }
+    }
+    if (charId === 'wriothesley') {
+      if (this.wriothesleyPairSmashTurn) {
+        return { ok: false, reason: 'Thiết Quyền Đập Sảnh đã bật trong lượt này' };
+      }
+      if (this.currentCombo && (this.currentCombo.isBomb || this.currentCombo.highRank >= 12 || (this.currentCombo.type !== COMBO_TYPES.STRAIGHT && this.currentCombo.type !== COMBO_TYPES.PAIR))) {
+        return { ok: false, reason: 'Chỉ dùng khi trên bàn đang là SẢNH (hoặc Đôi) để Thiết Quyền dùng 1 Đôi đấm vỡ!' };
+      }
+      if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để tạo Đôi Thiết Quyền!' };
+      }
+    }
+    if (charId === 'sigewinne' && this.naviaLockedCardIds && this.naviaLockedCardIds.size > 0) {
+      return { ok: false, reason: 'Bong Bóng Giam Cầm đã khóa bài đối thủ trong vòng này' };
+    }
+    if (charId === 'emilie' && player.hand.length < 2) {
+      return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để Tinh Chế Hương Hoa (tiêu hủy 1 lá rác & tăng +4 bậc lá kế)!' };
+    }
+    if (charId === 'chasca' && player.hand.length < 3) {
+      return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để Đạn Xoáy Nối Sảnh!' };
+    }
+    if (charId === 'tartaglia' && player.hand.length < 3) {
+      return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để Hoán Đổi Võ Khí (Sảnh ⇄ Sám Cô)!' };
+    }
+    if (charId === 'arlecchino') {
+      if (this.arlecchinoBondOwnerId !== null) {
+        return { ok: false, reason: 'Khế Ước Sinh Mệnh đã yểm trong vòng này' };
+      }
+      if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để yểm Khế Ước Sinh Mệnh!' };
+      }
+    }
+    if (charId === 'ineffa' && player.hand.length < 4) {
+      return { ok: false, reason: 'Cần ít nhất 4 lá bài trên tay để Mô-Đun Đồng Bộ 2 Đôi Liên Tiếp!' };
+    }
+    if (charId === 'flins') {
+      if (this.flinsLanternOwnerId !== null) {
+        return { ok: false, reason: 'Ngọn Đèn Đêm Cướp Cái đã thắp trong vòng này' };
+      }
+      if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để thắp Ngọn Đèn Đêm Cướp Cái!' };
+      }
     }
     return { ok: true, charId };
   }
@@ -17634,6 +18422,914 @@ class TienLenGame {
         const gainedStr = keepForVenti.map((c) => `${c.rank}${c.suit}`).join(', ');
         skillSummary = `🌪️ [Hố Đen Phong Thần] ${player.name} hút lá bài lớn nhất của ${oppTargets.length} đối thủ vào tâm bão, thu về (${gainedStr}) và thổi trả toàn bộ lá bài rác cho các đối thủ!`;
       }
+    } else if (charId === 'klee') {
+      const target = [...activeOpponents].sort((a, b) => a.hand.length - b.hand.length)[0];
+      if (target && target.hand.length > 0) {
+        const oppRC = new Array(13).fill(0);
+        target.hand.forEach((c) => oppRC[c.rankIndex]++);
+        let targetCards = [];
+        for (let r = 11; r >= 0; r--) {
+          if (oppRC[r] >= 2) {
+            targetCards = target.hand.filter((c) => c.rankIndex === r).slice(0, 3);
+            break;
+          }
+        }
+        if (targetCards.length === 0) {
+          const oppStruct = this.analyzeBotHandStructure(target.hand);
+          const straightCards = sortCardsAsc(target.hand).filter(
+            (c) => c.rankIndex <= 11 && oppStruct.criticalStraightRanks.has(c.rankIndex)
+          );
+          if (straightCards.length >= 2) {
+            targetCards = straightCards.slice(-3);
+          } else {
+            targetCards = sortCardsAsc(target.hand)
+              .filter((c) => c.rankIndex <= 11)
+              .slice(-Math.min(3, target.hand.length));
+            if (targetCards.length === 0) targetCards = target.hand.slice(0, Math.min(2, target.hand.length));
+          }
+        }
+        const scatterRanks = [0, 2, 5]; // 3, 5, 8 rời rạc không ghép đôi hay nối sảnh
+        const blastedLog = [];
+        targetCards.forEach((c, idx) => {
+          const oldStr = `${c.rank}${c.suit}`;
+          const newR = scatterRanks[idx % scatterRanks.length];
+          const newS = idx % 2;
+          c.rankIndex = newR;
+          c.rank = RANKS[newR];
+          c.suitIndex = newS;
+          c.suit = SUITS[newS];
+          c.isRed = false;
+          c.value = newR * 4 + newS;
+          c.id = `${c.rank}${c.suit}_klee_${Date.now()}_${idx}`;
+          blastedLog.push(`${oldStr}➔${c.rank}${c.suit}`);
+        });
+        target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
+        skillSummary = `💣 [Bom Nảy Phá Bộ] ${player.name} ném Bom Nảy vào tay ${target.name}, nổ tung bộ bài ghép thành các lá lẻ rời rạc (${blastedLog.join(', ')})!`;
+      }
+    } else if (charId === 'albedo') {
+      const sorted = sortCardsAsc(player.hand);
+      const rc = new Array(13).fill(0);
+      sorted.forEach((c) => rc[c.rankIndex]++);
+      let pairRank = -1;
+      for (let r = 9; r >= 0; r--) {
+        if (rc[r] === 2) {
+          pairRank = r;
+          break;
+        }
+      }
+      let chosen3 = [];
+      let topRank = 7;
+      if (pairRank >= 0) {
+        const pairCards = sorted.filter((c) => c.rankIndex === pairRank).slice(0, 2);
+        const trashCand =
+          sorted.find((c) => c.rankIndex !== pairRank && rc[c.rankIndex] === 1 && c.rankIndex < 12) ||
+          sorted.find((c) => c.rankIndex !== pairRank);
+        if (trashCand) {
+          chosen3 = [...pairCards, trashCand];
+          topRank = Math.min(11, Math.max(2, pairRank + 2));
+        }
+      }
+      if (chosen3.length < 3) {
+        const nonTwos = sorted.filter((c) => c.rankIndex <= 11);
+        chosen3 = (nonTwos.length >= 3 ? nonTwos : sorted).slice(0, 3);
+        const midRank = chosen3[1] ? chosen3[1].rankIndex : 4;
+        topRank = Math.min(11, Math.max(2, midRank + 2));
+      }
+      if (chosen3.length === 3) {
+        const startRank = topRank - 2;
+        const oldStr = chosen3.map((c) => `${c.rank}${c.suit}`).join(', ');
+        chosen3.forEach((c, idx) => {
+          const rIdx = startRank + idx;
+          c.rankIndex = rIdx;
+          c.rank = RANKS[rIdx];
+          c.suitIndex = 3; // Chất Cơ ♥
+          c.suit = '♥';
+          c.isRed = true;
+          c.value = rIdx * 4 + 3;
+          c.id = `${c.rank}♥_albedo_${Date.now()}_${idx}`;
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(chosen3.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `⚜️ [Giả Kim Dương Hoa] ${player.name} luyện kim chuyển hóa (${oldStr}) thành Sảnh 3 lá đồng chất Cơ ${RANKS[startRank]}♥-${RANKS[startRank + 1]}♥-${RANKS[startRank + 2]}♥!`;
+      }
+    } else if (charId === 'varka') {
+      if (this.currentCombo && !this.currentCombo.isBomb) {
+        const oldLabel = this.currentCombo.label;
+        const sortedCards = sortCardsAsc(this.currentCombo.cards);
+        if (this.currentCombo.type === COMBO_TYPES.STRAIGHT && sortedCards.length >= 4) {
+          const halfLen = Math.max(3, Math.ceil(sortedCards.length / 2));
+          const lowerHalf = sortedCards.slice(0, halfLen);
+          this.currentCombo = classifyCombo(lowerHalf) || classifyCombo([sortedCards[0]]);
+          this.currentCombo.label = `${this.currentCombo.label} [🗡️ Varka chém đứt đôi ${oldLabel}]`;
+          skillSummary = `🗡️ [Đại Kiếm Bắc Phong] ${player.name} vung đại kiếm chém đứt đôi ${oldLabel}, cuốn bay nửa trên và chỉ để lại ${this.currentCombo.label} trên bàn!`;
+        } else if (sortedCards.length >= 2) {
+          const lowestCard = sortedCards[0];
+          this.currentCombo = classifyCombo([lowestCard]);
+          this.currentCombo.label = `${this.currentCombo.label} [🗡️ Varka chém đứt đôi ${oldLabel}]`;
+          skillSummary = `🗡️ [Đại Kiếm Bắc Phong] ${player.name} vung đại kiếm chém đứt đôi ${oldLabel} xuống chỉ còn 1 lá lẻ thấp nhất ${lowestCard.rank}${lowestCard.suit}!`;
+        } else {
+          const oldRank = RANKS[this.currentCombo.highRank];
+          const newRankIdx = Math.max(0, Math.floor(this.currentCombo.highRank / 2));
+          this.currentCombo.highRank = newRankIdx;
+          this.currentCombo.highValue = newRankIdx * 4 + (this.currentCombo.highCard?.suitIndex || 0);
+          this.currentCombo.label = `${this.currentCombo.label} [🗡️ Varka chém chia đôi ${oldRank}➔${RANKS[newRankIdx]}]`;
+          skillSummary = `🗡️ [Đại Kiếm Bắc Phong] ${player.name} chém chia đôi cấp bậc lá bài trên bàn (${oldRank} ➔ ${RANKS[newRankIdx]})!`;
+        }
+      } else {
+        const sorted = sortCardsAsc(player.hand).filter((c) => c.rankIndex <= 11);
+        const pool = sorted.slice(0, 3);
+        if (pool.length === 3) {
+          const baseRank = Math.min(9, Math.max(3, pool[2].rankIndex));
+          pool.forEach((c, idx) => {
+            const rIdx = baseRank + idx;
+            c.rankIndex = rIdx;
+            c.rank = RANKS[rIdx];
+            c.value = rIdx * 4 + c.suitIndex;
+            c.id = `${c.rank}${c.suit}_varka_${Date.now()}_${idx}`;
+          });
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          this.selectedCardIds = new Set(pool.map((c) => c.id));
+          this.companionCardIds.clear();
+          skillSummary = `🗡️ [Đại Kiếm Bắc Phong] ${player.name} rèn 3 lá nhỏ nhất thành Sảnh Bắc Phong ${RANKS[baseRank]}-${RANKS[baseRank + 1]}-${RANKS[baseRank + 2]}!`;
+        }
+      }
+    } else if (charId === 'nicole') {
+      this.nicoleSuitOnlyRound = true;
+      activeNicoleSuitOnlyRound = true;
+      skillSummary = `☕ [Tiệc Trà Tiên Tri] ${player.name} khai tiệc Hexenzirkel: San bằng mọi cấp số từ 3 đến A trong vòng này — Đè bài cùng loại hoàn toàn quyết định bằng Chất (♠ < ♣ < ♦ < ♥)!`;
+    } else if (charId === 'zhongli') {
+      const blackIds = [];
+      activeOpponents.forEach((opp) => {
+        opp.hand.forEach((c) => {
+          if (c.suitIndex <= 1) {
+            blackIds.push(c.id);
+          }
+        });
+      });
+      this.naviaLockedTargetId = null;
+      this.naviaLockedCardIds = new Set(blackIds);
+      activeNaviaLockedCardIds = this.naviaLockedCardIds;
+      const myLow = sortCardsAsc(player.hand).find((c) => c.rankIndex <= 10);
+      let jadeNote = '';
+      if (myLow) {
+        const oldStr = `${myLow.rank}${myLow.suit}`;
+        const newR = Math.min(11, myLow.rankIndex + 1);
+        myLow.rankIndex = newR;
+        myLow.rank = RANKS[newR];
+        myLow.suitIndex = 2; // Rô ♦
+        myLow.suit = '♦';
+        myLow.isRed = true;
+        myLow.value = newR * 4 + 2;
+        myLow.id = `${myLow.rank}♦_zhongli_${Date.now()}`;
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        jadeNote = ` và kết tinh Khiên Ngọc nâng ${oldStr} ➔ ${myLow.rank}♦`;
+      }
+      skillSummary = `☄️ [Thiên Tinh Hoá Đá] ${player.name} giáng Thiên Tinh hóa đá toàn bộ ${blackIds.length} lá bài chất Đen (♠, ♣) trên tay các đối thủ trong vòng này${jadeNote}!`;
+    } else if (charId === 'baizhu') {
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const sorted = sortCardsAsc(player.hand);
+      const isolated = sorted.filter(
+        (c) => c.rankIndex <= 11 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
+      );
+      const nonBomb = sorted.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
+        const needLen = Math.min(3, this.currentCombo.length);
+        const chosen = [];
+        for (const c of [...isolated, ...nonBomb, ...sorted]) {
+          if (chosen.length >= needLen) break;
+          if (!chosen.some((x) => x.id === c.id)) chosen.push(c);
+        }
+        const tableHighSuit = this.currentCombo.highCard ? this.currentCombo.highCard.suitIndex : 0;
+        const targetHighRank =
+          tableHighSuit < 3 ? this.currentCombo.highRank : Math.min(11, this.currentCombo.highRank + 1);
+        const oldStr = chosen.map((c) => `${c.rank}${c.suit}`).join(', ');
+        if (this.currentCombo.type === COMBO_TYPES.STRAIGHT && needLen === 3) {
+          const topR = Math.max(2, targetHighRank);
+          const startR = topR - 2;
+          chosen.forEach((c, idx) => {
+            const rIdx = startR + idx;
+            const sIdx = idx === 2 ? 3 : 2;
+            c.rankIndex = rIdx;
+            c.rank = RANKS[rIdx];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = true;
+            c.value = rIdx * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_baizhu_${Date.now()}_${idx}`;
+          });
+        } else {
+          const redSuits = [3, 2, 1];
+          chosen.forEach((c, idx) => {
+            const sIdx = redSuits[idx % 3];
+            c.rankIndex = targetHighRank;
+            c.rank = RANKS[targetHighRank];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = sIdx >= 2;
+            c.value = targetHighRank * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_baizhu_${Date.now()}_${idx}`;
+          });
+        }
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(chosen.map((c) => c.id));
+        this.companionCardIds.clear();
+        const newCombo = classifyCombo(chosen);
+        const newLabel = newCombo ? newCombo.label : chosen.map((c) => `${c.rank}${c.suit}`).join(' ');
+        skillSummary = `🐍 [Kê Đơn Bắt Mạch] ${player.name} chẩn mạch kê đơn biến (${oldStr}) thành ${newLabel} mang chất Đỏ (♥/♦) khắc chế ngay ${this.currentCombo.label}!`;
+      } else {
+        const chosen = [...isolated, ...nonBomb, ...sorted].slice(0, 2);
+        if (chosen.length === 2) {
+          const oldStr = chosen.map((c) => `${c.rank}${c.suit}`).join(', ');
+          const targetR = 10; // K
+          chosen.forEach((c, idx) => {
+            const sIdx = idx === 0 ? 3 : 2;
+            c.rankIndex = targetR;
+            c.rank = RANKS[targetR];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = true;
+            c.value = targetR * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_baizhu_${Date.now()}_${idx}`;
+          });
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          this.selectedCardIds = new Set(chosen.map((c) => c.id));
+          this.companionCardIds.clear();
+          skillSummary = `🐍 [Kê Đơn Bắt Mạch] ${player.name} bốc thuốc trường sinh biến (${oldStr}) thành Đôi K Đỏ (K♥ K♦)!`;
+        }
+      }
+    } else if (charId === 'xianyun') {
+      this.xianyunStepStraightTurn = true;
+      activeXianyunStepStraight = true;
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const stepMovesNow = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isStepStraight && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+      );
+      if (stepMovesNow.length === 0 && player.hand.length >= 3) {
+        const sorted = sortCardsAsc(player.hand).filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
+        const pool = (sorted.length >= 3 ? sorted : sortCardsAsc(player.hand)).slice(0, 3);
+        if (pool.length === 3) {
+          const needTop =
+            this.currentCombo && this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3
+              ? Math.min(11, Math.max(4, this.currentCombo.highRank + 1))
+              : Math.min(11, Math.max(4, pool[2].rankIndex + 2));
+          const r0 = needTop - 4;
+          const r1 = needTop - 2;
+          const r2 = needTop;
+          const stepRanks = [r0, r1, r2];
+          pool.forEach((c, idx) => {
+            const rIdx = stepRanks[idx];
+            const sIdx = idx === 2 ? 3 : c.suitIndex;
+            c.rankIndex = rIdx;
+            c.rank = RANKS[rIdx];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = sIdx >= 2;
+            c.value = rIdx * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_xianyun_${Date.now()}_${idx}`;
+          });
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          this.selectedCardIds = new Set(pool.map((c) => c.id));
+          this.companionCardIds.clear();
+        }
+      } else if (stepMovesNow.length > 0) {
+        this.selectedCardIds = new Set(stepMovesNow[0].cards.map((c) => c.id));
+        this.companionCardIds.clear();
+      }
+      skillSummary = `🦩 [Tiên Hạc Đạp Mây] ${player.name} bật cơ quan Trúc Tinh: Cho phép đánh Sảnh Nhảy Bậc cách 2 đơn vị (VD: 3-5-7, 4-6-8-10) trong lượt này!`;
+    } else if (charId === 'kazuha') {
+      // Kazuha: Đổi 1-lấy-1 lá rác nhỏ nhất trên tay Kazuha lấy 1 lá bài từ tay đối thủ có cùng số với bài trên tay Kazuha để ghép Đôi/Sám/Tứ Quý!
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const mySorted = sortCardsAsc(player.hand);
+      const myTrash =
+        mySorted.find(
+          (c) =>
+            c.rankIndex < 12 &&
+            struct.rankCounts[c.rankIndex] === 1 &&
+            !struct.bombRanks.has(c.rankIndex) &&
+            !struct.criticalStraightRanks.has(c.rankIndex)
+        ) ||
+        mySorted.find((c) => c.rankIndex < 12) ||
+        mySorted[0];
+      if (myTrash) {
+        const myRemCards = player.hand.filter((c) => c.id !== myTrash.id && c.rankIndex <= 11);
+        const myRemRanks = new Set(myRemCards.map((c) => c.rankIndex));
+        let bestOpp = null;
+        let bestOppCard = null;
+        // Tìm lá trên tay đối thủ trùng cấp số với 1 lá trên tay Kazuha (ưu tiên cấp số cao để ghép thành Đôi/Sám/Tứ Quý mạnh)
+        for (const opp of activeOpponents) {
+          const matching = sortCardsAsc(opp.hand)
+            .filter((c) => c.rankIndex <= 11 && myRemRanks.has(c.rankIndex))
+            .reverse();
+          if (matching.length > 0) {
+            if (!bestOppCard || matching[0].value > bestOppCard.value) {
+              bestOpp = opp;
+              bestOppCard = matching[0];
+            }
+          }
+        }
+        // Nếu không có lá nào trùng số, đổi lấy lá bài thường lớn nhất (≤ A) của đối thủ ít bài nhất
+        if (!bestOppCard) {
+          bestOpp = [...activeOpponents].sort((a, b) => a.hand.length - b.hand.length)[0];
+          if (bestOpp && bestOpp.hand.length > 0) {
+            const oppNormals = sortCardsAsc(bestOpp.hand).filter((c) => c.rankIndex <= 11);
+            bestOppCard =
+              oppNormals.length > 0
+                ? oppNormals[oppNormals.length - 1]
+                : sortCardsAsc(bestOpp.hand)[bestOpp.hand.length - 1];
+          }
+        }
+        if (bestOpp && bestOppCard) {
+          player.hand = player.hand.filter((c) => c.id !== myTrash.id);
+          bestOpp.hand = bestOpp.hand.filter((c) => c.id !== bestOppCard.id);
+          player.hand.push(bestOppCard);
+          bestOpp.hand.push(myTrash);
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          bestOpp.hand = sortHandByMode(bestOpp.hand, bestOpp.id === this.mySeatId ? this.sortMode : 'asc');
+          const pairCards = player.hand.filter((c) => c.rankIndex === bestOppCard.rankIndex);
+          this.selectedCardIds = new Set(pairCards.map((c) => c.id));
+          this.companionCardIds.clear();
+          skillSummary = `🍁 [Gió Thu Tráo Lá] ${player.name} cuốn lá phong đổi 1-lấy-1 lá rác ${myTrash.rank}${myTrash.suit} lấy lá ${bestOppCard.rank}${bestOppCard.suit} của ${bestOpp.name} về tay mình!`;
+        }
+      }
+    } else if (charId === 'itto') {
+      const sorted = sortCardsAsc(player.hand);
+      const rc = new Array(13).fill(0);
+      sorted.forEach((c) => rc[c.rankIndex]++);
+      let tripleRank = -1;
+      for (let r = 11; r >= 0; r--) {
+        if (rc[r] === 3) {
+          tripleRank = r;
+          break;
+        }
+      }
+      if (tripleRank >= 0 && player.hand.length >= 4) {
+        const trash =
+          sorted.find((c) => c.rankIndex !== tripleRank && rc[c.rankIndex] === 1 && c.rankIndex < 12) ||
+          sorted.find((c) => c.rankIndex !== tripleRank);
+        if (trash) {
+          const oldStr = `${trash.rank}${trash.suit}`;
+          const usedSuits = new Set(player.hand.filter((c) => c.rankIndex === tripleRank).map((c) => c.suitIndex));
+          let missingSuit = 3;
+          for (const s of [3, 2, 1, 0]) {
+            if (!usedSuits.has(s)) {
+              missingSuit = s;
+              break;
+            }
+          }
+          trash.rankIndex = tripleRank;
+          trash.rank = RANKS[tripleRank];
+          trash.suitIndex = missingSuit;
+          trash.suit = SUITS[missingSuit];
+          trash.isRed = missingSuit >= 2;
+          trash.value = tripleRank * 4 + missingSuit;
+          trash.id = `${trash.rank}${trash.suit}_itto_${Date.now()}`;
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          const quadCards = player.hand.filter((c) => c.rankIndex === tripleRank);
+          this.selectedCardIds = new Set(quadCards.map((c) => c.id));
+          this.companionCardIds.clear();
+          skillSummary = `👹 [Quỷ Vương Đúc Khối] ${player.name} vung chùy Arataki đúc lá ${oldStr} hợp vào Sám Cô ${RANKS[tripleRank]} tạo thành TỨ QUÝ ${RANKS[tripleRank]} 💣!`;
+        }
+      } else {
+        let pairRank = -1;
+        for (let r = 10; r >= 0; r--) {
+          if (rc[r] === 2) {
+            pairRank = r;
+            break;
+          }
+        }
+        const chosen3 = [];
+        let targetR = 9; // Q
+        if (pairRank >= 0) {
+          const pairCards = sorted.filter((c) => c.rankIndex === pairRank).slice(0, 2);
+          const trash =
+            sorted.find((c) => c.rankIndex !== pairRank && rc[c.rankIndex] === 1 && c.rankIndex < 12) ||
+            sorted.find((c) => c.rankIndex !== pairRank);
+          if (trash) {
+            chosen3.push(...pairCards, trash);
+            targetR = Math.min(11, pairRank + 1);
+          }
+        }
+        if (chosen3.length < 3) {
+          chosen3.length = 0;
+          chosen3.push(...sorted.slice(0, 3));
+          targetR = Math.min(11, Math.max(8, (chosen3[2]?.rankIndex || 6) + 2));
+        }
+        const oldStr = chosen3.map((c) => `${c.rank}${c.suit}`).join(', ');
+        const suitsOrder = [3, 2, 1];
+        chosen3.forEach((c, idx) => {
+          const sIdx = suitsOrder[idx % 3];
+          c.rankIndex = targetR;
+          c.rank = RANKS[targetR];
+          c.suitIndex = sIdx;
+          c.suit = SUITS[sIdx];
+          c.isRed = sIdx >= 2;
+          c.value = targetR * 4 + sIdx;
+          c.id = `${c.rank}${c.suit}_itto_${Date.now()}_${idx}`;
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(chosen3.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `👹 [Quỷ Vương Đúc Khối] ${player.name} vung chùy đúc khối (${oldStr}) thành Sám Cô ${RANKS[targetR]}!`;
+      }
+    } else if (charId === 'ayato') {
+      this.ayatoCloneReady = true;
+      skillSummary = `🌊 [Thủy Ảnh Thế Thân] ${player.name} triệu hồi phân thân nước Kamisato: Khi đánh bộ bài trong lượt này, 1 lá rác nhỏ nhất trên tay sẽ thế chỗ cho lá chủ lực để lại Phân Thân Nước (-1 bậc) ở lại trên tay!`;
+    } else if (charId === 'cyno') {
+      let bestOpp = null;
+      let highestCard = null;
+      activeOpponents.forEach((opp) => {
+        const oppSorted = sortCardsAsc(opp.hand);
+        const top = oppSorted[oppSorted.length - 1];
+        if (top && (!highestCard || top.value > highestCard.value)) {
+          bestOpp = opp;
+          highestCard = top;
+        }
+      });
+      const myLow = sortCardsAsc(player.hand)[0];
+      if (bestOpp && highestCard && myLow) {
+        const oldOppStr = `${highestCard.rank}${highestCard.suit}`;
+        const oldMyStr = `${myLow.rank}${myLow.suit}`;
+        highestCard.rankIndex = 0;
+        highestCard.rank = '3';
+        highestCard.suitIndex = 0;
+        highestCard.suit = '♠';
+        highestCard.isRed = false;
+        highestCard.value = 0;
+        highestCard.id = `3♠_cyno_${Date.now()}`;
+        bestOpp.hand = sortHandByMode(bestOpp.hand, bestOpp.id === this.mySeatId ? this.sortMode : 'asc');
+
+        myLow.rankIndex = 11;
+        myLow.rank = 'A';
+        myLow.suitIndex = 2; // Rô ♦
+        myLow.suit = '♦';
+        myLow.isRed = true;
+        myLow.value = 11 * 4 + 2;
+        myLow.id = `A♦_cyno_${Date.now()}`;
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set([myLow.id]);
+        this.companionCardIds.clear();
+        skillSummary = `🐺 [Phán Quyết Mausoleum] ${player.name} giáng lôi trượng phế truất lá lớn nhất ${oldOppStr} của ${bestOpp.name} xuống thành 3♠ và sắc phong lá ${oldMyStr} của mình lên thành Át Rô (A♦)!`;
+      }
+    } else if (charId === 'nilou') {
+      const sorted = sortCardsAsc(player.hand);
+      const rc = new Array(13).fill(0);
+      sorted.forEach((c) => rc[c.rankIndex]++);
+      const pairRanks = [];
+      for (let r = 0; r <= 10; r++) {
+        if (rc[r] === 2) pairRanks.push(r);
+      }
+      if (pairRanks.length > 0) {
+        const changes = [];
+        const boostedIds = [];
+        pairRanks.forEach((pr) => {
+          const cards = player.hand.filter((c) => c.rankIndex === pr);
+          const newR = Math.min(11, pr + 2);
+          cards.forEach((c, idx) => {
+            c.rankIndex = newR;
+            c.rank = RANKS[newR];
+            c.value = newR * 4 + c.suitIndex;
+            c.id = `${c.rank}${c.suit}_nilou_${Date.now()}_${pr}_${idx}`;
+            boostedIds.push(c.id);
+          });
+          changes.push(`Đôi ${RANKS[pr]}➔Đôi ${RANKS[newR]}`);
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(boostedIds.slice(-2));
+        this.companionCardIds.clear();
+        skillSummary = `🪷 [Vũ Điệu Hoa Sen] ${player.name} múa vũ điệu Sabzeruz thăng hoa toàn bộ ${pairRanks.length} Đôi trên tay tăng +2 bậc (${changes.join(', ')})!`;
+      } else {
+        const twoLow = sorted.slice(0, 2);
+        const oldStr = twoLow.map((c) => `${c.rank}${c.suit}`).join(', ');
+        const targetR = 9; // Q
+        twoLow.forEach((c, idx) => {
+          const sIdx = idx === 0 ? 3 : 2;
+          c.rankIndex = targetR;
+          c.rank = RANKS[targetR];
+          c.suitIndex = sIdx;
+          c.suit = SUITS[sIdx];
+          c.isRed = true;
+          c.value = targetR * 4 + sIdx;
+          c.id = `${c.rank}${c.suit}_nilou_${Date.now()}_${idx}`;
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(twoLow.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `🪷 [Vũ Điệu Hoa Sen] ${player.name} kết nở Hạt Nhân Căng Tràn biến (${oldStr}) thành Đôi Q Đỏ (Q♥ Q♦)!`;
+      }
+    } else if (charId === 'nahida') {
+      const loweredNotes = [];
+      activeOpponents.forEach((opp) => {
+        const oppSorted = sortCardsAsc(opp.hand);
+        const top3 = oppSorted.slice(-Math.min(3, oppSorted.length));
+        this.yelanRevealedByPlayer[opp.id] = {
+          cards: top3,
+          expiresAt: Date.now() + 10000,
+        };
+        setTimeout(() => {
+          if (this.yelanRevealedByPlayer[opp.id] && Date.now() >= this.yelanRevealedByPlayer[opp.id].expiresAt) {
+            delete this.yelanRevealedByPlayer[opp.id];
+            this.renderSeats();
+          }
+        }, 10100);
+        const oppNormals = oppSorted.filter((c) => c.rankIndex <= 11);
+        const highestNormal = oppNormals.length > 0 ? oppNormals[oppNormals.length - 1] : null;
+        if (highestNormal && highestNormal.rankIndex > 0) {
+          const oldR = highestNormal.rank;
+          const newR = Math.max(0, highestNormal.rankIndex - 1);
+          highestNormal.rankIndex = newR;
+          highestNormal.rank = RANKS[newR];
+          highestNormal.value = newR * 4 + highestNormal.suitIndex;
+          highestNormal.id = `${highestNormal.rank}${highestNormal.suit}_nahida_${Date.now()}_${opp.id}`;
+          opp.hand = sortHandByMode(opp.hand, opp.id === this.mySeatId ? this.sortMode : 'asc');
+          loweredNotes.push(`${opp.name}: ${oldR}➔${highestNormal.rank}`);
+        }
+      });
+      skillSummary = `🌿 [Đền Thờ Maya Liên Kết] ${player.name} quét tri thức Akasha: Lộ diện 3 lá bài lớn nhất của TẤT CẢ đối thủ trong 10s và hạ -1 bậc lá bài thường cao nhất của họ (${loweredNotes.join(' • ') || 'Đã liên kết'})!`;
+    } else if (charId === 'alhaitham') {
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const sorted = sortCardsAsc(player.hand);
+      const nonBombNormals = sorted.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
+      const pool = nonBombNormals.length >= 3 ? nonBombNormals : sorted;
+      const anchor = pool[pool.length - 1];
+      const twoTrash = pool.filter((c) => c.id !== anchor.id).slice(0, 2);
+      if (anchor && twoTrash.length === 2) {
+        const topR = Math.min(11, Math.max(2, anchor.rankIndex));
+        const oldStr = twoTrash.map((c) => `${c.rank}${c.suit}`).join(', ');
+        const r0 = topR - 2;
+        const r1 = topR - 1;
+        twoTrash[0].rankIndex = r0;
+        twoTrash[0].rank = RANKS[r0];
+        twoTrash[0].value = r0 * 4 + twoTrash[0].suitIndex;
+        twoTrash[0].id = `${twoTrash[0].rank}${twoTrash[0].suit}_alhaitham_${Date.now()}_0`;
+
+        twoTrash[1].rankIndex = r1;
+        twoTrash[1].rank = RANKS[r1];
+        twoTrash[1].value = r1 * 4 + twoTrash[1].suitIndex;
+        twoTrash[1].id = `${twoTrash[1].rank}${twoTrash[1].suit}_alhaitham_${Date.now()}_1`;
+
+        if (anchor.rankIndex > 11) {
+          anchor.rankIndex = 11;
+          anchor.rank = 'A';
+          anchor.value = 11 * 4 + anchor.suitIndex;
+        }
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set([twoTrash[0].id, twoTrash[1].id, anchor.id]);
+        this.companionCardIds.clear();
+        skillSummary = `🪞 [Lăng Kính Khúc Xạ] ${player.name} hội tụ 3 gương ánh sáng khúc xạ (${oldStr}) nối liền vào ${anchor.rank}${anchor.suit} thành Sảnh lớn ${RANKS[r0]}-${RANKS[r1]}-${RANKS[topR]}!`;
+      }
+    } else if (charId === 'neuvillette') {
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const sorted = sortCardsAsc(player.hand);
+      const nonBomb = sorted.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
+        const needLen = this.currentCombo.length;
+        const chosen = (nonBomb.length >= needLen ? nonBomb : sorted).slice(0, needLen);
+        const oldTableRank = this.currentCombo.highRank;
+        const myHighRank = chosen[chosen.length - 1]?.rankIndex || 0;
+        const avgRank = Math.max(0, Math.min(10, Math.floor((oldTableRank + myHighRank) / 2)));
+        // Hạ bộ bài trên bàn về bậc cân bằng avgRank
+        this.currentCombo.highRank = avgRank;
+        this.currentCombo.highValue = avgRank * 4 + (this.currentCombo.highCard?.suitIndex || 0);
+        this.currentCombo.label = `${this.currentCombo.label} [⚖️ Neuvillette cân bằng về ${RANKS[avgRank]}]`;
+
+        const beatRank = Math.min(11, avgRank + 1);
+        const oldMyStr = chosen.map((c) => `${c.rank}${c.suit}`).join(', ');
+        if (this.currentCombo.type === COMBO_TYPES.STRAIGHT && needLen >= 3) {
+          const topR = Math.max(needLen - 1, beatRank);
+          const startR = topR - needLen + 1;
+          chosen.forEach((c, idx) => {
+            const rIdx = startR + idx;
+            const sIdx = idx === needLen - 1 ? 3 : idx % 3;
+            c.rankIndex = rIdx;
+            c.rank = RANKS[rIdx];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = sIdx >= 2;
+            c.value = rIdx * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_neuv_${Date.now()}_${idx}`;
+          });
+        } else {
+          const suitsOrder = [3, 2, 1, 0];
+          chosen.forEach((c, idx) => {
+            const sIdx = suitsOrder[idx % 4];
+            c.rankIndex = beatRank;
+            c.rank = RANKS[beatRank];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = sIdx >= 2;
+            c.value = beatRank * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_neuv_${Date.now()}_${idx}`;
+          });
+        }
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(chosen.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `⚖️ [Cân Bằng Thủy Triều] ${player.name} phán quyết cân bằng bộ trên bàn xuống bậc ${RANKS[avgRank]} và nâng (${oldMyStr}) lên bậc ${RANKS[beatRank]}♥ để đè ngay lập tức!`;
+      } else {
+        const twoLow = (nonBomb.length >= 2 ? nonBomb : sorted).slice(0, 2);
+        const oldStr = twoLow.map((c) => `${c.rank}${c.suit}`).join(', ');
+        const targetR = 10; // K
+        twoLow.forEach((c, idx) => {
+          const sIdx = idx === 0 ? 3 : 2;
+          c.rankIndex = targetR;
+          c.rank = RANKS[targetR];
+          c.suitIndex = sIdx;
+          c.suit = SUITS[sIdx];
+          c.isRed = true;
+          c.value = targetR * 4 + sIdx;
+          c.id = `${c.rank}${c.suit}_neuv_${Date.now()}_${idx}`;
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(twoLow.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `⚖️ [Cân Bằng Thủy Triều] ${player.name} dâng thủy triều nâng (${oldStr}) thành Đôi K (K♥ K♦)!`;
+      }
+    } else if (charId === 'wriothesley') {
+      this.wriothesleyPairSmashTurn = true;
+      activeWriothesleyPairSmash = true;
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const minRank = this.currentCombo ? Math.min(11, this.currentCombo.highRank) : 8;
+      let existingPairCards = [];
+      for (let r = minRank; r <= 11; r++) {
+        if (struct.rankCounts[r] >= 2 && !struct.bombRanks.has(r)) {
+          existingPairCards = player.hand.filter((c) => c.rankIndex === r).slice(0, 2);
+          break;
+        }
+      }
+      if (existingPairCards.length === 2) {
+        this.selectedCardIds = new Set(existingPairCards.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `🥊 [Thiết Quyền Đập Sảnh] ${player.name} tung cú đấm băng giá Meropide: Cho phép dùng Đôi ${RANKS[existingPairCards[0].rankIndex]} đấm vỡ trực tiếp Sảnh trên bàn!`;
+      } else {
+        const sorted = sortCardsAsc(player.hand).filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
+        const twoCards = (sorted.length >= 2 ? sorted : sortCardsAsc(player.hand)).slice(0, 2);
+        const oldStr = twoCards.map((c) => `${c.rank}${c.suit}`).join(', ');
+        const targetR = Math.max(8, minRank);
+        twoCards.forEach((c, idx) => {
+          const sIdx = idx === 0 ? 3 : 2;
+          c.rankIndex = targetR;
+          c.rank = RANKS[targetR];
+          c.suitIndex = sIdx;
+          c.suit = SUITS[sIdx];
+          c.isRed = true;
+          c.value = targetR * 4 + sIdx;
+          c.id = `${c.rank}${c.suit}_wrio_${Date.now()}_${idx}`;
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(twoCards.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `🥊 [Thiết Quyền Đập Sảnh] ${player.name} cường hóa (${oldStr}) thành Đôi ${RANKS[targetR]} (♥/♦) và bật Thiết Quyền dùng Đôi đấm vỡ trực tiếp Sảnh trên bàn!`;
+      }
+    } else if (charId === 'sigewinne') {
+      const lockedIds = [];
+      const lockedNames = [];
+      activeOpponents.forEach((opp) => {
+        if (opp.hand.length > 0) {
+          const oppSorted = sortCardsAsc(opp.hand);
+          const highest = oppSorted[oppSorted.length - 1];
+          lockedIds.push(highest.id);
+          lockedNames.push(`${opp.name}`);
+        }
+      });
+      this.naviaLockedTargetId = null;
+      this.naviaLockedCardIds = new Set(lockedIds);
+      activeNaviaLockedCardIds = this.naviaLockedCardIds;
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const myLow =
+        sortCardsAsc(player.hand).find((c) => c.rankIndex < 12 && !struct.bombRanks.has(c.rankIndex)) ||
+        sortCardsAsc(player.hand)[0];
+      let healNote = '';
+      if (myLow) {
+        const oldStr = `${myLow.rank}${myLow.suit}`;
+        myLow.rankIndex = 11;
+        myLow.rank = 'A';
+        myLow.suitIndex = 3;
+        myLow.suit = '♥';
+        myLow.isRed = true;
+        myLow.value = 11 * 4 + 3;
+        myLow.id = `A♥_sigewinne_${Date.now()}`;
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set([myLow.id]);
+        this.companionCardIds.clear();
+        healNote = ` đồng thời tiêm thuốc bổ biến lá ${oldStr} ➔ A♥`;
+      }
+      skillSummary = `🫧 [Bong Bóng Giam Cầm] ${player.name} bắn Bong Bóng Nước nhốt cứng 1 lá bài lớn nhất trên tay TẤT CẢ đối thủ (${lockedNames.join(', ')}) trong vòng này${healNote}!`;
+    } else if (charId === 'emilie') {
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const sorted = sortCardsAsc(player.hand);
+      const isolated = sorted.filter(
+        (c) => c.rankIndex < 12 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
+      );
+      const cands = isolated.length >= 2 ? isolated : sorted.filter((c) => !struct.bombRanks.has(c.rankIndex));
+      const burnCard = cands[0] || sorted[0];
+      const distillCard = cands.find((c) => c.id !== burnCard?.id) || sorted.find((c) => c.id !== burnCard?.id);
+      if (burnCard && distillCard) {
+        const burnStr = `${burnCard.rank}${burnCard.suit}`;
+        const oldDistillStr = `${distillCard.rank}${distillCard.suit}`;
+        player.hand = player.hand.filter((c) => c.id !== burnCard.id);
+        const newR = Math.min(11, distillCard.rankIndex + 4);
+        distillCard.rankIndex = newR;
+        distillCard.rank = RANKS[newR];
+        distillCard.suitIndex = 3; // Cơ ♥
+        distillCard.suit = '♥';
+        distillCard.isRed = true;
+        distillCard.value = newR * 4 + 3;
+        distillCard.id = `${distillCard.rank}♥_emilie_${Date.now()}`;
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set([distillCard.id]);
+        this.companionCardIds.clear();
+        skillSummary = `🌸 [Tinh Chế Hương Hoa] ${player.name} đốt tiêu hủy vĩnh viễn lá rác ${burnStr} (giảm còn ${player.hand.length} lá) để chưng cất tinh dầu nâng lá ${oldDistillStr} tăng +4 bậc thành ${distillCard.rank}♥!`;
+      }
+    } else if (charId === 'chasca') {
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const sorted = sortCardsAsc(player.hand);
+      const allCombos = generateAllCombosFromHand(player.hand);
+      const straights = allCombos
+        .filter((m) => m.type === COMBO_TYPES.STRAIGHT && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)))
+        .sort((a, b) => b.length - a.length || b.highValue - a.highValue);
+      if (straights.length > 0) {
+        const baseSt = straights[0];
+        const stIds = new Set(baseSt.cards.map((c) => c.id));
+        const remTrash = sorted.filter((c) => !stIds.has(c.id) && !struct.bombRanks.has(c.rankIndex)).slice(0, 2);
+        let curLow = baseSt.cards[0].rankIndex;
+        let curHigh = baseSt.cards[baseSt.cards.length - 1].rankIndex;
+        const extendedIds = [...baseSt.cards.map((c) => c.id)];
+        remTrash.forEach((c, idx) => {
+          let newR = -1;
+          if (curHigh < 11) {
+            curHigh++;
+            newR = curHigh;
+          } else if (curLow > 0) {
+            curLow--;
+            newR = curLow;
+          }
+          if (newR >= 0) {
+            c.rankIndex = newR;
+            c.rank = RANKS[newR];
+            c.suitIndex = 3;
+            c.suit = '♥';
+            c.isRed = true;
+            c.value = newR * 4 + 3;
+            c.id = `${c.rank}♥_chasca_${Date.now()}_${idx}`;
+            extendedIds.push(c.id);
+          }
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(extendedIds);
+        this.companionCardIds.clear();
+        skillSummary = `🔫 [Đạn Xoáy Nối Sảnh] ${player.name} nạp ${remTrash.length} viên đạn nguyên tố nối dài ${baseSt.label} thành Sảnh ${extendedIds.length} lá (${RANKS[curLow]} ➔ ${RANKS[curHigh]})!`;
+      } else {
+        const pool = sorted.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex)).slice(0, Math.min(4, player.hand.length));
+        const len = pool.length;
+        const topR = Math.min(11, Math.max(len - 1, (pool[len - 1]?.rankIndex || 6) + 2));
+        const startR = topR - len + 1;
+        pool.forEach((c, idx) => {
+          const rIdx = startR + idx;
+          c.rankIndex = rIdx;
+          c.rank = RANKS[rIdx];
+          c.suitIndex = idx === len - 1 ? 3 : c.suitIndex;
+          c.suit = SUITS[c.suitIndex];
+          c.isRed = c.suitIndex >= 2;
+          c.value = rIdx * 4 + c.suitIndex;
+          c.id = `${c.rank}${c.suit}_chasca_${Date.now()}_${idx}`;
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(pool.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `🔫 [Đạn Xoáy Nối Sảnh] ${player.name} bắn loạt đạn đa sắc kết nối ${len} lá lẻ thành Sảnh ${len} lá (${RANKS[startR]} ➔ ${RANKS[topR]})!`;
+      }
+    } else if (charId === 'tartaglia') {
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const sorted = sortCardsAsc(player.hand);
+      const allCombos = generateAllCombosFromHand(player.hand);
+      const straights = allCombos.filter(
+        (m) => m.type === COMBO_TYPES.STRAIGHT && m.length >= 3 && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+      );
+      const wantTriple =
+        (this.currentCombo && this.currentCombo.type === COMBO_TYPES.TRIPLE) ||
+        (straights.length > 0 && (!this.currentCombo || this.currentCombo.type !== COMBO_TYPES.STRAIGHT));
+      if (wantTriple && straights.length > 0) {
+        const chosen3 = straights[0].cards.slice(-3);
+        const targetR = chosen3[2].rankIndex;
+        const oldStr = chosen3.map((c) => `${c.rank}${c.suit}`).join('-');
+        const suitsOrder = [3, 2, 1];
+        chosen3.forEach((c, idx) => {
+          const sIdx = suitsOrder[idx % 3];
+          c.rankIndex = targetR;
+          c.rank = RANKS[targetR];
+          c.suitIndex = sIdx;
+          c.suit = SUITS[sIdx];
+          c.isRed = sIdx >= 2;
+          c.value = targetR * 4 + sIdx;
+          c.id = `${c.rank}${c.suit}_childe_${Date.now()}_${idx}`;
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(chosen3.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `🐋 [Hoán Đổi Võ Khí — Song Đao] ${player.name} rút Song Đao Thủy gom bộ Sảnh (${oldStr}) thành Sám Cô ${RANKS[targetR]}!`;
+      } else {
+        let tripleCards = [];
+        for (let r = 11; r >= 0; r--) {
+          if (struct.rankCounts[r] === 3) {
+            tripleCards = sorted.filter((c) => c.rankIndex === r);
+            break;
+          }
+        }
+        const chosen3 =
+          tripleCards.length === 3
+            ? tripleCards
+            : sorted.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex)).slice(0, 3);
+        if (chosen3.length === 3) {
+          const oldStr = chosen3.map((c) => `${c.rank}${c.suit}`).join(', ');
+          const topR =
+            this.currentCombo && this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3
+              ? Math.min(11, Math.max(2, this.currentCombo.highRank + 1))
+              : Math.min(11, Math.max(2, chosen3[2].rankIndex + 1));
+          const startR = topR - 2;
+          chosen3.forEach((c, idx) => {
+            const rIdx = startR + idx;
+            const sIdx = idx === 2 ? 3 : c.suitIndex;
+            c.rankIndex = rIdx;
+            c.rank = RANKS[rIdx];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = sIdx >= 2;
+            c.value = rIdx * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_childe_${Date.now()}_${idx}`;
+          });
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          this.selectedCardIds = new Set(chosen3.map((c) => c.id));
+          this.companionCardIds.clear();
+          skillSummary = `🐋 [Hoán Đổi Võ Khí — Cung Tên] ${player.name} giương Cung Thủy trải (${oldStr}) thành Sảnh 3 lá ${RANKS[startR]}-${RANKS[startR + 1]}-${RANKS[topR]}♥!`;
+        }
+      }
+    } else if (charId === 'arlecchino') {
+      this.arlecchinoBondOwnerId = player.id;
+      skillSummary = `🩸 [Khế Ước Sinh Mệnh] ${player.name} khắc dấu Huyết Nguyệt: Trong vòng này, bất kỳ đối thủ nào bấm BỎ LƯỢT sẽ lập tức bị nhét 1 lá bài rác nhỏ nhất từ tay ${player.name} và nộp phạt ${(
+        b * 2
+      ).toLocaleString()} Xu!`;
+    } else if (charId === 'ineffa') {
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const sorted = sortCardsAsc(player.hand);
+      const isolated = sorted.filter(
+        (c) => c.rankIndex <= 11 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
+      );
+      const nonBomb = sorted.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
+      let anchorPairRank = -1;
+      for (let r = 9; r >= 0; r--) {
+        if (struct.rankCounts[r] === 2 && !struct.bombRanks.has(r)) {
+          anchorPairRank = r;
+          break;
+        }
+      }
+      if (anchorPairRank >= 0 && nonBomb.length >= 4) {
+        const trash2 = [...isolated, ...nonBomb].filter((c) => c.rankIndex !== anchorPairRank).slice(0, 2);
+        if (trash2.length === 2) {
+          const oldStr = trash2.map((c) => `${c.rank}${c.suit}`).join(', ');
+          const nextR = Math.min(11, anchorPairRank + 1);
+          trash2.forEach((c, idx) => {
+            const sIdx = idx === 0 ? 3 : 2;
+            c.rankIndex = nextR;
+            c.rank = RANKS[nextR];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = true;
+            c.value = nextR * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_ineffa_${Date.now()}_${idx}`;
+          });
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          this.selectedCardIds = new Set(trash2.map((c) => c.id));
+          this.companionCardIds.clear();
+          skillSummary = `🤖 [Mô-Đun Đồng Bộ Đôi] ${player.name} đồng bộ (${oldStr}) thành Đôi ${RANKS[nextR]} sát cạnh Đôi ${RANKS[anchorPairRank]} tạo thành chuỗi Đôi Liên Tiếp!`;
+        }
+      } else {
+        const chosen4 = [...isolated, ...nonBomb, ...sorted].slice(0, 4);
+        if (chosen4.length === 4) {
+          const oldStr = chosen4.map((c) => `${c.rank}${c.suit}`).join(', ');
+          const baseR = Math.min(9, Math.max(3, chosen4[1].rankIndex + 1));
+          const pairRanks = [baseR, baseR, baseR + 1, baseR + 1];
+          const pairSuits = [2, 3, 2, 3];
+          chosen4.forEach((c, idx) => {
+            const rIdx = pairRanks[idx];
+            const sIdx = pairSuits[idx];
+            c.rankIndex = rIdx;
+            c.rank = RANKS[rIdx];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = true;
+            c.value = rIdx * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_ineffa_${Date.now()}_${idx}`;
+          });
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          this.selectedCardIds = new Set(chosen4.slice(2, 4).map((c) => c.id));
+          this.companionCardIds.clear();
+          skillSummary = `🤖 [Mô-Đun Đồng Bộ Đôi] ${player.name} đồng bộ 4 lá lẻ (${oldStr}) thành 2 Đôi Liên Tiếp: Đôi ${RANKS[baseR]} & Đôi ${RANKS[baseR + 1]}!`;
+        }
+      }
+    } else if (charId === 'flins') {
+      this.flinsLanternOwnerId = player.id;
+      skillSummary = `🏮 [Ngọn Đèn Đêm Cướp Cái] ${player.name} thắp sáng Ngọn Đèn Ratniki: Trong vòng này, ngay khoảnh khắc có BẤT KỲ đối thủ nào bấm BỎ LƯỢT, vòng đấu lập tức kết thúc và ${player.name} CƯỚP QUYỀN CẦM CÁI mở vòng mới ngay!`;
     }
 
     if (prevTrickOwner) {
@@ -18427,6 +20123,199 @@ class TienLenGame {
         if (emergencyStopOpponent || terribleHandBailout) {
           shouldCast = true;
         }
+      }
+    } else if (charId === 'klee') {
+      if ((!this.currentCombo || plannedMove) && (minOppCards <= 7 || bot.hand.length <= 8)) {
+        shouldCast = true;
+      }
+    } else if (charId === 'albedo') {
+      const canBeat3Straight =
+        this.currentCombo &&
+        this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
+        this.currentCombo.length === 3 &&
+        this.currentCombo.highRank <= 10 &&
+        (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 80);
+      if (canBeat3Straight || (!this.currentCombo && bot.hand.length <= 9)) {
+        shouldCast = true;
+      }
+    } else if (charId === 'varka') {
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 80)
+      ) {
+        shouldCast = true;
+      } else if (!this.currentCombo && bot.hand.length >= 3 && bot.hand.length <= 8) {
+        shouldCast = true;
+      }
+    } else if (charId === 'nicole') {
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12 && (!plannedMove || plannedMove.highRank === 12)) {
+        const prevNic = activeNicoleSuitOnlyRound;
+        activeNicoleSuitOnlyRound = true;
+        const nicMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+          (m) => m.highRank < 12 && !m.isBomb && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+        );
+        activeNicoleSuitOnlyRound = prevNic;
+        if (nicMoves.length > 0) shouldCast = true;
+      } else if (!this.currentCombo && plannedMove && plannedMove.highCard?.suitIndex === 3 && bot.hand.length <= 8) {
+        shouldCast = true;
+      }
+    } else if (charId === 'zhongli') {
+      if ((!this.currentCombo || plannedMove) && unpassedOpps.length >= 1 && (minOppCards <= 7 || bot.hand.length <= 8)) {
+        shouldCast = true;
+      }
+    } else if (charId === 'baizhu') {
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank < 12 &&
+        this.currentCombo.length <= 3 &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 80)
+      ) {
+        shouldCast = true;
+      } else if (!this.currentCombo && bot.hand.length >= 2 && bot.hand.length <= 7) {
+        shouldCast = true;
+      }
+    } else if (charId === 'xianyun') {
+      const needStepStraight =
+        !this.currentCombo ||
+        (this.currentCombo.type === COMBO_TYPES.STRAIGHT && (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 80));
+      if (needStepStraight && bot.hand.length >= 3 && (bot.hand.length <= 9 || minOppCards <= 7)) {
+        shouldCast = true;
+      }
+    } else if (charId === 'kazuha') {
+      const nonBomb = sortCardsAsc(bot.hand).filter((c) => c.rankIndex < 12 && !struct.bombRanks.has(c.rankIndex));
+      if (
+        nonBomb.length > 0 &&
+        nonBomb[0].rankIndex <= 7 &&
+        (!this.currentCombo || plannedMove || this.currentCombo.type === COMBO_TYPES.PAIR || this.currentCombo.type === COMBO_TYPES.SINGLE)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'itto') {
+      const hasTriple = struct.rankCounts.slice(0, 12).some((cnt) => cnt === 3);
+      if (
+        (hasTriple && bot.hand.length >= 4) ||
+        (!this.currentCombo && bot.hand.length >= 3 && bot.hand.length <= 9) ||
+        (this.currentCombo && this.currentCombo.type === COMBO_TYPES.TRIPLE && !plannedMove)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'ayato') {
+      if (
+        plannedMove &&
+        !plannedMove.isBomb &&
+        plannedMove.highRank >= 6 &&
+        plannedMove.highRank <= 11 &&
+        bot.hand.length - plannedMove.length >= 1 &&
+        (bot.hand.length <= 9 || minOppCards <= 7)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'cyno') {
+      const oppHasTwoOrAce = activeOpponents.some((opp) => opp.hand.some((c) => c.rankIndex >= 11));
+      if (oppHasTwoOrAce && (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank <= 11))) {
+        shouldCast = true;
+      }
+    } else if (charId === 'nilou') {
+      const pairCount = struct.rankCounts.slice(0, 11).filter((cnt) => cnt === 2).length;
+      if (
+        (pairCount >= 1 && (!this.currentCombo || plannedMove || this.currentCombo.type === COMBO_TYPES.PAIR)) ||
+        (!this.currentCombo && bot.hand.length <= 7)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'nahida') {
+      if ((!this.currentCombo || plannedMove) && (minOppCards <= 7 || bot.hand.length <= 8)) {
+        shouldCast = true;
+      }
+    } else if (charId === 'alhaitham') {
+      if (
+        (!this.currentCombo && bot.hand.length >= 3 && bot.hand.length <= 9) ||
+        (this.currentCombo && this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3 && !plannedMove)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'neuvillette') {
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank >= 5 &&
+        this.currentCombo.highRank < 12 &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 80)
+      ) {
+        shouldCast = true;
+      } else if (!this.currentCombo && bot.hand.length >= 2 && bot.hand.length <= 7) {
+        shouldCast = true;
+      }
+    } else if (charId === 'wriothesley') {
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
+        this.currentCombo.highRank < 12 &&
+        (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 80)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'sigewinne') {
+      if (
+        (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank <= 11)) &&
+        (minOppCards <= 7 || bot.hand.length <= 8)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'emilie') {
+      if (
+        bot.hand.length >= 2 &&
+        (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank <= 11)) &&
+        (bot.hand.length <= 9 || minOppCards <= 7)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'chasca') {
+      if (
+        (!this.currentCombo && bot.hand.length >= 3 && bot.hand.length <= 9) ||
+        (this.currentCombo && this.currentCombo.type === COMBO_TYPES.STRAIGHT && !plannedMove)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'tartaglia') {
+      if (
+        (!this.currentCombo && bot.hand.length >= 3 && bot.hand.length <= 8) ||
+        (this.currentCombo &&
+          (this.currentCombo.type === COMBO_TYPES.TRIPLE ||
+            (this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3)) &&
+          !plannedMove)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'arlecchino') {
+      if (
+        plannedMove &&
+        unpassedOpps.length >= 1 &&
+        bot.hand.length - plannedMove.length >= 1 &&
+        plannedMove.highRank >= 6 &&
+        (bot.hand.length <= 9 || minOppCards <= 7)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'ineffa') {
+      if (
+        bot.hand.length >= 4 &&
+        (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.PAIR && !plannedMove)) &&
+        (bot.hand.length <= 9 || minOppCards <= 7)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'flins') {
+      if (
+        plannedMove &&
+        unpassedOpps.length >= 2 &&
+        plannedMove.highRank >= 5 &&
+        (bot.hand.length <= 9 || minOppCards <= 7)
+      ) {
+        shouldCast = true;
       }
     }
 
@@ -20196,6 +22085,12 @@ class TienLenGame {
       yoimiyaBurnTrashReady: !!this.yoimiyaBurnTrashReady,
       turnDirection: this.turnDirection === -1 ? -1 : 1,
       mualaniCrossBeatTurn: !!this.mualaniCrossBeatTurn,
+      nicoleSuitOnlyRound: !!this.nicoleSuitOnlyRound,
+      xianyunStepStraightTurn: !!this.xianyunStepStraightTurn,
+      wriothesleyPairSmashTurn: !!this.wriothesleyPairSmashTurn,
+      ayatoCloneReady: !!this.ayatoCloneReady,
+      arlecchinoBondOwnerId: this.arlecchinoBondOwnerId ?? null,
+      flinsLanternOwnerId: this.flinsLanternOwnerId ?? null,
       turnBannerText: this.elTurnBanner?.textContent || '',
       firstTurnBadgeText: this.elFirstTurnBadge?.textContent || '',
       comboBannerText:
@@ -20599,6 +22494,15 @@ class TienLenGame {
     this.turnDirection = state.turnDirection === -1 ? -1 : 1;
     this.mualaniCrossBeatTurn = !!state.mualaniCrossBeatTurn;
     activeMualaniCrossBeat = this.mualaniCrossBeatTurn;
+    this.nicoleSuitOnlyRound = !!state.nicoleSuitOnlyRound;
+    activeNicoleSuitOnlyRound = this.nicoleSuitOnlyRound;
+    this.xianyunStepStraightTurn = !!state.xianyunStepStraightTurn;
+    activeXianyunStepStraight = this.xianyunStepStraightTurn;
+    this.wriothesleyPairSmashTurn = !!state.wriothesleyPairSmashTurn;
+    activeWriothesleyPairSmash = this.wriothesleyPairSmashTurn;
+    this.ayatoCloneReady = !!state.ayatoCloneReady;
+    this.arlecchinoBondOwnerId = state.arlecchinoBondOwnerId ?? null;
+    this.flinsLanternOwnerId = state.flinsLanternOwnerId ?? null;
     const wasGameOver = this.isGameOver;
     this.isGameOver = !!(state.isGameOver && this.matchCount >= 1);
 
@@ -21079,6 +22983,15 @@ class TienLenGame {
     this.xiaoPlungeSingleTurn = false;
     activeXiaoPlungeSingle = false;
     this.kinichBombOwnerId = null;
+    this.nicoleSuitOnlyRound = false;
+    activeNicoleSuitOnlyRound = false;
+    this.xianyunStepStraightTurn = false;
+    activeXianyunStepStraight = false;
+    this.wriothesleyPairSmashTurn = false;
+    activeWriothesleyPairSmash = false;
+    this.ayatoCloneReady = false;
+    this.arlecchinoBondOwnerId = null;
+    this.flinsLanternOwnerId = null;
     this.turnDirection = 1;
     this.mualaniCrossBeatTurn = false;
     activeMualaniCrossBeat = false;
@@ -21583,13 +23496,61 @@ class TienLenGame {
     player.hand = player.hand.filter((c) => !playedIds.has(c.id));
 
     // Reset các trạng thái Kỹ Năng chỉ có hiệu lực trong 1 lượt của người vừa đánh
-    if (this.ganyuGapStraightTurn || this.mualaniCrossBeatTurn || this.xiaoPlungeSingleTurn) {
+    if (
+      this.ganyuGapStraightTurn ||
+      this.mualaniCrossBeatTurn ||
+      this.xiaoPlungeSingleTurn ||
+      this.xianyunStepStraightTurn ||
+      this.wriothesleyPairSmashTurn
+    ) {
       this.ganyuGapStraightTurn = false;
       activeGanyuGapStraight = false;
       this.mualaniCrossBeatTurn = false;
       activeMualaniCrossBeat = false;
       this.xiaoPlungeSingleTurn = false;
       activeXiaoPlungeSingle = false;
+      this.xianyunStepStraightTurn = false;
+      activeXianyunStepStraight = false;
+      this.wriothesleyPairSmashTurn = false;
+      activeWriothesleyPairSmash = false;
+      this.renderRoundSkillStatusBar();
+    }
+
+    // Thủy Ảnh Thế Thân của Ayato: Dùng 1 lá rác nhỏ nhất còn lại trên tay thế chỗ cho lá chủ lực vừa đánh, để lại Phân Thân Nước (-1 bậc) ở lại trên tay!
+    if (this.ayatoCloneReady) {
+      this.ayatoCloneReady = false;
+      if (this.getPlayerActiveCharId(player) === 'ayato' && player.hand.length >= 1) {
+        const playedNormals = sortCardsAsc(combo.cards).filter((c) => c.rankIndex <= 11);
+        const mainPlayed = playedNormals.length > 0 ? playedNormals[playedNormals.length - 1] : null;
+        if (mainPlayed) {
+          const struct = this.analyzeBotHandStructure(player.hand);
+          const sortedRem = sortCardsAsc(player.hand);
+          const trashSub =
+            sortedRem.find(
+              (c) =>
+                c.rankIndex < 12 &&
+                struct.rankCounts[c.rankIndex] === 1 &&
+                !struct.bombRanks.has(c.rankIndex) &&
+                !struct.criticalStraightRanks.has(c.rankIndex)
+            ) || sortedRem[0];
+          if (trashSub) {
+            const oldTrashStr = `${trashSub.rank}${trashSub.suit}`;
+            const cloneRank = Math.max(0, mainPlayed.rankIndex - 1);
+            trashSub.rankIndex = cloneRank;
+            trashSub.rank = RANKS[cloneRank];
+            trashSub.suitIndex = mainPlayed.suitIndex;
+            trashSub.suit = mainPlayed.suit;
+            trashSub.isRed = mainPlayed.isRed;
+            trashSub.value = cloneRank * 4 + mainPlayed.suitIndex;
+            trashSub.id = `${trashSub.rank}${trashSub.suit}_ayato_clone_${Date.now()}`;
+            player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+            this.addLog(
+              `🌊 <strong>[Thủy Ảnh Thế Thân]</strong> <strong>${player.name}</strong> dùng lá rác <strong>${oldTrashStr}</strong> thế thân cho <strong>${mainPlayed.rank}${mainPlayed.suit}</strong>, lưu lại <strong>Phân Thân Nước ${trashSub.rank}${trashSub.suit}</strong> ở lại trên tay!`,
+              'log-win'
+            );
+          }
+        }
+      }
       this.renderRoundSkillStatusBar();
     }
 
@@ -22003,7 +23964,16 @@ class TienLenGame {
 
     clearTimeout(this.botTimer);
     sfx.pass();
-    if (this.ganyuGapStraightTurn || this.mualaniCrossBeatTurn || this.xiaoPlungeSingleTurn || this.yoimiyaBurnTrashReady || this.columbinaExtraTurnReady) {
+    if (
+      this.ganyuGapStraightTurn ||
+      this.mualaniCrossBeatTurn ||
+      this.xiaoPlungeSingleTurn ||
+      this.yoimiyaBurnTrashReady ||
+      this.columbinaExtraTurnReady ||
+      this.xianyunStepStraightTurn ||
+      this.wriothesleyPairSmashTurn ||
+      this.ayatoCloneReady
+    ) {
       this.ganyuGapStraightTurn = false;
       activeGanyuGapStraight = false;
       this.mualaniCrossBeatTurn = false;
@@ -22012,6 +23982,11 @@ class TienLenGame {
       activeXiaoPlungeSingle = false;
       this.yoimiyaBurnTrashReady = false;
       this.columbinaExtraTurnReady = false;
+      this.xianyunStepStraightTurn = false;
+      activeXianyunStepStraight = false;
+      this.wriothesleyPairSmashTurn = false;
+      activeWriothesleyPairSmash = false;
+      this.ayatoCloneReady = false;
       this.renderRoundSkillStatusBar();
     }
     if (player.passed) {
@@ -22020,6 +23995,77 @@ class TienLenGame {
     player.passed = true;
     this.turnTimerComboSig = '';
     this.addLog(`<em>${player.name} bỏ lượt.</em>`, 'log-pass');
+
+    // Khế Ước Sinh Mệnh của Arlecchino: Bất kỳ đối thủ nào Bỏ Lượt trong vòng này bị nhét 1 lá rác nhỏ nhất từ tay Arlecchino và nộp phạt 2× mức cược!
+    if (this.arlecchinoBondOwnerId !== null && player.id !== this.arlecchinoBondOwnerId) {
+      const arleOwner = this.players[this.arlecchinoBondOwnerId];
+      if (arleOwner && arleOwner.active && arleOwner.finishRank === null) {
+        const b = this.betPerCard || 100;
+        const bondTax = Math.round(b * 2);
+        player.coins -= bondTax;
+        arleOwner.coins += bondTax;
+        this.matchChopCoins[player.id] -= bondTax;
+        this.matchChopCoins[arleOwner.id] += bondTax;
+        this.matchChopDetails[player.id].push({
+          label: `🩸 Khế Ước Sinh Mệnh (${arleOwner.name}): Bỏ lượt nộp phạt (-${bondTax.toLocaleString()})`,
+          isSpecial: true,
+        });
+        this.matchChopDetails[arleOwner.id].push({
+          label: `🩸 Thu Khế Ước Sinh Mệnh từ ${player.name} (+${bondTax.toLocaleString()})`,
+          isGood: true,
+        });
+        let cardTransferNote = '';
+        if (arleOwner.hand.length >= 2) {
+          const aStruct = this.analyzeBotHandStructure(arleOwner.hand);
+          const aSorted = sortCardsAsc(arleOwner.hand);
+          const bondTrash =
+            aSorted.find(
+              (c) =>
+                c.rankIndex < 12 &&
+                aStruct.rankCounts[c.rankIndex] === 1 &&
+                !aStruct.bombRanks.has(c.rankIndex) &&
+                !aStruct.criticalStraightRanks.has(c.rankIndex)
+            ) ||
+            aSorted.find((c) => c.rankIndex < 12) ||
+            aSorted[0];
+          if (bondTrash) {
+            arleOwner.hand = arleOwner.hand.filter((c) => c.id !== bondTrash.id);
+            player.hand.push(bondTrash);
+            arleOwner.hand = sortHandByMode(arleOwner.hand, arleOwner.id === this.mySeatId ? this.sortMode : 'asc');
+            player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+            cardTransferNote = ` và bị nhét lá rác <strong>${bondTrash.rank}${bondTrash.suit}</strong> vào tay`;
+          }
+        }
+        this.showComboBanner(`🩸 KHẾ ƯỚC ARLECCHINO: ${player.name.toUpperCase()} BỎ LƯỢT BỊ PHẠT!`, 'reaction-overloaded');
+        this.addLog(
+          `🩸 <strong>[Khế Ước Sinh Mệnh]</strong> <strong>${player.name}</strong> bỏ lượt trong vòng khế ước của <strong>${arleOwner.name}</strong> nên nộp phạt <strong>-${bondTax.toLocaleString()} Xu</strong>${cardTransferNote}!`,
+          'log-chop'
+        );
+      }
+    }
+
+    // Ngọn Đèn Đêm Cướp Cái của Flins: Ngay khoảnh khắc có BẤT KỲ đối thủ nào Bỏ Lượt, vòng đấu kết thúc lập tức và Flins cướp Cái mở vòng mới!
+    if (this.flinsLanternOwnerId !== null && player.id !== this.flinsLanternOwnerId) {
+      const flinsOwner = this.players[this.flinsLanternOwnerId];
+      if (flinsOwner && flinsOwner.active && flinsOwner.finishRank === null && flinsOwner.hand.length > 0) {
+        this.trickOwnerId = flinsOwner.id;
+        this.flinsLanternOwnerId = null;
+        this.showComboBanner(
+          `🏮 NGỌN ĐÈN FLINS: ${flinsOwner.name.toUpperCase()} CƯỚP CÁI MỞ VÒNG MỚI NGAY!`,
+          'reaction-electro-charged'
+        );
+        this.addLog(
+          `🏮 <strong>[Ngọn Đèn Đêm Cướp Cái]</strong> Ngay khi <strong>${player.name}</strong> vừa bỏ lượt, <strong>${flinsOwner.name}</strong> lập tức kết thúc vòng đấu và <strong>cướp quyền Cầm Cái mở vòng mới</strong>!`,
+          'log-win'
+        );
+        this.startNewRoundAfterAllPass();
+        if (this.isMultiplayer && this.isHost) {
+          this.broadcastState();
+        }
+        return;
+      }
+    }
+
     this.advanceTurn();
     if (this.isMultiplayer && this.isHost) {
       this.broadcastState();
@@ -22116,6 +24162,15 @@ class TienLenGame {
     this.kinichBombOwnerId = null;
     this.mualaniCrossBeatTurn = false;
     activeMualaniCrossBeat = false;
+    this.nicoleSuitOnlyRound = false;
+    activeNicoleSuitOnlyRound = false;
+    this.xianyunStepStraightTurn = false;
+    activeXianyunStepStraight = false;
+    this.wriothesleyPairSmashTurn = false;
+    activeWriothesleyPairSmash = false;
+    this.ayatoCloneReady = false;
+    this.arlecchinoBondOwnerId = null;
+    this.flinsLanternOwnerId = null;
     this.renderRoundSkillStatusBar();
 
     let leaderId = this.trickOwnerId;
@@ -22692,6 +24747,12 @@ class TienLenGame {
     const mustFollowUpSkill =
       !best.touchesBomb &&
       ((this.ganyuGapStraightTurn && activeCharId === 'ganyu') ||
+        (this.xianyunStepStraightTurn && activeCharId === 'xianyun') ||
+        (this.wriothesleyPairSmashTurn && activeCharId === 'wriothesley') ||
+        (this.nicoleSuitOnlyRound && activeCharId === 'nicole') ||
+        (this.ayatoCloneReady && activeCharId === 'ayato') ||
+        (this.arlecchinoBondOwnerId === bot.id && activeCharId === 'arlecchino') ||
+        (this.flinsLanternOwnerId === bot.id && activeCharId === 'flins') ||
         (this.mualaniCrossBeatTurn && activeCharId === 'mualani') ||
         (this.xiaoPlungeSingleTurn && activeCharId === 'xiao') ||
         (this.columbinaExtraTurnReady && activeCharId === 'columbina') ||
@@ -22699,9 +24760,33 @@ class TienLenGame {
         (this.kokomiReverseRankRound && activeCharId === 'kokomi') ||
         (this.shenheSingleOnlyRound && activeCharId === 'shenhe') ||
         (this.currentCombo?.label?.includes('Varesa') && activeCharId === 'varesa') ||
+        (this.currentCombo?.label?.includes('Varka') && activeCharId === 'varka') ||
+        (this.currentCombo?.label?.includes('Neuvillette') && activeCharId === 'neuvillette') ||
         (this.currentCombo?.label?.includes('Odette') && activeCharId === 'odette') ||
         (this.currentCombo?.label?.includes('Lauma') && activeCharId === 'lauma') ||
-        (bot.skillUsed && ['vodyanitsa', 'durin', 'venti', 'linnea', 'nefer', 'sandrone', 'zibai'].includes(activeCharId)));
+        (bot.skillUsed &&
+          [
+            'vodyanitsa',
+            'durin',
+            'venti',
+            'linnea',
+            'nefer',
+            'sandrone',
+            'zibai',
+            'albedo',
+            'baizhu',
+            'kazuha',
+            'itto',
+            'cyno',
+            'nilou',
+            'alhaitham',
+            'neuvillette',
+            'sigewinne',
+            'emilie',
+            'chasca',
+            'tartaglia',
+            'ineffa',
+          ].includes(activeCharId)));
     if (mustFollowUpSkill) {
       return best.move;
     }
@@ -23612,7 +25697,7 @@ class TienLenGame {
       }
       if (charThumbEl) {
         if (hasChar) {
-          const expectedSrc = `fanart/${charId}.jpg?v=57`;
+          const expectedSrc = `fanart/${charId}.jpg?v=64`;
           if (charThumbEl.getAttribute('src') !== expectedSrc) {
             charThumbEl.setAttribute('src', expectedSrc);
           }
@@ -23643,9 +25728,10 @@ class TienLenGame {
       }
 
       // Khi ván bài kết thúc (isGameOver), lật ngửa toàn bộ bài còn lại của các đối thủ ngay trên bàn!
-      // Hoặc khi Yelan kích hoạt [Mạng Lưới Tình Báo], lộ diện 3 lá lớn nhất của đối thủ trong 8.5s!
+      // Hoặc khi Yelan / Nahida kích hoạt kỹ năng, lộ diện 3 lá của đối thủ!
       if (revealEl) {
-        const yelanCards = !this.isGameOver && this.yelanRevealedByPlayer?.[p.id];
+        const yelanEntry = !this.isGameOver && this.yelanRevealedByPlayer?.[p.id];
+        const yelanCards = Array.isArray(yelanEntry) ? yelanEntry : yelanEntry?.cards;
         if (this.isGameOver && p.hand.length > 0) {
           const penSet = this.penaltyCardIdsByPlayer[p.id] || new Set();
           revealEl.innerHTML = p.hand
@@ -23663,7 +25749,7 @@ class TienLenGame {
         } else if (yelanCards && yelanCards.length > 0) {
           revealEl.innerHTML = yelanCards
             .map(
-              (c) => `<div class="mini-open-card ${c.isRed ? 'red-card' : 'black-card'} penalty-card" title="🎲 Tình báo Yelan soi bài!">
+              (c) => `<div class="mini-open-card ${c.isRed ? 'red-card' : 'black-card'} penalty-card" title="🔍 Thấu thị bài đối thủ!">
                 <span>${c.rank}</span>
                 <span>${c.suit}</span>
               </div>`

@@ -147,6 +147,12 @@ const BANNER_4STAR_RATEUPS = {
   sandrone: ['sandrone', 'columbina', 'skirk'],
   columbina: ['columbina', 'sandrone', 'skirk'],
   vodyanitsa: ['vodyanitsa', 'vesna', 'odette'],
+  lohen: ['lohen', 'eula', 'venti'],
+  durin: ['durin', 'wanderer', 'venti'],
+  xiao: ['xiao', 'ganyu', 'shenhe'],
+  wanderer: ['wanderer', 'durin', 'raiden'],
+  kinich: ['kinich', 'mualani', 'mavuika'],
+  venti: ['venti', 'xiao', 'wanderer'],
 };
 
 const GENSHIN_FANART_ROSTER = [
@@ -3056,26 +3062,26 @@ class TienLenGame {
     const passHash = String(accObj.passwordHash || '0').replace(/[^a-zA-Z0-9]/g, '');
     const coins36 = Math.max(0, Math.round(Number(p.coins ?? INITIAL_COINS))).toString(36);
 
-    let bMask = 0;
+    let bMask = 0n;
     const uBursts = new Set(Array.isArray(p.unlockedBursts) ? p.unlockedBursts : []);
     GENSHIN_BURSTS.forEach((b, idx) => {
-      if (idx < 30 && uBursts.has(b.id)) bMask |= 1 << idx;
+      if (uBursts.has(b.id)) bMask |= 1n << BigInt(idx);
     });
-    const bursts36 = (bMask >>> 0).toString(36);
+    const bursts36 = bMask.toString(36);
 
-    let sMask = 0;
+    let sMask = 0n;
     const uSkins = new Set(Array.isArray(p.unlockedSkins) ? p.unlockedSkins : ['classic']);
     ANIME_CARD_SKINS.forEach((s, idx) => {
-      if (idx < 30 && uSkins.has(s.id)) sMask |= 1 << idx;
+      if (uSkins.has(s.id)) sMask |= 1n << BigInt(idx);
     });
-    const skins36 = (sMask >>> 0).toString(36);
+    const skins36 = sMask.toString(36);
 
-    let aMask = 0;
+    let aMask = 0n;
     const uAvatars = new Set(Array.isArray(p.unlockedAvatars) ? p.unlockedAvatars : ['default_player']);
     ANIME_AVATARS.forEach((a, idx) => {
-      if (idx < 30 && uAvatars.has(a.id)) aMask |= 1 << idx;
+      if (uAvatars.has(a.id)) aMask |= 1n << BigInt(idx);
     });
-    const avatars36 = (aMask >>> 0).toString(36);
+    const avatars36 = aMask.toString(36);
 
     const skinIdx = Math.max(0, ANIME_CARD_SKINS.findIndex((s) => s.id === p.equippedSkin));
     const avIdx = Math.max(0, ANIME_AVATARS.findIndex((a) => a.id === p.equippedAvatar));
@@ -3124,23 +3130,32 @@ class TienLenGame {
 
       const coins = parseInt(coins36, 36);
       const safeCoins = Number.isFinite(coins) ? coins : INITIAL_COINS;
-      const bMask = parseInt(bursts36, 36) || 0;
-      const sMask = parseInt(skins36, 36) || 0;
-      const aMask = parseInt(avatars36, 36) || 0;
+      const parseBase36BigInt = (str) => {
+        let res = 0n;
+        const clean = String(str || '0').toLowerCase();
+        for (let i = 0; i < clean.length; i++) {
+          const digit = parseInt(clean[i], 36);
+          if (!Number.isNaN(digit)) res = res * 36n + BigInt(digit);
+        }
+        return res;
+      };
+      const bMask = parseBase36BigInt(bursts36);
+      const sMask = parseBase36BigInt(skins36);
+      const aMask = parseBase36BigInt(avatars36);
 
       const unlockedBursts = [];
       GENSHIN_BURSTS.forEach((b, idx) => {
-        if (idx < 30 && (bMask & (1 << idx)) !== 0) unlockedBursts.push(b.id);
+        if ((bMask & (1n << BigInt(idx))) !== 0n) unlockedBursts.push(b.id);
       });
 
       const unlockedSkins = ['classic'];
       ANIME_CARD_SKINS.forEach((s, idx) => {
-        if (idx < 30 && (sMask & (1 << idx)) !== 0 && !unlockedSkins.includes(s.id)) unlockedSkins.push(s.id);
+        if ((sMask & (1n << BigInt(idx))) !== 0n && !unlockedSkins.includes(s.id)) unlockedSkins.push(s.id);
       });
 
       const unlockedAvatars = ['default_player'];
       ANIME_AVATARS.forEach((a, idx) => {
-        if (idx < 30 && (aMask & (1 << idx)) !== 0 && !unlockedAvatars.includes(a.id)) unlockedAvatars.push(a.id);
+        if ((aMask & (1n << BigInt(idx))) !== 0n && !unlockedAvatars.includes(a.id)) unlockedAvatars.push(a.id);
       });
 
       const eq = (equipPack || '').split('_');
@@ -5075,7 +5090,7 @@ class TienLenGame {
       gachaPanel.innerHTML = `
         <div class="gacha-epitomized-bar">
           <div class="gacha-epitomized-title">
-            <span>🎯 CHỌN NHÂN VẬT 5★ TÂM NGUYỆN TRÊN BANNER (Mở khóa cả Hoạt Ảnh Nộ 5★ + Kỹ Năng Chiến Thuật [Phím E]):</span>
+            <span>🎯 CHỌN NHÂN VẬT 5★ TÂM NGUYỆN TRÊN BANNER (🔗 TẤT CẢ 35 BANNER DÙNG CHUNG 100% PITY &amp; ĐẠI BẢO HIỂM):</span>
             <span style="font-size:11.5px;color:#cbd5e1;">Đã Cầu Nguyện tổng cộng: <strong>${(this.totalWishes || 0).toLocaleString()}</strong> lượt</span>
           </div>
           <div class="gacha-up-Roster">${upRosterHtml}</div>

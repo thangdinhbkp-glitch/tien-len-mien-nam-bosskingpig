@@ -2077,6 +2077,11 @@ class TienLenGame {
       (id) => document.getElementById(id)?.classList.add('hidden')
     );
     this.modalWifi?.classList.remove('hidden');
+    if (!this.currentAccountUsername) {
+      clearTimeout(this.botTimer);
+      clearInterval(this.turnCountdownInterval);
+      this.openAccountModal('register');
+    }
     this.setupCrossDeviceCloudSync();
     if (this.dailyRecoveredOnLoad) {
       this.addLog(
@@ -3534,6 +3539,14 @@ class TienLenGame {
     }
   }
 
+  requireAccountLogin() {
+    if (this.currentAccountUsername) return true;
+    clearTimeout(this.botTimer);
+    clearInterval(this.turnCountdownInterval);
+    this.openAccountModal(this.accountModalTab || 'register');
+    return false;
+  }
+
   openAccountModal(tab = '') {
     if (tab) this.accountModalTab = tab;
     else if (!this.accountModalTab) this.accountModalTab = 'register';
@@ -3673,6 +3686,13 @@ class TienLenGame {
       'log-win'
     );
     this.renderAccountModal();
+    document.getElementById('account-modal')?.classList.add('hidden');
+    if (this._pendingJoinRoomParam) {
+      const pendingRoom = this._pendingJoinRoomParam;
+      this._pendingJoinRoomParam = '';
+      this.openModeSetupModal('human');
+      this.searchMultiplayerRoomById(pendingRoom);
+    }
   }
 
   async loginAccount(prefillUsername = '', prefillPassword = '') {
@@ -3802,6 +3822,13 @@ class TienLenGame {
       'log-win'
     );
     this.renderAccountModal();
+    document.getElementById('account-modal')?.classList.add('hidden');
+    if (this._pendingJoinRoomParam) {
+      const pendingRoom = this._pendingJoinRoomParam;
+      this._pendingJoinRoomParam = '';
+      this.openModeSetupModal('human');
+      this.searchMultiplayerRoomById(pendingRoom);
+    }
   }
 
   async changeAccountPassword() {
@@ -3867,7 +3894,10 @@ class TienLenGame {
     this.resetProfileMemoryToDefaults();
     this.saveShopProfile();
     this.syncLoadedProfileToLivePlayer();
-    this.accountModalTab = 'login';
+    clearTimeout(this.botTimer);
+    clearInterval(this.turnCountdownInterval);
+    this.modalWifi?.classList.remove('hidden');
+    this.accountModalTab = 'register';
     this.renderAccountModal();
     document.getElementById('account-modal')?.classList.remove('hidden');
     sfx.click();
@@ -3888,6 +3918,17 @@ class TienLenGame {
   renderAccountModal() {
     const body = document.getElementById('account-modal-body');
     if (!body) return;
+
+    const closeBtn = document.getElementById('btn-close-account');
+    if (closeBtn) {
+      closeBtn.classList.toggle('hidden', !this.currentAccountUsername);
+    }
+    const titleEl = document.getElementById('account-modal-title');
+    if (titleEl) {
+      titleEl.textContent = this.currentAccountUsername
+        ? '🔐 TÀI KHOẢN & MẬT KHẨU NGƯỜI CHƠI'
+        : '🔒 BẮT BUỘC TẠO TÀI KHOẢN / ĐĂNG NHẬP ĐỂ CHƠI';
+    }
 
     const me = this.getLocalPlayer();
     const curCoins = me ? me.coins : this.savedCoins;
@@ -3983,12 +4024,12 @@ class TienLenGame {
 
     body.innerHTML = `
       <div class="account-preserve-card">
-        <div style="font-size:12.5px;font-weight:900;color:#6ee7b7;">
-          ☁️ ĐỒNG BỘ ĐÁM MÂY TỰ ĐỘNG — ĐĂNG NHẬP TRÊN MỌI MÁY CHỈ CẦN TÀI KHOẢN &amp; MẬT KHẨU!
+        <div style="font-size:12.5px;font-weight:900;color:#fde047;">
+          🔒 BẮT BUỘC TẠO TÀI KHOẢN HOẶC ĐĂNG NHẬP ĐỂ VÀO CHƠI!
         </div>
         <div style="font-size:11.5px;color:#e2e8f0;margin-top:3px;">
-          • <strong>Tạo tài khoản mới:</strong> Giữ nguyên 100% dữ liệu bạn đang chơi hiện tại và lưu thẳng lên Đám Mây.<br/>
-          • <strong>Sang máy tính / điện thoại khác:</strong> Chỉ cần mở mục <strong>🔑 Đăng Nhập</strong>, nhập đúng <strong>Tên Tài Khoản + Mật Khẩu</strong> là vào thẳng nick ngay lập tức!
+          • <strong>Chưa có tài khoản:</strong> Điền Tên Tài Khoản + Mật Khẩu ở mục <strong>📝 Tạo Tài Khoản Mới</strong> bên dưới để vào chơi ngay (tặng sẵn <strong>20,000 Xu</strong> &amp; đồng bộ Đám Mây).<br/>
+          • <strong>Đã có tài khoản:</strong> Bấm sang tab <strong>🔑 Đăng Nhập Tài Khoản</strong>, nhập đúng <strong>Tên Tài Khoản + Mật Khẩu</strong> để tải toàn bộ Xu và Kho Đồ từ Đám Mây!
         </div>
         <div class="account-stats-grid">
           <div class="account-stat-item">
@@ -4176,6 +4217,7 @@ class TienLenGame {
   }
 
   openInventoryModal(defaultTab = null) {
+    if (!this.requireAccountLogin()) return;
     if (defaultTab && ['bursts', 'skins', 'avatars'].includes(defaultTab)) {
       this.activeInventoryTab = defaultTab;
     } else if (!['bursts', 'skins', 'avatars'].includes(this.activeInventoryTab)) {
@@ -5804,6 +5846,7 @@ class TienLenGame {
 
     if (this.btnShop && this.modalShop) {
       this.btnShop.addEventListener('click', () => {
+        if (!this.requireAccountLogin()) return;
         document.getElementById('pause-modal')?.classList.add('hidden');
         this.renderShopModal();
         this.modalShop.classList.remove('hidden');
@@ -5883,6 +5926,10 @@ class TienLenGame {
     this.btnHint?.addEventListener('click', () => this.onHumanHint());
 
     document.getElementById('btn-close-account')?.addEventListener('click', () => {
+      if (!this.currentAccountUsername) {
+        alert('🔒 Bạn cần Tạo Tài Khoản hoặc Đăng Nhập trước khi vào chơi!');
+        return;
+      }
       document.getElementById('account-modal')?.classList.add('hidden');
       sfx.click();
     });
@@ -5923,6 +5970,7 @@ class TienLenGame {
     });
 
     this.btnWifi.addEventListener('click', async () => {
+      if (!this.requireAccountLogin()) return;
       await this.refreshServerInfo();
       if (this.roomId) {
         document.getElementById('share-link-input').value = this.getShareableRoomUrl(this.roomId);
@@ -5939,6 +5987,7 @@ class TienLenGame {
     });
 
     document.getElementById('btn-close-wifi').addEventListener('click', () => {
+      if (!this.requireAccountLogin()) return;
       const wasInitial = this.inInitialLobby;
       this.inInitialLobby = false;
       document.getElementById('mode-setup-modal')?.classList.add('hidden');
@@ -5959,6 +6008,7 @@ class TienLenGame {
     });
 
     document.getElementById('btn-create-room')?.addEventListener('click', () => {
+      if (!this.requireAccountLogin()) return;
       if (!this.isMultiplayer && this.isMidMatch()) {
         alert('⛔ Bạn đang đánh dở ván bài! Vui lòng hoàn thành ván hiện tại trước khi Tạo Phòng mới.');
         return;
@@ -6010,6 +6060,7 @@ class TienLenGame {
     });
 
     document.getElementById('btn-solo-bot-mode').addEventListener('click', () => {
+      if (!this.requireAccountLogin()) return;
       document.getElementById('mode-setup-modal')?.classList.add('hidden');
       if (!this.isMultiplayer && this.isMidMatch()) {
         // Nếu đang đánh dở ván bài thì chỉ đóng Sảnh Chờ để đánh tiếp, tuyệt đối không reset ván!
@@ -6123,6 +6174,10 @@ class TienLenGame {
       const invModal = document.getElementById('inventory-modal');
 
       if (e.code === 'Escape') {
+        if (!this.currentAccountUsername) {
+          this.openAccountModal(this.accountModalTab || 'register');
+          return;
+        }
         if (pauseModal && !pauseModal.classList.contains('hidden')) {
           this.closePauseModal();
           return;
@@ -6285,6 +6340,7 @@ class TienLenGame {
   }
 
   openModeSetupModal(mode = 'bot') {
+    if (!this.requireAccountLogin()) return;
     this.selectLobbyMode(mode);
     const modal = document.getElementById('mode-setup-modal');
     if (modal) {
@@ -9049,6 +9105,13 @@ class TienLenGame {
 
     const params = new URLSearchParams(window.location.search);
     const roomParam = (params.get('room') || '').trim().toUpperCase();
+    if (!this.currentAccountUsername) {
+      if (roomParam) {
+        this._pendingJoinRoomParam = roomParam;
+      }
+      this.openAccountModal('register');
+      return;
+    }
     if (roomParam) {
       this.openModeSetupModal('human');
       const inp = document.getElementById('input-room-code');

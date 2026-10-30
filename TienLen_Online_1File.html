@@ -15378,7 +15378,7 @@ class TienLenGame {
                     ⚡ TẶNG CHẮC CHẮN 100% NHÂN VẬT 5★ LIMITED: RAIDEN SHOGUN (LÔI THẦN)
                   </div>
                   <div style="font-size:12.5px;color:#fde68a;margin-top:3px;line-height:1.4;">
-                    🔮 <strong>Kỹ Năng [Phím E] — Tịnh Thổ Cắt Vòng:</strong> Chém đứt bộ Lẻ/Đôi ≤ J trên bàn để <strong>cướp quyền Cầm Cái mở vòng mới</strong> ngay lập tức &amp; gắn <strong>Ấn Lôi ⚡</strong> kích hoạt <strong>Phản Ứng Điện Cảm (+5× cược)</strong>!
+                    🔮 <strong>Kỹ Năng [Phím E] — Tịnh Thổ Cắt Vòng:</strong> Chém đứt bộ Lẻ/Đôi ≤ J trên bàn để <strong>cướp quyền Cầm Cái mở vòng mới</strong> ngay lập tức • Mang hệ <strong>⚡ Lôi</strong> kích hoạt <strong>Phản Ứng Nguyên Tố (+5× cược)</strong> khi đánh bài đè đối thủ!
                   </div>
                 </div>
               </div>
@@ -21005,10 +21005,6 @@ class TienLenGame {
       skillSummary = `🏮 [Ngọn Đèn Đêm Cướp Cái] ${player.name} thắp sáng Ngọn Đèn Ratniki: Trong vòng này, ngay khoảnh khắc có BẤT KỲ đối thủ nào bấm BỎ LƯỢT, vòng đấu lập tức kết thúc và ${player.name} CƯỚP QUYỀN CẦM CÁI mở vòng mới ngay!`;
     }
 
-    if (prevTrickOwner) {
-      this.applyElementalReactionBonus(player, prevTrickOwner, rx);
-    }
-
     // Lưu lại các lá bài vừa được Kỹ Năng tạo ra / nâng cấp để Bot ưu tiên đánh ngay sau khi hết Hoạt Ảnh Nộ,
     // đồng thời khôi phục nguyên vẹn lựa chọn bài trên tay của người chơi thật!
     const createdBySkillIds = Array.from(this.selectedCardIds);
@@ -25646,7 +25642,13 @@ class TienLenGame {
 
       const rx = this.getSpecialPlayReaction(player, combo);
       combo.reaction = rx;
-      this.applyElementalReactionBonus(player, victim, rx);
+      const hasChopElementalClash = checkGenuineGenshinReaction(
+        this.getPlayerElement(player, combo),
+        this.getPlayerElement(victim, this.currentCombo)
+      );
+      if (hasChopElementalClash) {
+        this.applyElementalReactionBonus(player, victim, rx);
+      }
       const chopTitleUpper = isStackedChop ? 'CHẶT CHỒNG' : 'CHẶT';
       const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} ${chopTitleUpper.toLowerCase()} ${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()} xu)!`;
       const chopBurstId = this.getPlayerActiveCharId(player);
@@ -28622,29 +28624,28 @@ class TienLenGame {
       return;
     }
 
-    // BƯỚC 5: Ván 2 thực hành Kỹ Năng [E] của Raiden Shogun & Phản Ứng Nguyên Tố Điện Cảm (⚡✕💧)
+    // BƯỚC 5: Ván 2 thực hành Kỹ Năng [E] của Raiden Shogun & giải thích Phản Ứng Nguyên Tố khi đánh bài
     if (step === 5) {
       if (this.tutorialMatch2FirstCardPlayed) {
         this.hideTravelerGuide();
         return;
       }
-      stepPill.textContent = 'Bước 5/6 • Thực Hành Kỹ Năng [E] & Phản Ứng Nguyên Tố';
+      stepPill.textContent = 'Bước 5/6 • Thực Hành Kỹ Năng [E] & Cơ Chế Phản Ứng';
       if (!this.tutorialMatch2SkillUsed) {
         const canUseNow = this.currentTurn === this.mySeatId && this.currentCombo && this.trickOwnerId !== this.mySeatId;
         textEl.innerHTML = `
-          ⚡ <strong>Cách xài chiêu Raiden Shogun &amp; Phản Ứng Nguyên Tố:</strong><br>
-          <strong>Bot Furina (💧 Thủy)</strong> vừa đánh <strong>Đôi 3 (3♠ 3♦)</strong> mang ấn <strong>💧 Thủy</strong> xuống bàn! Hãy bấm vào nút <strong>🔮 Kỹ Năng [E]</strong> có sẵn trên thanh điều khiển để tung tuyệt kỹ <strong>Tịnh Thổ Cắt Vòng</strong>:<br>
-          • Chặt đứt vòng đấu không tốn bài &amp; <strong>cướp quyền Cầm Cái mở vòng mới</strong>!<br>
-          • Kết hợp <strong>⚡ Lôi</strong> (Raiden) + <strong>💧 Thủy</strong> (Furina) kích nổ <strong>Phản Ứng Điện Cảm (+5× cược = +500 Xu)</strong>!
+          ⚡ <strong>Cách xài Kỹ Năng [E] của Raiden Shogun:</strong><br>
+          <strong>Bot Furina (💧 Thủy)</strong> vừa đánh <strong>Đôi 3 (3♠ 3♦)</strong> xuống bàn! Hãy bấm vào nút <strong>🔮 Kỹ Năng [E]</strong> có sẵn trên thanh điều khiển để tung tuyệt kỹ <strong>Tịnh Thổ Cắt Vòng</strong>:<br>
+          • Chém đứt bộ bài Lẻ/Đôi ≤ J trên bàn <strong>không tốn lá bài nào</strong> và <strong>cướp quyền Cầm Cái mở vòng mới</strong> ngay lập tức!
         `;
         if (canUseNow && this.btnCharSkill) {
           this.pointToScreenElement(this.btnCharSkill, 'BẤM NÚT KỸ NĂNG [E] TẠI ĐÂY');
         }
       } else {
         textEl.innerHTML = `
-          ⚡✕💧 <strong>ĐIỆN CẢM KÍCH HOẠT (+500 Xu)! Tuyệt vời!</strong><br>
-          Khi nguyên tố của bạn (<strong>⚡ Lôi</strong>) va chạm với nguyên tố của đối thủ vừa đánh trên bàn (<strong>💧 Thủy / 🔥 Hỏa / ❄️ Băng / 🌿 Thảo / 🍃 Phong / 🪨 Nham</strong>), hệ thống sẽ kích nổ <strong>Phản Ứng Nguyên Tố</strong> thưởng nóng <strong>+5× mức cược Xu</strong>!<br>
-          Giờ bạn đang <strong>Cầm Cái mở vòng mới</strong> — hãy chọn bài trên tay rồi bấm nút <strong>🔥 Đánh bài</strong> để đánh tiếp hết ván nhé!
+          ⚡ <strong>Tuyệt kỹ [E] Tịnh Thổ Cắt Vòng đã chém đứt vòng đấu &amp; giúp bạn Cầm Cái mở vòng mới!</strong><br>
+          💡 <strong>Cơ chế Phản Ứng Nguyên Tố (+5× cược):</strong> Bấm kỹ năng <strong>[E]</strong> không nổ phản ứng — <strong>Phản Ứng Nguyên Tố</strong> chỉ nổ khi bạn <strong>ĐÁNH BÀI MẠNH (Sám, Sảnh ≥ 4 lá, Heo 2, Hàng) hoặc Chặt bài đè trực tiếp lên bài trên bàn của đối thủ khác hệ</strong> (VD: <strong>⚡ Lôi</strong> đánh đè lên bài <strong>💧 Thủy / 🔥 Hỏa / 🌿 Thảo</strong>)!<br>
+          Giờ hãy chọn bài trên tay rồi bấm nút <strong>🔥 Đánh bài</strong> để mở vòng mới và đánh hết ván nhé!
         `;
         if (this.btnPlay && !this.btnPlay.disabled) {
           this.pointToScreenElement(this.btnPlay, 'BẤM NÚT ĐÁNH BÀI');

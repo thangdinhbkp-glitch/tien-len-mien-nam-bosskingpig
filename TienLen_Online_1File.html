@@ -21587,12 +21587,12 @@ class TienLenGame {
         );
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      // CHỈ kích hoạt Phản Ứng Nguyên Tố ở các pha đánh bài TO (Tứ Quý, Đôi Thông, Heo 2, Sám Cô, Sảnh dài >= 4 lá)
-      if (isHeavy) {
+      // CHỈ kích hoạt Phản Ứng Nguyên Tố khi KHÔNG phải người đánh đầu tiên trong vòng (có prevPlayer trên bàn) VÀ đánh bài TO (isHeavy)
+      if (isHeavy && prevPlayer) {
         const rx = this.getSpecialPlayReaction(player, combo);
         combo.reaction = rx;
         this.triggerArenaReactionFlash(rx);
-        const rxBonus = prevPlayer && hasElementalClash ? this.applyElementalReactionBonus(player, prevPlayer, rx) : 0;
+        const rxBonus = hasElementalClash ? this.applyElementalReactionBonus(player, prevPlayer, rx) : 0;
         const bonusTag = rxBonus > 0 ? ` (+${rxBonus.toLocaleString()} XU ×5)` : '';
         this.showComboBanner(`${rx.badge}${bonusTag} • ${combo.label.toUpperCase()}!`, rx.cssClass);
         this.addLog(
@@ -21602,6 +21602,9 @@ class TienLenGame {
           'log-play'
         );
       } else {
+        if (isHeavy) {
+          this.showComboBanner(`🔥 ${combo.label.toUpperCase()}!`, 'chop-banner');
+        }
         this.addLog(
           `<strong>${player.name}</strong> đánh <strong>${combo.label}</strong> (${combo.cards
             .map((c) => `${c.rank}${c.suit}`)
@@ -23366,9 +23369,7 @@ class TienLenGame {
       const vec = fromVectors[visualSlot] || fromVectors[0];
 
       if (isNewPlay) {
-        const rx = isHeavy
-          ? this.currentCombo.reaction || this.getSpecialPlayReaction(owner, this.currentCombo)
-          : null;
+        const rx = this.currentCombo.reaction || null;
         const fxWrap = document.createElement('div');
         fxWrap.className = `trick-impact-fx impact-${impactTier} ${rx ? rx.cssClass : ''}`;
         fxWrap.innerHTML = `

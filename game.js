@@ -6942,8 +6942,8 @@ class TienLenGame {
         btnTopRandom.title =
           'Đang trong trận: Bấm để Random chọn trước nhân vật Bot 5★ cho ván kế tiếp (không làm ảnh hưởng ván đang đánh)!';
       } else {
-        btnTopRandom.textContent = '🎲 Đổi Nhân Vật Bot (5★)';
-        btnTopRandom.title = 'Random ngẫu nhiên nhân vật Bot từ 20 nhân vật 5★ có Hoạt Ảnh Kỹ Năng Nộ riêng';
+        btnTopRandom.textContent = '🎲 Đổi Nhân Vật Bot (35 Nhân Vật 5★)';
+        btnTopRandom.title = 'Random ngẫu nhiên nhân vật Bot từ 35 nhân vật 5★ có Hoạt Ảnh Kỹ Năng Nộ riêng';
       }
     }
     const btnLobbyRandom = document.getElementById('btn-random-bots');
@@ -6952,8 +6952,8 @@ class TienLenGame {
       btnLobbyRandom.style.opacity = '1';
       btnLobbyRandom.style.cursor = 'pointer';
       btnLobbyRandom.textContent = locked
-        ? '🎲 Đổi Bot Trận Sau (20 Nhân Vật 5★)'
-        : '🎲 Đổi Bot 5★ (20 Nhân Vật)';
+        ? `🎲 Ngẫu Nhiên Trận Sau (${GENSHIN_BURSTS.length} Nhân Vật)`
+        : `🎲 Ngẫu Nhiên (${GENSHIN_BURSTS.length} Nhân Vật)`;
     }
     const botBtn = document.getElementById('btn-solo-bot-mode');
     if (botBtn) {
@@ -7345,11 +7345,259 @@ class TienLenGame {
         .map((b) => `<strong>${b.name}</strong>`)
         .join(', ');
       this.addLog(
-        `🎲 <strong>Random Đối Thủ Bot (20 Nhân Vật Có Nộ 5★):</strong> Bàn đấu hiện tại gồm ${names}!`,
+        `🎲 <strong>Random Đối Thủ Bot (${GENSHIN_BURSTS.length} Nhân Vật Có Nộ 5★):</strong> Bàn đấu hiện tại gồm ${names}!`,
         'log-win'
       );
     }
     this.updateMidMatchLockUI();
+    this.syncSummaryBotNamesUI();
+  }
+
+  openBotPickerModal(preferredSeatIdx = null, fromSummary = false) {
+    sfx.click();
+    const count = this.soloPlayerCount || 4;
+    const activeSeats = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+    this.activeBotPickerSeat = activeSeats.includes(Number(preferredSeatIdx))
+      ? Number(preferredSeatIdx)
+      : activeSeats[0];
+    this.botPickerFromSummary = !!fromSummary;
+    this.renderBotPickerModal();
+    document.getElementById('bot-picker-modal')?.classList.remove('hidden');
+  }
+
+  closeBotPickerModal() {
+    sfx.click();
+    document.getElementById('bot-picker-modal')?.classList.add('hidden');
+  }
+
+  randomizeBotFromPicker() {
+    this.randomizeBotCharacters(true);
+    this.renderBotPickerModal();
+    if (this.botPickerFromSummary) {
+      this.showSummaryBotStatus(`🎲 Đã đổi ngẫu nhiên đối thủ Bot: ${this.getActiveBotNamesPlain()}`);
+    }
+  }
+
+  selectBotCharacterForSeat(seatIdx, charId) {
+    const roster = this.getBotBurstRoster();
+    const ch = roster.find((c) => c.id === charId);
+    if (!ch || !this.players || !this.players[seatIdx]) return;
+    sfx.click();
+
+    if (this.isMidMatch()) {
+      if (!this.queuedNextMatchBots) {
+        this.queuedNextMatchBots = {
+          1: roster.find((c) => c.id === this.players[1]?.activeChar) || roster[0],
+          2: roster.find((c) => c.id === this.players[2]?.activeChar) || roster[1 % roster.length],
+          3: roster.find((c) => c.id === this.players[3]?.activeChar) || roster[2 % roster.length],
+        };
+      }
+      this.queuedNextMatchBots[seatIdx] = ch;
+    } else {
+      this.queuedNextMatchBots = null;
+      const p = this.players[seatIdx];
+      const shortName = ch.name.split('(')[0].trim();
+      p.name = `Bot ${shortName} ${ch.crest}`;
+      p.avatar = ch.id;
+      p.cardSkin = ch.id;
+      p.chopBurst = ch.id;
+      p.winBurst = ch.id;
+      p.activeChar = ch.id;
+      this.updateArenaBackdropCharacters();
+      this.renderSeats();
+    }
+
+    this.preloadActiveBurstVideos();
+    this.renderSoloPlayerCountUI();
+    this.updateMidMatchLockUI();
+    this.syncSummaryBotNamesUI();
+
+    const count = this.soloPlayerCount || 4;
+    const activeSeats = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+    const curPos = activeSeats.indexOf(seatIdx);
+    if (activeSeats.length > 1 && curPos >= 0 && curPos < activeSeats.length - 1) {
+      this.activeBotPickerSeat = activeSeats[curPos + 1];
+    }
+    this.renderBotPickerModal();
+
+    if (this.botPickerFromSummary) {
+      this.showSummaryBotStatus(`🎯 Đã chọn đối thủ Bot: ${this.getActiveBotNamesPlain()}`);
+    }
+  }
+
+  renderBotPickerModal() {
+    const tabsEl = document.getElementById('bot-picker-seat-tabs');
+    const gridEl = document.getElementById('bot-picker-grid');
+    const summaryEl = document.getElementById('bot-picker-footer-summary');
+    if (!tabsEl || !gridEl) return;
+
+    const count = this.soloPlayerCount || 4;
+    const activeSeats = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+    if (!activeSeats.includes(this.activeBotPickerSeat)) {
+      this.activeBotPickerSeat = activeSeats[0];
+    }
+    const seatLabels = { 1: 'Ghế Trái', 2: count === 2 ? 'Ghế Đối Diện (1v1)' : 'Ghế Đối Diện', 3: 'Ghế Phải' };
+    const locked = this.isMidMatch();
+
+    const getSeatCharId = (sIdx) => {
+      if (locked && this.queuedNextMatchBots && this.queuedNextMatchBots[sIdx]) {
+        return this.queuedNextMatchBots[sIdx].id;
+      }
+      return this.players?.[sIdx]?.activeChar || this.players?.[sIdx]?.cardSkin || 'raiden';
+    };
+
+    tabsEl.innerHTML = activeSeats
+      .map((sIdx) => {
+        const cid = getSeatCharId(sIdx);
+        const sk = CHARACTER_SKILLS[cid];
+        const isSelectedTab = sIdx === this.activeBotPickerSeat;
+        return `
+          <button type="button" onclick="window.tienLenGame.activeBotPickerSeat=${sIdx};window.tienLenGame.renderBotPickerModal();" style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:12px;cursor:pointer;border:2px solid ${
+            isSelectedTab ? '#38bdf8' : 'rgba(148,163,184,0.3)'
+          };background:${
+            isSelectedTab ? 'linear-gradient(135deg,rgba(2,132,199,0.38),rgba(37,99,235,0.32))' : 'rgba(15,23,42,0.75)'
+          };color:#f8fafc;box-shadow:${isSelectedTab ? '0 0 14px rgba(56,189,248,0.4)' : 'none'};">
+            <img src="fanart/${cid}.jpg?v=57" alt="${sk ? sk.charName : cid}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;object-position:center 18%;border:1.5px solid #38bdf8;" />
+            <div style="text-align:left;">
+              <div style="font-size:11px;color:#93c5fd;font-weight:700;">${seatLabels[sIdx]} ${isSelectedTab ? '• Đang chọn' : ''}</div>
+              <div style="font-size:13.5px;font-weight:800;color:#fff;">Bot ${sk ? `${sk.charName} ${sk.crest}` : cid}</div>
+            </div>
+          </button>
+        `;
+      })
+      .join('');
+
+    const activeSeat = this.activeBotPickerSeat;
+    const currentSeatCharId = getSeatCharId(activeSeat);
+    const otherSeatMap = {};
+    activeSeats.forEach((sIdx) => {
+      if (sIdx !== activeSeat) {
+        otherSeatMap[getSeatCharId(sIdx)] = seatLabels[sIdx];
+      }
+    });
+
+    const roster = this.getBotBurstRoster();
+    gridEl.innerHTML = roster
+      .map((ch) => {
+        const sk = CHARACTER_SKILLS[ch.id];
+        const isCurrent = ch.id === currentSeatCharId;
+        const otherSeatLabel = otherSeatMap[ch.id];
+        const shortName = ch.name.split('(')[0].trim();
+        return `
+          <div onclick="window.tienLenGame.selectBotCharacterForSeat(${activeSeat}, '${ch.id}')" title="${
+            sk ? `${sk.name}: ${sk.shortDesc}` : ch.desc
+          }" style="display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;cursor:pointer;transition:transform 0.15s;border:2px solid ${
+            isCurrent ? '#facc15' : otherSeatLabel ? '#a855f7' : 'rgba(148,163,184,0.22)'
+          };background:${
+            isCurrent
+              ? 'linear-gradient(135deg,rgba(234,179,8,0.26),rgba(15,23,42,0.92))'
+              : 'rgba(15,23,42,0.78)'
+          };">
+            <div style="display:flex;align-items:center;gap:9px;">
+              <img src="fanart/${ch.id}.jpg?v=57" alt="${shortName}" loading="lazy" style="width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:center 18%;border:2px solid ${
+                isCurrent ? '#facc15' : '#38bdf8'
+              };flex-shrink:0;" />
+              <div style="min-width:0;flex:1;">
+                <div style="font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  ${ch.crest} ${shortName}
+                </div>
+                <div style="font-size:11px;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  ${sk ? sk.name : ''}
+                </div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;color:#94a3b8;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+              ${sk ? sk.shortDesc : ch.desc}
+            </div>
+            ${
+              isCurrent
+                ? `<div style="font-size:11px;font-weight:800;color:#fde047;text-align:center;background:rgba(234,179,8,0.18);border-radius:6px;padding:2px 4px;">✅ Đang chọn cho ${seatLabels[activeSeat]}</div>`
+                : otherSeatLabel
+                ? `<div style="font-size:10.5px;font-weight:700;color:#d8b4fe;text-align:center;background:rgba(168,85,247,0.18);border-radius:6px;padding:2px 4px;">Đang ở ${otherSeatLabel}</div>`
+                : ''
+            }
+          </div>
+        `;
+      })
+      .join('');
+
+    if (summaryEl) {
+      summaryEl.innerHTML = `Đội hình Bot hiện tại: <strong>${this.getActiveBotNamesPlain()}</strong>`;
+    }
+  }
+
+  getActiveBotNamesPlain() {
+    const count = this.soloPlayerCount || 4;
+    const activeSeats = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+    const locked = this.isMidMatch();
+    return activeSeats
+      .map((sIdx) => {
+        if (locked && this.queuedNextMatchBots && this.queuedNextMatchBots[sIdx]) {
+          const ch = this.queuedNextMatchBots[sIdx];
+          return `Bot ${ch.name.split('(')[0].trim()} ${ch.crest}`;
+        }
+        return this.players?.[sIdx]?.name || `Bot #${sIdx}`;
+      })
+      .join(' • ');
+  }
+
+  syncSummaryBotNamesUI() {
+    const namesEl = document.getElementById('summary-current-bots-names');
+    if (namesEl) {
+      namesEl.textContent = this.getActiveBotNamesPlain();
+    }
+  }
+
+  resetSummaryBotPrompt() {
+    const box = document.getElementById('summary-bot-prompt-box');
+    const stepAsk = document.getElementById('summary-bot-step-ask');
+    const stepActions = document.getElementById('summary-bot-step-actions');
+    const statusMsg = document.getElementById('summary-bot-status-msg');
+    if (box) {
+      box.classList.toggle('hidden', !!this.isMultiplayer);
+    }
+    this.syncSummaryBotNamesUI();
+    stepAsk?.classList.remove('hidden');
+    stepActions?.classList.add('hidden');
+    if (statusMsg) {
+      statusMsg.classList.add('hidden');
+      statusMsg.textContent = '';
+    }
+  }
+
+  showSummaryBotStatus(msg) {
+    const statusMsg = document.getElementById('summary-bot-status-msg');
+    if (statusMsg) {
+      statusMsg.innerHTML = msg;
+      statusMsg.classList.remove('hidden');
+    }
+  }
+
+  onSummaryWantChangeBot(wantChange) {
+    sfx.click();
+    const stepAsk = document.getElementById('summary-bot-step-ask');
+    const stepActions = document.getElementById('summary-bot-step-actions');
+    if (!wantChange) {
+      this.autoRandomizeBots = false;
+      this.queuedNextMatchBots = null;
+      stepAsk?.classList.add('hidden');
+      stepActions?.classList.add('hidden');
+      this.showSummaryBotStatus(
+        `✅ Đã giữ nguyên đối thủ Bot hiện tại (<strong>${this.getActiveBotNamesPlain()}</strong>). Bấm <a href="javascript:void(0)" onclick="window.tienLenGame.onSummaryWantChangeBot(true)" style="color:#fde047;text-decoration:underline;margin-left:6px;">Đổi Bot</a> nếu muốn chọn lại.`
+      );
+      return;
+    }
+    stepAsk?.classList.add('hidden');
+    stepActions?.classList.remove('hidden');
+    this.showSummaryBotStatus('💡 Hãy chọn <strong>🎲 Ngẫu Nhiên</strong> hoặc <strong>🎯 Chọn Bot</strong> bên trên:');
+  }
+
+  onSummaryRandomBot() {
+    this.randomizeBotCharacters(true);
+    this.syncSummaryBotNamesUI();
+    this.showSummaryBotStatus(
+      `🎲 Đã đổi ngẫu nhiên sang: <strong>${this.getActiveBotNamesPlain()}</strong>! (Bấm 🎲 Ngẫu Nhiên để xoay tiếp hoặc bấm 🃏 Chia Ván Tiếp Theo)`
+    );
   }
 
   applyQueuedNextMatchBots() {
@@ -7517,7 +7765,7 @@ class TienLenGame {
     bodyEl.innerHTML = `
       ${heroHtml}
       <div style="font-size:12.5px;font-weight:900;color:#d8b4fe;margin:8px 0 4px;">
-        📜 BẢNG TRA CỨU 20 NHÂN VẬT 5★ &amp; KỸ NĂNG (Đã sở hữu Nộ 5★: ${this.unlockedBursts.size}/${GENSHIN_BURSTS.length} — Bấm vào nhân vật đã sở hữu để đổi ngay):
+        📜 BẢNG TRA CỨU ${GENSHIN_BURSTS.length} NHÂN VẬT 5★ &amp; KỸ NĂNG (Đã sở hữu Nộ 5★: ${this.unlockedBursts.size}/${GENSHIN_BURSTS.length} — Bấm vào nhân vật đã sở hữu để đổi ngay):
       </div>
       <div class="char-detail-roster-grid">
         ${rosterItemsHtml}
@@ -9150,15 +9398,82 @@ class TienLenGame {
           }
         }
       }
-    } else if (charId === 'zibai' || charId === 'linnea' || charId === 'sandrone' || charId === 'nefer') {
-      if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6)) {
-        shouldCast = true;
+    } else if (charId === 'zibai') {
+      // Bạch Mã Đạp Vân: Nâng +1 bậc cho tối đa 2 lá bài nhỏ (<= K)
+      const candidates = sortCardsAsc(bot.hand).filter(
+        (c) => c.rankIndex <= 10 && !struct.bombRanks.has(c.rankIndex)
+      );
+      if (candidates.length > 0 && (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank <= 10))) {
+        if (bot.hand.length <= 9 || minOppCards <= 7 || !plannedMove) {
+          shouldCast = true;
+        }
+      }
+    } else if (charId === 'linnea') {
+      // Ảo Thuật Ghép Đôi: Biến lá rác nhỏ nhất thành bản sao cùng số với lá cao trên tay để tạo Đôi / Sám Cô
+      const nonBombNormals = sortCardsAsc(bot.hand).filter(
+        (c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex)
+      );
+      if (nonBombNormals.length >= 2) {
+        const lowest = nonBombNormals[0];
+        let bestTarget = null;
+        if (this.currentCombo && !this.currentCombo.isBomb && (this.currentCombo.type === COMBO_TYPES.PAIR || this.currentCombo.type === COMBO_TYPES.TRIPLE) && (!plannedMove || plannedMove.highRank === 12)) {
+          const needCount = this.currentCombo.length - 1;
+          bestTarget = nonBombNormals.find(
+            (c) =>
+              c.id !== lowest.id &&
+              c.rankIndex > this.currentCombo.highRank &&
+              struct.rankCounts[c.rankIndex] >= needCount
+          );
+        }
+        if (!bestTarget && (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6)) {
+          bestTarget = [...nonBombNormals]
+            .reverse()
+            .find((c) => c.id !== lowest.id && struct.rankCounts[c.rankIndex] === 1);
+        }
+        if (bestTarget && lowest.rankIndex <= 8) {
+          shouldCast = true;
+          preferredIds = [bestTarget.id];
+        }
+      }
+    } else if (charId === 'nefer') {
+      // Ảo Ảnh Sa Mạc: Nâng cấp 1 Đôi trên tay thành Sám Cô (hoặc tạo Đôi lớn)
+      const hasPairAndTrash =
+        bot.hand.length >= 3 &&
+        struct.rankCounts.slice(0, 12).some((cnt) => cnt === 2) &&
+        bot.hand.some((c) => c.rankIndex <= 8 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex));
+      if (hasPairAndTrash && (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.TRIPLE && !plannedMove))) {
+        if (bot.hand.length <= 10 || minOppCards <= 7) {
+          shouldCast = true;
+        }
+      }
+    } else if (charId === 'sandrone') {
+      // Dây Cót Con Rối: Gom 3 lá lẻ cô lập thành Sảnh 3 lá liên tiếp
+      const isolatedSingles = sortCardsAsc(bot.hand).filter(
+        (c) =>
+          c.rankIndex <= 11 &&
+          struct.rankCounts[c.rankIndex] === 1 &&
+          !struct.bombRanks.has(c.rankIndex) &&
+          !struct.criticalStraightRanks.has(c.rankIndex)
+      );
+      if (isolatedSingles.length >= 3) {
+        if (
+          !this.currentCombo ||
+          plannedMove ||
+          (this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3 && !plannedMove)
+        ) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'lauma') {
-      if (
-        (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank >= 7 && this.currentCombo.highRank < 12) ||
-        (!this.currentCombo && bot.hand.length <= 8)
-      ) {
+      // Nguyệt Quang Hồi Phục: Thu hồi lá lớn nhất trên bàn về tay (nếu bàn chỉ có 1 lá Lẻ thì xóa bàn và cướp cái luôn!)
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
+        if (
+          (this.currentCombo.length === 1 && this.currentCombo.highRank >= 6 && (!plannedMove || plannedMove.highRank === 12 || minOppCards <= 6)) ||
+          (this.currentCombo.length >= 2 && this.currentCombo.highRank >= 7 && (!plannedMove || minOppCards <= 5))
+        ) {
+          shouldCast = true;
+        }
+      } else if (!this.currentCombo && bot.hand.length <= 8) {
         shouldCast = true;
       }
     } else if (charId === 'vesna') {
@@ -9166,20 +9481,192 @@ class TienLenGame {
         shouldCast = true;
       }
     } else if (charId === 'columbina') {
-      if ((!this.currentCombo || plannedMove) && bot.hand.length >= 2 && (bot.hand.length <= 8 || minOppCards <= 6)) {
+      // Khúc Ca Thiên Thần: Đánh 1 bộ rồi được đánh bồi thêm 1 bộ nữa ngay lập tức!
+      if (bot.hand.length >= 2 && (!this.currentCombo || plannedMove)) {
+        const firstMove = plannedMove || validMoves[0];
+        if (firstMove) {
+          const usedIds = new Set(firstMove.cards.map((c) => c.id));
+          const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
+          const canInstantWinOnExtraTurn = remHand.length > 0 && Boolean(classifyCombo(remHand));
+          if (canInstantWinOnExtraTurn || bot.hand.length <= 8 || minOppCards <= 6) {
+            shouldCast = true;
+          }
+        }
+      }
+    } else if (charId === 'odette') {
+      // Vũ Điệu Thiên Nga: Cắt bớt 1 lá cao nhất khỏi bộ >= 2 lá trên bàn (Sảnh 4->3, Sám->Đôi, Đôi->Lẻ) hoặc hạ 3 bậc lá Lẻ!
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank < 12 &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 85)
+      ) {
+        let reducedCombo = null;
+        if (this.currentCombo.length >= 2) {
+          const sortedCards = sortCardsAsc(this.currentCombo.cards);
+          const trimmed = sortedCards.slice(0, sortedCards.length - 1);
+          reducedCombo = classifyCombo(trimmed) || classifyCombo([sortedCards[0]]);
+        } else {
+          const newRankIdx = Math.max(0, this.currentCombo.highRank - 3);
+          reducedCombo = {
+            ...this.currentCombo,
+            highRank: newRankIdx,
+            highValue: newRankIdx * 4 + (this.currentCombo.highCard?.suitIndex || 0),
+          };
+        }
+        if (reducedCombo) {
+          const movesAfterOdette = getValidMoves(bot.hand, reducedCombo, this.mustPlay3Spade, false).filter(
+            (m) => m.highRank < 12 && !m.isBomb && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+          );
+          if (movesAfterOdette.length > 0) {
+            shouldCast = true;
+          }
+        }
+      }
+    } else if (charId === 'vodyanitsa') {
+      // Gương Nước Phản Chiếu: Biến N lá bài rác trên tay thành bộ bài cao hơn bộ trên bàn +1 bậc để đè ngay!
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank < 12 &&
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 85 || minOppCards <= 5)
+      ) {
+        const nonBombUnder2 = bot.hand.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
+        if (nonBombUnder2.length >= this.currentCombo.length) {
+          shouldCast = true;
+        }
+      }
+    } else if (charId === 'lohen') {
+      // Khiên Phản Đòn Tây Phong: Phản ngược bộ bài trên bàn trả lại cho chính đối thủ vừa đánh, biến thành bài của Lohen!
+      // Chỉ phản đòn khi bộ trên bàn đủ mạnh (>= 9 hoặc Sám/Sảnh >= 3 lá, hoặc đối thủ sắp về <= 5 lá) và Bot không có nước đỡ rẻ!
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank < 12 &&
+        this.trickOwnerId !== null &&
+        this.trickOwnerId !== bot.id
+      ) {
+        const isStrongTablePlay =
+          this.currentCombo.highRank >= 6 ||
+          this.currentCombo.length >= 3 ||
+          minOppCards <= 5;
+        const needDefense =
+          !plannedMove ||
+          plannedMove.highRank === 12 ||
+          this.evaluateMoveBreakCost(plannedMove, struct) >= 80 ||
+          minOppCards <= 4;
+        if (isStrongTablePlay && needDefense) {
+          shouldCast = true;
+        }
+      }
+    } else if (charId === 'durin') {
+      // Trái Tim Rồng Đỏ: Biến 1 lá bài rác trên tay thành con Heo Cơ 2♥ (value 51 — lá bài mạnh nhất bàn)!
+      const trashCand =
+        sortCardsAsc(bot.hand).find(
+          (c) =>
+            c.rankIndex <= 8 &&
+            struct.rankCounts[c.rankIndex] === 1 &&
+            !struct.bombRanks.has(c.rankIndex) &&
+            !struct.criticalStraightRanks.has(c.rankIndex)
+        ) ||
+        sortCardsAsc(bot.hand).find((c) => c.rankIndex <= 9 && !struct.bombRanks.has(c.rankIndex));
+      if (trashCand) {
+        // TH1: Trên bàn đang đánh Lẻ (kể cả Heo 2♠/2♣/2♦ hoặc bài lớn J..A) mà Bot không đỡ được -> Hoá 2♥ đập chết ngay!
+        const canCutSingleWith2Heart =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.SINGLE &&
+          this.currentCombo.highValue < 51 &&
+          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 85 || this.currentCombo.highRank >= 9);
+        // TH2: Trên bàn đang đánh Đôi lớn (J..2) mà Bot đang có sẵn 1 con Heo -> Hoá thêm 2♥ tạo Đôi Heo đè luôn!
+        const canFormPairOfTwos =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.PAIR &&
+          this.currentCombo.highValue < 51 &&
+          rankCounts[12] >= 1 &&
+          (!plannedMove || this.currentCombo.highRank >= 9);
+        // TH3: Khi đang cầm cái hoặc chuẩn bị đánh ở giữa/cuối ván -> Hoá lá rác nhỏ nhất thành 2♥ để nắm chắc quyền cướp cái!
+        const goodMidEndgameUpgrade =
+          (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6);
+        if (canCutSingleWith2Heart || canFormPairOfTwos || goodMidEndgameUpgrade) {
+          shouldCast = true;
+          preferredIds = [trashCand.id];
+        }
+      }
+    } else if (charId === 'xiao') {
+      // Không Trung Đạp Kích: Chỉ dùng khi trên bàn ĐANG LÀ ĐÔI, SÁM CÔ HOẶC SẢNH (length >= 2)
+      // và Xiao thực sự có ít nhất 1 lá Lẻ (rankIndex >= currentCombo.highRank) ngoài Hàng để đâm thủng!
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.length >= 2 &&
+        this.currentCombo.highRank < 12
+      ) {
+        const prevXiao = activeXiaoPlungeSingle;
+        activeXiaoPlungeSingle = true;
+        const plungeMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+          (m) =>
+            m.isXiaoPlunge &&
+            !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)) &&
+            (m.highRank < 12 || minOppCards <= 4 || bot.hand.length <= 2)
+        );
+        activeXiaoPlungeSingle = prevXiao;
+        if (plungeMoves.length > 0) {
+          const canInstantWinPlunge = plungeMoves.some((m) => m.length === bot.hand.length);
+          const hasIsolatedPlungeCard = plungeMoves.some(
+            (m) => struct.rankCounts[m.highRank] === 1 && !struct.criticalStraightRanks.has(m.highRank)
+          );
+          const lacksCleanNormalResponse =
+            !plannedMove ||
+            plannedMove.highRank === 12 ||
+            this.evaluateMoveBreakCost(plannedMove, struct) >= 80;
+          if (canInstantWinPlunge || lacksCleanNormalResponse || (hasIsolatedPlungeCard && (bot.hand.length <= 8 || minOppCards <= 6))) {
+            shouldCast = true;
+          }
+        }
+      }
+    } else if (charId === 'kinich') {
+      // Gài Bom Hẹn Giờ Ajaw: Chỉ đặt bom khi Kinich CHẮC CHẮN ĐÁNH BÀI trong lượt này,
+      // sau khi đánh vẫn còn >= 2 lá trên tay (để có lá rác nhét vào tay đối thủ nếu bom nổ),
+      // và nước sắp đánh không phải là 2♥ bất khả chiến bại!
+      const moveLen = plannedMove ? plannedMove.length : 1;
+      const isUnbeatableMove = plannedMove && (plannedMove.highValue === 51 || plannedMove.isBomb);
+      if (
+        (!this.currentCombo || plannedMove) &&
+        unpassedOpps.length >= 1 &&
+        bot.hand.length - moveLen >= 2 &&
+        !isUnbeatableMove &&
+        (bot.hand.length <= 10 || minOppCards <= 7)
+      ) {
         shouldCast = true;
       }
-    } else if (charId === 'odette' || charId === 'vodyanitsa' || charId === 'lohen' || charId === 'xiao') {
-      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12 && (!plannedMove || plannedMove.highRank === 12 || minOppCards <= 6)) {
-        shouldCast = true;
-      }
-    } else if (charId === 'durin' || charId === 'kinich' || charId === 'venti') {
-      if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6)) {
+    } else if (charId === 'venti') {
+      // Hố Đen Phong Thần: Hút 1 lá lớn nhất (<= A) của mọi đối thủ và thổi trả lá rác nhỏ nhất của Venti!
+      // Chỉ tung khi trên tay Venti thực sự có lá rác nhỏ (<= 10) để tráo đi, hoặc khi đối thủ sắp về (<= 5 lá) cần tước quân chủ lực!
+      const nonBombCards = sortCardsAsc(bot.hand).filter((c) => !struct.bombRanks.has(c.rankIndex));
+      const lowestNonBomb = nonBombCards[0];
+      if (
+        lowestNonBomb &&
+        (lowestNonBomb.rankIndex <= 7 || (minOppCards <= 5 && lowestNonBomb.rankIndex <= 9)) &&
+        (!this.currentCombo || plannedMove || (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank <= 11))
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'wanderer') {
-      if ((minOppCards <= 5 && bot.hand.length >= 6) || (!plannedMove && this.currentCombo && bot.hand.length >= 5)) {
-        shouldCast = true;
+      // Cuồng Phong Đảo Mệnh: Gom toàn bộ bài trên bàn xáo trộn rồi chia lại!
+      // Tuyệt đối KHÔNG dùng nếu Wanderer sắp thắng hoặc đang giữ Hàng / nhiều Heo, TRỪ KHI đối thủ chỉ còn <= 2 lá sắp thắng!
+      const canWinNow = plannedMove && plannedMove.length === bot.hand.length;
+      const hasBombs = struct.bombRanks.size > 0;
+      const twosCount = rankCounts[12];
+      const lowCardsCount = bot.hand.filter((c) => c.rankIndex <= 6).length;
+      if (!canWinNow && !hasBombs && bot.hand.length >= 4) {
+        const emergencyStopOpponent = minOppCards <= 3 && twosCount <= 1 && bot.hand.length >= minOppCards + 2;
+        const terribleHandBailout =
+          twosCount === 0 &&
+          lowCardsCount >= Math.ceil(bot.hand.length * 0.55) &&
+          ((!plannedMove && this.currentCombo) || minOppCards <= 6);
+        if (emergencyStopOpponent || terribleHandBailout) {
+          shouldCast = true;
+        }
       }
     }
 
@@ -9266,10 +9753,10 @@ class TienLenGame {
           if (!d) return '';
           const seatTag = d.isQueued ? `${seatLabels[idx]} • ⏳ Trận sau` : seatLabels[idx];
           return `
-            <div class="bot-lineup-chip">
+            <div class="bot-lineup-chip" onclick="window.tienLenGame.openBotPickerModal(${idx})" title="Bấm để chọn đích danh nhân vật Bot cho ${seatLabels[idx]}" style="cursor:pointer;">
               <img src="fanart/${d.skin}.jpg?v=57" alt="${d.name}" />
               <div class="bot-lineup-chip-info">
-                <span class="bot-lineup-chip-seat">${seatTag}</span>
+                <span class="bot-lineup-chip-seat">${seatTag} • 🎯 Đổi</span>
                 <span class="bot-lineup-chip-name">${d.name}</span>
               </div>
             </div>
@@ -11712,8 +12199,6 @@ class TienLenGame {
 
     if (!this.isMultiplayer && this.queuedNextMatchBots) {
       this.applyQueuedNextMatchBots();
-    } else if (!this.isMultiplayer && !resetHistory && this.autoRandomizeBots !== false) {
-      this.randomizeBotCharacters(false);
     } else {
       this.updateArenaBackdropCharacters();
     }
@@ -12568,11 +13053,12 @@ class TienLenGame {
         );
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      if (isHeavy || hasElementalClash) {
+      // CHỈ kích hoạt Phản Ứng Nguyên Tố ở các pha đánh bài TO (Tứ Quý, Đôi Thông, Heo 2, Sám Cô, Sảnh dài >= 4 lá)
+      if (isHeavy) {
         const rx = this.getSpecialPlayReaction(player, combo);
         combo.reaction = rx;
         this.triggerArenaReactionFlash(rx);
-        const rxBonus = prevPlayer ? this.applyElementalReactionBonus(player, prevPlayer, rx) : 0;
+        const rxBonus = prevPlayer && hasElementalClash ? this.applyElementalReactionBonus(player, prevPlayer, rx) : 0;
         const bonusTag = rxBonus > 0 ? ` (+${rxBonus.toLocaleString()} XU ×5)` : '';
         this.showComboBanner(`${rx.badge}${bonusTag} • ${combo.label.toUpperCase()}!`, rx.cssClass);
         this.addLog(
@@ -13336,7 +13822,7 @@ class TienLenGame {
       const holdTwoPenalty =
         isTwo && !sit.isLosingSoon && bot.hand.length > 4 ? 48 : 0;
 
-      // Ưu tiên mạnh các bộ bài kích hoạt đúng hiệu ứng Kỹ Năng vừa bật (Ganyu Sảnh Khuyết, Mualani Đè Khác Loại, Yoimiya Đốt Rác)
+      // Ưu tiên mạnh các bộ bài kích hoạt đúng hiệu ứng Kỹ Năng vừa bật (Ganyu Sảnh Khuyết, Mualani Đè Khác Loại, Yoimiya Đốt Rác, Xiao Đạp Kích, Columbina Hiệp Phụ)
       let skillSynergyBonus = 0;
       if (!touchesBomb) {
         if (this.ganyuGapStraightTurn && move.isGapStraight) {
@@ -13349,6 +13835,23 @@ class TienLenGame {
           move.highRank < 12
         ) {
           skillSynergyBonus -= 340;
+        }
+        if (
+          this.xiaoPlungeSingleTurn &&
+          move.isXiaoPlunge &&
+          this.currentCombo &&
+          this.currentCombo.length >= 2
+        ) {
+          skillSynergyBonus -= 360;
+        }
+        if (this.columbinaExtraTurnReady) {
+          const usedIds = new Set(move.cards.map((c) => c.id));
+          const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
+          if (remHand.length > 0 && classifyCombo(remHand)) {
+            skillSynergyBonus -= 950;
+          } else {
+            skillSynergyBonus -= 180;
+          }
         }
         if (isYoimiyaBurnActive && move.length >= 2) {
           skillSynergyBonus -= 190;
@@ -13375,15 +13878,21 @@ class TienLenGame {
       return null;
     }
 
-    // Nếu Bot vừa chủ động bật Kỹ Năng phá thế trong lượt/vòng này (Ganyu, Mualani, Kokomi, Shenhe, Varesa)
+    // Nếu Bot vừa chủ động bật Kỹ Năng phá thế trong lượt/vòng này
     // thì BẮT BUỘC đánh tiếp nước bài đã mở đường, TUYỆT ĐỐI KHÔNG BỎ LƯỢT lãng phí Kỹ Năng!
     const mustFollowUpSkill =
       !best.touchesBomb &&
       ((this.ganyuGapStraightTurn && activeCharId === 'ganyu') ||
         (this.mualaniCrossBeatTurn && activeCharId === 'mualani') ||
+        (this.xiaoPlungeSingleTurn && activeCharId === 'xiao') ||
+        (this.columbinaExtraTurnReady && activeCharId === 'columbina') ||
+        (this.kinichBombOwnerId === bot.id && activeCharId === 'kinich') ||
         (this.kokomiReverseRankRound && activeCharId === 'kokomi') ||
         (this.shenheSingleOnlyRound && activeCharId === 'shenhe') ||
-        (this.currentCombo?.label?.includes('Varesa') && activeCharId === 'varesa'));
+        (this.currentCombo?.label?.includes('Varesa') && activeCharId === 'varesa') ||
+        (this.currentCombo?.label?.includes('Odette') && activeCharId === 'odette') ||
+        (this.currentCombo?.label?.includes('Lauma') && activeCharId === 'lauma') ||
+        (bot.skillUsed && ['vodyanitsa', 'durin', 'venti', 'linnea', 'nefer', 'sandrone', 'zibai'].includes(activeCharId)));
     if (mustFollowUpSkill) {
       return best.move;
     }
@@ -14097,6 +14606,7 @@ class TienLenGame {
       })
       .join('');
 
+    this.resetSummaryBotPrompt();
     this.modalSummary.classList.remove('hidden');
   }
 
@@ -14214,7 +14724,7 @@ class TienLenGame {
         charBoxEl.classList.add(`elem-${elem}`);
         charBoxEl.title = hasChar
           ? `🔍 Bấm để xem chi tiết: ${sk.icon} ${sk.charName} — Kỹ năng [${sk.name}]: ${sk.shortDesc}`
-          : '🔒 Chưa sở hữu Hoạt Ảnh Nộ 5★ (Bấm vào để xem danh sách Kỹ Năng 20 Nhân Vật 5★)';
+          : `🔒 Chưa sở hữu Hoạt Ảnh Nộ 5★ (Bấm vào để xem danh sách Kỹ Năng ${GENSHIN_BURSTS.length} Nhân Vật 5★)`;
       }
       if (charThumbEl) {
         if (hasChar) {

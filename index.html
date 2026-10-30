@@ -336,7 +336,7 @@
                 <div class="hero-mode-icon">🤖</div>
                 <div class="hero-mode-text">
                   <div class="hero-mode-title">CHƠI VỚI BOT</div>
-                  <div class="hero-mode-sub">Đấu trí cùng 20 Nhân Vật Genshin 5★ có Kỹ Năng Nộ riêng • Chọn bàn 2, 3 hoặc 4 người</div>
+                  <div class="hero-mode-sub">Đấu trí cùng 35 Nhân Vật Genshin 5★ có Kỹ Năng Nộ riêng • Chọn bàn 2, 3 hoặc 4 người</div>
                 </div>
                 <div class="hero-mode-cta-pill">⚔️ MỞ BÀN BOT ▸</div>
               </div>
@@ -454,19 +454,18 @@
               </div>
             </div>
 
-            <!-- Thanh Random Nhân Vật Bot Gọn -->
+            <!-- Thanh Chọn & Random Nhân Vật Bot -->
             <div class="bot-random-bar compact-random-bar" id="bot-random-bar">
               <div class="bot-lineup-avatars" id="bot-lineup-avatars">
-                <!-- Populated dynamically -->
+                <!-- Populated dynamically (Bấm vào từng ghế Bot để đổi đích danh nhân vật) -->
               </div>
-              <div class="bot-random-controls">
+              <div class="bot-random-controls" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                 <button class="tool-btn anime-random-bot-btn" id="btn-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)">
-                  🎲 Đổi Bot 5★
+                  🎲 Ngẫu Nhiên (35 Nhân Vật)
                 </button>
-                <label class="bot-auto-random-toggle" title="Tự động đổi ngẫu nhiên nhân vật Bot 5★ sau mỗi ván bài mới">
-                  <input type="checkbox" id="chk-auto-random-bots" checked onchange="window.tienLenGame.toggleAutoRandomBots(this.checked)" />
-                  <span>Tự random mỗi ván</span>
-                </label>
+                <button class="primary-btn" id="btn-open-bot-picker" onclick="window.tienLenGame.openBotPickerModal()" style="padding:8px 14px;font-size:13px;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);box-shadow:0 0 12px rgba(37,99,235,0.45);">
+                  🎯 Chọn Bot Đấu Cùng
+                </button>
               </div>
             </div>
 
@@ -742,6 +741,44 @@
             </thead>
             <tbody id="summary-tbody"></tbody>
           </table>
+
+          <!-- HỘP HỎI ĐỔI BOT KHI HẾT TRẬN (CHỈ HIỆN Ở CHẾ ĐỘ ĐẤU VỚI BOT) -->
+          <div id="summary-bot-prompt-box" class="summary-bot-prompt-box" style="margin-top:14px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(15,23,42,0.92),rgba(30,27,75,0.88));border:1.5px solid rgba(139,92,246,0.55);box-shadow:0 6px 20px rgba(0,0,0,0.45);">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <div style="font-size:15px;font-weight:800;color:#fde047;margin-bottom:4px;">
+                  🤖 Bạn có muốn đổi Bot cho ván tiếp theo không?
+                </div>
+                <div id="summary-current-bots-line" style="font-size:13px;color:#e2e8f0;">
+                  Đối thủ hiện tại: <strong id="summary-current-bots-names">Bot Raiden ⚡</strong>
+                </div>
+              </div>
+
+              <!-- Bước 1: 2 lựa chọn Có / Không -->
+              <div id="summary-bot-step-ask" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="primary-btn" onclick="window.tienLenGame.onSummaryWantChangeBot(true)" style="padding:8px 18px;font-size:13.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#ec4899);">
+                  ✅ Có
+                </button>
+                <button type="button" class="tool-btn" onclick="window.tienLenGame.onSummaryWantChangeBot(false)" style="padding:8px 18px;font-size:13.5px;font-weight:800;border-radius:10px;border:1.5px solid rgba(148,163,184,0.5);">
+                  ❌ Không (Giữ nguyên)
+                </button>
+              </div>
+
+              <!-- Bước 2: Khi bấm "Có" -> Hiện 2 nút "Ngẫu Nhiên" và "Chọn Bot" -->
+              <div id="summary-bot-step-actions" class="hidden" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="tool-btn anime-random-bot-btn" onclick="window.tienLenGame.onSummaryRandomBot()" style="padding:8px 16px;font-size:13.5px;font-weight:800;border-radius:10px;">
+                  🎲 Ngẫu Nhiên
+                </button>
+                <button type="button" class="primary-btn" onclick="window.tienLenGame.openBotPickerModal(null, true)" style="padding:8px 16px;font-size:13.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);">
+                  🎯 Chọn Bot
+                </button>
+                <button type="button" class="icon-btn" onclick="window.tienLenGame.resetSummaryBotPrompt()" style="padding:6px 10px;font-size:12px;">
+                  ⬅️ Quay lại
+                </button>
+              </div>
+            </div>
+            <div id="summary-bot-status-msg" class="hidden" style="margin-top:8px;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.16);border:1px solid rgba(16,185,129,0.45);color:#6ee7b7;font-size:12.5px;font-weight:700;"></div>
+          </div>
         </div>
         <div class="modal-footer summary-footer">
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1099,6 +1136,34 @@
       </div>
     </div>
 
+    <!-- MODAL CHỌN ĐỐI THỦ BOT 5★ ĐÁNH VỚI MÌNH (35 NHÂN VẬT) -->
+    <div class="modal-backdrop hidden" id="bot-picker-modal" style="z-index: 9800;">
+      <div class="modal-card" style="max-width: 860px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div>
+            <h2>🎯 CHỌN ĐỐI THỦ BOT 5★ (35 NHÂN VẬT GENSHIN)</h2>
+            <p style="font-size:12.5px;color:#cbd5e1;margin:2px 0 0;">Bấm chọn ghế Bot rồi bấm vào nhân vật 5★ bạn muốn đối đầu trực tiếp</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="button" class="tool-btn anime-random-bot-btn" onclick="window.tienLenGame.randomizeBotFromPicker()" style="padding:6px 12px;font-size:12.5px;">
+              🎲 Ngẫu Nhiên Cả Bàn
+            </button>
+            <button type="button" class="close-modal-btn" onclick="window.tienLenGame.closeBotPickerModal()">✕</button>
+          </div>
+        </div>
+        <div class="modal-body" style="overflow-y:auto;padding:14px 16px;">
+          <div id="bot-picker-seat-tabs" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
+          <div id="bot-picker-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;"></div>
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div id="bot-picker-footer-summary" style="font-size:13px;color:#e2e8f0;"></div>
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.closeBotPickerModal()" style="padding:9px 22px;font-weight:800;">
+            ✅ Xác Nhận Đội Hình Bot
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC VIDEO + VOICE ANIMATION OVERLAY -->
     <div class="genshin-burst-overlay hidden" id="genshin-burst-overlay">
       <div class="burst-bg-fx" id="burst-bg-fx"></div>
@@ -1118,6 +1183,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=57"></script>
+  <script src="game.js?v=58"></script>
 </body>
 </html>

@@ -8615,7 +8615,7 @@ const ANIME_CARD_SKINS = [
     desc: c.desc,
     price: c.skinPrice,
     crest: c.crest,
-    imgUrl: `fanart/${c.id}.jpg`,
+    imgUrl: `fanart/${c.id}.jpg?v=52`,
   })),
 ];
 
@@ -8633,7 +8633,7 @@ const ANIME_AVATARS = [
     name: c.name,
     desc: c.desc,
     price: c.avatarPrice,
-    imgUrl: `fanart/${c.id}.jpg`,
+    imgUrl: `fanart/${c.id}.jpg?v=52`,
   })),
 ];
 
@@ -8870,7 +8870,7 @@ const GENSHIN_BURSTS = [
     price: 125000,
     mp4Url: 'citlali_burst.mp4',
     audioUrl: 'citlali_burst.ogg?v=48',
-    posterUrl: 'fanart/citlali.jpg',
+    posterUrl: 'fanart/citlali.jpg?v=52',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '❄️ KỸ NĂNG NỘ • CITLALI (EDICT OF ENTWINED SPLENDOR)',
@@ -8912,7 +8912,7 @@ const GENSHIN_BURSTS = [
     price: 120000,
     mp4Url: 'escoffier_burst.mp4',
     audioUrl: 'escoffier_burst.ogg?v=48',
-    posterUrl: 'fanart/escoffier.jpg',
+    posterUrl: 'fanart/escoffier.jpg?v=52',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🍰 KỸ NĂNG NỘ • ESCOFFIER (SCORING CUTS)',
@@ -13098,7 +13098,7 @@ class TienLenGame {
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
         return `
           <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" data-burst-id="${b.id}" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
-            <img src="fanart/${b.id}.jpg" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
+            <img src="fanart/${b.id}.jpg?v=52" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name">${charName}</div>
               <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★'} • ${bSkill.icon} ${bSkill.name}</div>
@@ -13112,7 +13112,7 @@ class TienLenGame {
           const s = getCardSkinMeta(id);
           return `
             <span class="gacha-rateup-4star-pill">
-              <img src="fanart/${id}.jpg" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
+              <img src="fanart/${id}.jpg?v=52" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
               ${id.toUpperCase()} (4★ UP)
             </span>
           `;
@@ -13412,7 +13412,7 @@ class TienLenGame {
           <div class="inv-equip-thumb">
             ${
               hasChar
-                ? `<img src="fanart/${currentCharId}.jpg" alt="${charSkill.charName}" />`
+                ? `<img src="fanart/${currentCharId}.jpg?v=52" alt="${charSkill.charName}" />`
                 : `<span style="font-size:20px;">🔒</span>`
             }
           </div>
@@ -15447,14 +15447,14 @@ class TienLenGame {
           : me?.cardSkin && me.cardSkin !== 'classic'
           ? me.cardSkin
           : 'raiden';
-      leftEl.style.backgroundImage = `url('fanart/${leftArtId}.jpg')`;
+      leftEl.style.backgroundImage = `url('fanart/${leftArtId}.jpg?v=52')`;
     }
     if (rightEl) {
       const activeOpponents = this.players.filter((p) => p.active && p.id !== this.mySeatId);
       const mainOpp = activeOpponents.find((p) => p.id === 2) || activeOpponents[0] || this.players[2];
       const oppCharId = this.getPlayerActiveCharId(mainOpp);
       const rightArtId = oppCharId && oppCharId !== 'none' ? oppCharId : 'furina';
-      rightEl.style.backgroundImage = `url('fanart/${rightArtId}.jpg')`;
+      rightEl.style.backgroundImage = `url('fanart/${rightArtId}.jpg?v=52')`;
     }
   }
 
@@ -15489,7 +15489,7 @@ class TienLenGame {
 
       heroHtml = `
         <div class="char-detail-hero">
-          <img class="char-detail-art" src="fanart/${charId}.jpg" alt="${sk.charName}" />
+          <img class="char-detail-art" src="fanart/${charId}.jpg?v=52" alt="${sk.charName}" />
           <div style="flex:1;">
             <div style="font-size:11px;font-weight:900;color:#fde047;letter-spacing:0.5px;text-transform:uppercase;">
               ${isMe ? '👑 NHÂN VẬT 5★ BẠN ĐANG SỬ DỤNG' : `🎭 NHÂN VẬT ĐANG XÀI CỦA ${p.name.toUpperCase()}`}
@@ -15546,7 +15546,7 @@ class TienLenGame {
 
       return `
         <div class="char-detail-roster-item ${isCurrent ? 'active-char' : ''} ${!owned ? 'locked-char' : ''}" ${clickAttr}>
-          <img src="fanart/${b.id}.jpg" alt="${cSk.charName}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid ${
+          <img src="fanart/${b.id}.jpg?v=52" alt="${cSk.charName}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid ${
         owned ? '#fde047' : '#64748b'
       };" />
           <div style="flex:1;min-width:0;">
@@ -16757,7 +16757,7 @@ class TienLenGame {
           const seatTag = d.isQueued ? `${seatLabels[idx]} • ⏳ Trận sau` : seatLabels[idx];
           return `
             <div class="bot-lineup-chip">
-              <img src="fanart/${d.skin}.jpg" alt="${d.name}" />
+              <img src="fanart/${d.skin}.jpg?v=52" alt="${d.name}" />
               <div class="bot-lineup-chip-info">
                 <span class="bot-lineup-chip-seat">${seatTag}</span>
                 <span class="bot-lineup-chip-name">${d.name}</span>
@@ -21589,7 +21589,7 @@ class TienLenGame {
       }
       if (charThumbEl) {
         if (hasChar) {
-          const expectedSrc = `fanart/${charId}.jpg`;
+          const expectedSrc = `fanart/${charId}.jpg?v=52`;
           if (charThumbEl.getAttribute('src') !== expectedSrc) {
             charThumbEl.setAttribute('src', expectedSrc);
           }

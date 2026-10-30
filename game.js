@@ -202,7 +202,7 @@ const ANIME_CARD_SKINS = [
     desc: c.desc,
     price: c.skinPrice,
     crest: c.crest,
-    imgUrl: `fanart/${c.id}.jpg?v=52`,
+    imgUrl: `fanart/${c.id}.jpg?v=57`,
   })),
 ];
 
@@ -220,7 +220,7 @@ const ANIME_AVATARS = [
     name: c.name,
     desc: c.desc,
     price: c.avatarPrice,
-    imgUrl: `fanart/${c.id}.jpg?v=52`,
+    imgUrl: `fanart/${c.id}.jpg?v=57`,
   })),
 ];
 
@@ -457,7 +457,7 @@ const GENSHIN_BURSTS = [
     price: 125000,
     mp4Url: 'citlali_burst.mp4',
     audioUrl: 'citlali_burst.ogg?v=48',
-    posterUrl: 'fanart/citlali.jpg?v=52',
+    posterUrl: 'fanart/citlali.jpg?v=57',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '❄️ KỸ NĂNG NỘ • CITLALI (EDICT OF ENTWINED SPLENDOR)',
@@ -499,7 +499,7 @@ const GENSHIN_BURSTS = [
     price: 120000,
     mp4Url: 'escoffier_burst.mp4',
     audioUrl: 'escoffier_burst.ogg?v=48',
-    posterUrl: 'fanart/escoffier.jpg?v=52',
+    posterUrl: 'fanart/escoffier.jpg?v=57',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🍰 KỸ NĂNG NỘ • ESCOFFIER (SCORING CUTS)',
@@ -541,7 +541,7 @@ const GENSHIN_BURSTS = [
     price: 115000,
     mp4Url: 'linnea_burst.mp4',
     audioUrl: 'linnea_burst.ogg?v=55',
-    posterUrl: 'fanart/linnea.jpg?v=52',
+    posterUrl: 'fanart/linnea.jpg?v=57',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🎩 KỸ NĂNG NỘ • LINNEA (EXTREME SURVIVAL MEMO)',
@@ -555,7 +555,7 @@ const GENSHIN_BURSTS = [
     price: 130000,
     mp4Url: 'nefer_burst.mp4',
     audioUrl: 'nefer_burst.ogg?v=55',
-    posterUrl: 'fanart/nefer.jpg?v=52',
+    posterUrl: 'fanart/nefer.jpg?v=57',
     theme: 'theme-electro',
     sfxType: 'skirk',
     tag: '🌙 KỸ NĂNG NỘ • NEFER (TRUE EYE\'S PHANTASM)',
@@ -569,7 +569,7 @@ const GENSHIN_BURSTS = [
     price: 130000,
     mp4Url: 'odette_burst.mp4',
     audioUrl: 'odette_burst.ogg?v=55',
-    posterUrl: 'fanart/odette.jpg?v=52',
+    posterUrl: 'fanart/odette.jpg?v=57',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🦢 KỸ NĂNG NỘ • ODETTE (PRESTO: BLUEBIRD FINALE)',
@@ -583,7 +583,7 @@ const GENSHIN_BURSTS = [
     price: 140000,
     mp4Url: 'vesna_burst.mp4',
     audioUrl: 'vesna_burst.ogg?v=55',
-    posterUrl: 'fanart/vesna.jpg?v=52',
+    posterUrl: 'fanart/vesna.jpg?v=57',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🍃 KỸ NĂNG NỘ • VESNA (FOR THE TSARITSA!)',
@@ -625,7 +625,7 @@ const GENSHIN_BURSTS = [
     price: 185000,
     mp4Url: 'vodyanitsa_burst.mp4',
     audioUrl: 'vodyanitsa_burst.ogg?v=55',
-    posterUrl: 'fanart/vodyanitsa.jpg?v=52',
+    posterUrl: 'fanart/vodyanitsa.jpg?v=57',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🌊 KỸ NĂNG NỘ • VODYANITSA (KODA: SINK WITH THEE)',
@@ -637,9 +637,9 @@ const GENSHIN_BURSTS = [
     name: 'Lohen — Phán Quyết Hiển Hiện',
     desc: '[Sử Thi] Kỵ sĩ Tây Phong dựng Khiên Phản Đòn trả ngược bộ bài đang trên bàn bắt chính người vừa đánh phải tự đỡ lại bài của mình (Video + Giọng lồng tiếng thật).',
     price: 125000,
-    mp4Url: 'lohen_burst.mp4',
-    audioUrl: 'lohen_burst.ogg?v=56',
-    posterUrl: 'fanart/lohen.jpg?v=56',
+    mp4Url: 'lohen_burst.mp4?v=57',
+    audioUrl: 'lohen_burst.ogg?v=57',
+    posterUrl: 'fanart/lohen.jpg?v=57',
     theme: 'theme-cryo',
     sfxType: 'raiden',
     tag: '⚔️ KỸ NĂNG NỘ • LOHEN (MANIFEST JUDGMENT)',
@@ -651,9 +651,9 @@ const GENSHIN_BURSTS = [
     name: 'Durin — Nguyên Lý Thuần Khiết: Ánh Sáng Chuyển Dời',
     desc: '[Huyền Thoại] Hắc Long truyền máu Trái Tim Rồng Đỏ biến 1 lá bài thường trên tay hóa thành con Heo Cơ (2♥) thực thụ (Video + Giọng lồng tiếng thật).',
     price: 155000,
-    mp4Url: 'durin_burst.mp4',
-    audioUrl: 'durin_burst.ogg?v=56',
-    posterUrl: 'fanart/durin.jpg?v=56',
+    mp4Url: 'durin_burst.mp4?v=57',
+    audioUrl: 'durin_burst.ogg?v=57',
+    posterUrl: 'fanart/durin.jpg?v=57',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '🐉 KỸ NĂNG NỘ • DURIN (PRINCIPLE OF PURITY)',
@@ -665,9 +665,9 @@ const GENSHIN_BURSTS = [
     name: 'Xiao — Vũ Điệu Trừ Yêu',
     desc: '[Huyền Thoại] Hộ Pháp Dạ Xoa Không Trung Đạp Kích cho phép dùng 1 Lá Lẻ duy nhất đâm thủng và đè trực tiếp lên cả Đôi, Sám Cô hoặc Sảnh trên bàn (Video + Giọng lồng tiếng thật).',
     price: 155000,
-    mp4Url: 'xiao_burst.mp4',
-    audioUrl: 'xiao_burst.ogg?v=56',
-    posterUrl: 'fanart/xiao.jpg?v=56',
+    mp4Url: 'xiao_burst.mp4?v=57',
+    audioUrl: 'xiao_burst.ogg?v=57',
+    posterUrl: 'fanart/xiao.jpg?v=57',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '👹 KỸ NĂNG NỘ • XIAO (BANE OF ALL EVIL)',
@@ -679,9 +679,9 @@ const GENSHIN_BURSTS = [
     name: 'Wanderer — Kyougen: Thức Lạc Ngũ Phiên',
     desc: '[Huyền Thoại] Kẻ Lang Thang triệu hồi cuồng phong xáo trộn toàn bộ bài đang cầm trên tay của tất cả người chơi trên bàn rồi chia lại (Video + Giọng lồng tiếng thật).',
     price: 160000,
-    mp4Url: 'wanderer_burst.mp4',
-    audioUrl: 'wanderer_burst.ogg?v=56',
-    posterUrl: 'fanart/wanderer.jpg?v=56',
+    mp4Url: 'wanderer_burst.mp4?v=57',
+    audioUrl: 'wanderer_burst.ogg?v=57',
+    posterUrl: 'fanart/wanderer.jpg?v=57',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🌀 KỸ NĂNG NỘ • WANDERER (FIVE CEREMONIAL PLAYS)',
@@ -693,9 +693,9 @@ const GENSHIN_BURSTS = [
     name: 'Kinich — Kính Chào Thánh Long Toàn Năng',
     desc: '[Huyền Thoại] Thợ săn Natlan đặt Bom Hẹn Giờ Pixel Ajaw lên bàn: Đối thủ nào đánh đè lên bài của Kinich vòng này sẽ bị nổ bom nhận thêm 1 lá rác (Video + Giọng lồng tiếng thật).',
     price: 155000,
-    mp4Url: 'kinich_burst.mp4',
-    audioUrl: 'kinich_burst.ogg?v=56',
-    posterUrl: 'fanart/kinich.jpg?v=56',
+    mp4Url: 'kinich_burst.mp4?v=57',
+    audioUrl: 'kinich_burst.ogg?v=57',
+    posterUrl: 'fanart/kinich.jpg?v=57',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🦖 KỸ NĂNG NỘ • KINICH (ALMIGHTY DRAGONLORD)',
@@ -707,9 +707,9 @@ const GENSHIN_BURSTS = [
     name: 'Venti — Bài Thơ Thần Gió',
     desc: '[Thần Thoại] Phong Thần tạo Hố Đen hút 1 lá bài lớn nhất (≤ A) của mọi đối thủ gom chung với các lá rác của Venti, giữ lại các lá lớn nhất và thổi trả lá rác cho đối thủ (Video + Giọng lồng tiếng thật).',
     price: 175000,
-    mp4Url: 'venti_burst.mp4',
-    audioUrl: 'venti_burst.ogg?v=56',
-    posterUrl: 'fanart/venti.jpg?v=56',
+    mp4Url: 'venti_burst.mp4?v=57',
+    audioUrl: 'venti_burst.ogg?v=57',
+    posterUrl: 'fanart/venti.jpg?v=57',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🌪️ KỸ NĂNG NỘ • VENTI (WIND\'S GRAND ODE)',
@@ -5051,7 +5051,7 @@ class TienLenGame {
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
         return `
           <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" data-burst-id="${b.id}" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
-            <img src="fanart/${b.id}.jpg?v=52" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
+            <img src="fanart/${b.id}.jpg?v=57" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name">${charName}</div>
               <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★'} • ${bSkill.icon} ${bSkill.name}</div>
@@ -5065,7 +5065,7 @@ class TienLenGame {
           const s = getCardSkinMeta(id);
           return `
             <span class="gacha-rateup-4star-pill">
-              <img src="fanart/${id}.jpg?v=52" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
+              <img src="fanart/${id}.jpg?v=57" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
               ${id.toUpperCase()} (4★ UP)
             </span>
           `;
@@ -5365,7 +5365,7 @@ class TienLenGame {
           <div class="inv-equip-thumb">
             ${
               hasChar
-                ? `<img src="fanart/${currentCharId}.jpg?v=52" alt="${charSkill.charName}" />`
+                ? `<img src="fanart/${currentCharId}.jpg?v=57" alt="${charSkill.charName}" />`
                 : `<span style="font-size:20px;">🔒</span>`
             }
           </div>
@@ -7400,14 +7400,14 @@ class TienLenGame {
           : me?.cardSkin && me.cardSkin !== 'classic'
           ? me.cardSkin
           : 'raiden';
-      leftEl.style.backgroundImage = `url('fanart/${leftArtId}.jpg?v=52')`;
+      leftEl.style.backgroundImage = `url('fanart/${leftArtId}.jpg?v=57')`;
     }
     if (rightEl) {
       const activeOpponents = this.players.filter((p) => p.active && p.id !== this.mySeatId);
       const mainOpp = activeOpponents.find((p) => p.id === 2) || activeOpponents[0] || this.players[2];
       const oppCharId = this.getPlayerActiveCharId(mainOpp);
       const rightArtId = oppCharId && oppCharId !== 'none' ? oppCharId : 'furina';
-      rightEl.style.backgroundImage = `url('fanart/${rightArtId}.jpg?v=52')`;
+      rightEl.style.backgroundImage = `url('fanart/${rightArtId}.jpg?v=57')`;
     }
   }
 
@@ -7442,7 +7442,7 @@ class TienLenGame {
 
       heroHtml = `
         <div class="char-detail-hero">
-          <img class="char-detail-art" src="fanart/${charId}.jpg?v=52" alt="${sk.charName}" />
+          <img class="char-detail-art" src="fanart/${charId}.jpg?v=57" alt="${sk.charName}" />
           <div style="flex:1;">
             <div style="font-size:11px;font-weight:900;color:#fde047;letter-spacing:0.5px;text-transform:uppercase;">
               ${isMe ? '👑 NHÂN VẬT 5★ BẠN ĐANG SỬ DỤNG' : `🎭 NHÂN VẬT ĐANG XÀI CỦA ${p.name.toUpperCase()}`}
@@ -7499,7 +7499,7 @@ class TienLenGame {
 
       return `
         <div class="char-detail-roster-item ${isCurrent ? 'active-char' : ''} ${!owned ? 'locked-char' : ''}" ${clickAttr}>
-          <img src="fanart/${b.id}.jpg?v=52" alt="${cSk.charName}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid ${
+          <img src="fanart/${b.id}.jpg?v=57" alt="${cSk.charName}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid ${
         owned ? '#fde047' : '#64748b'
       };" />
           <div style="flex:1;min-width:0;">
@@ -9267,7 +9267,7 @@ class TienLenGame {
           const seatTag = d.isQueued ? `${seatLabels[idx]} • ⏳ Trận sau` : seatLabels[idx];
           return `
             <div class="bot-lineup-chip">
-              <img src="fanart/${d.skin}.jpg?v=52" alt="${d.name}" />
+              <img src="fanart/${d.skin}.jpg?v=57" alt="${d.name}" />
               <div class="bot-lineup-chip-info">
                 <span class="bot-lineup-chip-seat">${seatTag}</span>
                 <span class="bot-lineup-chip-name">${d.name}</span>
@@ -14218,7 +14218,7 @@ class TienLenGame {
       }
       if (charThumbEl) {
         if (hasChar) {
-          const expectedSrc = `fanart/${charId}.jpg?v=52`;
+          const expectedSrc = `fanart/${charId}.jpg?v=57`;
           if (charThumbEl.getAttribute('src') !== expectedSrc) {
             charThumbEl.setAttribute('src', expectedSrc);
           }

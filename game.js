@@ -6045,16 +6045,11 @@ class TienLenGame {
     const btnFullscreen = document.getElementById('btn-fullscreen');
     if (btnFullscreen) {
       btnFullscreen.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen?.().catch(() => {});
-          btnFullscreen.textContent = '🗗 Thu nhỏ';
-        } else {
-          document.exitFullscreen?.().catch(() => {});
-          btnFullscreen.textContent = '⛶ Toàn màn hình';
-        }
-        sfx.click();
+        this.toggleFullscreen();
       });
     }
+    document.addEventListener('fullscreenchange', () => this.syncFullscreenButtonsUI());
+    document.addEventListener('webkitfullscreenchange', () => this.syncFullscreenButtonsUI());
 
     this.btnSound.addEventListener('click', () => {
       sfx.enabled = !sfx.enabled;
@@ -6141,6 +6136,101 @@ class TienLenGame {
         }
       }
     });
+  }
+
+  isFullscreenActive() {
+    return Boolean(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.msFullscreenElement ||
+      this.pseudoFullscreen
+    );
+  }
+
+  syncFullscreenButtonsUI() {
+    const active = this.isFullscreenActive();
+    const label = active ? '🗗 Thu nhỏ' : '⛶ Toàn màn hình';
+    ['btn-fullscreen', 'btn-top-fullscreen', 'btn-lobby-top-fullscreen', 'btn-mode-fullscreen'].forEach((id) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.textContent = label;
+        btn.classList.toggle('is-fullscreen', active);
+      }
+    });
+    const dockLabel = document.getElementById('lobby-fullscreen-label');
+    if (dockLabel) {
+      dockLabel.textContent = active ? 'Thu Nhỏ' : 'Toàn Màn Hình';
+    }
+  }
+
+  toggleFullscreen() {
+    sfx.click();
+    const docEl = document.documentElement;
+    const isNativeFs = Boolean(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.msFullscreenElement
+    );
+
+    if (isNativeFs) {
+      this.pseudoFullscreen = false;
+      document.body.classList.remove('pseudo-fullscreen-mode');
+      const exitFn =
+        document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.msExitFullscreen;
+      if (exitFn) {
+        Promise.resolve(exitFn.call(document)).catch(() => {}).finally(() => {
+          this.syncFullscreenButtonsUI();
+        });
+      } else {
+        this.syncFullscreenButtonsUI();
+      }
+      return;
+    }
+
+    if (this.pseudoFullscreen) {
+      this.pseudoFullscreen = false;
+      document.body.classList.remove('pseudo-fullscreen-mode');
+      this.syncFullscreenButtonsUI();
+      return;
+    }
+
+    const reqFn =
+      docEl.requestFullscreen ||
+      docEl.webkitRequestFullscreen ||
+      docEl.msRequestFullscreen;
+
+    if (reqFn) {
+      try {
+        const res = reqFn.call(docEl, { navigationUI: 'hide' });
+        if (res && typeof res.then === 'function') {
+          res
+            .then(() => {
+              this.syncFullscreenButtonsUI();
+            })
+            .catch(() => {
+              this.pseudoFullscreen = true;
+              document.body.classList.add('pseudo-fullscreen-mode');
+              window.scrollTo(0, 1);
+              this.syncFullscreenButtonsUI();
+            });
+        } else {
+          setTimeout(() => this.syncFullscreenButtonsUI(), 120);
+        }
+      } catch (e) {
+        this.pseudoFullscreen = true;
+        document.body.classList.add('pseudo-fullscreen-mode');
+        window.scrollTo(0, 1);
+        this.syncFullscreenButtonsUI();
+      }
+    } else {
+      // Fallback cho Safari iOS hoặc trình duyệt di động chặn requestFullscreen
+      this.pseudoFullscreen = true;
+      document.body.classList.add('pseudo-fullscreen-mode');
+      window.scrollTo(0, 1);
+      this.syncFullscreenButtonsUI();
+    }
   }
 
   // ============================================================================

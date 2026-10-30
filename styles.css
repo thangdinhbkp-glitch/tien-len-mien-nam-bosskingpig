@@ -7250,6 +7250,53 @@ body {
   margin-top: 4px;
 }
 
+/* ============================================================================
+   NÚT TOÀN MÀN HÌNH (HIỂN THỊ CỐ ĐỊNH TRONG HEADER TRÊN MỌI ĐIỆN THOẠI & PC)
+   ============================================================================ */
+.top-fullscreen-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.65);
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.85), rgba(30, 58, 138, 0.9));
+  color: #e0f2fe;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.top-fullscreen-btn:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.top-fullscreen-btn.is-fullscreen {
+  border-color: rgba(251, 191, 36, 0.75);
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.88), rgba(120, 53, 15, 0.92));
+  color: #fef3c7;
+}
+
+@media (max-width: 768px) {
+  .top-fullscreen-btn {
+    display: inline-flex !important;
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+}
+
+body.pseudo-fullscreen-mode {
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+
 
 
 

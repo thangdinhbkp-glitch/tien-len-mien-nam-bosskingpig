@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=48" />
+  <link rel="stylesheet" href="styles.css?v=49" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -32,6 +32,9 @@
         </div>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
+        </button>
+        <button class="top-fullscreen-btn" id="btn-top-fullscreen" onclick="window.tienLenGame.toggleFullscreen()" title="Bật / Tắt chế độ Toàn màn hình trên điện thoại &amp; máy tính">
+          ⛶ Toàn màn hình
         </button>
         <button class="pause-game-btn" id="btn-pause-game" onclick="window.tienLenGame.openPauseModal()" title="Tạm dừng ván đấu & Mở Menu (Về Sảnh Chờ, Kho Đồ, Cầu Nguyện, Cài Đặt — Phím ESC)">
           ⏸️ Tạm Dừng
@@ -303,6 +306,9 @@
               <button class="arena-pill" data-theme="natlan" onclick="window.tienLenGame.selectArenaTheme('natlan')">🔥 Natlan</button>
               <button class="arena-pill" data-theme="cryo" onclick="window.tienLenGame.selectArenaTheme('cryo')">❄️ Băng Hoa</button>
             </div>
+            <button class="top-fullscreen-btn" id="btn-lobby-top-fullscreen" onclick="window.tienLenGame.toggleFullscreen()" title="Bật / Tắt chế độ Toàn màn hình trên điện thoại &amp; máy tính">
+              ⛶ Toàn màn hình
+            </button>
             <button class="close-modal-btn app-return-match-btn" id="btn-close-wifi" title="Đóng Sảnh Chờ để vào bàn đang đánh">
               ▶️ Vào Bàn
             </button>
@@ -378,6 +384,10 @@
             <span class="dock-icon">📖</span>
             <span class="dock-label">Luật Chơi</span>
           </button>
+          <button class="app-dock-btn" id="btn-lobby-fullscreen" onclick="window.tienLenGame.toggleFullscreen()" title="Bật / Tắt chế độ Toàn màn hình trên điện thoại &amp; máy tính">
+            <span class="dock-icon">⛶</span>
+            <span class="dock-label" id="lobby-fullscreen-label">Toàn Màn Hình</span>
+          </button>
           <button class="app-dock-btn dock-account" id="btn-lobby-account" onclick="window.tienLenGame.openAccountModal()" title="Quản lý Tài Khoản &amp; Đồng bộ Đám Mây">
             <span class="dock-icon">🔐</span>
             <span class="dock-label" id="lobby-account-label">Tài Khoản</span>
@@ -411,6 +421,9 @@
             <div class="shop-balance-pill">
               🪙 <strong id="mode-setup-balance">20,000</strong> Xu
             </div>
+            <button class="top-fullscreen-btn" id="btn-mode-fullscreen" onclick="window.tienLenGame.toggleFullscreen()" title="Bật / Tắt chế độ Toàn màn hình">
+              ⛶ Toàn màn hình
+            </button>
             <button class="close-modal-btn" id="btn-close-mode-setup" onclick="window.tienLenGame.closeModeSetupModal()">✕</button>
           </div>
         </div>
@@ -1105,6 +1118,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=48"></script>
+  <script src="game.js?v=49"></script>
 </body>
 </html>

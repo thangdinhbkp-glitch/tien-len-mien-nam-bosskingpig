@@ -460,11 +460,14 @@
                 <!-- Populated dynamically (Bấm vào từng ghế Bot để đổi đích danh nhân vật) -->
               </div>
               <div class="bot-random-controls" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                <button class="tool-btn anime-random-bot-btn" id="btn-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)">
+                <button type="button" class="tool-btn anime-random-bot-btn" id="btn-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)">
                   🎲 Ngẫu Nhiên (58 Nhân Vật)
                 </button>
-                <button class="primary-btn" id="btn-open-bot-picker" onclick="window.tienLenGame.openBotPickerModal()" style="padding:8px 14px;font-size:13px;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);box-shadow:0 0 12px rgba(37,99,235,0.45);">
+                <button type="button" class="primary-btn" id="btn-open-bot-picker" onclick="window.tienLenGame.openBotPickerModal()" style="padding:8px 14px;font-size:13px;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);box-shadow:0 0 12px rgba(37,99,235,0.45);">
                   🎯 Chọn Bot Đấu Cùng
+                </button>
+                <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-toggle-auto-random-bot" onclick="window.tienLenGame.toggleAutoRandomBots()" title="Bật/Tắt tự động đổi ngẫu nhiên Nhân Vật Bot sau mỗi ván bài">
+                  🔄 Tự Động Random: BẬT
                 </button>
               </div>
             </div>
@@ -583,6 +586,27 @@
                 </div>
               </div>
 
+              <!-- Thanh Điều Khiển & Random Nhân Vật Bot Trong Phòng WiFi / Online (Giống Chế Độ Đấu Bot) -->
+              <div class="bot-random-bar compact-random-bar" id="wifi-bot-controls-bar" style="margin-top:6px;">
+                <div class="bot-lineup-avatars" id="wifi-bot-lineup-avatars">
+                  <!-- Populated dynamically with active Bots in WiFi room -->
+                </div>
+                <div class="bot-random-controls" id="wifi-host-bot-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <button type="button" class="tool-btn" id="btn-wifi-add-bot" onclick="window.tienLenGame.addBotToNextEmptyWifiSeat()" title="Thêm nhanh 1 Bot 5★ vào ghế trống trong phòng">
+                    🤖 + Thêm Bot
+                  </button>
+                  <button type="button" class="tool-btn anime-random-bot-btn" id="btn-wifi-random-bots" onclick="window.tienLenGame.randomizeBotCharacters(true)" title="Đổi ngẫu nhiên nhân vật 5★ cho tất cả Bot trong phòng">
+                    🎲 Ngẫu Nhiên Bot (58 Nhân Vật)
+                  </button>
+                  <button type="button" class="primary-btn" id="btn-wifi-open-bot-picker" onclick="window.tienLenGame.openBotPickerModal()" style="padding:7px 12px;font-size:12.5px;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);box-shadow:0 0 12px rgba(37,99,235,0.45);">
+                    🎯 Chọn Bot Đấu Cùng
+                  </button>
+                  <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-wifi-auto-random-bot" onclick="window.tienLenGame.toggleAutoRandomBots()" title="Bật/Tắt tự động đổi ngẫu nhiên Nhân Vật Bot sau mỗi ván bài">
+                    🔄 Tự Động Random: BẬT
+                  </button>
+                </div>
+              </div>
+
               <!-- 4 Seats List (Minimum 2 players, Max 4 players) -->
               <div class="lobby-seats-header" style="margin-top:4px;">
                 <span>👥 Ghế trong bàn (<strong id="lobby-player-count">1</strong>/4 người • Tối thiểu 2 người)</span>
@@ -685,7 +709,13 @@
               🔄 Chia Ván Mới
             </button>
             <button class="pause-tool-btn icon-btn anime-theme-btn" id="btn-top-random-bots">
-              🎲 Đổi Nhân Vật Bot (5★)
+              🎲 Ngẫu Nhiên Bot (5★)
+            </button>
+            <button class="pause-tool-btn icon-btn anime-theme-btn" id="btn-top-pick-bots" onclick="window.tienLenGame.openBotPickerModal()">
+              🎯 Chọn Nhân Vật Bot
+            </button>
+            <button class="pause-tool-btn icon-btn auto-random-bot-toggle-btn" id="btn-pause-auto-random-bot" onclick="window.tienLenGame.toggleAutoRandomBots()">
+              🔄 Tự Động Random: BẬT
             </button>
             <button class="pause-tool-btn icon-btn anime-theme-btn" id="btn-arena-theme">
               🌸 Sân: <span id="arena-theme-label">Inazuma ⚡</span>
@@ -754,23 +784,29 @@
                 </div>
               </div>
 
-              <!-- Bước 1: 2 lựa chọn Có / Không -->
-              <div id="summary-bot-step-ask" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                <button type="button" class="primary-btn" onclick="window.tienLenGame.onSummaryWantChangeBot(true)" style="padding:8px 18px;font-size:13.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#ec4899);">
-                  ✅ Có
+              <!-- Bước 1: 2 lựa chọn Có / Không + Nút Tự Động Random Mỗi Ván -->
+              <div id="summary-bot-step-ask" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="primary-btn" onclick="window.tienLenGame.onSummaryWantChangeBot(true)" style="padding:8px 16px;font-size:13px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#ec4899);">
+                  ✅ Có (Đổi Bot)
                 </button>
-                <button type="button" class="tool-btn" onclick="window.tienLenGame.onSummaryWantChangeBot(false)" style="padding:8px 18px;font-size:13.5px;font-weight:800;border-radius:10px;border:1.5px solid rgba(148,163,184,0.5);">
-                  ❌ Không (Giữ nguyên)
+                <button type="button" class="tool-btn" onclick="window.tienLenGame.onSummaryWantChangeBot(false)" style="padding:8px 14px;font-size:13px;font-weight:800;border-radius:10px;border:1.5px solid rgba(148,163,184,0.5);">
+                  ❌ Giữ nguyên
+                </button>
+                <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-summary-auto-random-bot" onclick="window.tienLenGame.toggleAutoRandomBots()" style="padding:8px 14px;font-size:12.5px;font-weight:800;border-radius:10px;">
+                  🔄 Tự Động Random: BẬT
                 </button>
               </div>
 
-              <!-- Bước 2: Khi bấm "Có" -> Hiện 2 nút "Ngẫu Nhiên" và "Chọn Bot" -->
-              <div id="summary-bot-step-actions" class="hidden" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                <button type="button" class="tool-btn anime-random-bot-btn" onclick="window.tienLenGame.onSummaryRandomBot()" style="padding:8px 16px;font-size:13.5px;font-weight:800;border-radius:10px;">
+              <!-- Bước 2: Khi bấm "Có" -> Hiện 2 nút "Ngẫu Nhiên", "Chọn Bot" và "Tự Động Random" -->
+              <div id="summary-bot-step-actions" class="hidden" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="tool-btn anime-random-bot-btn" onclick="window.tienLenGame.onSummaryRandomBot()" style="padding:8px 14px;font-size:13px;font-weight:800;border-radius:10px;">
                   🎲 Ngẫu Nhiên
                 </button>
-                <button type="button" class="primary-btn" onclick="window.tienLenGame.openBotPickerModal(null, true)" style="padding:8px 16px;font-size:13.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);">
+                <button type="button" class="primary-btn" onclick="window.tienLenGame.openBotPickerModal(null, true)" style="padding:8px 14px;font-size:13px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);">
                   🎯 Chọn Bot
+                </button>
+                <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-summary-auto-random-bot-2" onclick="window.tienLenGame.toggleAutoRandomBots()" style="padding:8px 12px;font-size:12.5px;font-weight:800;border-radius:10px;">
+                  🔄 Tự Động Random: BẬT
                 </button>
                 <button type="button" class="icon-btn" onclick="window.tienLenGame.resetSummaryBotPrompt()" style="padding:6px 10px;font-size:12px;">
                   ⬅️ Quay lại
@@ -1144,7 +1180,10 @@
             <h2>🎯 CHỌN ĐỐI THỦ BOT 5★ (58 NHÂN VẬT GENSHIN)</h2>
             <p style="font-size:12.5px;color:#cbd5e1;margin:2px 0 0;">Bấm chọn ghế Bot rồi bấm vào nhân vật 5★ bạn muốn đối đầu trực tiếp</p>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-picker-auto-random-bot" onclick="window.tienLenGame.toggleAutoRandomBots()" style="padding:6px 12px;font-size:12.5px;">
+              🔄 Tự Động Random: BẬT
+            </button>
             <button type="button" class="tool-btn anime-random-bot-btn" onclick="window.tienLenGame.randomizeBotFromPicker()" style="padding:6px 12px;font-size:12.5px;">
               🎲 Ngẫu Nhiên Cả Bàn
             </button>
@@ -1183,6 +1222,6 @@
     <audio id="bgm-audio" preload="auto"></audio>
   </div>
 
-  <script src="game.js?v=64"></script>
+  <script src="game.js?v=66"></script>
 </body>
 </html>

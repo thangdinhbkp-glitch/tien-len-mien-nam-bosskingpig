@@ -262,7 +262,7 @@ const ANIME_CARD_SKINS = [
     desc: c.desc,
     price: c.skinPrice,
     crest: c.crest,
-    imgUrl: `fanart/${c.id}.jpg?v=64`,
+    imgUrl: `fanart/${c.id}.jpg?v=66`,
   })),
 ];
 
@@ -280,7 +280,7 @@ const ANIME_AVATARS = [
     name: c.name,
     desc: c.desc,
     price: c.avatarPrice,
-    imgUrl: `fanart/${c.id}.jpg?v=64`,
+    imgUrl: `fanart/${c.id}.jpg?v=66`,
   })),
 ];
 
@@ -517,7 +517,7 @@ const GENSHIN_BURSTS = [
     price: 125000,
     mp4Url: 'citlali_burst.mp4',
     audioUrl: 'citlali_burst.ogg?v=48',
-    posterUrl: 'fanart/citlali.jpg?v=57',
+    posterUrl: 'fanart/citlali.jpg?v=66',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '❄️ KỸ NĂNG NỘ • CITLALI (EDICT OF ENTWINED SPLENDOR)',
@@ -555,15 +555,15 @@ const GENSHIN_BURSTS = [
   {
     id: 'escoffier',
     name: 'Escoffier — Đại Tiệc Fontaine',
-    desc: '[Sử Thi] Siêu đầu bếp Fontaine dọn món đặc biệt ép đối thủ phải nhận thêm bài rác (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Siêu đầu bếp Fontaine hoàn thiện Đôi Thông: Khi sắp có Đôi Thông (VD: Đôi 5, Đôi 6, Lẻ 7), lập tức thêm lá còn thiếu vào tay và bỏ đi 1 lá bài rác (Video + Giọng lồng tiếng thật).',
     price: 120000,
     mp4Url: 'escoffier_burst.mp4',
     audioUrl: 'escoffier_burst.ogg?v=48',
-    posterUrl: 'fanart/escoffier.jpg?v=57',
+    posterUrl: 'fanart/escoffier.jpg?v=66',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🍰 KỸ NĂNG NỘ • ESCOFFIER (SCORING CUTS)',
-    title: 'ĐẠI TIỆC FONTAINE: BỮA TIỆC ÉP ĂN',
+    title: 'ĐẠI TIỆC FONTAINE: TUYỆT KỸ ĐÔI THÔNG',
     quote: '“Thưởng Thức Món Đặc Biệt Của Bếp Trưởng Nào!”',
   },
   {
@@ -601,7 +601,7 @@ const GENSHIN_BURSTS = [
     price: 115000,
     mp4Url: 'linnea_burst.mp4',
     audioUrl: 'linnea_burst.ogg?v=55',
-    posterUrl: 'fanart/linnea.jpg?v=57',
+    posterUrl: 'fanart/linnea.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🎩 KỸ NĂNG NỘ • LINNEA (EXTREME SURVIVAL MEMO)',
@@ -615,7 +615,7 @@ const GENSHIN_BURSTS = [
     price: 130000,
     mp4Url: 'nefer_burst.mp4',
     audioUrl: 'nefer_burst.ogg?v=55',
-    posterUrl: 'fanart/nefer.jpg?v=57',
+    posterUrl: 'fanart/nefer.jpg?v=66',
     theme: 'theme-electro',
     sfxType: 'skirk',
     tag: '🌙 KỸ NĂNG NỘ • NEFER (TRUE EYE\'S PHANTASM)',
@@ -629,7 +629,7 @@ const GENSHIN_BURSTS = [
     price: 130000,
     mp4Url: 'odette_burst.mp4',
     audioUrl: 'odette_burst.ogg?v=55',
-    posterUrl: 'fanart/odette.jpg?v=57',
+    posterUrl: 'fanart/odette.jpg?v=66',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🦢 KỸ NĂNG NỘ • ODETTE (PRESTO: BLUEBIRD FINALE)',
@@ -643,7 +643,7 @@ const GENSHIN_BURSTS = [
     price: 140000,
     mp4Url: 'vesna_burst.mp4',
     audioUrl: 'vesna_burst.ogg?v=55',
-    posterUrl: 'fanart/vesna.jpg?v=57',
+    posterUrl: 'fanart/vesna.jpg?v=66',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🍃 KỸ NĂNG NỘ • VESNA (FOR THE TSARITSA!)',
@@ -685,7 +685,7 @@ const GENSHIN_BURSTS = [
     price: 185000,
     mp4Url: 'vodyanitsa_burst.mp4',
     audioUrl: 'vodyanitsa_burst.ogg?v=55',
-    posterUrl: 'fanart/vodyanitsa.jpg?v=57',
+    posterUrl: 'fanart/vodyanitsa.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🌊 KỸ NĂNG NỘ • VODYANITSA (KODA: SINK WITH THEE)',
@@ -699,7 +699,7 @@ const GENSHIN_BURSTS = [
     price: 125000,
     mp4Url: 'lohen_burst.mp4?v=57',
     audioUrl: 'lohen_burst.ogg?v=62',
-    posterUrl: 'fanart/lohen.jpg?v=57',
+    posterUrl: 'fanart/lohen.jpg?v=66',
     theme: 'theme-cryo',
     sfxType: 'raiden',
     tag: '⚔️ KỸ NĂNG NỘ • LOHEN (MANIFEST JUDGMENT)',
@@ -713,7 +713,7 @@ const GENSHIN_BURSTS = [
     price: 155000,
     mp4Url: 'durin_burst.mp4?v=57',
     audioUrl: 'durin_burst.ogg?v=62',
-    posterUrl: 'fanart/durin.jpg?v=57',
+    posterUrl: 'fanart/durin.jpg?v=66',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '🐉 KỸ NĂNG NỘ • DURIN (PRINCIPLE OF PURITY)',
@@ -727,7 +727,7 @@ const GENSHIN_BURSTS = [
     price: 155000,
     mp4Url: 'xiao_burst.mp4?v=57',
     audioUrl: 'xiao_burst.ogg?v=62',
-    posterUrl: 'fanart/xiao.jpg?v=57',
+    posterUrl: 'fanart/xiao.jpg?v=66',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '👹 KỸ NĂNG NỘ • XIAO (BANE OF ALL EVIL)',
@@ -741,7 +741,7 @@ const GENSHIN_BURSTS = [
     price: 160000,
     mp4Url: 'wanderer_burst.mp4?v=57',
     audioUrl: 'wanderer_burst.ogg?v=62',
-    posterUrl: 'fanart/wanderer.jpg?v=57',
+    posterUrl: 'fanart/wanderer.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🌀 KỸ NĂNG NỘ • WANDERER (FIVE CEREMONIAL PLAYS)',
@@ -755,7 +755,7 @@ const GENSHIN_BURSTS = [
     price: 155000,
     mp4Url: 'kinich_burst.mp4?v=57',
     audioUrl: 'kinich_burst.ogg?v=62',
-    posterUrl: 'fanart/kinich.jpg?v=57',
+    posterUrl: 'fanart/kinich.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🦖 KỸ NĂNG NỘ • KINICH (ALMIGHTY DRAGONLORD)',
@@ -769,7 +769,7 @@ const GENSHIN_BURSTS = [
     price: 175000,
     mp4Url: 'venti_burst.mp4?v=57',
     audioUrl: 'venti_burst.ogg?v=62',
-    posterUrl: 'fanart/venti.jpg?v=57',
+    posterUrl: 'fanart/venti.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🌪️ KỸ NĂNG NỘ • VENTI (WIND\'S GRAND ODE)',
@@ -784,7 +784,7 @@ const GENSHIN_BURSTS = [
     price: 90000,
     mp4Url: 'qiqi_burst.mp4?v=61',
     audioUrl: 'qiqi_burst.ogg?v=62',
-    posterUrl: 'fanart/qiqi.jpg?v=61',
+    posterUrl: 'fanart/qiqi.jpg?v=66',
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '❄️ NỘ 5★ THƯỜNG • QIQI (PRESERVER OF FORTUNE)',
@@ -799,7 +799,7 @@ const GENSHIN_BURSTS = [
     price: 95000,
     mp4Url: 'keqing_burst.mp4?v=61',
     audioUrl: 'keqing_burst.ogg?v=62',
-    posterUrl: 'fanart/keqing.jpg?v=61',
+    posterUrl: 'fanart/keqing.jpg?v=66',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '⚡ NỘ 5★ THƯỜNG • KEQING (STARWARD SWORD)',
@@ -814,7 +814,7 @@ const GENSHIN_BURSTS = [
     price: 95000,
     mp4Url: 'mona_burst.mp4?v=61',
     audioUrl: 'mona_burst.ogg?v=62',
-    posterUrl: 'fanart/mona.jpg?v=61',
+    posterUrl: 'fanart/mona.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '💧 NỘ 5★ THƯỜNG • MONA (STELLARIS PHANTASM)',
@@ -829,7 +829,7 @@ const GENSHIN_BURSTS = [
     price: 95000,
     mp4Url: 'diluc_burst.mp4?v=61',
     audioUrl: 'diluc_burst.ogg?v=62',
-    posterUrl: 'fanart/diluc.jpg?v=61',
+    posterUrl: 'fanart/diluc.jpg?v=66',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '🔥 NỘ 5★ THƯỜNG • DILUC (DAWN)',
@@ -844,7 +844,7 @@ const GENSHIN_BURSTS = [
     price: 95000,
     mp4Url: 'jean_burst.mp4?v=61',
     audioUrl: 'jean_burst.ogg?v=62',
-    posterUrl: 'fanart/jean.jpg?v=61',
+    posterUrl: 'fanart/jean.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🍃 NỘ 5★ THƯỜNG • JEAN (DANDELION BREEZE)',
@@ -859,7 +859,7 @@ const GENSHIN_BURSTS = [
     price: 90000,
     mp4Url: 'tighnari_burst.mp4?v=61',
     audioUrl: 'tighnari_burst.ogg?v=62',
-    posterUrl: 'fanart/tighnari.jpg?v=61',
+    posterUrl: 'fanart/tighnari.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🌿 NỘ 5★ THƯỜNG • TIGHNARI (TANGLEVINE SHAFT)',
@@ -874,7 +874,7 @@ const GENSHIN_BURSTS = [
     price: 90000,
     mp4Url: 'dehya_burst.mp4?v=61',
     audioUrl: 'dehya_burst.ogg?v=62',
-    posterUrl: 'fanart/dehya.jpg?v=61',
+    posterUrl: 'fanart/dehya.jpg?v=66',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '🔥 NỘ 5★ THƯỜNG • DEHYA (LEONINE BITE)',
@@ -889,7 +889,7 @@ const GENSHIN_BURSTS = [
     price: 95000,
     mp4Url: 'mizuki_burst.mp4?v=61',
     audioUrl: 'mizuki_burst.ogg?v=62',
-    posterUrl: 'fanart/mizuki.jpg?v=61',
+    posterUrl: 'fanart/mizuki.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🍃 NỘ 5★ THƯỜNG • MIZUKI (SECRET SPRING THERAPY)',
@@ -903,7 +903,7 @@ const GENSHIN_BURSTS = [
     price: 135000,
     mp4Url: 'klee_burst.mp4?v=64',
     audioUrl: 'klee_burst.ogg?v=64',
-    posterUrl: 'fanart/klee.jpg?v=64',
+    posterUrl: 'fanart/klee.jpg?v=66',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '💣 KỸ NĂNG NỘ • KLEE (SPARKS \'N\' SPLASH)',
@@ -917,7 +917,7 @@ const GENSHIN_BURSTS = [
     price: 135000,
     mp4Url: 'albedo_burst.mp4?v=64',
     audioUrl: 'albedo_burst.ogg?v=64',
-    posterUrl: 'fanart/albedo.jpg?v=64',
+    posterUrl: 'fanart/albedo.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '⚜️ KỸ NĂNG NỘ • ALBEDO (RITE OF PROGENITURE)',
@@ -931,7 +931,7 @@ const GENSHIN_BURSTS = [
     price: 175000,
     mp4Url: 'varka_burst.mp4?v=64',
     audioUrl: 'varka_burst.ogg?v=64',
-    posterUrl: 'fanart/varka.jpg?v=64',
+    posterUrl: 'fanart/varka.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'raiden',
     tag: '🗡️ KỸ NĂNG NỘ • VARKA (NORTHWIND TEMPEST)',
@@ -945,7 +945,7 @@ const GENSHIN_BURSTS = [
     price: 175000,
     mp4Url: 'nicole_burst.mp4?v=64',
     audioUrl: 'nicole_burst.ogg?v=64',
-    posterUrl: 'fanart/nicole.jpg?v=64',
+    posterUrl: 'fanart/nicole.jpg?v=66',
     theme: 'theme-pyro',
     sfxType: 'skirk',
     tag: '🔮 KỸ NĂNG NỘ • NICOLE REEYN (FATE REWRITTEN)',
@@ -959,7 +959,7 @@ const GENSHIN_BURSTS = [
     price: 185000,
     mp4Url: 'zhongli_burst.mp4?v=64',
     audioUrl: 'zhongli_burst.ogg?v=64',
-    posterUrl: 'fanart/zhongli.jpg?v=64',
+    posterUrl: 'fanart/zhongli.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🪨 KỸ NĂNG NỘ • ZHONGLI (PLANET BEFALL)',
@@ -973,7 +973,7 @@ const GENSHIN_BURSTS = [
     price: 145000,
     mp4Url: 'baizhu_burst.mp4?v=64',
     audioUrl: 'baizhu_burst.ogg?v=64',
-    posterUrl: 'fanart/baizhu.jpg?v=64',
+    posterUrl: 'fanart/baizhu.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'skirk',
     tag: '🐍 KỸ NĂNG NỘ • BAIZHU (HOLISTIC REVIVIFICATION)',
@@ -987,7 +987,7 @@ const GENSHIN_BURSTS = [
     price: 150000,
     mp4Url: 'xianyun_burst.mp4?v=64',
     audioUrl: 'xianyun_burst.ogg?v=64',
-    posterUrl: 'fanart/xianyun.jpg?v=64',
+    posterUrl: 'fanart/xianyun.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🦩 KỸ NĂNG NỘ • XIANYUN (STARS GATHER AT DUSK)',
@@ -1001,7 +1001,7 @@ const GENSHIN_BURSTS = [
     price: 160000,
     mp4Url: 'kazuha_burst.mp4?v=64',
     audioUrl: 'kazuha_burst.ogg?v=64',
-    posterUrl: 'fanart/kazuha.jpg?v=64',
+    posterUrl: 'fanart/kazuha.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🍁 KỸ NĂNG NỘ • KAEDEHARA KAZUHA (KAZUHA SLASH)',
@@ -1015,7 +1015,7 @@ const GENSHIN_BURSTS = [
     price: 145000,
     mp4Url: 'itto_burst.mp4?v=64',
     audioUrl: 'itto_burst.ogg?v=64',
-    posterUrl: 'fanart/itto.jpg?v=64',
+    posterUrl: 'fanart/itto.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '👹 KỸ NĂNG NỘ • ARATAKI ITTO (ROYAL DESCENT)',
@@ -1029,7 +1029,7 @@ const GENSHIN_BURSTS = [
     price: 150000,
     mp4Url: 'ayato_burst.mp4?v=64',
     audioUrl: 'ayato_burst.ogg?v=64',
-    posterUrl: 'fanart/ayato.jpg?v=64',
+    posterUrl: 'fanart/ayato.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🌊 KỸ NĂNG NỘ • KAMISATO AYATO (KAMISATO ART: SUIYUU)',
@@ -1043,7 +1043,7 @@ const GENSHIN_BURSTS = [
     price: 150000,
     mp4Url: 'cyno_burst.mp4?v=64',
     audioUrl: 'cyno_burst.ogg?v=64',
-    posterUrl: 'fanart/cyno.jpg?v=64',
+    posterUrl: 'fanart/cyno.jpg?v=66',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '🐺 KỸ NĂNG NỘ • CYNO (WOLF\'S SWIFTNESS)',
@@ -1057,7 +1057,7 @@ const GENSHIN_BURSTS = [
     price: 150000,
     mp4Url: 'nilou_burst.mp4?v=64',
     audioUrl: 'nilou_burst.ogg?v=64',
-    posterUrl: 'fanart/nilou.jpg?v=64',
+    posterUrl: 'fanart/nilou.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '🪷 KỸ NĂNG NỘ • NILOU (DISTANT DREAMS, LISTENING SPRING)',
@@ -1071,7 +1071,7 @@ const GENSHIN_BURSTS = [
     price: 185000,
     mp4Url: 'nahida_burst.mp4?v=64',
     audioUrl: 'nahida_burst.ogg?v=64',
-    posterUrl: 'fanart/nahida.jpg?v=64',
+    posterUrl: 'fanart/nahida.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'skirk',
     tag: '🌱 KỸ NĂNG NỘ • NAHIDA (ILLUSORY HEART)',
@@ -1085,7 +1085,7 @@ const GENSHIN_BURSTS = [
     price: 155000,
     mp4Url: 'alhaitham_burst.mp4?v=64',
     audioUrl: 'alhaitham_burst.ogg?v=64',
-    posterUrl: 'fanart/alhaitham.jpg?v=64',
+    posterUrl: 'fanart/alhaitham.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '📗 KỸ NĂNG NỘ • ALHAITHAM (FETTERS OF PHENOMENA)',
@@ -1099,7 +1099,7 @@ const GENSHIN_BURSTS = [
     price: 185000,
     mp4Url: 'neuvillette_burst.mp4?v=64',
     audioUrl: 'neuvillette_burst.ogg?v=64',
-    posterUrl: 'fanart/neuvillette.jpg?v=64',
+    posterUrl: 'fanart/neuvillette.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '⚖️ KỸ NĂNG NỘ • NEUVILLETTE (O TIDES, I HAVE RETURNED)',
@@ -1113,7 +1113,7 @@ const GENSHIN_BURSTS = [
     price: 155000,
     mp4Url: 'wriothesley_burst.mp4?v=64',
     audioUrl: 'wriothesley_burst.ogg?v=64',
-    posterUrl: 'fanart/wriothesley.jpg?v=64',
+    posterUrl: 'fanart/wriothesley.jpg?v=66',
     theme: 'theme-cryo',
     sfxType: 'raiden',
     tag: '🥊 KỸ NĂNG NỘ • WRIOTHESLEY (DARKGOLD WOLFBITE)',
@@ -1127,7 +1127,7 @@ const GENSHIN_BURSTS = [
     price: 145000,
     mp4Url: 'sigewinne_burst.mp4?v=64',
     audioUrl: 'sigewinne_burst.ogg?v=64',
-    posterUrl: 'fanart/sigewinne.jpg?v=64',
+    posterUrl: 'fanart/sigewinne.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'skirk',
     tag: '💉 KỸ NĂNG NỘ • SIGEWINNE (SUPER SATURATED SYRINGING)',
@@ -1141,7 +1141,7 @@ const GENSHIN_BURSTS = [
     price: 150000,
     mp4Url: 'emilie_burst.mp4?v=64',
     audioUrl: 'emilie_burst.ogg?v=64',
-    posterUrl: 'fanart/emilie.jpg?v=64',
+    posterUrl: 'fanart/emilie.jpg?v=66',
     theme: 'theme-geo',
     sfxType: 'skirk',
     tag: '🧪 KỸ NĂNG NỘ • EMILIE (AROMATIC EXPLICATION)',
@@ -1155,7 +1155,7 @@ const GENSHIN_BURSTS = [
     price: 155000,
     mp4Url: 'chasca_burst.mp4?v=64',
     audioUrl: 'chasca_burst.ogg?v=64',
-    posterUrl: 'fanart/chasca.jpg?v=64',
+    posterUrl: 'fanart/chasca.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'raiden',
     tag: '🔫 KỸ NĂNG NỘ • CHASCA (SOULREAPER\'S FATAL ROUND)',
@@ -1169,7 +1169,7 @@ const GENSHIN_BURSTS = [
     price: 160000,
     mp4Url: 'tartaglia_burst.mp4?v=64',
     audioUrl: 'tartaglia_burst.ogg?v=64',
-    posterUrl: 'fanart/tartaglia.jpg?v=64',
+    posterUrl: 'fanart/tartaglia.jpg?v=66',
     theme: 'theme-hydro',
     sfxType: 'raiden',
     tag: '🐳 KỸ NĂNG NỘ • TARTAGLIA (HAVOC: OBLITERATION)',
@@ -1183,7 +1183,7 @@ const GENSHIN_BURSTS = [
     price: 185000,
     mp4Url: 'arlecchino_burst.mp4?v=64',
     audioUrl: 'arlecchino_burst.ogg?v=64',
-    posterUrl: 'fanart/arlecchino.jpg?v=64',
+    posterUrl: 'fanart/arlecchino.jpg?v=66',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '🩸 KỸ NĂNG NỘ • ARLECCHINO (BALEFUL MOON RISING)',
@@ -1197,7 +1197,7 @@ const GENSHIN_BURSTS = [
     price: 155000,
     mp4Url: 'ineffa_burst.mp4?v=64',
     audioUrl: 'ineffa_burst.ogg?v=64',
-    posterUrl: 'fanart/ineffa.jpg?v=64',
+    posterUrl: 'fanart/ineffa.jpg?v=66',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '🤖 KỸ NĂNG NỘ • INEFFA (SUPREME DIRECTIVE)',
@@ -1211,7 +1211,7 @@ const GENSHIN_BURSTS = [
     price: 165000,
     mp4Url: 'flins_burst.mp4?v=64',
     audioUrl: 'flins_burst.ogg?v=64',
-    posterUrl: 'fanart/flins.jpg?v=64',
+    posterUrl: 'fanart/flins.jpg?v=66',
     theme: 'theme-electro',
     sfxType: 'skirk',
     tag: '🏮 KỸ NĂNG NỘ • FLINS (COMETH THE NIGHT)',
@@ -1541,8 +1541,8 @@ const CHARACTER_SKILLS = {
     id: 'escoffier',
     charName: 'Escoffier',
     icon: '🍰',
-    name: 'Bữa Tiệc Ép Ăn',
-    shortDesc: 'Ném thẳng 1 lá bài rác nhỏ nhất trên tay bạn bắt 1 đối thủ ngẫu nhiên phải nhận vào tay (bạn -1 lá, đối thủ +1 lá)',
+    name: 'Tuyệt Kỹ Đôi Thông',
+    shortDesc: 'Khi sắp có Đôi Thông (VD: Đôi 5, Đôi 6, Lẻ 7): Lập tức thêm lá còn thiếu (con 7) vào tay mình để hoàn thiện Đôi Thông và bỏ đi 1 lá bài rác!',
   },
   zibai: {
     id: 'zibai',
@@ -5511,6 +5511,7 @@ class TienLenGame {
     this.renderInventoryModal();
     this.renderDailyQuestsUI();
     this.syncAccountButtonsUI();
+    this.syncAutoRandomBotsUI();
     this.updateMidMatchLockUI();
     document.getElementById('pause-modal')?.classList.remove('hidden');
     sfx.click();
@@ -5909,7 +5910,7 @@ class TienLenGame {
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
         return `
           <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" data-burst-id="${b.id}" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
-            <img src="fanart/${b.id}.jpg?v=61" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
+            <img src="fanart/${b.id}.jpg?v=66" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name">${charName}</div>
               <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★'} • ${bSkill.icon} ${bSkill.name}</div>
@@ -5924,7 +5925,7 @@ class TienLenGame {
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.qiqi;
         return `
           <div class="gacha-up-chip" style="border-color:rgba(148,163,184,0.35);" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem thử Hoạt Ảnh Nộ 5★ Thường (Lệch Rate): ${b.name}!')" title="Bấm để xem thử Nộ 5★! ${bSkill.icon} Nội Tại Cược [${bSkill.name}]: ${bSkill.shortDesc}">
-            <img src="fanart/${b.id}.jpg?v=61" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
+            <img src="fanart/${b.id}.jpg?v=66" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name">${charName}</div>
               <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '☯️ 5★ Lệch Rate'} • 💠 ${bSkill.name}</div>
@@ -5938,7 +5939,7 @@ class TienLenGame {
           const s = getCardSkinMeta(id);
           return `
             <span class="gacha-rateup-4star-pill">
-              <img src="fanart/${id}.jpg?v=57" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
+              <img src="fanart/${id}.jpg?v=66" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
               ${id.toUpperCase()} (4★ UP)
             </span>
           `;
@@ -6244,7 +6245,7 @@ class TienLenGame {
           <div class="inv-equip-thumb">
             ${
               hasChar
-                ? `<img src="fanart/${currentCharId}.jpg?v=57" alt="${charSkill.charName}" />`
+                ? `<img src="fanart/${currentCharId}.jpg?v=66" alt="${charSkill.charName}" />`
                 : `<span style="font-size:20px;">🔒</span>`
             }
           </div>
@@ -6282,11 +6283,20 @@ class TienLenGame {
       `;
     }
 
-    // 1. RENDER TAB KHO ĐỒ 5★ NHÂN VẬT & KỸ NĂNG NỘ
+    // 1. RENDER TAB KHO ĐỒ 5★ NHÂN VẬT & KỸ NĂNG NỘ (Sắp xếp: Đang xài ➔ Đã sở hữu ➔ Chưa sở hữu)
     const burstsGrid = document.getElementById('shop-bursts-grid');
     if (burstsGrid && activeInvTab === 'bursts') {
       const currentCharId = this.getPlayerActiveCharId(me);
-      const list = onlyOwned ? GENSHIN_BURSTS.filter((b) => this.unlockedBursts.has(b.id)) : GENSHIN_BURSTS;
+      const rawList = onlyOwned ? GENSHIN_BURSTS.filter((b) => this.unlockedBursts.has(b.id)) : GENSHIN_BURSTS;
+      const list = [...rawList].sort((a, b) => {
+        const aOwned = this.unlockedBursts.has(a.id);
+        const bOwned = this.unlockedBursts.has(b.id);
+        const aEq = aOwned && currentCharId === a.id;
+        const bEq = bOwned && currentCharId === b.id;
+        const aRank = aEq ? 0 : aOwned ? 1 : 2;
+        const bRank = bEq ? 0 : bOwned ? 1 : 2;
+        return aRank - bRank;
+      });
       if (list.length === 0) {
         burstsGrid.innerHTML = `
           <div class="inv-empty-notice" style="grid-column: 1 / -1;">
@@ -6340,10 +6350,19 @@ class TienLenGame {
       }
     }
 
-    // 2. RENDER TAB KHO ĐỒ 4★ DECOR BÀI
+    // 2. RENDER TAB KHO ĐỒ 4★ DECOR BÀI (Sắp xếp: Đang trang bị ➔ Đã sở hữu ➔ Chưa sở hữu)
     const skinsGrid = document.getElementById('shop-skins-grid');
     if (skinsGrid && activeInvTab === 'skins') {
-      const list = onlyOwned ? ANIME_CARD_SKINS.filter((s) => this.unlockedSkins.has(s.id)) : ANIME_CARD_SKINS;
+      const rawList = onlyOwned ? ANIME_CARD_SKINS.filter((s) => this.unlockedSkins.has(s.id)) : ANIME_CARD_SKINS;
+      const list = [...rawList].sort((a, b) => {
+        const aOwned = this.unlockedSkins.has(a.id);
+        const bOwned = this.unlockedSkins.has(b.id);
+        const aEq = this.equippedSkin === a.id;
+        const bEq = this.equippedSkin === b.id;
+        const aRank = aEq ? 0 : aOwned ? 1 : 2;
+        const bRank = bEq ? 0 : bOwned ? 1 : 2;
+        return aRank - bRank;
+      });
       skinsGrid.innerHTML = list
         .map((skin) => {
           const owned = this.unlockedSkins.has(skin.id);
@@ -6406,10 +6425,19 @@ class TienLenGame {
         .join('');
     }
 
-    // 3. RENDER TAB KHO ĐỒ 3★ AVATAR
+    // 3. RENDER TAB KHO ĐỒ 3★ AVATAR (Sắp xếp: Đang dùng ➔ Đã sở hữu ➔ Chưa sở hữu)
     const avatarsGrid = document.getElementById('shop-avatars-grid');
     if (avatarsGrid && activeInvTab === 'avatars') {
-      const list = onlyOwned ? ANIME_AVATARS.filter((a) => this.unlockedAvatars.has(a.id)) : ANIME_AVATARS;
+      const rawList = onlyOwned ? ANIME_AVATARS.filter((a) => this.unlockedAvatars.has(a.id)) : ANIME_AVATARS;
+      const list = [...rawList].sort((a, b) => {
+        const aOwned = this.unlockedAvatars.has(a.id);
+        const bOwned = this.unlockedAvatars.has(b.id);
+        const aEq = this.equippedAvatar === a.id;
+        const bEq = this.equippedAvatar === b.id;
+        const aRank = aEq ? 0 : aOwned ? 1 : 2;
+        const bRank = bEq ? 0 : bOwned ? 1 : 2;
+        return aRank - bRank;
+      });
       avatarsGrid.innerHTML = list
         .map((av) => {
           const owned = this.unlockedAvatars.has(av.id);
@@ -7178,6 +7206,7 @@ class TienLenGame {
     if (autoRandomChk) {
       autoRandomChk.checked = this.autoRandomizeBots !== false;
     }
+    this.syncAutoRandomBotsUI();
 
     this.btnPlay.addEventListener('click', () => this.onHumanPlay());
     this.btnPass.addEventListener('click', () => this.onHumanPass());
@@ -8146,21 +8175,155 @@ class TienLenGame {
     return resolveGenshinReaction(attackerElem, defenderElem);
   }
 
-  toggleAutoRandomBots(checked) {
-    this.autoRandomizeBots = !!checked;
+  syncAutoRandomBotsUI() {
+    const enabled = this.autoRandomizeBots !== false;
+    const label = enabled ? '🔄 Tự Động Random: BẬT' : '🔄 Tự Động Random: TẮT';
+    document.querySelectorAll('.auto-random-bot-toggle-btn').forEach((btn) => {
+      btn.textContent = label;
+      btn.style.borderColor = enabled ? '#34d399' : 'rgba(148,163,184,0.45)';
+      btn.style.background = enabled
+        ? 'linear-gradient(135deg,rgba(16,185,129,0.32),rgba(5,150,105,0.28))'
+        : 'rgba(15,23,42,0.75)';
+      btn.style.color = enabled ? '#a7f3d0' : '#cbd5e1';
+      btn.style.boxShadow = enabled ? '0 0 10px rgba(16,185,129,0.35)' : 'none';
+      btn.title = enabled
+        ? 'Đang BẬT Tự động Random Bot sau mỗi ván bài (Bấm để TẮT và giữ nguyên Bot)'
+        : 'Đang TẮT Tự động Random Bot — Giữ nguyên nhân vật Bot qua các ván (Bấm để BẬT)';
+    });
+    const autoRandomChk = document.getElementById('chk-auto-random-bots');
+    if (autoRandomChk) {
+      autoRandomChk.checked = enabled;
+    }
+  }
+
+  toggleAutoRandomBots(forceVal = null) {
+    if (this.isMultiplayer && !this.isHost) {
+      alert('Chỉ Chủ phòng mới có thể bật/tắt Tự Động Random Bot trong phòng WiFi!');
+      return;
+    }
+    if (typeof forceVal === 'boolean') {
+      this.autoRandomizeBots = forceVal;
+    } else {
+      this.autoRandomizeBots = !this.autoRandomizeBots;
+    }
     sfx.click();
     this.saveShopProfile();
+    this.syncAutoRandomBotsUI();
+
+    const activeBotSeats = this.getActiveBotSeats();
+    if (this.autoRandomizeBots) {
+      if (activeBotSeats.length > 0 && !this.isMidMatch()) {
+        this.randomizeBotCharacters(true);
+      }
+      if (!this.modalSummary?.classList.contains('hidden')) {
+        this.showSummaryBotStatus(
+          `🔄 <strong>Đã BẬT Tự Động Random Bot mỗi ván!</strong> Đội hình hiện tại: <strong>${this.getActiveBotNamesPlain()}</strong>.`
+        );
+      }
+    } else {
+      if (!this.modalSummary?.classList.contains('hidden')) {
+        this.showSummaryBotStatus(
+          `📌 <strong>Đã TẮT Tự Động Random Bot:</strong> Giữ nguyên đội hình Bot hiện tại (<strong>${this.getActiveBotNamesPlain()}</strong>) cho các ván sau.`
+        );
+      }
+    }
+  }
+
+  getActiveBotSeats() {
+    if (this.isMultiplayer) {
+      return (this.players || [])
+        .map((p, idx) => (p && p.active && p.isBot ? idx : -1))
+        .filter((idx) => idx >= 0);
+    }
+    const count = this.soloPlayerCount || 4;
+    return count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+  }
+
+  getBotSeatLabel(seatIdx) {
+    if (this.isMultiplayer) {
+      return `Ghế #${seatIdx + 1} (Bot WiFi)`;
+    }
+    const count = this.soloPlayerCount || 4;
+    const labels = {
+      1: 'Ghế Trái',
+      2: count === 2 ? 'Ghế Đối Diện (1v1)' : 'Ghế Đối Diện',
+      3: 'Ghế Phải',
+    };
+    return labels[seatIdx] || `Ghế #${seatIdx + 1}`;
+  }
+
+  addBotToNextEmptyWifiSeat() {
+    if (!this.isMultiplayer || !this.isHost) {
+      alert('Chỉ Chủ phòng mới có thể thêm Bot vào phòng!');
+      return false;
+    }
+    if (this.isMidMatch()) {
+      alert('⛔ Ván bài đang diễn ra! Vui lòng hoàn thành ván hiện tại trước khi thêm Bot.');
+      return false;
+    }
+    const emptySeat = (this.players || []).find((p, idx) => idx !== this.mySeatId && !p.active);
+    if (!emptySeat) {
+      alert('⚠️ Cả 4 ghế trong phòng đều đã có người / Bot ngồi!');
+      return false;
+    }
+    this.toggleBotInLobby(emptySeat.id, true);
+    return true;
+  }
+
+  randomizeSingleBotSeat(seatIdx, notify = true) {
+    if (this.isMultiplayer && !this.isHost) {
+      alert('Chỉ Chủ phòng mới có thể đổi nhân vật Bot!');
+      return;
+    }
+    const p = this.players?.[seatIdx];
+    if (!p || (this.isMultiplayer && (!p.active || !p.isBot))) return;
+    const roster = this.getBotBurstRoster();
+    const usedIds = new Set(
+      (this.players || [])
+        .filter((pl, i) => pl && pl.active && i !== seatIdx)
+        .map((pl) => pl.activeChar || pl.cardSkin)
+    );
+    const curId =
+      this.isMidMatch() && this.queuedNextMatchBots?.[seatIdx]
+        ? this.queuedNextMatchBots[seatIdx].id
+        : p.activeChar || p.cardSkin;
+    const pool = roster.filter((c) => c.id !== curId && !usedIds.has(c.id));
+    const candidates = pool.length > 0 ? pool : roster.filter((c) => c.id !== curId);
+    const ch = candidates[Math.floor(Math.random() * candidates.length)] || roster[0];
+    this.selectBotCharacterForSeat(seatIdx, ch.id, false);
+    if (notify) {
+      const shortName = ch.name.split('(')[0].trim();
+      this.addLog(
+        `🎲 <strong>[Đổi Nhân Vật Bot]</strong> ${this.getBotSeatLabel(seatIdx)} đã đổi sang <strong>Bot ${shortName} ${ch.crest}</strong>!`,
+        'log-win'
+      );
+    }
   }
 
   randomizeBotCharacters(notify = false) {
     if (!this.players || this.players.length < 4) return;
-    const pool = [...this.getBotBurstRoster()]; // 10 Nhân vật 5★ có Burst Animation riêng (tỉ lệ đều nhau 100%, không ưu tiên con nào)
+    if (this.isMultiplayer && !this.isHost) {
+      if (notify) alert('Chỉ Chủ phòng mới có thể đổi nhân vật Bot trong phòng!');
+      return;
+    }
+    if (this.isMultiplayer && this.getActiveBotSeats().length === 0) {
+      if (!this.isMidMatch()) {
+        const added = this.addBotToNextEmptyWifiSeat();
+        if (!added) return;
+      } else {
+        if (notify) alert('Trong bàn hiện chưa có ghế Bot nào!');
+        return;
+      }
+    }
+
+    const pool = [...this.getBotBurstRoster()]; // 58 Nhân vật 5★ có Burst Animation riêng (tỉ lệ đều nhau 100%, không ưu tiên con nào)
     // Thuật toán trộn bài Fisher-Yates chuẩn xác 100% không thiên vị
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    const picked = pool.slice(0, 3);
+    const picked = pool.slice(0, 4);
+    const targetSeats = this.isMultiplayer ? this.getActiveBotSeats() : [1, 2, 3];
 
     if (this.isMidMatch()) {
       // Đang chơi giữa trận: Cho phép Random chọn trước nhân vật Bot cho VÁN TIẾP THEO mà không phá ván đang đánh!
@@ -8169,9 +8332,11 @@ class TienLenGame {
         2: picked[1] || pool[1 % pool.length],
         3: picked[2] || pool[2 % pool.length],
       };
+      targetSeats.forEach((sIdx, idx) => {
+        this.queuedNextMatchBots[sIdx] = picked[idx] || pool[idx % pool.length];
+      });
       sfx.click();
-      const count = this.soloPlayerCount || 4;
-      const activeIdxs = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+      const activeIdxs = this.getActiveBotSeats();
       const queuedPlain = activeIdxs
         .map((i) => {
           const ch = this.queuedNextMatchBots[i];
@@ -8188,12 +8353,15 @@ class TienLenGame {
       );
       this.preloadActiveBurstVideos();
       this.renderSoloPlayerCountUI();
+      if (this.isMultiplayer && this.isHost) {
+        this.renderLobbyModal();
+      }
       this.updateMidMatchLockUI();
       return;
     }
 
     this.queuedNextMatchBots = null;
-    [1, 2, 3].forEach((seatIdx, idx) => {
+    targetSeats.forEach((seatIdx, idx) => {
       const p = this.players[seatIdx];
       const ch = picked[idx] || pool[idx % pool.length];
       if (!p || !ch) return;
@@ -8220,8 +8388,9 @@ class TienLenGame {
 
     if (notify) {
       sfx.click();
-      const activeBots = this.players.filter((p, i) => i > 0 && p.active && p.isBot);
+      const activeBots = this.players.filter((p) => p.active && p.isBot);
       const names = (activeBots.length > 0 ? activeBots : [this.players[2]])
+        .filter(Boolean)
         .map((b) => `<strong>${b.name}</strong>`)
         .join(', ');
       this.addLog(
@@ -8234,13 +8403,26 @@ class TienLenGame {
   }
 
   openBotPickerModal(preferredSeatIdx = null, fromSummary = false) {
+    if (this.isMultiplayer && !this.isHost) {
+      alert('Chỉ Chủ phòng mới có thể chọn nhân vật Bot trong phòng WiFi!');
+      return;
+    }
+    if (this.isMultiplayer && this.getActiveBotSeats().length === 0) {
+      if (!this.isMidMatch()) {
+        const added = this.addBotToNextEmptyWifiSeat();
+        if (!added) return;
+      } else {
+        alert('Trong phòng hiện chưa có ghế Bot nào! Hãy thêm Bot ở sảnh chờ trước.');
+        return;
+      }
+    }
     sfx.click();
-    const count = this.soloPlayerCount || 4;
-    const activeSeats = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+    const activeSeats = this.getActiveBotSeats();
     this.activeBotPickerSeat = activeSeats.includes(Number(preferredSeatIdx))
       ? Number(preferredSeatIdx)
-      : activeSeats[0];
+      : activeSeats[0] ?? 2;
     this.botPickerFromSummary = !!fromSummary;
+    this.syncAutoRandomBotsUI();
     this.renderBotPickerModal();
     document.getElementById('bot-picker-modal')?.classList.remove('hidden');
   }
@@ -8251,6 +8433,7 @@ class TienLenGame {
   }
 
   randomizeBotFromPicker() {
+    this._manualBotChangedAfterMatch = true;
     this.randomizeBotCharacters(true);
     this.renderBotPickerModal();
     if (this.botPickerFromSummary) {
@@ -8258,11 +8441,13 @@ class TienLenGame {
     }
   }
 
-  selectBotCharacterForSeat(seatIdx, charId) {
+  selectBotCharacterForSeat(seatIdx, charId, advanceTab = true) {
+    if (this.isMultiplayer && !this.isHost) return;
     const roster = this.getBotBurstRoster();
     const ch = roster.find((c) => c.id === charId);
     if (!ch || !this.players || !this.players[seatIdx]) return;
     sfx.click();
+    this._manualBotChangedAfterMatch = true;
 
     if (this.isMidMatch()) {
       if (!this.queuedNextMatchBots) {
@@ -8289,13 +8474,18 @@ class TienLenGame {
 
     this.preloadActiveBurstVideos();
     this.renderSoloPlayerCountUI();
+    if (this.isMultiplayer && this.isHost) {
+      this.renderLobbyModal();
+      if (!this.isMidMatch()) {
+        this.broadcastState();
+      }
+    }
     this.updateMidMatchLockUI();
     this.syncSummaryBotNamesUI();
 
-    const count = this.soloPlayerCount || 4;
-    const activeSeats = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+    const activeSeats = this.getActiveBotSeats();
     const curPos = activeSeats.indexOf(seatIdx);
-    if (activeSeats.length > 1 && curPos >= 0 && curPos < activeSeats.length - 1) {
+    if (advanceTab && activeSeats.length > 1 && curPos >= 0 && curPos < activeSeats.length - 1) {
       this.activeBotPickerSeat = activeSeats[curPos + 1];
     }
     this.renderBotPickerModal();
@@ -8311,12 +8501,16 @@ class TienLenGame {
     const summaryEl = document.getElementById('bot-picker-footer-summary');
     if (!tabsEl || !gridEl) return;
 
-    const count = this.soloPlayerCount || 4;
-    const activeSeats = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+    this.syncAutoRandomBotsUI();
+    const activeSeats = this.getActiveBotSeats();
+    if (activeSeats.length === 0) {
+      tabsEl.innerHTML = `<div style="color:#fde047;font-weight:700;">⚠️ Chưa có ghế Bot nào trong bàn!</div>`;
+      gridEl.innerHTML = '';
+      return;
+    }
     if (!activeSeats.includes(this.activeBotPickerSeat)) {
       this.activeBotPickerSeat = activeSeats[0];
     }
-    const seatLabels = { 1: 'Ghế Trái', 2: count === 2 ? 'Ghế Đối Diện (1v1)' : 'Ghế Đối Diện', 3: 'Ghế Phải' };
     const locked = this.isMidMatch();
 
     const getSeatCharId = (sIdx) => {
@@ -8331,16 +8525,17 @@ class TienLenGame {
         const cid = getSeatCharId(sIdx);
         const sk = CHARACTER_SKILLS[cid];
         const isSelectedTab = sIdx === this.activeBotPickerSeat;
+        const seatLabel = this.getBotSeatLabel(sIdx);
         return `
           <button type="button" onclick="window.tienLenGame.activeBotPickerSeat=${sIdx};window.tienLenGame.renderBotPickerModal();" style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:12px;cursor:pointer;border:2px solid ${
             isSelectedTab ? '#38bdf8' : 'rgba(148,163,184,0.3)'
           };background:${
             isSelectedTab ? 'linear-gradient(135deg,rgba(2,132,199,0.38),rgba(37,99,235,0.32))' : 'rgba(15,23,42,0.75)'
           };color:#f8fafc;box-shadow:${isSelectedTab ? '0 0 14px rgba(56,189,248,0.4)' : 'none'};">
-            <img src="fanart/${cid}.jpg?v=57" alt="${sk ? sk.charName : cid}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;object-position:center 18%;border:1.5px solid #38bdf8;" />
+            <img src="fanart/${cid}.jpg?v=66" alt="${sk ? sk.charName : cid}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;object-position:center 18%;border:1.5px solid #38bdf8;" />
             <div style="text-align:left;">
-              <div style="font-size:11px;color:#93c5fd;font-weight:700;">${seatLabels[sIdx]} ${isSelectedTab ? '• Đang chọn' : ''}</div>
-              <div style="font-size:13.5px;font-weight:800;color:#fff;">Bot ${sk ? `${sk.charName} ${sk.crest}` : cid}</div>
+              <div style="font-size:11px;color:#93c5fd;font-weight:700;">${seatLabel} ${isSelectedTab ? '• Đang chọn' : ''}</div>
+              <div style="font-size:13.5px;font-weight:800;color:#fff;">Bot ${sk ? `${sk.charName} ${sk.crest || sk.icon}` : cid}</div>
             </div>
           </button>
         `;
@@ -8348,11 +8543,12 @@ class TienLenGame {
       .join('');
 
     const activeSeat = this.activeBotPickerSeat;
+    const activeSeatLabel = this.getBotSeatLabel(activeSeat);
     const currentSeatCharId = getSeatCharId(activeSeat);
     const otherSeatMap = {};
     activeSeats.forEach((sIdx) => {
       if (sIdx !== activeSeat) {
-        otherSeatMap[getSeatCharId(sIdx)] = seatLabels[sIdx];
+        otherSeatMap[getSeatCharId(sIdx)] = this.getBotSeatLabel(sIdx);
       }
     });
 
@@ -8374,7 +8570,7 @@ class TienLenGame {
               : 'rgba(15,23,42,0.78)'
           };">
             <div style="display:flex;align-items:center;gap:9px;">
-              <img src="fanart/${ch.id}.jpg?v=57" alt="${shortName}" loading="lazy" style="width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:center 18%;border:2px solid ${
+              <img src="fanart/${ch.id}.jpg?v=66" alt="${shortName}" loading="lazy" style="width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:center 18%;border:2px solid ${
                 isCurrent ? '#facc15' : '#38bdf8'
               };flex-shrink:0;" />
               <div style="min-width:0;flex:1;">
@@ -8391,7 +8587,7 @@ class TienLenGame {
             </div>
             ${
               isCurrent
-                ? `<div style="font-size:11px;font-weight:800;color:#fde047;text-align:center;background:rgba(234,179,8,0.18);border-radius:6px;padding:2px 4px;">✅ Đang chọn cho ${seatLabels[activeSeat]}</div>`
+                ? `<div style="font-size:11px;font-weight:800;color:#fde047;text-align:center;background:rgba(234,179,8,0.18);border-radius:6px;padding:2px 4px;">✅ Đang chọn cho ${activeSeatLabel}</div>`
                 : otherSeatLabel
                 ? `<div style="font-size:10.5px;font-weight:700;color:#d8b4fe;text-align:center;background:rgba(168,85,247,0.18);border-radius:6px;padding:2px 4px;">Đang ở ${otherSeatLabel}</div>`
                 : ''
@@ -8407,8 +8603,8 @@ class TienLenGame {
   }
 
   getActiveBotNamesPlain() {
-    const count = this.soloPlayerCount || 4;
-    const activeSeats = count === 2 ? [2] : count === 3 ? [1, 2] : [1, 2, 3];
+    const activeSeats = this.getActiveBotSeats();
+    if (activeSeats.length === 0) return 'Chưa có Bot';
     const locked = this.isMidMatch();
     return activeSeats
       .map((sIdx) => {
@@ -8433,15 +8629,23 @@ class TienLenGame {
     const stepAsk = document.getElementById('summary-bot-step-ask');
     const stepActions = document.getElementById('summary-bot-step-actions');
     const statusMsg = document.getElementById('summary-bot-status-msg');
+    this._manualBotChangedAfterMatch = false;
+    const canManageBots = !this.isMultiplayer || (this.isHost && this.getActiveBotSeats().length > 0);
     if (box) {
-      box.classList.toggle('hidden', !!this.isMultiplayer);
+      box.classList.toggle('hidden', !canManageBots);
     }
     this.syncSummaryBotNamesUI();
+    this.syncAutoRandomBotsUI();
     stepAsk?.classList.remove('hidden');
     stepActions?.classList.add('hidden');
     if (statusMsg) {
-      statusMsg.classList.add('hidden');
-      statusMsg.textContent = '';
+      if (this.autoRandomizeBots) {
+        statusMsg.innerHTML = `🔄 Chế độ <strong>Tự Động Random Bot</strong> đang <strong>BẬT</strong> — Khi bấm "Chia Ván Tiếp Theo" hệ thống sẽ tự động đổi sang nhân vật Bot ngẫu nhiên mới!`;
+        statusMsg.classList.remove('hidden');
+      } else {
+        statusMsg.classList.add('hidden');
+        statusMsg.textContent = '';
+      }
     }
   }
 
@@ -8460,6 +8664,9 @@ class TienLenGame {
     if (!wantChange) {
       this.autoRandomizeBots = false;
       this.queuedNextMatchBots = null;
+      this._manualBotChangedAfterMatch = true;
+      this.saveShopProfile();
+      this.syncAutoRandomBotsUI();
       stepAsk?.classList.add('hidden');
       stepActions?.classList.add('hidden');
       this.showSummaryBotStatus(
@@ -8473,6 +8680,7 @@ class TienLenGame {
   }
 
   onSummaryRandomBot() {
+    this._manualBotChangedAfterMatch = true;
     this.randomizeBotCharacters(true);
     this.syncSummaryBotNamesUI();
     this.showSummaryBotStatus(
@@ -8482,7 +8690,8 @@ class TienLenGame {
 
   applyQueuedNextMatchBots() {
     if (!this.queuedNextMatchBots || !this.players || this.players.length < 4) return;
-    [1, 2, 3].forEach((seatIdx) => {
+    const targetSeats = this.isMultiplayer ? this.getActiveBotSeats() : [1, 2, 3];
+    targetSeats.forEach((seatIdx) => {
       const p = this.players[seatIdx];
       const ch = this.queuedNextMatchBots[seatIdx];
       if (!p || !ch) return;
@@ -8500,6 +8709,9 @@ class TienLenGame {
     this.updateArenaBackdropCharacters();
     this.preloadActiveBurstVideos();
     this.renderSoloPlayerCountUI();
+    if (this.isMultiplayer && this.isHost) {
+      this.renderLobbyModal();
+    }
     this.renderSeats();
     this.updateMidMatchLockUI();
   }
@@ -8528,14 +8740,14 @@ class TienLenGame {
           : me?.cardSkin && me.cardSkin !== 'classic'
           ? me.cardSkin
           : 'raiden';
-      leftEl.style.backgroundImage = `url('fanart/${leftArtId}.jpg?v=64')`;
+      leftEl.style.backgroundImage = `url('fanart/${leftArtId}.jpg?v=66')`;
     }
     if (rightEl) {
       const activeOpponents = this.players.filter((p) => p.active && p.id !== this.mySeatId);
       const mainOpp = activeOpponents.find((p) => p.id === 2) || activeOpponents[0] || this.players[2];
       const oppCharId = this.getPlayerActiveCharId(mainOpp);
       const rightArtId = oppCharId && oppCharId !== 'none' ? oppCharId : 'furina';
-      rightEl.style.backgroundImage = `url('fanart/${rightArtId}.jpg?v=64')`;
+      rightEl.style.backgroundImage = `url('fanart/${rightArtId}.jpg?v=66')`;
     }
   }
 
@@ -8572,7 +8784,7 @@ class TienLenGame {
 
       heroHtml = `
         <div class="char-detail-hero">
-          <img class="char-detail-art" src="fanart/${charId}.jpg?v=64" alt="${sk.charName}" />
+          <img class="char-detail-art" src="fanart/${charId}.jpg?v=66" alt="${sk.charName}" />
           <div style="flex:1;">
             <div style="font-size:11px;font-weight:900;color:#fde047;letter-spacing:0.5px;text-transform:uppercase;">
               ${isMe ? '👑 NHÂN VẬT 5★ BẠN ĐANG SỬ DỤNG' : `🎭 NHÂN VẬT ĐANG XÀI CỦA ${p.name.toUpperCase()}`}
@@ -8623,7 +8835,16 @@ class TienLenGame {
       `;
     }
 
-    const rosterItemsHtml = GENSHIN_BURSTS.map((b) => {
+    const sortedRosterBursts = [...GENSHIN_BURSTS].sort((a, b) => {
+      const aOwned = this.unlockedBursts.has(a.id);
+      const bOwned = this.unlockedBursts.has(b.id);
+      const aEq = hasChar && charId === a.id;
+      const bEq = hasChar && charId === b.id;
+      const aRank = aEq ? 0 : aOwned ? 1 : 2;
+      const bRank = bEq ? 0 : bOwned ? 1 : 2;
+      return aRank - bRank;
+    });
+    const rosterItemsHtml = sortedRosterBursts.map((b) => {
       const cSk = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
       const owned = this.unlockedBursts.has(b.id);
       const isCurrent = hasChar && charId === b.id;
@@ -8633,7 +8854,7 @@ class TienLenGame {
 
       return `
         <div class="char-detail-roster-item ${isCurrent ? 'active-char' : ''} ${!owned ? 'locked-char' : ''}" ${clickAttr}>
-          <img src="fanart/${b.id}.jpg?v=64" alt="${cSk.charName}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid ${
+          <img src="fanart/${b.id}.jpg?v=66" alt="${cSk.charName}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid ${
         owned ? '#fde047' : '#64748b'
       };" />
           <div style="flex:1;min-width:0;">
@@ -8814,6 +9035,85 @@ class TienLenGame {
     }
   }
 
+  findEscoffierPairRunSetup(hand, preferredTrashIds = []) {
+    if (!Array.isArray(hand) || hand.length < 6) return null;
+    const sorted = sortCardsAsc(hand);
+    const byRank = new Map();
+    for (let r = 0; r < 13; r++) byRank.set(r, []);
+    sorted.forEach((c) => {
+      if (byRank.has(c.rankIndex)) byRank.get(c.rankIndex).push(c);
+    });
+
+    const pickBestTrash = (coreIdsSet) => {
+      const candidates = sorted.filter((c) => !coreIdsSet.has(c.id));
+      if (candidates.length === 0) return null;
+      if (Array.isArray(preferredTrashIds) && preferredTrashIds.length > 0) {
+        const pref = candidates.find((c) => preferredTrashIds.includes(c.id));
+        if (pref) return pref;
+      }
+      const singleUnder2 = candidates.find((c) => c.rankIndex < 12 && (byRank.get(c.rankIndex)?.length || 0) === 1);
+      if (singleUnder2) return singleUnder2;
+      const anyUnder2 = candidates.find((c) => c.rankIndex < 12);
+      return anyUnder2 || candidates[0];
+    };
+
+    // 1. Ưu tiên kiểm tra sắp thành 4 ĐÔI THÔNG (3 Đôi + 1 Lẻ trong 4 bậc liên tiếp r..r+3, từ 3 đến A)
+    if (hand.length >= 8) {
+      for (let start = 8; start >= 0; start--) {
+        const windowRanks = [start, start + 1, start + 2, start + 3];
+        const pairRanks = windowRanks.filter((r) => (byRank.get(r)?.length || 0) >= 2);
+        const singleRanks = windowRanks.filter((r) => (byRank.get(r)?.length || 0) === 1);
+        if (pairRanks.length === 3 && singleRanks.length === 1) {
+          const targetRank = singleRanks[0];
+          const coreCards = [];
+          pairRanks.forEach((r) => coreCards.push(...byRank.get(r).slice(0, 2)));
+          coreCards.push(byRank.get(targetRank)[0]);
+          const coreIds = new Set(coreCards.map((c) => c.id));
+          const trashCard = pickBestTrash(coreIds);
+          if (trashCard) {
+            return {
+              pairCount: 4,
+              startRank: start,
+              endRank: start + 3,
+              targetRank,
+              coreCards,
+              trashCard,
+              label: `4 Đôi Thông (${RANKS[start]} ➔ ${RANKS[start + 3]})`,
+            };
+          }
+        }
+      }
+    }
+
+    // 2. Kiểm tra sắp thành 3 ĐÔI THÔNG (2 Đôi + 1 Lẻ trong 3 bậc liên tiếp r..r+2, VD: Đôi 5, Đôi 6, Lẻ 7)
+    for (let start = 9; start >= 0; start--) {
+      const windowRanks = [start, start + 1, start + 2];
+      const pairRanks = windowRanks.filter((r) => (byRank.get(r)?.length || 0) >= 2);
+      const singleRanks = windowRanks.filter((r) => (byRank.get(r)?.length || 0) === 1);
+      if (pairRanks.length === 2 && singleRanks.length === 1) {
+        const targetRank = singleRanks[0];
+        const coreCards = [];
+        pairRanks.forEach((r) => coreCards.push(...byRank.get(r).slice(0, 2)));
+        coreCards.push(byRank.get(targetRank)[0]);
+        const coreIds = new Set(coreCards.map((c) => c.id));
+        const trashCard = pickBestTrash(coreIds);
+        if (trashCard) {
+          return {
+            pairCount: 3,
+            startRank: start,
+            endRank: start + 2,
+            targetRank,
+            coreCards,
+            trashCard,
+            label: `3 Đôi Thông (${RANKS[start]}-${RANKS[start + 1]}-${RANKS[start + 2]})`,
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
   canUseCharacterSkill(player) {
     if (!player || !player.active || player.skillUsed || this.isGameOver) return { ok: false, reason: 'Đã dùng kỹ năng trong ván này' };
     if (this.currentTurn !== player.id) return { ok: false, reason: 'Chỉ dùng trong lượt của bạn' };
@@ -8929,8 +9229,13 @@ class TienLenGame {
         return { ok: false, reason: 'Chỉ dùng khi trên bàn đang có Đôi, Sám Cô, Sảnh hoặc Bài Lẻ thường (dưới Heo) để dậm vỡ!' };
       }
     }
-    if (charId === 'escoffier' && player.hand.length < 2) {
-      return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để ném 1 lá rác sang đối thủ' };
+    if (charId === 'escoffier') {
+      if (!this.findEscoffierPairRunSetup(player.hand)) {
+        return {
+          ok: false,
+          reason: 'Cần có thế bài sắp thành Đôi Thông (VD: Đôi 5, Đôi 6, Lẻ 7 + 1 lá bài rác) để Escoffier thêm lá còn thiếu và bỏ 1 lá rác!',
+        };
+      }
     }
     if (charId === 'zibai') {
       const canUp = player.hand.some((c) => c.rankIndex <= 10);
@@ -9492,41 +9797,39 @@ class TienLenGame {
         }
       }
     } else if (charId === 'escoffier') {
-      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      const candidateOpps = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
-      const target = player.isBot
-        ? [...candidateOpps].sort((a, b) => a.hand.length - b.hand.length)[0]
-        : pickRandomItem(candidateOpps);
-      if (target && player.hand.length >= 2) {
-        let trashCard = null;
-        if (preferredCardIds && preferredCardIds.length > 0) {
-          trashCard = player.hand.find((c) => preferredCardIds.includes(c.id));
-        }
-        if (!trashCard) {
-          const struct = this.analyzeBotHandStructure(player.hand);
-          const sortedHand = sortCardsAsc(player.hand);
-          trashCard =
-            sortedHand.find(
-              (c) =>
-                c.rankIndex < 12 &&
-                struct.rankCounts[c.rankIndex] === 1 &&
-                !struct.bombRanks.has(c.rankIndex) &&
-                !struct.criticalStraightRanks.has(c.rankIndex)
-            ) || sortedHand[0];
-        }
-        if (trashCard) {
-          player.hand = player.hand.filter((c) => c.id !== trashCard.id);
-          target.hand.push(trashCard);
-          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-          target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
-          this.selectedCardIds.clear();
-          this.companionCardIds.clear();
-          if (player.id === this.mySeatId || target.id === this.mySeatId) {
-            skillSummary = `🍰 [Bữa Tiệc Ép Ăn] ${player.name} nhét thẳng lá ${trashCard.rank}${trashCard.suit} vào tay ${target.name} (${player.name} giảm còn ${player.hand.length} lá, ${target.name} tăng lên ${target.hand.length} lá)!`;
-          } else {
-            skillSummary = `🍰 [Bữa Tiệc Ép Ăn] ${player.name} dọn món đặc biệt ép ${target.name} phải nhận thêm 1 lá bài rác vào tay (${player.name} còn ${player.hand.length} lá)!`;
+      const setup = this.findEscoffierPairRunSetup(player.hand, preferredCardIds);
+      if (setup && setup.trashCard) {
+        const trashCard = setup.trashCard;
+        const trashLabel = `${trashCard.rank}${trashCard.suit}`;
+        const targetRank = setup.targetRank;
+        const existingSuits = new Set(
+          player.hand
+            .filter((c) => c.id !== trashCard.id && c.rankIndex === targetRank)
+            .map((c) => c.suitIndex)
+        );
+        let newSuitIdx = 3;
+        for (const s of [3, 2, 1, 0]) {
+          if (!existingSuits.has(s)) {
+            newSuitIdx = s;
+            break;
           }
         }
+        const newCard = {
+          rankIndex: targetRank,
+          suitIndex: newSuitIdx,
+          rank: RANKS[targetRank],
+          suit: SUITS[newSuitIdx],
+          value: targetRank * 4 + newSuitIdx,
+          isRed: newSuitIdx >= 2,
+          id: `${RANKS[targetRank]}${SUITS[newSuitIdx]}_escoffier_${Date.now()}`,
+        };
+        player.hand = player.hand.filter((c) => c.id !== trashCard.id);
+        player.hand.push(newCard);
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        const completedCards = [...setup.coreCards, newCard];
+        this.selectedCardIds = new Set(completedCards.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `🍰 [Tuyệt Kỹ Đôi Thông] ${player.name} lập tức thêm lá ${newCard.rank}${newCard.suit} vào tay và bỏ lá bài rác ${trashLabel} ➔ Hoàn thành ngay bộ ${setup.label}!`;
       }
     } else if (charId === 'zibai') {
       const struct = this.analyzeBotHandStructure(player.hand);
@@ -11330,37 +11633,10 @@ class TienLenGame {
         }
       }
     } else if (charId === 'escoffier') {
-      if (bot.hand.length >= 2) {
-        // TH1 (KẾT LIỄU VÁN BÀI NGAY LẬP TỨC): Nếu ném đi 1 lá dư giúp phần bài còn lại trên tay tạo thành 1 bộ hợp lệ đánh hết sạch bài Về Nhất luôn!
-        const nonBombCards = sortCardsAsc(bot.hand).filter((c) => !struct.bombRanks.has(c.rankIndex));
-        let winSetupCard = null;
-        for (const cand of nonBombCards) {
-          const remHand = bot.hand.filter((c) => c.id !== cand.id);
-          const remMoves = getValidMoves(remHand, this.currentCombo, this.mustPlay3Spade, false);
-          if (remMoves.some((m) => m.length === remHand.length)) {
-            winSetupCard = cand;
-            break;
-          }
-        }
-        if (winSetupCard) {
-          shouldCast = true;
-          preferredIds = [winSetupCard.id];
-        } else if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 10 || minOppCards <= 6)) {
-          // TH2: Chỉ ném khi Bot có lượt đánh trong vòng này và tìm được 1 lá rác lẻ nhỏ (<= 10) nằm ngoài bộ sắp đánh
-          const plannedIds = new Set(plannedMove ? plannedMove.cards.map((c) => c.id) : []);
-          const trashCand = sortCardsAsc(bot.hand).find(
-            (c) =>
-              !plannedIds.has(c.id) &&
-              c.rankIndex <= 8 &&
-              struct.rankCounts[c.rankIndex] === 1 &&
-              !struct.bombRanks.has(c.rankIndex) &&
-              !struct.criticalStraightRanks.has(c.rankIndex)
-          );
-          if (trashCand) {
-            shouldCast = true;
-            preferredIds = [trashCand.id];
-          }
-        }
+      const pairRunSetup = this.findEscoffierPairRunSetup(bot.hand);
+      if (pairRunSetup && pairRunSetup.trashCard) {
+        shouldCast = true;
+        preferredIds = [pairRunSetup.trashCard.id];
       }
     } else if (charId === 'zibai') {
       // Bạch Mã Đạp Vân: Nâng +1 bậc cho tối đa 2 lá bài nhỏ (<= K)
@@ -11911,7 +12187,7 @@ class TienLenGame {
           const seatTag = d.isQueued ? `${seatLabels[idx]} • ⏳ Trận sau` : seatLabels[idx];
           return `
             <div class="bot-lineup-chip" onclick="window.tienLenGame.openBotPickerModal(${idx})" title="Bấm để chọn đích danh nhân vật Bot cho ${seatLabels[idx]}" style="cursor:pointer;">
-              <img src="fanart/${d.skin}.jpg?v=57" alt="${d.name}" />
+              <img src="fanart/${d.skin}.jpg?v=66" alt="${d.name}" />
               <div class="bot-lineup-chip-info">
                 <span class="bot-lineup-chip-seat">${seatTag} • 🎯 Đổi</span>
                 <span class="bot-lineup-chip-name">${d.name}</span>
@@ -11932,6 +12208,7 @@ class TienLenGame {
         previewEl.innerHTML = `<strong>👑 Bàn 4 Người (Đủ Bàn 1v3 Bot):</strong> Bạn đấu với <strong>${b1}</strong>, <strong>${b2}</strong> & <strong>${b3}</strong>${queuedTag}`;
       }
     }
+    this.syncAutoRandomBotsUI();
   }
 
   selectBetTier(betVal, isCustom = false) {
@@ -14169,6 +14446,7 @@ class TienLenGame {
 
   renderLobbyModal() {
     this.renderBetTiers();
+    this.syncAutoRandomBotsUI();
     const me = this.getLocalPlayer();
     const lobbyAvatar = document.getElementById('lobby-avatar-preview');
     if (lobbyAvatar) {
@@ -14202,6 +14480,46 @@ class TienLenGame {
       }
     }
 
+    const wifiHostBtns = document.getElementById('wifi-host-bot-btns');
+    if (wifiHostBtns) {
+      wifiHostBtns.style.display = !this.isMultiplayer || this.isHost ? 'flex' : 'none';
+    }
+    const wifiLineupEl = document.getElementById('wifi-bot-lineup-avatars');
+    if (wifiLineupEl && this.players) {
+      const botSeats = this.players
+        .map((p, idx) => ({ p, idx }))
+        .filter(({ p }) => p.active && p.isBot);
+      if (botSeats.length === 0) {
+        wifiLineupEl.innerHTML = `<div style="font-size:0.78rem;color:#94a3b8;padding:4px 8px;">Chưa có Bot trong bàn — Chủ phòng bấm <strong>🤖 + Thêm Bot</strong> để thêm Bot 5★ vào ghế trống!</div>`;
+      } else {
+        const locked = this.isMidMatch();
+        wifiLineupEl.innerHTML = botSeats
+          .map(({ p, idx }) => {
+            const queued = locked && this.queuedNextMatchBots && this.queuedNextMatchBots[idx];
+            const dispName = queued
+              ? `Bot ${queued.name.split('(')[0].trim()} ${queued.crest}`
+              : p.name;
+            const dispSkin = queued ? queued.id : p.cardSkin || 'furina';
+            const seatTag = queued ? `Ghế #${idx + 1} • ⏳ Trận sau` : `Ghế #${idx + 1}`;
+            const canClick = !this.isMultiplayer || this.isHost;
+            return `
+              <div class="bot-lineup-chip" ${
+                canClick ? `onclick="window.tienLenGame.openBotPickerModal(${idx})"` : ''
+              } title="${
+              canClick ? `Bấm để chọn đích danh nhân vật Bot cho Ghế #${idx + 1}` : dispName
+            }" style="cursor:${canClick ? 'pointer' : 'default'};">
+                <img src="fanart/${dispSkin}.jpg?v=66" alt="${dispName}" />
+                <div class="bot-lineup-chip-info">
+                  <span class="bot-lineup-chip-seat">${seatTag}${canClick ? ' • 🎯 Đổi' : ''}</span>
+                  <span class="bot-lineup-chip-name">${dispName}</span>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+    }
+
     grid.innerHTML = this.players
       .map((p, idx) => {
         const isMe = p.id === this.mySeatId && this.isMultiplayer;
@@ -14212,17 +14530,26 @@ class TienLenGame {
         if (this.isHost && this.isMultiplayer && idx !== this.mySeatId) {
           if (!p.active) {
             actionHtml = `<button class="tool-btn" onclick="window.tienLenGame.toggleBotInLobby(${idx}, true)">🤖 + Thêm Bot</button>`;
+          } else if (p.isBot) {
+            actionHtml = `
+              <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">
+                <button class="tool-btn" style="padding:4px 8px;font-size:0.74rem;" onclick="window.tienLenGame.randomizeSingleBotSeat(${idx})" title="Random đổi nhân vật khác cho Ghế #${idx + 1}">🎲 Đổi</button>
+                <button class="tool-btn" style="padding:4px 8px;font-size:0.74rem;border-color:#c084fc;color:#f3e8ff;" onclick="window.tienLenGame.openBotPickerModal(${idx})" title="Chọn đích danh nhân vật 5★ cho Ghế #${idx + 1}">🎯 Chọn</button>
+                <button class="clear-log-btn" style="padding:4px 8px;font-size:0.74rem;" onclick="window.tienLenGame.toggleBotInLobby(${idx}, false)">✕ Bỏ ghế</button>
+              </div>
+            `;
           } else {
             actionHtml = `<button class="clear-log-btn" onclick="window.tienLenGame.toggleBotInLobby(${idx}, false)">✕ Bỏ ghế</button>`;
           }
         }
 
+        const botSkill = p.active && p.isBot && CHARACTER_SKILLS[p.cardSkin] ? CHARACTER_SKILLS[p.cardSkin] : null;
         const roleLabel = !p.active
           ? 'Ghế trống (Đang chờ người chơi vào...)'
           : isRoomHostSeat
           ? '👑 Chủ phòng'
           : p.isBot
-          ? '🤖 Máy (Bot AI)'
+          ? `🤖 Máy (Bot AI)${botSkill ? ` • ${botSkill.icon} ${botSkill.name}` : ''}`
           : '👤 Người chơi Online';
 
         return `
@@ -14378,11 +14705,19 @@ class TienLenGame {
       this.kickFullMatchAfkPlayersBeforeNextMatch();
     }
 
-    if (!this.isMultiplayer && this.queuedNextMatchBots) {
+    if (this.queuedNextMatchBots && (!this.isMultiplayer || this.isHost)) {
       this.applyQueuedNextMatchBots();
+    } else if (
+      !resetHistory &&
+      this.autoRandomizeBots &&
+      !this._manualBotChangedAfterMatch &&
+      (!this.isMultiplayer || (this.isHost && this.getActiveBotSeats().length > 0))
+    ) {
+      this.randomizeBotCharacters(true);
     } else {
       this.updateArenaBackdropCharacters();
     }
+    this._manualBotChangedAfterMatch = false;
 
     this.updateBetBadges();
     this.tighnariBonusByPlayer = {};
@@ -16665,6 +17000,11 @@ class TienLenGame {
           ) {
             const c = selectedCards[0];
             this.elCharSkillLabel.textContent = `🔥 Rèn ${c.rank}${c.suit} ➔ ${RANKS[c.rankIndex + 1]}♥ [E]`;
+          } else if (charId === 'escoffier' && skillCheck.ok) {
+            const esSetup = this.findEscoffierPairRunSetup(human.hand, this.selectedCardIds);
+            this.elCharSkillLabel.textContent = esSetup
+              ? `🍰 Ghép ${esSetup.label} (+${esSetup.missingCard.rank}${esSetup.missingCard.suit}) [E]`
+              : `${skill.icon} ${skill.name} [E]`;
           } else {
             this.elCharSkillLabel.textContent = `${skill.icon} ${skill.name} [E]`;
           }
@@ -17204,7 +17544,7 @@ class TienLenGame {
       }
       if (charThumbEl) {
         if (hasChar) {
-          const expectedSrc = `fanart/${charId}.jpg?v=64`;
+          const expectedSrc = `fanart/${charId}.jpg?v=66`;
           if (charThumbEl.getAttribute('src') !== expectedSrc) {
             charThumbEl.setAttribute('src', expectedSrc);
           }

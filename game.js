@@ -169,14 +169,14 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'clorinde', name: 'Clorinde (Đấu Sĩ Đại Diện)', desc: '[Sử Thi] Fanart nữ kiếm sĩ Lôi nguyên tố bất bại của Fontaine.', avatarPrice: 43000, skinPrice: 62000, crest: '⚡' },
   { id: 'xilonen', name: 'Xilonen (Thợ Rèn Tên Cổ)', desc: '[Sử Thi] Fanart bậc thầy chế tác Tên Cổ của bộ tộc Đứa Con Tiếng Vang.', avatarPrice: 44000, skinPrice: 65000, crest: '🐆' },
   { id: 'hutao', name: 'Hu Tao (Đường Chủ Vãng Sinh)', desc: '[Sử Thi] Fanart Đường chủ Vãng Sinh Đường tinh nghịch.', avatarPrice: 45000, skinPrice: 68000, crest: '🦋' },
-  { id: 'vesna', name: 'Vesna (Nữ Thần Tuyết Xuân)', desc: '[Huyền Thoại] Fanart tuyệt sắc giai nhân xứ sở băng tuyết.', avatarPrice: 50000, skinPrice: 75000, crest: '❄️' },
+  { id: 'vesna', name: 'Vesna (Kiếm Khách Gió Xuân)', desc: '[Huyền Thoại] Fanart nữ kiếm sĩ Hệ Phong thanh thoát xứ Snezhnaya.', avatarPrice: 50000, skinPrice: 75000, crest: '🍃' },
   { id: 'yelan', name: 'Yelan (Lan Sinh U Cốc)', desc: '[Huyền Thoại] Fanart thần bài tình báo bí ẩn của Liyue.', avatarPrice: 55000, skinPrice: 80000, crest: '🎲' },
   { id: 'sandrone', name: 'Sandrone (Marionette Fatui #7)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 7 của Fatui & cỗ máy cổ.', avatarPrice: 58000, skinPrice: 85000, crest: '⚙️' },
   { id: 'yaemiko', name: 'Yae Miko (Guuji Đền Narukami)', desc: '[Huyền Thoại] Fanart Guuji Yae Miko quyến rũ dưới tán anh đào.', avatarPrice: 60000, skinPrice: 90000, crest: '🌸' },
   { id: 'columbina', name: 'Columbina (Thiếu Nữ Fatui #3)', desc: '[Huyền Thoại] Fanart Quan Chấp Hành thứ 3 của Fatui đầy bí ẩn.', avatarPrice: 65000, skinPrice: 95000, crest: '🕊️' },
   { id: 'furina', name: 'Furina (Thủy Thần Fontaine)', desc: '[Thần Thoại] Fanart ngôi sao sân khấu Epiclese rực rỡ hào quang.', avatarPrice: 70000, skinPrice: 105000, crest: '💧' },
   { id: 'mavuika', name: 'Mavuika (Hỏa Thần Natlan)', desc: '[Thần Thoại] Fanart Hỏa Thần rực cháy dẫn lối chiến thắng bất bại.', avatarPrice: 75000, skinPrice: 115000, crest: '🔥' },
-  { id: 'vodyanitsa', name: 'Vodyanitsa (Nữ Hoàng Băng Giá)', desc: '[Thần Thoại] Fanart Băng Hoàng tối cao ngự trị cung điện mùa đông.', avatarPrice: 78000, skinPrice: 120000, crest: '👑' },
+  { id: 'vodyanitsa', name: 'Vodyanitsa (Mỹ Nhân Ngư Biển Sâu)', desc: '[Thần Thoại] Fanart danh ca Hệ Thủy của Đoàn Kịch Korolevskiy.', avatarPrice: 78000, skinPrice: 120000, crest: '🌊' },
   { id: 'raiden', name: 'Raiden Shogun (Lôi Thần Vĩnh Hằng)', desc: '[Thần Thoại] Fanart Chúa tể sấm sét Inazuma — Vô Tưởng Nhất Đao.', avatarPrice: 80000, skinPrice: 125000, crest: '⚡' },
   { id: 'skirk', name: 'Skirk (Kiếm Khách Vực Sâu)', desc: '[Thần Thoại] Fanart nữ kiếm khách bí ẩn ngự trị Tinh Không Vực Sâu.', avatarPrice: 85000, skinPrice: 130000, crest: '🌌' },
 ];
@@ -517,10 +517,10 @@ const GENSHIN_BURSTS = [
   {
     id: 'lauma',
     name: 'Lauma — Khúc Ca Trăng Đập',
-    desc: '[Sử Thi] Nữ tu sương giá ngân vang thánh ca Nguyệt Tộc, chuyển hóa 3 lá bài thường cao nhất sang chất Cơ ♥ (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Nữ tu Nguyệt Tộc ngân vang thánh ca thu hồi 1 lá bài lớn nhất trên bàn về tay (hoặc nâng +2 bậc cho 1 Đôi khi mở vòng) (Video + Giọng lồng tiếng thật).',
     price: 115000,
     mp4Url: 'lauma_burst.mp4',
-    audioUrl: 'lauma_burst.ogg?v=54',
+    audioUrl: 'lauma_burst.ogg?v=55',
     posterUrl: 'fanart/lauma.jpg',
     theme: 'theme-cryo',
     sfxType: 'skirk',
@@ -534,9 +534,9 @@ const GENSHIN_BURSTS = [
     desc: '[Sử Thi] Ảo thuật gia tinh linh biến lá bài rác nhỏ nhất thành cùng số với 1 lá bài thường trên tay để ghép Đôi/Sám (Video + Giọng lồng tiếng thật).',
     price: 115000,
     mp4Url: 'linnea_burst.mp4',
-    audioUrl: 'linnea_burst.ogg?v=54',
+    audioUrl: 'linnea_burst.ogg?v=55',
     posterUrl: 'fanart/linnea.jpg?v=52',
-    theme: 'theme-pyro',
+    theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🎩 KỸ NĂNG NỘ • LINNEA (EXTREME SURVIVAL MEMO)',
     title: 'ẢO THUẬT TINH LINH: CẨM NANG CỰC HẠN',
@@ -545,10 +545,10 @@ const GENSHIN_BURSTS = [
   {
     id: 'nefer',
     name: 'Nefer — Thánh Thệ Chân Nhãn',
-    desc: '[Huyền Thoại] Nữ hoàng sa mạc triệu hồi Bạch Xà đoạt lấy 1 lá bài lớn nhất (dưới Heo) của đối thủ đổi lấy 1 lá rác nhỏ nhất (Video + Giọng lồng tiếng thật).',
+    desc: '[Huyền Thoại] Nữ hoàng sa mạc dùng Ảo Ảnh Sa Mạc biến 1 lá bài rác nhỏ nhất nhập vào 1 bộ Đôi sẵn có trên tay để nâng cấp thành Sám Cô (Video + Giọng lồng tiếng thật).',
     price: 130000,
     mp4Url: 'nefer_burst.mp4',
-    audioUrl: 'nefer_burst.ogg?v=54',
+    audioUrl: 'nefer_burst.ogg?v=55',
     posterUrl: 'fanart/nefer.jpg?v=52',
     theme: 'theme-electro',
     sfxType: 'skirk',
@@ -562,7 +562,7 @@ const GENSHIN_BURSTS = [
     desc: '[Huyền Thoại] Vũ công thiên nga cắt bớt 1 lá cao nhất khỏi bộ bài trên bàn (Sảnh 4➔3, Sám➔Đôi, Đôi➔Lẻ) hoặc hạ 3 bậc lá lẻ (Video + Giọng lồng tiếng thật).',
     price: 130000,
     mp4Url: 'odette_burst.mp4',
-    audioUrl: 'odette_burst.ogg?v=54',
+    audioUrl: 'odette_burst.ogg?v=55',
     posterUrl: 'fanart/odette.jpg?v=52',
     theme: 'theme-cryo',
     sfxType: 'skirk',
@@ -573,16 +573,16 @@ const GENSHIN_BURSTS = [
   {
     id: 'vesna',
     name: 'Vesna — Vì Nữ Hoàng Băng Giá!',
-    desc: '[Huyền Thoại] Nữ thần tuyết xuân giáng bão tuyết làm giảm 2 bậc số của 2 lá bài cao nhất (dưới Heo) trên tay đối thủ (Video + Giọng lồng tiếng thật).',
+    desc: '[Huyền Thoại] Nữ kiếm sĩ Hệ Phong vung kiếm gió xuân làm giảm 2 bậc số của 2 lá bài cao nhất (dưới Heo) trên tay đối thủ (Video + Giọng lồng tiếng thật).',
     price: 140000,
     mp4Url: 'vesna_burst.mp4',
-    audioUrl: 'vesna_burst.ogg?v=54',
+    audioUrl: 'vesna_burst.ogg?v=55',
     posterUrl: 'fanart/vesna.jpg?v=52',
     theme: 'theme-cryo',
     sfxType: 'skirk',
-    tag: '❄️ KỸ NĂNG NỘ • VESNA (FOR THE TSARITSA!)',
-    title: 'THỆ ƯỚC MÙA ĐÔNG: VÌ NỮ HOÀNG BĂNG GIÁ',
-    quote: '“Gió Tuyết Snezhnaya — Quét Sạch Chiến Trường!”',
+    tag: '🍃 KỸ NĂNG NỘ • VESNA (FOR THE TSARITSA!)',
+    title: 'KIẾM VŨ PHONG XUÂN: VÌ NỮ HOÀNG!',
+    quote: '“Đã Khóa Mục Tiêu — Vì Nữ Hoàng Băng Giá!”',
   },
   {
     id: 'sandrone',
@@ -590,9 +590,9 @@ const GENSHIN_BURSTS = [
     desc: '[Huyền Thoại] Quan Chấp Hành thứ 7 của Fatui tái cấu trúc 3 lá bài lẻ nhỏ nhất trên tay thành 1 bộ Sảnh 3 lá liên tiếp (Video + Giọng lồng tiếng thật).',
     price: 150000,
     mp4Url: 'sandrone_burst.mp4',
-    audioUrl: 'sandrone_burst.ogg?v=54',
+    audioUrl: 'sandrone_burst.ogg?v=55',
     posterUrl: 'fanart/sandrone.jpg',
-    theme: 'theme-geo',
+    theme: 'theme-cryo',
     sfxType: 'raiden',
     tag: '⚙️ KỸ NĂNG NỘ • SANDRONE (FORMULE PHÉNOMÉNALE: Q.E.D.)',
     title: 'QUAN CHẤP HÀNH #7: ĐỊNH LÝ TUYỆT ĐỐI',
@@ -601,10 +601,10 @@ const GENSHIN_BURSTS = [
   {
     id: 'columbina',
     name: 'Columbina — Khúc Ru Trăng Buồn',
-    desc: '[Thần Thoại] Quan Chấp Hành thứ 3 của Fatui ngân khúc hát ru ngủ toàn bộ đối thủ trong vòng đấu để cướp cái mở vòng mới ngay lập tức (Video + Giọng lồng tiếng thật).',
+    desc: '[Thần Thoại] Quan Chấp Hành thứ 3 của Fatui ngân Khúc Ca Thiên Thần cho phép đánh bồi liên tiếp 2 bộ bài trong cùng 1 lượt (Video + Giọng lồng tiếng thật).',
     price: 165000,
     mp4Url: 'columbina_burst.mp4',
-    audioUrl: 'columbina_burst.ogg?v=54',
+    audioUrl: 'columbina_burst.ogg?v=55',
     posterUrl: 'fanart/columbina.jpg',
     theme: 'theme-hydro',
     sfxType: 'skirk',
@@ -614,17 +614,17 @@ const GENSHIN_BURSTS = [
   },
   {
     id: 'vodyanitsa',
-    name: 'Vodyanitsa — Khúc Kết Đáy Biển Sâu',
-    desc: '[Thần Thoại] Nữ hoàng băng giá nhấn chìm đối thủ: Đổi 1 lá bài rác nhỏ nhất lấy 1 lá bài lớn nhất (dưới Heo) của đối thủ và đóng băng họ 1 lượt (Video + Giọng lồng tiếng thật).',
+    name: 'Vodyanitsa — Khúc Hát Kết: Cùng Người Chìm Đắm',
+    desc: '[Thần Thoại] Mỹ nhân ngư Hệ Thủy dùng Gương Nước Phản Chiếu biến các lá rác nhỏ nhất thành bộ bài cùng loại nhưng lớn hơn +1 bậc so với bộ trên bàn để đè ngay (Video + Giọng lồng tiếng thật).',
     price: 185000,
     mp4Url: 'vodyanitsa_burst.mp4',
-    audioUrl: 'vodyanitsa_burst.ogg?v=54',
+    audioUrl: 'vodyanitsa_burst.ogg?v=55',
     posterUrl: 'fanart/vodyanitsa.jpg?v=52',
-    theme: 'theme-cryo',
+    theme: 'theme-hydro',
     sfxType: 'skirk',
-    tag: '👑 KỸ NĂNG NỘ • VODYANITSA (KODA: SINK WITH THEE)',
-    title: 'NỮ HOÀNG BĂNG GIÁ: KHÚC KẾT ĐÁY VỰC',
-    quote: '“Cung Điện Mùa Đông — Nhấn Chìm Mọi Kẻ Ngáng Đường!”',
+    tag: '🌊 KỸ NĂNG NỘ • VODYANITSA (KODA: SINK WITH THEE)',
+    title: 'KHÚC HÁT KẾT: CÙNG NGƯỜI CHÌM ĐẮM',
+    quote: '“Khúc Bi Ca Biển Thẳm — Tất Cả Hãy Cùng Cất Tiếng Hát!”',
   },
 ];
 
@@ -635,17 +635,16 @@ const CHARACTER_ELEMENTS = {
   hutao: 'pyro',
   mavuika: 'pyro',
   yoimiya: 'pyro',
-  linnea: 'pyro',
   yelan: 'hydro',
   furina: 'hydro',
   kokomi: 'hydro',
   mualani: 'hydro',
   columbina: 'hydro',
+  vodyanitsa: 'hydro',
   raiden: 'electro',
   yaemiko: 'electro',
   clorinde: 'electro',
   varesa: 'electro',
-  sandrone: 'electro',
   ayaka: 'cryo',
   eula: 'cryo',
   skirk: 'cryo',
@@ -654,12 +653,13 @@ const CHARACTER_ELEMENTS = {
   ganyu: 'cryo',
   shenhe: 'cryo',
   odette: 'cryo',
-  vesna: 'cryo',
-  vodyanitsa: 'cryo',
-  lauma: 'cryo',
+  sandrone: 'cryo',
+  vesna: 'anemo',
   navia: 'geo',
   xilonen: 'geo',
   zibai: 'geo',
+  linnea: 'geo',
+  lauma: 'dendro',
   nefer: 'dendro',
 };
 
@@ -726,6 +726,13 @@ function resolveGenshinReaction(elemA, elemB) {
       shortName: '🌿💧 Sum Suê (Bloom)',
       badge: '🌿💧 PHẢN ỨNG SUM SUÊ (BLOOM)',
       cssClass: 'reaction-bloom',
+    };
+  }
+  if (pair.has('anemo')) {
+    return {
+      shortName: '🍃🌀 Khuếch Tán (Swirl)',
+      badge: '🍃🌀 PHẢN ỨNG KHUẾCH TÁN (SWIRL)',
+      cssClass: 'reaction-frozen',
     };
   }
   if (pair.has('geo')) {
@@ -904,8 +911,8 @@ const CHARACTER_SKILLS = {
     id: 'lauma',
     charName: 'Lauma',
     icon: '✨',
-    name: 'Nguyệt Ca Đổi Sắc',
-    shortDesc: 'Chuyển hóa tối đa 3 lá bài thường cao nhất (≤ A) chưa phải chất Cơ trên tay thành chất Cơ ♥ mạnh nhất',
+    name: 'Nguyệt Quang Hồi Phục',
+    shortDesc: 'Thu hồi lại 1 lá bài lớn nhất trong bộ bài đang trên bàn về tay bạn (hoặc nâng +2 bậc cho 1 Đôi trên tay khi mở vòng)',
   },
   linnea: {
     id: 'linnea',
@@ -918,8 +925,8 @@ const CHARACTER_SKILLS = {
     id: 'nefer',
     charName: 'Nefer',
     icon: '🌙',
-    name: 'Bạch Xà Đoạt Lá',
-    shortDesc: 'Tráo lá bài nhỏ nhất trên tay bạn để cướp lấy 1 lá bài lớn nhất (dưới Heo) trên tay của 1 đối thủ',
+    name: 'Ảo Ảnh Sa Mạc',
+    shortDesc: 'Biến 1 lá bài rác nhỏ nhất trên tay nhập vào 1 bộ Đôi sẵn có trên tay bạn để nâng cấp lên thành Sám Cô (3 lá cùng số)',
   },
   odette: {
     id: 'odette',
@@ -931,9 +938,9 @@ const CHARACTER_SKILLS = {
   vesna: {
     id: 'vesna',
     charName: 'Vesna',
-    icon: '❄️',
-    name: 'Lệnh Tuyết Phong Tỏa',
-    shortDesc: 'Giáng bão tuyết làm giảm 2 bậc số của 2 lá bài lớn nhất (dưới Heo) trên tay đối thủ đang giữ ít bài nhất',
+    icon: '🍃',
+    name: 'Lốc Xoáy Tuyết Xuân',
+    shortDesc: 'Cuốn bay sức mạnh làm giảm 2 bậc số của 2 lá bài lớn nhất (dưới Heo) trên tay đối thủ đang giữ ít bài nhất',
   },
   sandrone: {
     id: 'sandrone',
@@ -946,15 +953,15 @@ const CHARACTER_SKILLS = {
     id: 'columbina',
     charName: 'Columbina',
     icon: '🕊️',
-    name: 'Khúc Hát Ru Ngủ',
-    shortDesc: 'Ru ngủ toàn bộ đối thủ khi trên bàn đang là bộ bài thường (dưới Heo/Hàng), xóa bộ trên bàn và giành quyền mở vòng mới',
+    name: 'Khúc Ca Thiên Thần',
+    shortDesc: 'Đánh 2 lượt liên tiếp: Sau khi đánh 1 bộ bài trong lượt này, Columbina được đánh bồi thêm 1 bộ bài nữa ngay lập tức trước khi chuyển lượt!',
   },
   vodyanitsa: {
     id: 'vodyanitsa',
     charName: 'Vodyanitsa',
-    icon: '👑',
-    name: 'Vương Quyền Băng Hoàng',
-    shortDesc: 'Đổi lá bài rác nhỏ nhất trên tay bạn lấy lá bài lớn nhất (dưới Heo) của đối thủ và đóng băng đối thủ đó mất 1 lượt',
+    icon: '🌊',
+    name: 'Gương Nước Phản Chiếu',
+    shortDesc: 'Mặt nước biến các lá rác nhỏ nhất trên tay thành bộ bài CÙNG LOẠI nhưng LỚN HƠN +1 BẬC so với bộ đang trên bàn để đè lại ngay!',
   },
 };
 
@@ -2226,6 +2233,7 @@ class TienLenGame {
     this.ganyuGapStraightTurn = false;
     this.kokomiReverseRankRound = false;
     this.yoimiyaBurnTrashReady = false;
+    this.columbinaExtraTurnReady = false;
     this.turnDirection = 1;
     this.mualaniCrossBeatTurn = false;
 
@@ -7434,6 +7442,11 @@ class TienLenGame {
         `<span class="round-skill-pill">🦈 Cá Mập Mualani: Lượt này được lấy Đôi đè Lẻ, Sám/Sảnh đè Đôi!</span>`
       );
     }
+    if (this.columbinaExtraTurnReady) {
+      pills.push(
+        `<span class="round-skill-pill">🕊️ Khúc Ca Thiên Thần Columbina: Sau khi đánh bộ bài lượt này được đánh bồi thêm 1 bộ nữa ngay lập tức!</span>`
+      );
+    }
     if (this.turnDirection === -1) {
       pills.push(
         `<span class="round-skill-pill">❄️ Bão Đêm Citlali: Chiều đánh đang đảo ngược (↺ Ngược chiều kim đồng hồ)</span>`
@@ -7564,14 +7577,17 @@ class TienLenGame {
       if (!canUp) return { ok: false, reason: 'Cần ít nhất 1 lá bài từ 3 đến K trên tay để nâng bậc' };
     }
     if (charId === 'lauma') {
-      const canHeart = player.hand.some((c) => c.rankIndex <= 11 && c.suitIndex !== 3);
-      if (!canHeart) return { ok: false, reason: 'Cần ít nhất 1 lá bài thường (≤ A) chưa phải chất Cơ ♥ trên tay' };
+      const canRecoverTable = this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12;
+      const canBoostPair = !this.currentCombo && player.hand.some((c) => c.rankIndex <= 10);
+      if (!canRecoverTable && !canBoostPair) {
+        return { ok: false, reason: 'Cần có bộ bài thường (dưới Heo/Hàng) trên bàn để thu hồi 1 lá về tay hoặc dùng khi mở vòng mới!' };
+      }
     }
     if (charId === 'linnea' && player.hand.length < 2) {
       return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá nhỏ nhất ghép thành Đôi/Sám' };
     }
-    if (charId === 'nefer' && player.hand.length < 1) {
-      return { ok: false, reason: 'Cần còn bài trên tay để tráo lá với đối thủ' };
+    if (charId === 'nefer' && player.hand.length < 2) {
+      return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá rác ghép thành Sám Cô / Đôi' };
     }
     if (charId === 'odette') {
       if (!this.currentCombo || this.currentCombo.isBomb || (this.currentCombo.length === 1 && this.currentCombo.highRank === 12)) {
@@ -7582,8 +7598,19 @@ class TienLenGame {
       return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để chế tạo Sảnh 3 lá liên tiếp' };
     }
     if (charId === 'columbina') {
-      if (!this.currentCombo || this.currentCombo.isBomb || this.currentCombo.highRank === 12) {
-        return { ok: false, reason: 'Chỉ dùng khi trên bàn đang có bộ bài thường (dưới Heo/Hàng) để ru ngủ đối thủ và cướp cái mở vòng mới!' };
+      if (this.columbinaExtraTurnReady) {
+        return { ok: false, reason: 'Khúc Ca Thiên Thần đã bật trong lượt này' };
+      }
+      if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để đánh 2 bộ liên tiếp trong cùng 1 lượt!' };
+      }
+    }
+    if (charId === 'vodyanitsa') {
+      if (!this.currentCombo || this.currentCombo.isBomb || this.currentCombo.highRank >= 12) {
+        return { ok: false, reason: 'Chỉ dùng khi trên bàn đang có bộ bài thường (Lẻ, Đôi, Sám, Sảnh dưới Heo) để Gương Nước sao chép +1 bậc!' };
+      }
+      if (player.hand.length < this.currentCombo.length) {
+        return { ok: false, reason: `Cần còn ít nhất ${this.currentCombo.length} lá bài trên tay để sao chép bộ bài trên bàn!` };
       }
     }
     return { ok: true, charId };
@@ -7979,24 +8006,67 @@ class TienLenGame {
       this.companionCardIds.clear();
       skillSummary = `🐎 [Bạch Mã Đạp Vân] ${player.name} nâng +1 bậc số cho ${changes.length} lá bài trên tay (${changes.join(', ')})!`;
     } else if (charId === 'lauma') {
-      const nonHearts = sortCardsAsc(player.hand)
-        .filter((c) => c.rankIndex <= 11 && c.suitIndex !== 3)
-        .reverse()
-        .slice(0, 3);
-      const changes = [];
-      nonHearts.forEach((c) => {
-        const oldStr = `${c.rank}${c.suit}`;
-        c.suitIndex = 3;
-        c.suit = '♥';
-        c.isRed = true;
-        c.value = c.rankIndex * 4 + 3;
-        c.id = `${c.rank}♥_lauma_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`;
-        changes.push(`${oldStr}➔${c.rank}♥`);
-      });
-      player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-      this.selectedCardIds.clear();
-      this.companionCardIds.clear();
-      skillSummary = `✨ [Nguyệt Ca Đổi Sắc] ${player.name} chuyển hóa ${changes.length} lá bài sang chất Cơ ♥ mạnh nhất (${changes.join(', ')})!`;
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
+        const oldLabel = this.currentCombo.label;
+        const sortedComboCards = sortCardsAsc(this.currentCombo.cards);
+        const recoveredSource = sortedComboCards[sortedComboCards.length - 1];
+        const recoveredCard = {
+          rank: recoveredSource.rank,
+          suit: recoveredSource.suit,
+          rankIndex: recoveredSource.rankIndex,
+          suitIndex: recoveredSource.suitIndex,
+          value: recoveredSource.value,
+          isRed: recoveredSource.suitIndex >= 2,
+          id: `${recoveredSource.rank}${recoveredSource.suit}_lauma_${Date.now()}`,
+        };
+        player.hand.push(recoveredCard);
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        if (sortedComboCards.length >= 2) {
+          const remaining = sortedComboCards.slice(0, sortedComboCards.length - 1);
+          const nextCombo = classifyCombo(remaining) || classifyCombo([remaining[remaining.length - 1]]);
+          this.currentCombo = nextCombo;
+          this.currentCombo.label = `${this.currentCombo.label} [🦌 Lauma thu hồi ${recoveredCard.rank}${recoveredCard.suit}]`;
+          skillSummary = `🦌 [Nguyệt Quang Hồi Phục] ${player.name} thu hồi lá lớn nhất ${recoveredCard.rank}${recoveredCard.suit} từ ${oldLabel} trên bàn về tay mình!`;
+        } else {
+          this.previousCombo = this.currentCombo;
+          this.currentCombo = null;
+          this.trickOwnerId = player.id;
+          this.players.forEach((p) => {
+            p.passed = false;
+            p.declinedFourPairsCut = false;
+          });
+          skillSummary = `🦌 [Nguyệt Quang Hồi Phục] ${player.name} thu hồi lá ${recoveredCard.rank}${recoveredCard.suit} trên bàn về tay và giành quyền mở vòng mới!`;
+        }
+        this.selectedCardIds = new Set([recoveredCard.id]);
+        this.companionCardIds.clear();
+      } else {
+        const struct = this.analyzeBotHandStructure(player.hand);
+        let pairRank = -1;
+        for (let r = 10; r >= 0; r--) {
+          if (struct.rankCounts[r] >= 2) {
+            pairRank = r;
+            break;
+          }
+        }
+        const targets =
+          pairRank >= 0
+            ? player.hand.filter((c) => c.rankIndex === pairRank).slice(0, 2)
+            : sortCardsAsc(player.hand).filter((c) => c.rankIndex <= 10).slice(0, 2);
+        const changes = [];
+        targets.forEach((c, idx) => {
+          const oldStr = `${c.rank}${c.suit}`;
+          const newRank = Math.min(11, c.rankIndex + 2);
+          c.rankIndex = newRank;
+          c.rank = RANKS[newRank];
+          c.value = newRank * 4 + c.suitIndex;
+          c.id = `${c.rank}${c.suit}_lauma_${Date.now()}_${idx}`;
+          changes.push(`${oldStr}➔${c.rank}${c.suit}`);
+        });
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        this.selectedCardIds = new Set(targets.map((c) => c.id));
+        this.companionCardIds.clear();
+        skillSummary = `🦌 [Nguyệt Quang Hồi Phục] ${player.name} truyền ánh trăng nâng +2 bậc cho bộ bài trên tay (${changes.join(', ')})!`;
+      }
     } else if (charId === 'linnea') {
       const sorted = sortCardsAsc(player.hand);
       const lowest = sorted[0];
@@ -8024,24 +8094,64 @@ class TienLenGame {
         skillSummary = `🎩 [Ảo Thuật Ghép Đôi] ${player.name} biến lá rác ${oldStr} thành ${lowest.rank}${lowest.suit} để ghép bộ với ${matchTarget.rank}${matchTarget.suit}!`;
       }
     } else if (charId === 'nefer') {
-      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      const candidateOpps = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
-      const target = pickRandomItem(candidateOpps);
-      if (target && target.hand.length > 0 && player.hand.length > 0) {
-        const mySorted = sortCardsAsc(player.hand);
-        const myLow = mySorted[0];
-        const oppSorted = sortCardsAsc(target.hand);
-        const oppNormals = oppSorted.filter((c) => c.rankIndex <= 11);
-        const oppHigh = oppNormals.length > 0 ? oppNormals[oppNormals.length - 1] : oppSorted[oppSorted.length - 1];
-        player.hand = player.hand.filter((c) => c.id !== myLow.id);
-        target.hand = target.hand.filter((c) => c.id !== oppHigh.id);
-        player.hand.push(oppHigh);
-        target.hand.push(myLow);
-        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-        target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
-        this.selectedCardIds.clear();
-        this.companionCardIds.clear();
-        skillSummary = `🌙 [Bạch Xà Đoạt Lá] ${player.name} dùng lá nhỏ ${myLow.rank}${myLow.suit} đoạt lấy lá lớn ${oppHigh.rank}${oppHigh.suit} từ tay ${target.name}!`;
+      const sorted = sortCardsAsc(player.hand);
+      const rankCounts = new Array(13).fill(0);
+      sorted.forEach((c) => rankCounts[c.rankIndex]++);
+      let targetPairRank = -1;
+      for (let r = 11; r >= 0; r--) {
+        if (rankCounts[r] === 2) {
+          targetPairRank = r;
+          break;
+        }
+      }
+      if (targetPairRank >= 0) {
+        const trashCand =
+          sorted.find((c) => c.rankIndex !== targetPairRank && rankCounts[c.rankIndex] === 1) ||
+          sorted.find((c) => c.rankIndex !== targetPairRank);
+        if (trashCand) {
+          const oldStr = `${trashCand.rank}${trashCand.suit}`;
+          const existingSuits = new Set(
+            player.hand.filter((c) => c.rankIndex === targetPairRank).map((c) => c.suitIndex)
+          );
+          let newSuitIdx = 3;
+          for (const s of [3, 2, 1, 0]) {
+            if (!existingSuits.has(s)) {
+              newSuitIdx = s;
+              break;
+            }
+          }
+          trashCand.rankIndex = targetPairRank;
+          trashCand.rank = RANKS[targetPairRank];
+          trashCand.suitIndex = newSuitIdx;
+          trashCand.suit = SUITS[newSuitIdx];
+          trashCand.isRed = newSuitIdx >= 2;
+          trashCand.value = targetPairRank * 4 + newSuitIdx;
+          trashCand.id = `${trashCand.rank}${trashCand.suit}_nefer_${Date.now()}`;
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          const tripleCards = player.hand.filter((c) => c.rankIndex === targetPairRank).slice(0, 3);
+          this.selectedCardIds = new Set(tripleCards.map((c) => c.id));
+          this.companionCardIds.clear();
+          skillSummary = `🐍 [Ảo Ảnh Sa Mạc] ${player.name} biến lá rác ${oldStr} thành ${trashCand.rank}${trashCand.suit} để nâng cấp Đôi ${RANKS[targetPairRank]} lên thành Sám Cô ${RANKS[targetPairRank]}!`;
+        }
+      } else {
+        const lowest = sorted[0];
+        const highNormals = sorted.filter((c) => c.id !== lowest?.id && c.rankIndex <= 11);
+        const matchTarget = highNormals.length > 0 ? highNormals[highNormals.length - 1] : sorted[sorted.length - 1];
+        if (lowest && matchTarget && lowest.id !== matchTarget.id) {
+          const oldStr = `${lowest.rank}${lowest.suit}`;
+          const targetRank = Math.min(11, matchTarget.rankIndex);
+          lowest.rankIndex = targetRank;
+          lowest.rank = RANKS[targetRank];
+          lowest.suitIndex = matchTarget.suitIndex === 3 ? 2 : 3;
+          lowest.suit = SUITS[lowest.suitIndex];
+          lowest.isRed = lowest.suitIndex >= 2;
+          lowest.value = targetRank * 4 + lowest.suitIndex;
+          lowest.id = `${lowest.rank}${lowest.suit}_nefer_${Date.now()}`;
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          this.selectedCardIds = new Set([lowest.id, matchTarget.id]);
+          this.companionCardIds.clear();
+          skillSummary = `🐍 [Ảo Ảnh Sa Mạc] ${player.name} biến lá rác ${oldStr} thành ${lowest.rank}${lowest.suit} để tạo Đôi ${RANKS[targetRank]}!`;
+        }
       }
     } else if (charId === 'odette') {
       if (this.currentCombo && !this.currentCombo.isBomb) {
@@ -8077,7 +8187,7 @@ class TienLenGame {
           lowered.push(`${oldR}➔${c.rank}`);
         });
         target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
-        skillSummary = `❄️ [Lệnh Tuyết Phong Tỏa] ${player.name} giáng bão tuyết làm giảm 2 bậc cho ${lowered.length} lá bài lớn trên tay ${target.name}!`;
+        skillSummary = `🍃 [Lốc Phong Xoáy Ngược] ${player.name} cuốn lốc phong làm giảm 2 bậc cho ${lowered.length} lá bài lớn trên tay ${target.name} (${lowered.join(', ')})!`;
       }
     } else if (charId === 'sandrone') {
       const struct = this.analyzeBotHandStructure(player.hand);
@@ -8100,38 +8210,59 @@ class TienLenGame {
         skillSummary = `⚙️ [Dây Cót Con Rối] ${player.name} tái cấu trúc 3 lá bài lẻ thành bộ Sảnh 3 lá ${RANKS[baseRank]}-${RANKS[baseRank + 1]}-${RANKS[baseRank + 2]}!`;
       }
     } else if (charId === 'columbina') {
-      const oldLabel = this.currentCombo ? this.currentCombo.label : 'bộ bài trên bàn';
-      this.previousCombo = this.currentCombo;
-      this.currentCombo = null;
-      this.trickOwnerId = player.id;
-      this.chopPot = 0;
-      this.lastChoppedPlayerId = null;
-      this.roundChoppableStack = [];
-      this.players.forEach((p) => {
-        p.passed = false;
-        p.declinedFourPairsCut = false;
-      });
-      this.selectedCardIds.clear();
-      this.companionCardIds.clear();
-      skillSummary = `🕊️ [Khúc Hát Ru Ngủ] ${player.name} ngân khúc ru ánh trăng xóa bỏ ${oldLabel} trên bàn và cướp quyền mở vòng mới ngay lập tức!`;
+      this.columbinaExtraTurnReady = true;
+      skillSummary = `🕊️ [Khúc Ca Thiên Thần] ${player.name} ngân vang thánh ca: Sau khi đánh 1 bộ bài trong lượt này, Columbina được đánh bồi thêm 1 bộ nữa ngay lập tức!`;
     } else if (charId === 'vodyanitsa') {
-      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      const candidateOpps = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
-      const target = [...candidateOpps].sort((a, b) => a.hand.length - b.hand.length)[0];
-      if (target && target.hand.length > 0 && player.hand.length > 0) {
-        const myLow = sortCardsAsc(player.hand)[0];
-        const oppNormals = sortCardsAsc(target.hand).filter((c) => c.rankIndex <= 11);
-        const oppHigh = oppNormals.length > 0 ? oppNormals[oppNormals.length - 1] : sortCardsAsc(target.hand).pop();
-        player.hand = player.hand.filter((c) => c.id !== myLow.id);
-        target.hand = target.hand.filter((c) => c.id !== oppHigh.id);
-        player.hand.push(oppHigh);
-        target.hand.push(myLow);
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
+        const needLen = this.currentCombo.length;
+        const struct = this.analyzeBotHandStructure(player.hand);
+        const sorted = sortCardsAsc(player.hand);
+        const isolated = sorted.filter(
+          (c) => c.rankIndex <= 11 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
+        );
+        const nonBomb = sorted.filter((c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex));
+        const chosenTrash = [];
+        for (const c of [...isolated, ...nonBomb, ...sorted]) {
+          if (chosenTrash.length >= needLen) break;
+          if (!chosenTrash.some((x) => x.id === c.id)) {
+            chosenTrash.push(c);
+          }
+        }
+        const targetHighRank = Math.min(11, this.currentCombo.highRank + 1);
+        const oldCardsStr = chosenTrash.map((c) => `${c.rank}${c.suit}`).join(', ');
+        if (this.currentCombo.type === COMBO_TYPES.STRAIGHT && needLen >= 3) {
+          const topRank = Math.max(needLen - 1, targetHighRank);
+          const startRank = topRank - needLen + 1;
+          chosenTrash.forEach((c, idx) => {
+            const rIdx = startRank + idx;
+            const sIdx = idx === needLen - 1 ? 3 : idx % 3;
+            c.rankIndex = rIdx;
+            c.rank = RANKS[rIdx];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = sIdx >= 2;
+            c.value = rIdx * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_vody_${Date.now()}_${idx}`;
+          });
+        } else {
+          const suitsOrder = [3, 2, 1, 0];
+          chosenTrash.forEach((c, idx) => {
+            const sIdx = suitsOrder[idx % 4];
+            c.rankIndex = targetHighRank;
+            c.rank = RANKS[targetHighRank];
+            c.suitIndex = sIdx;
+            c.suit = SUITS[sIdx];
+            c.isRed = sIdx >= 2;
+            c.value = targetHighRank * 4 + sIdx;
+            c.id = `${c.rank}${c.suit}_vody_${Date.now()}_${idx}`;
+          });
+        }
         player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-        target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
-        this.ayakaFrozenPlayerId = target.id;
-        this.selectedCardIds.clear();
+        this.selectedCardIds = new Set(chosenTrash.map((c) => c.id));
         this.companionCardIds.clear();
-        skillSummary = `👑 [Vương Quyền Băng Hoàng] ${player.name} đổi lá ${myLow.rank}${myLow.suit} đoạt lấy ${oppHigh.rank}${oppHigh.suit} của ${target.name} và đóng băng họ 1 lượt!`;
+        const mirroredCombo = classifyCombo(chosenTrash);
+        const newLabel = mirroredCombo ? mirroredCombo.label : chosenTrash.map((c) => `${c.rank}${c.suit}`).join(' ');
+        skillSummary = `🪞 [Gương Nước Phản Chiếu] ${player.name} biến (${oldCardsStr}) thành ${newLabel} (+1 bậc so với ${this.currentCombo.label} trên bàn) để đè ngay lập tức!`;
       }
     }
 
@@ -8643,16 +8774,27 @@ class TienLenGame {
           }
         }
       }
-    } else if (charId === 'zibai' || charId === 'lauma' || charId === 'linnea' || charId === 'sandrone') {
+    } else if (charId === 'zibai' || charId === 'linnea' || charId === 'sandrone' || charId === 'nefer') {
       if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6)) {
         shouldCast = true;
       }
-    } else if (charId === 'nefer' || charId === 'vesna' || charId === 'vodyanitsa') {
+    } else if (charId === 'lauma') {
+      if (
+        (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank >= 7 && this.currentCombo.highRank < 12) ||
+        (!this.currentCombo && bot.hand.length <= 8)
+      ) {
+        shouldCast = true;
+      }
+    } else if (charId === 'vesna') {
       if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 8 || minOppCards <= 6)) {
         shouldCast = true;
       }
-    } else if (charId === 'odette' || charId === 'columbina') {
-      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12 && (!plannedMove || plannedMove.highRank === 12 || minOppCards <= 5)) {
+    } else if (charId === 'columbina') {
+      if ((!this.currentCombo || plannedMove) && bot.hand.length >= 2 && (bot.hand.length <= 8 || minOppCards <= 6)) {
+        shouldCast = true;
+      }
+    } else if (charId === 'odette' || charId === 'vodyanitsa') {
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12 && (!plannedMove || plannedMove.highRank === 12 || minOppCards <= 6)) {
         shouldCast = true;
       }
     }
@@ -11293,6 +11435,7 @@ class TienLenGame {
     this.kokomiReverseRankRound = false;
     activeKokomiReverseRank = false;
     this.yoimiyaBurnTrashReady = false;
+    this.columbinaExtraTurnReady = false;
     this.turnDirection = 1;
     this.mualaniCrossBeatTurn = false;
     activeMualaniCrossBeat = false;
@@ -12072,6 +12215,33 @@ class TienLenGame {
       return true;
     }
 
+    // Khúc Ca Thiên Thần của Columbina: Đánh bồi thêm 1 bộ bài nữa ngay lập tức trước khi chuyển lượt!
+    if (this.columbinaExtraTurnReady && this.getPlayerActiveCharId(player) === 'columbina') {
+      this.columbinaExtraTurnReady = false;
+      this.previousCombo = this.currentCombo;
+      this.currentCombo = null;
+      this.trickOwnerId = player.id;
+      this.currentTurn = player.id;
+      this.turnTimerComboSig = '';
+      this.players.forEach((p) => {
+        if (p.active && p.finishRank === null) {
+          p.passed = false;
+          p.declinedFourPairsCut = false;
+        }
+      });
+      this.showComboBanner(`🕊️ KHÚC CA THIÊN THẦN: ${player.name.toUpperCase()} ĐÁNH TIẾP LƯỢT 2 NGAY LẬP TỨC!`, 'reaction-electro-charged');
+      this.addLog(
+        `🕊️ <strong>[Khúc Ca Thiên Thần]</strong> <strong>${player.name}</strong> được đánh bồi thêm <strong>1 bộ bài nữa ngay lập tức</strong> trước khi chuyển lượt!`,
+        'log-win'
+      );
+      this.renderRoundSkillStatusBar();
+      this.promptCurrentTurn();
+      if (this.isMultiplayer && this.isHost) {
+        this.broadcastState();
+      }
+      return true;
+    }
+
     this.advanceTurn();
     if (this.isMultiplayer && this.isHost) {
       this.broadcastState();
@@ -12098,12 +12268,13 @@ class TienLenGame {
 
     clearTimeout(this.botTimer);
     sfx.pass();
-    if (this.ganyuGapStraightTurn || this.mualaniCrossBeatTurn || this.yoimiyaBurnTrashReady) {
+    if (this.ganyuGapStraightTurn || this.mualaniCrossBeatTurn || this.yoimiyaBurnTrashReady || this.columbinaExtraTurnReady) {
       this.ganyuGapStraightTurn = false;
       activeGanyuGapStraight = false;
       this.mualaniCrossBeatTurn = false;
       activeMualaniCrossBeat = false;
       this.yoimiyaBurnTrashReady = false;
+      this.columbinaExtraTurnReady = false;
       this.renderRoundSkillStatusBar();
     }
     if (player.passed) {
@@ -12202,6 +12373,7 @@ class TienLenGame {
     this.kokomiReverseRankRound = false;
     activeKokomiReverseRank = false;
     this.yoimiyaBurnTrashReady = false;
+    this.columbinaExtraTurnReady = false;
     this.mualaniCrossBeatTurn = false;
     activeMualaniCrossBeat = false;
     this.renderRoundSkillStatusBar();

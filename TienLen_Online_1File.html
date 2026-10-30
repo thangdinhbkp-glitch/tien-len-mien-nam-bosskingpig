@@ -14129,12 +14129,90 @@ class TienLenGame {
     return 1.0;                       // Hard Pity 4★ ở lượt 10: 100%
   }
 
+  getVietnamDayNumber() {
+    // Tính số ngày theo múi giờ Việt Nam (UTC+7) — tự động Reset đúng 00:00 mỗi ngày đồng bộ trên toàn Server
+    return Math.floor((Date.now() + 7 * 3600 * 1000) / 86400000);
+  }
+
+  getServerDailyBannerInfo() {
+    const limitedList = GENSHIN_BURSTS.filter((b) => !b.isStandard);
+    const totalLimited = limitedList.length; // 50 nhân vật 5★ giới hạn
+    const bannersPerDay = 2;
+    const daysPerCycle = Math.ceil(totalLimited / bannersPerDay); // 25 ngày / 1 chu kỳ (50 nhân vật)
+    const vnDay = this.getVietnamDayNumber();
+    const epochOffset = 20750;
+    const relDay = Math.max(0, vnDay - epochOffset);
+    const cycleIndex = Math.floor(relDay / daysPerCycle);
+    const dayInCycle = relDay % daysPerCycle; // 0 .. (daysPerCycle - 1)
+
+    // Hoán vị tất định (Deterministic Seeded Fisher-Yates) theo từng chu kỳ:
+    // - Mọi người chơi trên toàn Server đều nhận đúng 2 Banner giống hệt nhau mỗi ngày.
+    // - Trong suốt 1 chu kỳ (25 ngày = 50 Banner), tuyệt đối KHÔNG CÓ nhân vật nào bị lặp lại!
+    const buildCycleOrder = (cycIdx) => {
+      const arr = [...limitedList];
+      let seed = ((cycIdx + 1) * 0x9e3779b9) >>> 0;
+      const nextRand = () => {
+        seed = (seed + 0x6d2b79f5) >>> 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(nextRand() * (i + 1));
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    };
+
+    const cycleOrder = buildCycleOrder(cycleIndex);
+    const startIdx = dayInCycle * bannersPerDay;
+    const todayBanners = cycleOrder.slice(startIdx, startIdx + bannersPerDay);
+    if (todayBanners.length < bannersPerDay && cycleOrder.length > 0) {
+      const nextCycleOrder = buildCycleOrder(cycleIndex + 1);
+      for (const b of nextCycleOrder) {
+        if (todayBanners.length >= bannersPerDay) break;
+        if (!todayBanners.some((x) => x.id === b.id)) {
+          todayBanners.push(b);
+        }
+      }
+    }
+
+    const vnNowMs = Date.now() + 7 * 3600 * 1000;
+    const nextResetMs = (vnDay + 1) * 86400000;
+    const remainSec = Math.max(0, Math.floor((nextResetMs - vnNowMs) / 1000));
+    const hoursLeft = Math.floor(remainSec / 3600);
+    const minsLeft = Math.floor((remainSec % 3600) / 60);
+
+    return {
+      vnDay,
+      cycleIndex: cycleIndex + 1,
+      dayInCycle: dayInCycle + 1,
+      daysPerCycle,
+      totalLimited,
+      todayBanners,
+      todayBannerIds: todayBanners.map((b) => b.id),
+      cycleOrder,
+      hoursLeft,
+      minsLeft,
+    };
+  }
+
+  ensureValidDailyBannerSelection() {
+    const info = this.getServerDailyBannerInfo();
+    if (!info.todayBannerIds.includes(this.selectedBannerBurstId)) {
+      this.selectedBannerBurstId = info.todayBannerIds[0] || 'raiden';
+    }
+    return info;
+  }
+
   selectBannerUp(burstId) {
-    if (!GENSHIN_BURSTS.some((b) => b.id === burstId)) return;
-    const curRoster = document.querySelector('#shop-gacha-panel .gacha-up-Roster');
-    if (curRoster) {
-      this.lastGachaRosterScrollLeft = curRoster.scrollLeft;
-      this.lastGachaRosterScrollTop = curRoster.scrollTop;
+    const info = this.getServerDailyBannerInfo();
+    if (!info.todayBannerIds.includes(burstId)) {
+      this.ensureValidDailyBannerSelection();
+      this.renderShopModal();
+      return;
     }
     this.selectedBannerBurstId = burstId;
     sfx.click();
@@ -14160,9 +14238,23 @@ class TienLenGame {
   }
 
   openGachaForCharacter(charId) {
-    if (charId && GENSHIN_BURSTS.some((b) => b.id === charId)) {
+    const info = this.getServerDailyBannerInfo();
+    if (charId && info.todayBannerIds.includes(charId)) {
       this.selectedBannerBurstId = charId;
-      this._pendingScrollToBannerChip = true;
+    } else {
+      this.ensureValidDailyBannerSelection();
+      if (charId) {
+        const targetBurst = GENSHIN_BURSTS.find((b) => b.id === charId);
+        const targetName = targetBurst ? targetBurst.name.split('—')[0].trim() : charId;
+        const idxInCycle = info.cycleOrder.findIndex((b) => b.id === charId);
+        if (idxInCycle >= 0) {
+          const scheduledDay = Math.floor(idxInCycle / 2) + 1;
+          const todayNames = info.todayBanners.map((b) => b.name.split('—')[0].trim()).join(' & ');
+          this.showComboBanner(
+            `⏳ Banner hôm nay toàn Server là [${todayNames}] • ${targetName} thuộc Ngày ${scheduledDay}/${info.daysPerCycle} của chu kỳ!`
+          );
+        }
+      }
     }
     this.saveShopProfile();
     document.getElementById('inventory-modal')?.classList.add('hidden');
@@ -14247,6 +14339,7 @@ class TienLenGame {
   }
 
   rollSingleWish() {
+    this.ensureValidDailyBannerSelection();
     this.gachaPity5 = (this.gachaPity5 || 0) + 1;
     this.gachaPity4 = (this.gachaPity4 || 0) + 1;
     this.totalWishes = (this.totalWishes || 0) + 1;
@@ -14604,12 +14697,13 @@ class TienLenGame {
     // 1. RENDER TAB SẢNH CẦU NGUYỆN GENSHIN IMPACT (Chỉ render khi đang mở tab gacha)
     const gachaPanel = document.getElementById('shop-gacha-panel');
     if (gachaPanel && activeTab === 'gacha') {
+      const dailyInfo = this.ensureValidDailyBannerSelection();
       const prevRosterEl = gachaPanel.querySelector('.gacha-up-Roster');
       const savedRosterScrollLeft = prevRosterEl ? prevRosterEl.scrollLeft : (this.lastGachaRosterScrollLeft || 0);
       const savedRosterScrollTop = prevRosterEl ? prevRosterEl.scrollTop : (this.lastGachaRosterScrollTop || 0);
 
-      const featuredId = this.selectedBannerBurstId || 'raiden';
-      const featuredBurst = getBurstMeta(featuredId) || GENSHIN_BURSTS[0];
+      const featuredId = this.selectedBannerBurstId || dailyInfo.todayBannerIds[0] || 'raiden';
+      const featuredBurst = getBurstMeta(featuredId) || dailyInfo.todayBanners[0] || GENSHIN_BURSTS[0];
       const rateUp4Ids = BANNER_4STAR_RATEUPS[featuredBurst.id] || ['raiden', 'furina', 'skirk'];
       const nextPull5 = (this.gachaPity5 || 0) + 1;
       const nextPull4 = (this.gachaPity4 || 0) + 1;
@@ -14620,17 +14714,17 @@ class TienLenGame {
 
       const featuredSkill = CHARACTER_SKILLS[featuredBurst.id] || CHARACTER_SKILLS.raiden;
 
-      const upRosterHtml = GENSHIN_BURSTS.filter((b) => !b.isStandard).map((b) => {
+      const upRosterHtml = dailyInfo.todayBanners.map((b, bIdx) => {
         const isCurrent = b.id === featuredBurst.id;
         const owned = this.unlockedBursts.has(b.id);
         const charName = b.name.split('—')[0].trim();
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
         return `
-          <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" data-burst-id="${b.id}" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
-            <img src="fanart/${b.id}.jpg?v=66" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
+          <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" style="padding:8px 12px;" data-burst-id="${b.id}" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
+            <img src="fanart/${b.id}.jpg?v=66" alt="${charName}" style="width:46px;height:46px;" loading="lazy" referrerpolicy="no-referrer" />
             <div>
-              <div class="gacha-up-chip-name">${charName}</div>
-              <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★'} • ${bSkill.icon} ${bSkill.name}</div>
+              <div class="gacha-up-chip-name" style="font-size:13.5px;">🔥 BANNER #${bIdx + 1} HÔM NAY: ${charName}</div>
+              <div class="gacha-up-chip-status" style="font-size:11.5px;">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★ Hôm Nay'} • ${bSkill.icon} ${bSkill.name}</div>
             </div>
           </div>
         `;
@@ -14665,11 +14759,11 @@ class TienLenGame {
 
       gachaPanel.innerHTML = `
         <div class="gacha-epitomized-bar">
-          <div class="gacha-epitomized-title">
-            <span>🎯 CHỌN NHÂN VẬT 5★ GIỚI HẠN TRÊN BANNER (🔗 TẤT CẢ 35 BANNER DÙNG CHUNG 100% PITY &amp; ĐẠI BẢO HIỂM):</span>
-            <span style="font-size:11.5px;color:#cbd5e1;">Đã Cầu Nguyện tổng cộng: <strong>${(this.totalWishes || 0).toLocaleString()}</strong> lượt</span>
+          <div class="gacha-epitomized-title" style="flex-wrap:wrap;gap:6px;">
+            <span>🌐 2 BANNER 5★ GIỚI HẠN HÔM NAY (ĐỒNG BỘ TOÀN SERVER • CHU KỲ #${dailyInfo.cycleIndex} — NGÀY ${dailyInfo.dayInCycle}/${dailyInfo.daysPerCycle} • KHÔNG TRÙNG NHÂN VẬT TRONG CHU KỲ):</span>
+            <span style="font-size:11.5px;color:#fde047;font-weight:800;">⏰ Reset 00:00 mỗi ngày (còn ${dailyInfo.hoursLeft}h ${dailyInfo.minsLeft}p) • Đã Roll: <strong>${(this.totalWishes || 0).toLocaleString()}</strong> lượt</span>
           </div>
-          <div class="gacha-up-Roster">${upRosterHtml}</div>
+          <div class="gacha-up-Roster" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-height:none;">${upRosterHtml}</div>
           <div style="margin-top:8px;padding-top:6px;border-top:1px dashed rgba(148,163,184,0.28);">
             <div style="font-size:11.5px;font-weight:800;color:#93c5fd;margin-bottom:4px;">
               ☯️ 8 NHÂN VẬT 5★ THƯỜNG (LỆCH RATE 50/50 • CÓ HOẠT ẢNH NỘ 5★ &amp; NỘI TẠI CƯỢC TỰ ĐỘNG, KHÔNG CÓ KỸ NĂNG E — BẤM ĐỂ XEM NỘ):
@@ -15022,6 +15116,7 @@ class TienLenGame {
           </div>
         `;
       } else {
+        const dailyInfo = this.getServerDailyBannerInfo();
         burstsGrid.innerHTML = list
           .map((b) => {
             const owned = this.unlockedBursts.has(b.id);
@@ -15030,9 +15125,17 @@ class TienLenGame {
 
             let actionsHtml = '';
             if (!owned) {
+              const isUpToday = dailyInfo.todayBannerIds.includes(b.id);
+              const cycIdx = dailyInfo.cycleOrder.findIndex((x) => x.id === b.id);
+              const schedDay = cycIdx >= 0 ? Math.floor(cycIdx / 2) + 1 : null;
+              const btnLabel = isUpToday
+                ? '🔥 Đang UP Hôm Nay ➔ Tới Banner Cầu Nguyện Ngay'
+                : b.isStandard
+                ? '☯️ Nhân Vật 5★ Thường (Lệch Rate) ➔ Tới Sảnh Cầu Nguyện'
+                : `⏳ Lịch UP: Ngày ${schedDay || '?'}/${dailyInfo.daysPerCycle} Chu Kỳ ➔ Tới Sảnh Cầu Nguyện`;
               actionsHtml = `
                 <button class="shop-buy-btn buy-btn" onclick="window.tienLenGame.openGachaForCharacter('${b.id}')">
-                  🌠 Chưa sở hữu Nộ 5★ ➔ Chọn Banner Cầu Nguyện
+                  ${btnLabel}
                 </button>
               `;
             } else {

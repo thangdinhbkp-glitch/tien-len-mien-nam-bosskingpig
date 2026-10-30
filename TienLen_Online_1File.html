@@ -8684,6 +8684,14 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'wanderer', name: 'Wanderer (Kẻ Lang Thang)', desc: '[Huyền Thoại] Chân Không Tự Tại triệu hồi cuồng phong xáo trộn toàn bộ bài của tất cả người chơi trên bàn.', avatarPrice: 85000, skinPrice: 130000, crest: '🌀' },
   { id: 'kinich', name: 'Kinich (Thợ Săn Saurian & Rồng Ajaw)', desc: '[Huyền Thoại] Thợ săn Natlan gài Bom Hẹn Giờ Pixel Ajaw phát nổ nhét bài rác cho kẻ dám đè bài.', avatarPrice: 85000, skinPrice: 130000, crest: '🦖' },
   { id: 'venti', name: 'Venti (Phong Thần Barbatos)', desc: '[Thần Thoại] Phong Thần tạo Hố Đen hút lá bài lớn nhất của mọi đối thủ và thổi trả lá rác cho họ.', avatarPrice: 95000, skinPrice: 145000, crest: '🌪️' },
+  { id: 'qiqi', name: 'Qiqi (Cương Thi Độ Ách)', desc: '[5★ Thường • Lệch Rate] Tiểu cương thi Nhà Thuốc Bubu với Bùa Độ Ách giảm 15% tiền phạt đếm lá khi thua.', avatarPrice: 60000, skinPrice: 95000, crest: '❄️' },
+  { id: 'keqing', name: 'Keqing (Yuheng Thất Tinh Liyue)', desc: '[5★ Thường • Lệch Rate] Ngọc Hành Tinh tốc độ sấm sét thu thêm +2× cược từ mỗi nhà thua khi Về Nhất.', avatarPrice: 65000, skinPrice: 100000, crest: '⚡' },
+  { id: 'mona', name: 'Mona (Thuật Sĩ Chiêm Tinh)', desc: '[5★ Thường • Lệch Rate] Đại chiêm tinh gia gieo Quỹ Đạo Tinh Mệnh cộng thưởng khi thắng và giảm phạt khi thua.', avatarPrice: 65000, skinPrice: 100000, crest: '💧' },
+  { id: 'diluc', name: 'Diluc (Mặt Tối Của Bình Minh)', desc: '[5★ Thường • Lệch Rate] Lão gia Tửu Trang Dawn với Phượng Hoàng Lửa tăng +20% tiền thưởng Chặt & ăn Thối.', avatarPrice: 65000, skinPrice: 100000, crest: '🔥' },
+  { id: 'jean', name: 'Jean (Quyền Đội Trưởng Tây Phong)', desc: '[5★ Thường • Lệch Rate] Kỵ Sĩ Bồ Công Anh bảo hộ giảm 25% tiền phạt khi bị Chặt hoặc bị phạt Thối/Cóng.', avatarPrice: 65000, skinPrice: 100000, crest: '🍃' },
+  { id: 'tighnari', name: 'Tighnari (Đội Trưởng Kiểm Lâm Avidya)', desc: '[5★ Thường • Lệch Rate] Kiểm lâm rừng mưa tích ngay +0.5× cược mỗi khi đánh Sảnh (≥ 4 lá) hoặc Sám Cô.', avatarPrice: 60000, skinPrice: 95000, crest: '🌿' },
+  { id: 'dehya', name: 'Dehya (Sư Tử Lửa Bờm Đỏ)', desc: '[5★ Thường • Lệch Rate] Nữ lính đánh thuê sa mạc giảm 25% tiền phạt các lá vượt ngưỡng 7 lá khi thua nặng.', avatarPrice: 60000, skinPrice: 95000, crest: '🔥' },
+  { id: 'mizuki', name: 'Yumemizuki Mizuki (Bác Sĩ Tâm Lý Baku)', desc: '[5★ Thường • Lệch Rate] Đại cổ đông Phòng Tắm Hơi Aisa hồi cố định +1.5× cược sau mỗi ván bài.', avatarPrice: 65000, skinPrice: 100000, crest: '🍃' },
 ];
 
 const ANIME_CARD_SKINS = [
@@ -9215,6 +9223,126 @@ const GENSHIN_BURSTS = [
     title: 'PHONG THẦN BARBATOS: BÀI THƠ THẦN GIÓ',
     quote: '“Định Chạy Trốn Sao? — Đến Giờ Cất Cánh Rồi!”',
   },
+  {
+    id: 'qiqi',
+    isStandard: true,
+    name: 'Qiqi — Tiên Pháp: Cứu Khổ Độ Ách',
+    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Khi thua ván được giảm 15% tiền phạt đếm lá + Có Hoạt Ảnh Nộ 5★ khi Chặt & Thắng.',
+    price: 90000,
+    mp4Url: 'qiqi_burst.mp4?v=61',
+    audioUrl: 'qiqi_burst.ogg?v=61',
+    posterUrl: 'fanart/qiqi.jpg?v=61',
+    theme: 'theme-cryo',
+    sfxType: 'skirk',
+    tag: '❄️ NỘ 5★ THƯỜNG • QIQI (PRESERVER OF FORTUNE)',
+    title: 'TIÊN PHÁP BẢO HỘ: CỨU KHỔ ĐỘ ÁCH',
+    quote: '“Mệnh Lệnh Đã Ban — Chân Danh Độ Ách Chân Quân!”',
+  },
+  {
+    id: 'keqing',
+    isStandard: true,
+    name: 'Keqing — Tuần Du Thiên Nhai',
+    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Khi Về Nhất thu thêm +2× Mức cược từ mỗi nhà thua + Có Hoạt Ảnh Nộ 5★ khi Chặt & Thắng.',
+    price: 95000,
+    mp4Url: 'keqing_burst.mp4?v=61',
+    audioUrl: 'keqing_burst.ogg?v=61',
+    posterUrl: 'fanart/keqing.jpg?v=61',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '⚡ NỘ 5★ THƯỜNG • KEQING (STARWARD SWORD)',
+    title: 'NGỌC HÀNH TINH: TUẦN DU THIÊN NHAI',
+    quote: '“Kiếm Quang Như Chớp — Không Chỗ Trốn Thoát!”',
+  },
+  {
+    id: 'mona',
+    isStandard: true,
+    name: 'Mona — Quỹ Đạo Tinh Mệnh',
+    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Về Nhất thu thêm +1.5× cược mỗi nhà thua, khi thua được giảm 1× cược + Có Hoạt Ảnh Nộ 5★.',
+    price: 95000,
+    mp4Url: 'mona_burst.mp4?v=61',
+    audioUrl: 'mona_burst.ogg?v=61',
+    posterUrl: 'fanart/mona.jpg?v=61',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '💧 NỘ 5★ THƯỜNG • MONA (STELLARIS PHANTASM)',
+    title: 'THUẬT SĨ CHIÊM TINH: QUỸ ĐẠO TINH MỆNH',
+    quote: '“Định Mệnh Đã ĐượcCác Vì Sao An Bài!”',
+  },
+  {
+    id: 'diluc',
+    isStandard: true,
+    name: 'Diluc — Lê Minh Phượng Hoàng',
+    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Tăng +20% tiền thưởng khi Chặt Heo/Hàng và khi ăn Thối cuối ván + Có Hoạt Ảnh Nộ 5★.',
+    price: 95000,
+    mp4Url: 'diluc_burst.mp4?v=61',
+    audioUrl: 'diluc_burst.ogg?v=61',
+    posterUrl: 'fanart/diluc.jpg?v=61',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '🔥 NỘ 5★ THƯỜNG • DILUC (DAWN)',
+    title: 'PHƯỢNG HOÀNG LỬA: BÌNH MINH PHÁN QUYẾT',
+    quote: '“Ngọn Lửa Phán Quyết — Thiêu Rụi Mọi Tội Lỗi!”',
+  },
+  {
+    id: 'jean',
+    isStandard: true,
+    name: 'Jean — Gió Bồ Công Anh',
+    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Giảm 25% tiền phạt khi bị Chặt Heo/Hàng hoặc bị phạt Thối/Cóng cuối ván + Có Hoạt Ảnh Nộ 5★.',
+    price: 95000,
+    mp4Url: 'jean_burst.mp4?v=61',
+    audioUrl: 'jean_burst.ogg?v=61',
+    posterUrl: 'fanart/jean.jpg?v=61',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '🍃 NỘ 5★ THƯỜNG • JEAN (DANDELION BREEZE)',
+    title: 'KỴ SĨ BỒ CÔNG ANH: NGỌN GIÓ DẪN ĐƯỜNG',
+    quote: '“Hỡi Ngọn Gió Ngàn Năm — Hãy Lắng Nghe Lời Ta!”',
+  },
+  {
+    id: 'tighnari',
+    isStandard: true,
+    name: 'Tighnari — Dây Leo Sinh Trưởng',
+    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Mỗi lần đánh Sảnh (≥ 4 lá) hoặc Sám Cô nhận ngay +0.5× cược (tối đa 3 lần/ván) + Có Hoạt Ảnh Nộ 5★.',
+    price: 90000,
+    mp4Url: 'tighnari_burst.mp4?v=61',
+    audioUrl: 'tighnari_burst.ogg?v=61',
+    posterUrl: 'fanart/tighnari.jpg?v=61',
+    theme: 'theme-geo',
+    sfxType: 'raiden',
+    tag: '🌿 NỘ 5★ THƯỜNG • TIGHNARI (TANGLEVINE SHAFT)',
+    title: 'KIỂM LÂM AVIDYA: DÂY LEO SINH TRƯỞNG',
+    quote: '“Ta Nghe Thấy Hết Rồi — Dây Leo Trói Buộc!”',
+  },
+  {
+    id: 'dehya',
+    isStandard: true,
+    name: 'Dehya — Sư Tử Lửa Bờm Đỏ',
+    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Khi thua nặng (≥ 8 lá hoặc Cóng), giảm 25% tiền phạt các lá vượt ngưỡng 7 lá + Có Hoạt Ảnh Nộ 5★.',
+    price: 90000,
+    mp4Url: 'dehya_burst.mp4?v=61',
+    audioUrl: 'dehya_burst.ogg?v=61',
+    posterUrl: 'fanart/dehya.jpg?v=61',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '🔥 NỘ 5★ THƯỜNG • DEHYA (LEONINE BITE)',
+    title: 'SƯ TỬ BỜM ĐỎ: NANH SƯ TỬ RỰC CHÁY',
+    quote: '“Ngươi Tiêu Đời Rồi — Nếm Thử Nắm Đấm Lửa Này Đi!”',
+  },
+  {
+    id: 'mizuki',
+    isStandard: true,
+    name: 'Yumemizuki Mizuki — Liệu Pháp Mộng Đẹp',
+    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Kết thúc mỗi ván (thắng hay thua) đều được Baku hồi cố định +1.5× Mức cược Xu + Có Hoạt Ảnh Nộ 5★.',
+    price: 95000,
+    mp4Url: 'mizuki_burst.mp4?v=61',
+    audioUrl: 'mizuki_burst.ogg?v=61',
+    posterUrl: 'fanart/mizuki.jpg?v=61',
+    theme: 'theme-hydro',
+    sfxType: 'skirk',
+    tag: '🍃 NỘ 5★ THƯỜNG • MIZUKI (SECRET SPRING THERAPY)',
+    title: 'MỘNG ĐẸP AN THẦN: LIỆU PHÁP SUỐI MƠ',
+    quote: '“Xua Tan Ác Mộng — Hãy Thả Lỏng Và Chìm Vào Giấc Mơ Đẹp Nhé~”',
+  },
 ];
 
 // ============================================================================
@@ -9256,6 +9384,14 @@ const CHARACTER_ELEMENTS = {
   xiao: 'anemo',
   wanderer: 'anemo',
   venti: 'anemo',
+  qiqi: 'cryo',
+  keqing: 'electro',
+  mona: 'hydro',
+  diluc: 'pyro',
+  jean: 'anemo',
+  tighnari: 'dendro',
+  dehya: 'pyro',
+  mizuki: 'anemo',
 };
 
 function checkGenuineGenshinReaction(elemA, elemB) {
@@ -9611,6 +9747,70 @@ const CHARACTER_SKILLS = {
     icon: '🌪️',
     name: 'Hố Đen Phong Thần',
     shortDesc: 'Hố đen hút 1 lá bài lớn nhất (≤ A) từ tay MỌI đối thủ gom chung với các lá rác nhỏ nhất của Venti: Venti giữ lại các lá lớn nhất còn thổi trả toàn bộ lá rác về tay từng đối thủ!',
+  },
+  qiqi: {
+    id: 'qiqi',
+    charName: 'Qiqi',
+    icon: '❄️',
+    isPassiveBet: true,
+    name: 'Bùa Độ Ách',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Khi thua ván, Qiqi dán Bùa Độ Ách giúp giảm 15% tổng tiền phạt đếm lá phải trả cho người Về Nhất (kèm Hoạt Ảnh Nộ 5★ khi Chặt/Thắng).',
+  },
+  keqing: {
+    id: 'keqing',
+    charName: 'Keqing',
+    icon: '⚡',
+    isPassiveBet: true,
+    name: 'Tuần Du Thiên Nhai',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Khi Về Nhất, Keqing nhận thêm tiền thưởng tốc độ (+2 × Mức cược bàn) từ mỗi đối thủ thua (kèm Hoạt Ảnh Nộ 5★ khi Chặt/Thắng).',
+  },
+  mona: {
+    id: 'mona',
+    charName: 'Mona',
+    icon: '💧',
+    isPassiveBet: true,
+    name: 'Quỹ Đạo Tinh Mệnh',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Cuối ván nếu Mona Về Nhất nhận thêm +1.5× Mức cược từ mỗi nhà thua; nếu thua được giảm nhẹ 1× Mức cược (kèm Hoạt Ảnh Nộ 5★).',
+  },
+  diluc: {
+    id: 'diluc',
+    charName: 'Diluc',
+    icon: '🔥',
+    isPassiveBet: true,
+    name: 'Lê Minh Phượng Hoàng',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Mỗi pha Chặt Heo/Hàng hoặc ăn Thối Heo/Hàng cuối ván của Diluc được tăng thêm +20% tiền thưởng (kèm Hoạt Ảnh Nộ 5★).',
+  },
+  jean: {
+    id: 'jean',
+    charName: 'Jean',
+    icon: '🍃',
+    isPassiveBet: true,
+    name: 'Gió Bồ Công Anh',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Khi bị đối thủ Chặt Heo/Hàng hoặc bị phạt Thối Heo/Hàng/Cóng cuối ván, Jean được giảm 25% số Xu bị phạt (kèm Hoạt Ảnh Nộ 5★).',
+  },
+  tighnari: {
+    id: 'tighnari',
+    charName: 'Tighnari',
+    icon: '🌿',
+    isPassiveBet: true,
+    name: 'Dây Leo Sinh Trưởng',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Mỗi khi đánh ra Sảnh (≥ 4 lá) hoặc Sám Cô trong ván, tích ngay +0.5× Mức cược Xu vào túi (tối đa 3 lần/ván, kèm Hoạt Ảnh Nộ 5★).',
+  },
+  dehya: {
+    id: 'dehya',
+    charName: 'Dehya',
+    icon: '🔥',
+    isPassiveBet: true,
+    name: 'Sư Tử Lửa Bờm Đỏ',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Nếu cuối ván Dehya còn tồn từ 8 lá trở lên (hoặc bị Cóng), được giảm 25% tiền phạt ở các lá vượt ngưỡng 7 lá (kèm Hoạt Ảnh Nộ 5★).',
+  },
+  mizuki: {
+    id: 'mizuki',
+    charName: 'Yumemizuki Mizuki',
+    icon: '🍃',
+    isPassiveBet: true,
+    name: 'Liệu Pháp Mộng Đẹp',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Kết thúc mỗi ván bài (dù thắng hay thua), Baku của Mizuki luôn hồi cố định +1.5× Mức cược bàn Xu an ủi (kèm Hoạt Ảnh Nộ 5★).',
   },
 };
 
@@ -13209,10 +13409,11 @@ class TienLenGame {
         this.gachaGuaranteed5 = false;
         rateNote = '🎯 Thắng 50/50 (Trúng UP)';
       } else {
-        const others = GENSHIN_BURSTS.filter((b) => b.id !== featuredId);
+        const standardPool = GENSHIN_BURSTS.filter((b) => b.isStandard);
+        const others = standardPool.length > 0 ? standardPool : GENSHIN_BURSTS.filter((b) => b.id !== featuredId);
         chosenBurst = others[Math.floor(Math.random() * others.length)] || GENSHIN_BURSTS[0];
         this.gachaGuaranteed5 = true;
-        rateNote = '☯️ Lệch 50/50 (Kích hoạt Đại Bảo Hiểm)';
+        rateNote = '☯️ Lệch 50/50 ra 5★ Thường (Kích hoạt Đại Bảo Hiểm 100% UP)';
       }
 
       const alreadyOwned = this.unlockedBursts.has(chosenBurst.id);
@@ -13552,17 +13753,32 @@ class TienLenGame {
 
       const featuredSkill = CHARACTER_SKILLS[featuredBurst.id] || CHARACTER_SKILLS.raiden;
 
-      const upRosterHtml = GENSHIN_BURSTS.map((b) => {
+      const upRosterHtml = GENSHIN_BURSTS.filter((b) => !b.isStandard).map((b) => {
         const isCurrent = b.id === featuredBurst.id;
         const owned = this.unlockedBursts.has(b.id);
         const charName = b.name.split('—')[0].trim();
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
         return `
           <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" data-burst-id="${b.id}" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
-            <img src="fanart/${b.id}.jpg?v=57" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
+            <img src="fanart/${b.id}.jpg?v=61" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name">${charName}</div>
               <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★'} • ${bSkill.icon} ${bSkill.name}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const standardRosterHtml = GENSHIN_BURSTS.filter((b) => b.isStandard).map((b) => {
+        const owned = this.unlockedBursts.has(b.id);
+        const charName = b.name.split('—')[0].trim();
+        const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.qiqi;
+        return `
+          <div class="gacha-up-chip" style="border-color:rgba(148,163,184,0.35);" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem thử Hoạt Ảnh Nộ 5★ Thường (Lệch Rate): ${b.name}!')" title="Bấm để xem thử Nộ 5★! ${bSkill.icon} Nội Tại Cược [${bSkill.name}]: ${bSkill.shortDesc}">
+            <img src="fanart/${b.id}.jpg?v=61" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
+            <div>
+              <div class="gacha-up-chip-name">${charName}</div>
+              <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '☯️ 5★ Lệch Rate'} • 💠 ${bSkill.name}</div>
             </div>
           </div>
         `;
@@ -13583,10 +13799,16 @@ class TienLenGame {
       gachaPanel.innerHTML = `
         <div class="gacha-epitomized-bar">
           <div class="gacha-epitomized-title">
-            <span>🎯 CHỌN NHÂN VẬT 5★ TÂM NGUYỆN TRÊN BANNER (🔗 TẤT CẢ 35 BANNER DÙNG CHUNG 100% PITY &amp; ĐẠI BẢO HIỂM):</span>
+            <span>🎯 CHỌN NHÂN VẬT 5★ GIỚI HẠN TRÊN BANNER (🔗 TẤT CẢ 35 BANNER DÙNG CHUNG 100% PITY &amp; ĐẠI BẢO HIỂM):</span>
             <span style="font-size:11.5px;color:#cbd5e1;">Đã Cầu Nguyện tổng cộng: <strong>${(this.totalWishes || 0).toLocaleString()}</strong> lượt</span>
           </div>
           <div class="gacha-up-Roster">${upRosterHtml}</div>
+          <div style="margin-top:8px;padding-top:6px;border-top:1px dashed rgba(148,163,184,0.28);">
+            <div style="font-size:11.5px;font-weight:800;color:#93c5fd;margin-bottom:4px;">
+              ☯️ 8 NHÂN VẬT 5★ THƯỜNG (LỆCH RATE 50/50 • CÓ HOẠT ẢNH NỘ 5★ &amp; NỘI TẠI CƯỢC TỰ ĐỘNG, KHÔNG CÓ KỸ NĂNG E — BẤM ĐỂ XEM NỘ):
+            </div>
+            <div class="gacha-up-Roster" style="max-height:76px;">${standardRosterHtml}</div>
+          </div>
         </div>
 
         <div class="gacha-banner-hero">
@@ -15664,6 +15886,7 @@ class TienLenGame {
 
       this.updateArenaBackdropCharacters();
       this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
       this.renderSoloPlayerCountUI();
       this.renderAll();
       this.updateMidMatchLockUI();
@@ -16192,13 +16415,15 @@ class TienLenGame {
 
     let heroHtml = '';
     if (hasChar && sk) {
-      const statusBadge = p.skillUsed
+      const statusBadge = sk.isPassiveBet
+        ? `<span style="color:#38bdf8;font-weight:800;">💠 Nhân Vật 5★ Thường (Lệch Rate) • Nội Tại Cược Tự Động &amp; Có Hoạt Ảnh Nộ 5★</span>`
+        : p.skillUsed
         ? `<span style="color:#f87171;font-weight:800;">⚪ Đã dùng Kỹ Năng trong ván này (0/1)</span>`
         : `<span style="color:#4ade80;font-weight:800;">🟢 Sẵn sàng kích hoạt trong ván này (1/1)</span>`;
 
       heroHtml = `
         <div class="char-detail-hero">
-          <img class="char-detail-art" src="fanart/${charId}.jpg?v=57" alt="${sk.charName}" />
+          <img class="char-detail-art" src="fanart/${charId}.jpg?v=61" alt="${sk.charName}" />
           <div style="flex:1;">
             <div style="font-size:11px;font-weight:900;color:#fde047;letter-spacing:0.5px;text-transform:uppercase;">
               ${isMe ? '👑 NHÂN VẬT 5★ BẠN ĐANG SỬ DỤNG' : `🎭 NHÂN VẬT ĐANG XÀI CỦA ${p.name.toUpperCase()}`}
@@ -16221,11 +16446,15 @@ class TienLenGame {
 
         <div class="char-detail-skill-box">
           <div style="font-size:13.5px;font-weight:900;color:#fef08a;margin-bottom:4px;">
-            🔮 Kỹ Năng Chiến Thuật [Phím E]: ${sk.name}
+            ${sk.isPassiveBet ? `💠 Nội Tại Cược [Tự Động — Không Có Kỹ Năng E]: ${sk.name}` : `🔮 Kỹ Năng Chiến Thuật [Phím E]: ${sk.name}`}
           </div>
           <div style="font-size:12.5px;color:#e2e8f0;line-height:1.5;">
             • <strong>Hiệu ứng chính:</strong> ${sk.shortDesc}<br/>
-            • <strong>Quy tắc:</strong> Dùng tối đa <strong>1 lần / ván</strong> khi đang tới lượt của người chơi. Nhân vật đang xài cũng đồng thời là nhân vật phát <strong>Hoạt Ảnh Nộ Chặt Heo &amp; Về Nhất</strong>!
+            • <strong>Quy tắc:</strong> ${
+              sk.isPassiveBet
+                ? 'Nhân vật 5★ Thường (Lệch Rate) <strong>không có Kỹ Năng [E] chủ động</strong> trên bàn bài, nhưng <strong>tự động kích hoạt Nội Tại Cược</strong> và vẫn phát <strong>Hoạt Ảnh Kỹ Năng Nộ 5★ khi Chặt Heo &amp; Về Nhất</strong>!'
+                : 'Dùng tối đa <strong>1 lần / ván</strong> khi đang tới lượt của người chơi. Nhân vật đang xài cũng đồng thời là nhân vật phát <strong>Hoạt Ảnh Nộ Chặt Heo &amp; Về Nhất</strong>!'
+            }
           </div>
         </div>
       `;
@@ -16414,6 +16643,14 @@ class TienLenGame {
       return {
         ok: false,
         reason: 'Chưa sở hữu Nộ 5★! Phải sở hữu Burst Animation 5★ của nhân vật mới được dùng Kỹ Năng của nhân vật đó.',
+      };
+    }
+    if (CHARACTER_SKILLS[charId].isPassiveBet) {
+      return {
+        ok: false,
+        charId,
+        isPassiveBet: true,
+        reason: 'Nhân vật 5★ Thường (Lệch Rate): Không có Kỹ Năng [E] chủ động — Tự động kích hoạt Nội Tại Cược & Hoạt Ảnh Nộ 5★!',
       };
     }
     if (player.id === this.mySeatId && !player.isBot && !this.unlockedBursts.has(charId)) {
@@ -18228,6 +18465,7 @@ class TienLenGame {
     this.saveShopProfile();
     this.renderSoloPlayerCountUI();
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
   }
 
   renderSoloPlayerCountUI() {
@@ -18346,6 +18584,7 @@ class TienLenGame {
     this.saveShopProfile();
     this.renderBetTiers();
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
   }
 
   updateBetBadges() {
@@ -18440,6 +18679,7 @@ class TienLenGame {
     }
 
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
   }
 
   // ============================================================================
@@ -18509,6 +18749,7 @@ class TienLenGame {
     if (willOpen) {
       document.getElementById('room-password-prompt-box')?.classList.add('hidden');
       this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
       setTimeout(() => {
         document.getElementById('input-room-password')?.focus();
       }, 40);
@@ -19448,6 +19689,7 @@ class TienLenGame {
 
     this.saveMultiplayerSessionToLocal();
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
     this.updateMidMatchLockUI();
     this.initHostPeer(code);
     fetch(`https://textdb.dev/api/data/tlmn_bkp_ev_${code}`, {
@@ -19543,6 +19785,7 @@ class TienLenGame {
       this.applyRestoredRoomStateOnHost(cloudRoom.state, myName);
       this.saveMultiplayerSessionToLocal();
       this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
       this.updateMidMatchLockUI();
       this.initHostPeer(cleanCode);
       await this.pushRoomStateToCloud([]);
@@ -19610,6 +19853,7 @@ class TienLenGame {
 
     this.saveMultiplayerSessionToLocal();
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
 
     const joinEvt = {
       id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
@@ -19702,6 +19946,7 @@ class TienLenGame {
     await this.refreshMultiplayerRoomsDirectory(false);
     this.renderLobbyModal();
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
     sfx.click();
   }
 
@@ -19812,6 +20057,7 @@ class TienLenGame {
     if (statusLbl) statusLbl.textContent = `Đấu Bot (${count} Người) / Đổi Cược`;
     document.getElementById('wifi-room-box')?.classList.add('hidden');
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
     this.startNewMatch(true);
   }
 
@@ -20334,6 +20580,7 @@ class TienLenGame {
     if (typeof state.betPerCard === 'number' && state.betPerCard >= 20) {
       this.betPerCard = state.betPerCard;
       this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
     }
     this.matchCount = typeof state.matchCount === 'number' ? state.matchCount : 0;
     this.currentTurn = state.currentTurn || 0;
@@ -20738,6 +20985,7 @@ class TienLenGame {
     }
 
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
 
     const activePlayers = this.getActivePlayers();
     if (activePlayers.length < 2) {
@@ -21466,6 +21714,29 @@ class TienLenGame {
       }
     }
 
+    // Nội Tại Cược của Tighnari (Dây Leo Sinh Trưởng): Mỗi khi đánh ra Sảnh (>= 4 lá) hoặc Sám Cô, tích ngay +0.5× cược (tối đa 3 lần/ván)
+    if (
+      this.getPlayerActiveCharId(player) === 'tighnari' &&
+      (combo.type === COMBO_TYPES.TRIPLE || (combo.type === COMBO_TYPES.STRAIGHT && combo.length >= 4))
+    ) {
+      if (!this.tighnariBonusByPlayer) this.tighnariBonusByPlayer = {};
+      const usedCnt = this.tighnariBonusByPlayer[player.id] || 0;
+      if (usedCnt < 3) {
+        this.tighnariBonusByPlayer[player.id] = usedCnt + 1;
+        const tigBonus = Math.max(10, Math.round((this.betPerCard || 100) * 0.5));
+        player.coins += tigBonus;
+        this.matchChopCoins[player.id] += tigBonus;
+        this.matchChopDetails[player.id].push({
+          label: `🌿 Dây Leo Tighnari (${usedCnt + 1}/3): Đánh ${combo.label} (+${tigBonus.toLocaleString()})`,
+          isGood: true,
+        });
+        this.addLog(
+          `🌿 <strong>[Dây Leo Sinh Trưởng]</strong> <strong>${player.name}</strong> đánh <strong>${combo.label}</strong> nhận thưởng nội tại <strong>+${tigBonus.toLocaleString()} Xu</strong> (${usedCnt + 1}/3 lần)!`,
+          'log-chop'
+        );
+      }
+    }
+
     // Cập nhật tiến độ Nhiệm Vụ Hàng Ngày nếu người đánh là người chơi chính
     if (player.id === this.mySeatId) {
       if (combo.length >= 2) {
@@ -21501,14 +21772,26 @@ class TienLenGame {
       }
 
       // Cộng dồn toàn bộ các lớp Heo đè Heo / Đôi thông đè Đôi thông / Tứ quý đè Đôi thông trong vòng này!
-      const totalChopValue = this.roundChoppableStack.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+      let totalChopValue = this.roundChoppableStack.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+      let chopPassiveNotes = [];
+      if (this.getPlayerActiveCharId(player) === 'diluc') {
+        const dilucBonus = Math.round(totalChopValue * 0.2);
+        totalChopValue += dilucBonus;
+        chopPassiveNotes.push(`🔥 Diluc +20% (+${dilucBonus.toLocaleString()})`);
+      }
+      if (this.getPlayerActiveCharId(victim) === 'jean') {
+        const jeanShield = Math.round(totalChopValue * 0.25);
+        totalChopValue = Math.max(b, totalChopValue - jeanShield);
+        chopPassiveNotes.push(`🍃 Jean giảm 25% (-${jeanShield.toLocaleString()})`);
+      }
       const isStackedChop = this.roundChoppableStack.length > 1;
       const stackedBreakdownStr = this.roundChoppableStack
         .map((it) => `${it.label} (${it.value.toLocaleString()})`)
         .join(' + ');
+      const passiveSuffix = chopPassiveNotes.length > 0 ? ` [${chopPassiveNotes.join(' • ')}]` : '';
       const targetDisplayLabel = isStackedChop
-        ? `${this.currentCombo.label} [Cộng dồn: ${stackedBreakdownStr}]`
-        : this.currentCombo.label;
+        ? `${this.currentCombo.label} [Cộng dồn: ${stackedBreakdownStr}]${passiveSuffix}`
+        : `${this.currentCombo.label}${passiveSuffix}`;
 
       if (this.lastChoppedPlayerId !== null && this.chopPot > 0) {
         const prevVictim = this.players[this.lastChoppedPlayerId];
@@ -22788,7 +23071,9 @@ class TienLenGame {
           '🔒 Bạn phải sở hữu Hoạt Ảnh Kỹ Năng Nộ 5★ (tại Sảnh Cầu Nguyện) mới được sử dụng Kỹ Năng của nhân vật đó!';
       } else {
         if (this.elCharSkillLabel) {
-          if (human.skillUsed) {
+          if (skill.isPassiveBet) {
+            this.elCharSkillLabel.textContent = `💠 ${skill.name} (Nội Tại)`;
+          } else if (human.skillUsed) {
             this.elCharSkillLabel.textContent = `${skill.icon} Đã dùng`;
           } else if (charId === 'mavuika' && this.mavuikaSelectingCard) {
             this.elCharSkillLabel.textContent = '🔥 Bấm 1 lá (3➔K) trên tay (Hủy [E])';
@@ -22805,7 +23090,7 @@ class TienLenGame {
         }
         this.btnCharSkill.disabled = !skillCheck.ok;
         this.btnCharSkill.classList.toggle('skill-ready', !!skillCheck.ok);
-        this.btnCharSkill.classList.toggle('skill-used', !!human.skillUsed);
+        this.btnCharSkill.classList.toggle('skill-used', !!human.skillUsed || !!skill.isPassiveBet);
         this.btnCharSkill.title = `${skill.icon} ${skill.charName} — ${skill.name}: ${skill.shortDesc}${
           skillCheck.ok ? ' (Nhấn phím E để tung chiêu!)' : ` (${skillCheck.reason})`
         }`;
@@ -22969,19 +23254,73 @@ class TienLenGame {
     const detailsByPlayer = [[], [], [], []];
     let totalWinnerGain = 0;
 
+    const winnerCharId = this.getPlayerActiveCharId(winner);
     this.players.forEach((p) => {
       if (!p.active || p.id === winnerId) return;
 
       const analysis = analyzeLoserHand(p.hand, wonBy3Spade, b);
-      const loss = analysis.totalPenalty;
+      let loss = analysis.totalPenalty;
+      const pCharId = this.getPlayerActiveCharId(p);
+      const passiveBreakdowns = [];
+
+      // 1. Qiqi (Bùa Độ Ách): Giảm 15% tiền phạt đếm lá khi thua
+      if (pCharId === 'qiqi' && p.hand.length > 0) {
+        const leafBase = p.hand.length === 13 ? b * 26 : p.hand.length * b;
+        const qiqiRed = Math.max(10, Math.round(leafBase * 0.15));
+        loss = Math.max(b, loss - qiqiRed);
+        passiveBreakdowns.push({ label: `❄️ Bùa Độ Ách Qiqi: Giảm 15% phạt lá (+${qiqiRed.toLocaleString()})`, isGood: true });
+      }
+      // 2. Jean (Gió Bồ Công Anh): Giảm 25% tiền phạt Thối Heo/Hàng/Cóng cuối ván
+      if (pCharId === 'jean') {
+        const leafNormal = p.hand.length < 13 ? p.hand.length * b : 0;
+        const specialPen = Math.max(0, analysis.totalPenalty - leafNormal);
+        if (specialPen > 0) {
+          const jeanRed = Math.max(10, Math.round(specialPen * 0.25));
+          loss = Math.max(b, loss - jeanRed);
+          passiveBreakdowns.push({ label: `🍃 Gió Bồ Công Anh Jean: Giảm 25% phạt Thối/Cóng (+${jeanRed.toLocaleString()})`, isGood: true });
+        }
+      }
+      // 3. Dehya (Sư Tử Lửa Bờm Đỏ): Khi thua >= 8 lá (hoặc Cóng), giảm 25% tiền phạt các lá vượt ngưỡng 7 lá
+      if (pCharId === 'dehya' && p.hand.length >= 8) {
+        const extraLeavesCost = p.hand.length === 13 ? b * 19 : (p.hand.length - 7) * b;
+        const dehyaRed = Math.max(10, Math.round(extraLeavesCost * 0.25));
+        loss = Math.max(b, loss - dehyaRed);
+        passiveBreakdowns.push({ label: `🔥 Sư Tử Lửa Dehya: Giảm 25% phạt lá vượt ngưỡng 7 (+${dehyaRed.toLocaleString()})`, isGood: true });
+      }
+      // 4. Mona (Quỹ Đạo Tinh Mệnh — khi thua): Giảm nhẹ 1× mức cược
+      if (pCharId === 'mona') {
+        const monaRed = Math.round(b);
+        loss = Math.max(b, loss - monaRed);
+        passiveBreakdowns.push({ label: `💧 Quỹ Đạo Tinh Mệnh Mona: Giảm phạt (-1× cược = +${monaRed.toLocaleString()})`, isGood: true });
+      }
+
+      // 5. Kẻ thắng là Keqing / Mona / Diluc tác động lên tiền thắng từ mỗi nhà thua:
+      if (winnerCharId === 'keqing') {
+        const keqBonus = Math.round(b * 2);
+        loss += keqBonus;
+        passiveBreakdowns.push({ label: `⚡ Keqing Về Nhất thu thêm +2× cược (-${keqBonus.toLocaleString()})`, isSpecial: true });
+      } else if (winnerCharId === 'mona') {
+        const monaWinBonus = Math.round(b * 1.5);
+        loss += monaWinBonus;
+        passiveBreakdowns.push({ label: `💧 Mona Về Nhất thu lộc tinh mệnh +1.5× cược (-${monaWinBonus.toLocaleString()})`, isSpecial: true });
+      } else if (winnerCharId === 'diluc') {
+        const leafNormal = p.hand.length === 13 ? b * 26 : p.hand.length * b;
+        const rottedPen = Math.max(0, analysis.totalPenalty - leafNormal);
+        if (rottedPen > 0) {
+          const dilucBonus = Math.round(rottedPen * 0.2);
+          loss += dilucBonus;
+          passiveBreakdowns.push({ label: `🔥 Diluc ăn Thối +20% (-${dilucBonus.toLocaleString()})`, isSpecial: true });
+        }
+      }
+
       this.penaltyCardIdsByPlayer[p.id] = analysis.penaltyCardIds;
-      detailsByPlayer[p.id] = [...this.matchChopDetails[p.id], ...analysis.breakdown];
+      detailsByPlayer[p.id] = [...this.matchChopDetails[p.id], ...analysis.breakdown, ...passiveBreakdowns];
 
       p.coins -= loss;
       coinChanges[p.id] = this.matchChopCoins[p.id] - loss;
       totalWinnerGain += loss;
 
-      const detailText = analysis.breakdown.map((item) => item.label).join(', ');
+      const detailText = [...analysis.breakdown, ...passiveBreakdowns].map((item) => item.label).join(', ');
       this.addLog(
         `🃏 <strong>${p.name}</strong> lật bài (${p.hand
           .map((c) => `${c.rank}${c.suit}`)
@@ -23001,6 +23340,24 @@ class TienLenGame {
         isGood: true,
       },
     ];
+
+    // 6. Yumemizuki Mizuki (Liệu Pháp Mộng Đẹp Baku): Kết thúc mỗi ván (thắng hay thua) đều được Baku hồi cố định +1.5× Mức cược Xu
+    this.players.forEach((p) => {
+      if (!p.active) return;
+      if (this.getPlayerActiveCharId(p) === 'mizuki') {
+        const mizukiHeal = Math.round(b * 1.5);
+        p.coins += mizukiHeal;
+        coinChanges[p.id] += mizukiHeal;
+        detailsByPlayer[p.id].push({
+          label: `🍃 Liệu Pháp Mộng Đẹp Mizuki: Baku hồi phục (+${mizukiHeal.toLocaleString()} xu)`,
+          isGood: true,
+        });
+        this.addLog(
+          `🍃 <strong>[Liệu Pháp Mộng Đẹp]</strong> Baku của <strong>${p.name}</strong> hồi phục an ủi <strong>+${mizukiHeal.toLocaleString()} Xu</strong> (+1.5× cược) sau ván đấu!`,
+          'log-win'
+        );
+      }
+    });
 
     // KIỂM TRA TREO MÁY (AFK) CẢ TRẬN TRONG CHẾ ĐỘ NHIỀU NGƯỜI CHƠI -> TỰ OUT BÀN VÀO TRẬN SAU!
     if (this.isMultiplayer) {
@@ -23087,6 +23444,7 @@ class TienLenGame {
     const tbody = document.getElementById('summary-tbody');
     const banner = document.getElementById('toi-trang-banner');
     this.updateBetBadges();
+    this.tighnariBonusByPlayer = {};
 
     if (bannerText) {
       banner.textContent = bannerText;
@@ -23280,10 +23638,15 @@ class TienLenGame {
       }
       if (charSkillEl) {
         if (hasChar) {
-          charSkillEl.textContent = p.skillUsed
-            ? `${sk.name} • Đã dùng`
-            : `${sk.name} • 1/1`;
-          charSkillEl.classList.toggle('used', !!p.skillUsed);
+          if (sk.isPassiveBet) {
+            charSkillEl.textContent = `${sk.name} • Nội Tại Cược`;
+            charSkillEl.classList.remove('used');
+          } else {
+            charSkillEl.textContent = p.skillUsed
+              ? `${sk.name} • Đã dùng`
+              : `${sk.name} • 1/1`;
+            charSkillEl.classList.toggle('used', !!p.skillUsed);
+          }
         } else {
           charSkillEl.textContent = 'Bấm xem chi tiết';
           charSkillEl.classList.remove('used');

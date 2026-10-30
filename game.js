@@ -3576,18 +3576,31 @@ class TienLenGame {
       return;
     }
 
+    // Tăng mã phiên Nộ để hủy mọi callback cũ nếu có 2 hoạt ảnh Nộ kích hoạt liên tiếp nhau
+    this._burstSeqId = (this._burstSeqId || 0) + 1;
+    const seqId = this._burstSeqId;
+
     // Luôn tạm khóa botTimer trong lúc đang phát Hoạt Ảnh Nộ để bàn bài không render đè gây giật lag video
     this.isBurstPlaying = true;
     clearTimeout(this.botTimer);
 
     const videoEl = document.getElementById('burst-video');
     const audioEl = document.getElementById('burst-audio');
+    const charWrapEl = videoEl ? videoEl.parentElement : null;
     const chakraEl = document.getElementById('burst-chakra-ring');
     const slashContainer = document.getElementById('burst-slash-container');
     const tagEl = document.getElementById('burst-skill-tag');
     const titleEl = document.getElementById('burst-skill-title');
     const quoteEl = document.getElementById('burst-skill-quote');
     const detailEl = document.getElementById('burst-skill-detail');
+
+    // Đặt nền của khung video bằng đúng ảnh Fanart của nhân vật đang tung Nộ và ẩn tạm khung hình cũ của thẻ <video>
+    // cho tới khi khung hình đầu tiên của video mới giải mã xong (chống 100% lỗi nhá hình nhân vật trước đó trên điện thoại!)
+    if (charWrapEl && burstMeta.posterUrl) {
+      charWrapEl.style.backgroundImage = `url('${burstMeta.posterUrl}')`;
+      charWrapEl.style.backgroundSize = 'cover';
+      charWrapEl.style.backgroundPosition = 'center 18%';
+    }
 
     overlay.classList.remove(
       'hidden',
@@ -3614,12 +3627,14 @@ class TienLenGame {
     clearTimeout(this.burstTimeout);
     let burstFinished = false;
     const finishBurst = () => {
-      if (burstFinished) return;
+      if (burstFinished || seqId !== this._burstSeqId) return;
       burstFinished = true;
       clearTimeout(this.burstTimeout);
       if (videoEl) {
         videoEl.onplaying = null;
         videoEl.onloadeddata = null;
+        videoEl.oncanplay = null;
+        videoEl.style.opacity = '0';
         try {
           videoEl.pause();
         } catch (_) {}
@@ -3642,33 +3657,60 @@ class TienLenGame {
     };
 
     const startDurationCountdown = () => {
+      if (seqId !== this._burstSeqId) return;
       clearTimeout(this.burstTimeout);
       this.burstTimeout = setTimeout(finishBurst, 3400);
     };
 
     if (videoEl && burstMeta.mp4Url) {
       videoEl.style.display = 'block';
-      videoEl.removeAttribute('poster');
+      videoEl.style.transition = 'opacity 0.08s ease';
+      if (burstMeta.posterUrl) {
+        videoEl.setAttribute('poster', burstMeta.posterUrl);
+      }
       const targetVideoSrc = this.burstBlobUrls?.get(burstMeta.mp4Url) || burstMeta.mp4Url;
-      if (videoEl.getAttribute('data-loaded-src') !== targetVideoSrc) {
+      const isSameSrc = videoEl.getAttribute('data-loaded-src') === targetVideoSrc;
+
+      if (!isSameSrc) {
+        // Ẩn ngay lập tức buffer khung hình của nhân vật cũ trước khi đổi src
+        videoEl.style.opacity = '0';
+        try {
+          videoEl.pause();
+        } catch (_) {}
         videoEl.src = targetVideoSrc;
         videoEl.setAttribute('data-loaded-src', targetVideoSrc);
+        try {
+          videoEl.load();
+        } catch (_) {}
+      } else {
+        videoEl.style.opacity = videoEl.readyState >= 2 ? '1' : '0';
       }
+
       videoEl.muted = !sfx.enabled;
       videoEl.volume = 0.95;
       try {
         videoEl.currentTime = 0;
       } catch (_) {}
 
+      const revealVideoFrame = () => {
+        if (seqId !== this._burstSeqId) return;
+        videoEl.style.opacity = '1';
+      };
+
+      videoEl.onloadeddata = revealVideoFrame;
+      videoEl.oncanplay = revealVideoFrame;
       videoEl.onplaying = () => {
+        if (seqId !== this._burstSeqId) return;
         videoEl.onplaying = null;
+        videoEl.style.opacity = '1';
         startDurationCountdown();
       };
-      this.burstTimeout = setTimeout(finishBurst, 4400);
+      this.burstTimeout = setTimeout(finishBurst, 4600);
 
       const playPromise = videoEl.play();
       if (playPromise && typeof playPromise.catch === 'function') {
         playPromise.catch(() => {
+          if (seqId !== this._burstSeqId) return;
           videoEl.muted = true;
           videoEl.play().catch(() => {
             startDurationCountdown();
@@ -3682,6 +3724,9 @@ class TienLenGame {
     if (audioEl && burstMeta.audioUrl && sfx.enabled) {
       const targetAudioSrc = this.burstBlobUrls?.get(burstMeta.audioUrl) || burstMeta.audioUrl;
       if (audioEl.getAttribute('data-loaded-src') !== targetAudioSrc) {
+        try {
+          audioEl.pause();
+        } catch (_) {}
         audioEl.src = targetAudioSrc;
         audioEl.setAttribute('data-loaded-src', targetAudioSrc);
       }
@@ -8688,11 +8733,14 @@ class TienLenGame {
     }
     // Người chơi chính: CHỈ được xài nhân vật & kỹ năng của nhân vật mà mình ĐANG SỞ HỮU Hoạt Ảnh Nộ 5★!
     if (player.id === this.mySeatId && !player.isBot) {
+      if (!this.tutorialCompleted && this.tutorialStep === 1 && !this.beginnerBannerUsed) {
+        return 'none';
+      }
       const candidates = [
-        player.activeChar,
         this.equippedActiveChar,
         this.equippedChopBurst,
         this.equippedWinBurst,
+        player.activeChar,
         player.chopBurst,
         player.winBurst,
       ];
@@ -8715,7 +8763,7 @@ class TienLenGame {
       }
       return 'none';
     }
-    // Bot AI (luôn là 1 trong 10 nhân vật 5★ có Nộ riêng)
+    // Bot AI (luôn đồng bộ 100% giữa activeChar, chopBurst, winBurst và cardSkin)
     const botCandidates = [
       player.activeChar,
       player.chopBurst,
@@ -15059,11 +15107,19 @@ class TienLenGame {
       }
       if (seat && seat.id !== this.mySeatId) {
         seat.name = evt.name || `Người chơi ${seat.id + 1}`;
-        if (evt.avatar) seat.avatar = evt.avatar;
-        if (evt.cardSkin) seat.cardSkin = evt.cardSkin;
-        if (evt.chopBurst) seat.chopBurst = evt.chopBurst;
-        if (evt.winBurst) seat.winBurst = evt.winBurst;
-        if (evt.activeChar) seat.activeChar = evt.activeChar;
+        seat.avatar = evt.avatar || 'default_player';
+        seat.cardSkin = evt.cardSkin || 'classic';
+        const resolvedGuestChar =
+          evt.activeChar && evt.activeChar !== 'none'
+            ? evt.activeChar
+            : evt.chopBurst && evt.chopBurst !== 'none'
+            ? evt.chopBurst
+            : evt.winBurst && evt.winBurst !== 'none'
+            ? evt.winBurst
+            : 'none';
+        seat.activeChar = resolvedGuestChar;
+        seat.chopBurst = resolvedGuestChar;
+        seat.winBurst = resolvedGuestChar;
         if (typeof evt.coins === 'number') seat.coins = evt.coins;
         seat.accountUsername = evt.accountUsername || seat.accountUsername || '';
         seat.isBot = false;
@@ -15079,6 +15135,7 @@ class TienLenGame {
           sfx.win();
           this.addLog(`👋 <strong>${seat.name}</strong> đã vào bàn (Ghế #${seat.id + 1})!`, 'log-win');
         }
+        this.preloadActiveBurstVideos();
         this.renderLobbyModal();
         this.renderAll();
         this.broadcastState();
@@ -15091,6 +15148,11 @@ class TienLenGame {
         seat.active = false;
         seat.isBot = false;
         seat.name = `Ghế trống ${seat.id + 1}`;
+        seat.avatar = '🐯';
+        seat.cardSkin = 'classic';
+        seat.activeChar = 'none';
+        seat.chopBurst = 'none';
+        seat.winBurst = 'none';
         seat.clientId = null;
         seat.hand = [];
         seat.passed = true;
@@ -15105,10 +15167,19 @@ class TienLenGame {
       if (seat) {
         if (evt.avatar) seat.avatar = evt.avatar;
         if (evt.cardSkin) seat.cardSkin = evt.cardSkin;
-        if (evt.chopBurst) seat.chopBurst = evt.chopBurst;
-        if (evt.winBurst) seat.winBurst = evt.winBurst;
-        if (evt.activeChar) seat.activeChar = evt.activeChar;
+        const resolvedGuestChar =
+          evt.activeChar && evt.activeChar !== 'none'
+            ? evt.activeChar
+            : evt.chopBurst && evt.chopBurst !== 'none'
+            ? evt.chopBurst
+            : evt.winBurst && evt.winBurst !== 'none'
+            ? evt.winBurst
+            : 'none';
+        seat.activeChar = resolvedGuestChar;
+        seat.chopBurst = resolvedGuestChar;
+        seat.winBurst = resolvedGuestChar;
         if (typeof evt.coins === 'number') seat.coins = evt.coins;
+        this.preloadActiveBurstVideos();
         this.renderLobbyModal();
         this.renderAll();
         this.broadcastState();
@@ -15344,6 +15415,7 @@ class TienLenGame {
     }
 
     this.updateArenaBackdropCharacters();
+    this.preloadActiveBurstVideos();
     this.renderRoundSkillStatusBar();
     this.renderLobbyModal();
     this.renderAll();
@@ -15509,10 +15581,16 @@ class TienLenGame {
       p.active = false;
       p.isBot = false;
       p.name = `Ghế trống ${seatIdx + 1}`;
+      p.avatar = '🐯';
+      p.cardSkin = 'classic';
+      p.activeChar = 'none';
+      p.chopBurst = 'none';
+      p.winBurst = 'none';
       p.clientId = null;
       p.hand = [];
     }
     sfx.click();
+    this.preloadActiveBurstVideos();
     this.renderLobbyModal();
     this.renderAll();
     this.broadcastState();
@@ -15691,8 +15769,12 @@ class TienLenGame {
       p.manualActionsInMatch = 0;
       p.afkAutoTurns = 0;
       p.wasFullMatchAfk = false;
-      p.activeChar = this.getPlayerActiveCharId(p);
+      const cid = this.getPlayerActiveCharId(p);
+      p.activeChar = cid;
+      p.chopBurst = cid;
+      p.winBurst = cid;
     });
+    this.preloadActiveBurstVideos();
 
     this.currentCombo = null;
     this.previousCombo = null;
@@ -18937,7 +19019,9 @@ class TienLenGame {
 
     // Trong ván khởi động đầu tiên (Step 1), người chơi mới chưa có kỹ năng 5★ để thấy sự khác biệt với 3 Bot
     if (!this.beginnerBannerUsed) {
-      this.equippedBurst = 'none';
+      this.equippedActiveChar = 'none';
+      this.equippedChopBurst = 'none';
+      this.equippedWinBurst = 'none';
     }
 
     if (this.modalWifi) this.modalWifi.classList.add('hidden');
@@ -18950,12 +19034,14 @@ class TienLenGame {
     this.activeCount = 4;
     this.betPerCard = 100;
     this.matchCount = 0;
+    this.queuedNextMatchBots = null;
+    this._manualBotChangedAfterMatch = true;
 
-    // Thiết lập 3 Bot mang 3 Nhân Vật 5★ nổi bật để người mới quan sát kỹ năng của Bot
+    // Thiết lập 3 Bot mang 3 Nhân Vật 5★ nổi bật (đồng bộ 100% activeChar, chopBurst, winBurst, cardSkin, avatar)
     const botConfigs = [
-      { id: 1, name: 'Bot Furina 💧', avatar: '💧', burst: 'furina' },
-      { id: 2, name: 'Bot Arlecchino 🔥', avatar: '🔥', burst: 'arlecchino' },
-      { id: 3, name: 'Bot Zhongli 🪨', avatar: '🪨', burst: 'zhongli' },
+      { id: 1, name: 'Bot Furina 💧', burst: 'furina' },
+      { id: 2, name: 'Bot Arlecchino 🔥', burst: 'arlecchino' },
+      { id: 3, name: 'Bot Zhongli 🪨', burst: 'zhongli' },
     ];
     botConfigs.forEach((cfg) => {
       const p = this.players[cfg.id];
@@ -18963,11 +19049,16 @@ class TienLenGame {
         p.active = true;
         p.isBot = true;
         p.name = cfg.name;
-        p.avatar = cfg.avatar;
+        p.avatar = cfg.burst;
+        p.cardSkin = cfg.burst;
+        p.activeChar = cfg.burst;
+        p.chopBurst = cfg.burst;
         p.winBurst = cfg.burst;
       }
     });
     if (this.players[0]) {
+      this.players[0].activeChar = 'none';
+      this.players[0].chopBurst = 'none';
       this.players[0].winBurst = 'none';
     }
 
@@ -18990,11 +19081,11 @@ class TienLenGame {
       if (this.beginnerBannerUsed) {
         this.advanceTutorialStep(4);
       } else {
-        if (this.playerCoins < 20000) {
-          this.playerCoins = 20000;
-          if (this.players[this.mySeatId]) {
-            this.players[this.mySeatId].coins = 20000;
-          }
+        const localP = this.getLocalPlayer();
+        const curCoins = localP ? localP.coins : this.savedCoins;
+        if (curCoins < 20000) {
+          this.savedCoins = 20000;
+          if (localP) localP.coins = 20000;
           this.saveShopProfile();
         }
         this.inInitialLobby = true;
@@ -19022,12 +19113,13 @@ class TienLenGame {
 
     if (nextStep === 3) {
       // Nhà Lữ Hành nâng tiền người chơi mới lên đủ 20,000 Vàng để roll Banner Tân Thủ (16,000 Vàng) và dư vốn đánh bài
-      if (this.playerCoins < 20000) {
-        const added = 20000 - this.playerCoins;
-        this.playerCoins = 20000;
-        const localP = this.getLocalPlayer();
-        if (localP) localP.coins = this.playerCoins;
-        this.playSound('coin');
+      const localP = this.getLocalPlayer();
+      const curCoins = localP ? localP.coins : this.savedCoins;
+      if (curCoins < 20000) {
+        const added = 20000 - curCoins;
+        this.savedCoins = 20000;
+        if (localP) localP.coins = 20000;
+        sfx.coin();
         this.showComboBanner(`🎁 NHÀ LỮ HÀNH TẶNG +${added.toLocaleString()} VÀNG ➔ ĐỦ 20,000 VÀNG!`);
         this.addLog(
           `🌟 <strong>[Quà Tân Thủ Nhà Lữ Hành]</strong> Đã nâng ngân quỹ của bạn lên đủ <strong>20,000 Vàng</strong> để Cầu Nguyện Banner Tân Thủ 5★ Limited!`,
@@ -19045,10 +19137,10 @@ class TienLenGame {
     this.tutorialStep = 5;
     this.tutorialMatch2SkillUsed = false;
 
-    if (!this.ownedBursts.includes('raiden')) {
-      this.ownedBursts.push('raiden');
-    }
-    this.equippedBurst = 'raiden';
+    this.unlockedBursts.add('raiden');
+    this.equippedActiveChar = 'raiden';
+    this.equippedChopBurst = 'raiden';
+    this.equippedWinBurst = 'raiden';
 
     if (this.modalWifi) this.modalWifi.classList.add('hidden');
     if (this.modalShop) this.modalShop.classList.add('hidden');
@@ -19059,43 +19151,57 @@ class TienLenGame {
     this.activeCount = 4;
     this.betPerCard = 100;
     this.matchCount = 0;
+    this.queuedNextMatchBots = null;
+    this._manualBotChangedAfterMatch = true;
 
     // Khởi tạo ván bài chuẩn rồi sắp xếp kịch bản thực hành Kỹ Năng Raiden Shogun + Phản Ứng Nguyên Tố Điện Cảm
     this.startNewMatch(true);
     clearTimeout(this.botTimer);
 
-    // Gán Nhân Vật cho 4 ghế: Bạn (Seat 0 = Raiden ⚡), Seat 1 = Nahida 🌿, Seat 2 = Arlecchino 🔥, Seat 3 = Furina 💧
+    // Gán Nhân Vật cho 4 ghế (đồng bộ 100% activeChar, chopBurst, winBurst, cardSkin, avatar)
     const p0 = this.players[0];
     const p1 = this.players[1];
     const p2 = this.players[2];
     const p3 = this.players[3];
     if (p0) {
+      p0.activeChar = 'raiden';
+      p0.chopBurst = 'raiden';
       p0.winBurst = 'raiden';
       p0.skillUsed = false;
     }
     if (p1) {
       p1.name = 'Bot Nahida 🌿';
-      p1.avatar = '🌿';
+      p1.avatar = 'nahida';
+      p1.cardSkin = 'nahida';
+      p1.activeChar = 'nahida';
+      p1.chopBurst = 'nahida';
       p1.winBurst = 'nahida';
       p1.skillUsed = true; // Tạm khóa skill bot trong ván hướng dẫn để người mới dễ thực hành
     }
     if (p2) {
       p2.name = 'Bot Arlecchino 🔥';
-      p2.avatar = '🔥';
+      p2.avatar = 'arlecchino';
+      p2.cardSkin = 'arlecchino';
+      p2.activeChar = 'arlecchino';
+      p2.chopBurst = 'arlecchino';
       p2.winBurst = 'arlecchino';
       p2.skillUsed = true;
     }
     if (p3) {
       p3.name = 'Bot Furina 💧';
-      p3.avatar = '💧';
+      p3.avatar = 'furina';
+      p3.cardSkin = 'furina';
+      p3.activeChar = 'furina';
+      p3.chopBurst = 'furina';
       p3.winBurst = 'furina';
       p3.skillUsed = true;
     }
+    this.preloadActiveBurstVideos();
 
     // Sắp xếp bộ bài 52 lá sao cho:
     // - Seat 3 (Bot Furina 💧, ngồi ngay trước Seat 0 theo chiều đánh 3 -> 0) cầm Đôi 3 (3♠ 3♦) để mở đầu đánh Đôi 3 mang nguyên tố Thủy (💧)
     // - Seat 0 (Bạn - Raiden Shogun ⚡) cầm bộ bài gồm các Đôi lớn + Heo Cơ (2♥) để sau khi bấm [E] Tịnh Thổ Cắt Vòng sẽ dễ dàng đánh hết bài Về Nhất!
-    const fullDeck = buildDeck();
+    const fullDeck = createDeck();
     const pickCards = (codes) => {
       const picked = [];
       codes.forEach((code) => {

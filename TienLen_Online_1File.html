@@ -9156,7 +9156,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'durin',
     name: 'Durin — Nguyên Lý Thuần Khiết: Ánh Sáng Chuyển Dời',
-    desc: '[Huyền Thoại] Hắc Long truyền máu Trái Tim Rồng Đỏ biến 1 lá bài thường trên tay hóa thành con Heo Cơ (2♥) thực thụ (Video + Giọng lồng tiếng thật).',
+    desc: '[Huyền Thoại] Hắc Long truyền máu Trái Tim Rồng Đỏ biến 1 lá bài cao nhất (dưới 2) trên tay hóa thành con Heo Cơ (2♥) thực thụ (Video + Giọng lồng tiếng thật).',
     price: 155000,
     mp4Url: 'durin_burst.mp4?v=57',
     audioUrl: 'durin_burst.ogg?v=62',
@@ -9718,7 +9718,7 @@ const CHARACTER_SKILLS = {
     charName: 'Durin',
     icon: '🩸',
     name: 'Trái Tim Rồng Đỏ',
-    shortDesc: 'Truyền máu Hắc Long biến 1 lá bài thường nhỏ nhất trên tay Durin hóa thành con Heo Cơ (2♥) thực thụ!',
+    shortDesc: 'Truyền máu Hắc Long biến 1 lá bài cao nhất (dưới 2) trên tay Durin hóa thành con Heo Cơ (2♥) thực thụ!',
   },
   xiao: {
     id: 'xiao',
@@ -17544,21 +17544,15 @@ class TienLenGame {
       }
     } else if (charId === 'durin') {
       const struct = this.analyzeBotHandStructure(player.hand);
-      const sorted = sortCardsAsc(player.hand);
+      const sortedDesc = [...sortCardsAsc(player.hand)].reverse();
       let targetCard = null;
       if (preferredCardIds && preferredCardIds.length > 0) {
         targetCard = player.hand.find((c) => preferredCardIds.includes(c.id) && c.rankIndex < 12);
       }
       if (!targetCard) {
         targetCard =
-          sorted.find(
-            (c) =>
-              c.rankIndex < 12 &&
-              struct.rankCounts[c.rankIndex] === 1 &&
-              !struct.bombRanks.has(c.rankIndex) &&
-              !struct.criticalStraightRanks.has(c.rankIndex)
-          ) ||
-          sorted.find((c) => c.rankIndex < 12);
+          sortedDesc.find((c) => c.rankIndex < 12 && !struct.bombRanks.has(c.rankIndex)) ||
+          sortedDesc.find((c) => c.rankIndex < 12);
       }
       if (targetCard) {
         const oldStr = `${targetCard.rank}${targetCard.suit}`;
@@ -17572,7 +17566,7 @@ class TienLenGame {
         player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
         this.selectedCardIds = new Set([targetCard.id]);
         this.companionCardIds.clear();
-        skillSummary = `🩸 [Trái Tim Rồng Đỏ] ${player.name} truyền máu Hắc Long biến lá ${oldStr} hóa thành con Heo Cơ 2♥ thực thụ!`;
+        skillSummary = `🩸 [Trái Tim Rồng Đỏ] ${player.name} truyền máu Hắc Long biến lá cao nhất dưới Heo (${oldStr}) hóa thành con Heo Cơ 2♥ thực thụ!`;
       }
     } else if (charId === 'xiao') {
       this.xiaoPlungeSingleTurn = true;
@@ -18331,17 +18325,12 @@ class TienLenGame {
         }
       }
     } else if (charId === 'durin') {
-      // Trái Tim Rồng Đỏ: Biến 1 lá bài rác trên tay thành con Heo Cơ 2♥ (value 51 — lá bài mạnh nhất bàn)!
-      const trashCand =
-        sortCardsAsc(bot.hand).find(
-          (c) =>
-            c.rankIndex <= 8 &&
-            struct.rankCounts[c.rankIndex] === 1 &&
-            !struct.bombRanks.has(c.rankIndex) &&
-            !struct.criticalStraightRanks.has(c.rankIndex)
-        ) ||
-        sortCardsAsc(bot.hand).find((c) => c.rankIndex <= 9 && !struct.bombRanks.has(c.rankIndex));
-      if (trashCand) {
+      // Trái Tim Rồng Đỏ: Biến 1 lá bài cao nhất (dưới 2) trên tay thành con Heo Cơ 2♥ (value 51 — lá bài mạnh nhất bàn)!
+      const sortedDesc = [...sortCardsAsc(bot.hand)].reverse();
+      const highCand =
+        sortedDesc.find((c) => c.rankIndex < 12 && !struct.bombRanks.has(c.rankIndex)) ||
+        sortedDesc.find((c) => c.rankIndex < 12);
+      if (highCand) {
         // TH1: Trên bàn đang đánh Lẻ (kể cả Heo 2♠/2♣/2♦ hoặc bài lớn J..A) mà Bot không đỡ được -> Hoá 2♥ đập chết ngay!
         const canCutSingleWith2Heart =
           this.currentCombo &&
@@ -18355,12 +18344,12 @@ class TienLenGame {
           this.currentCombo.highValue < 51 &&
           rankCounts[12] >= 1 &&
           (!plannedMove || this.currentCombo.highRank >= 9);
-        // TH3: Khi đang cầm cái hoặc chuẩn bị đánh ở giữa/cuối ván -> Hoá lá rác nhỏ nhất thành 2♥ để nắm chắc quyền cướp cái!
+        // TH3: Khi đang cầm cái hoặc chuẩn bị đánh ở giữa/cuối ván -> Hoá lá cao nhất dưới 2 thành 2♥ để nắm chắc quyền cướp cái!
         const goodMidEndgameUpgrade =
           (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 6);
         if (canCutSingleWith2Heart || canFormPairOfTwos || goodMidEndgameUpgrade) {
           shouldCast = true;
-          preferredIds = [trashCand.id];
+          preferredIds = [highCand.id];
         }
       }
     } else if (charId === 'xiao') {

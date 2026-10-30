@@ -1708,6 +1708,11 @@ class TienLenGame {
     if (!this.loadActiveMatchSnapshot()) {
       this.startNewMatch(true);
     }
+    // Đảm bảo khi mới vào game luôn mở ở Sảnh Chờ (#wifi-modal), ẩn Kho Đồ / Cầu Nguyện / Pause Menu
+    ['inventory-modal', 'shop-modal', 'pause-modal', 'quests-modal', 'rules-modal', 'account-modal', 'summary-modal'].forEach(
+      (id) => document.getElementById(id)?.classList.add('hidden')
+    );
+    this.modalWifi?.classList.remove('hidden');
     if (this.dailyRecoveredOnLoad) {
       this.addLog(
         `🌅 <strong>Quà Hồi Phục Hàng Ngày:</strong> Tài khoản của bạn vừa được hồi <strong>+${DAILY_RECOVERY_COINS.toLocaleString()} xu</strong> cho ngày mới!`,
@@ -5677,7 +5682,8 @@ class TienLenGame {
         clientId: idx === 0 ? 'host' : p.clientId || null,
       }));
 
-      this.modalWifi?.classList.add('hidden');
+      // Giữ Sảnh Chờ mở khi mới vào game để người chơi luôn thấy Sảnh Chờ đầu tiên
+      this.modalWifi?.classList.remove('hidden');
       this.modalSummary?.classList.add('hidden');
       this.btnShowSummary?.classList.add('hidden');
 
@@ -5706,7 +5712,6 @@ class TienLenGame {
       this.renderSoloPlayerCountUI();
       this.renderAll();
       this.updateMidMatchLockUI();
-      this.promptCurrentTurn();
       return true;
     } catch (_) {
       return false;

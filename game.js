@@ -3485,6 +3485,10 @@ class TienLenGame {
       clearTimeout(this.botTimer);
       clearInterval(this.turnCountdownInterval);
       this.openAccountModal('register');
+    } else if (!this.tutorialCompleted && this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0) {
+      setTimeout(() => this.startNewbieTutorial(1), 120);
+    } else if (!this.tutorialCompleted && this.tutorialStep >= 1 && this.tutorialStep <= 6) {
+      setTimeout(() => this.resumeNewbieTutorialOnBoot(), 120);
     }
     this.setupCrossDeviceCloudSync();
     if (this.dailyRecoveredOnLoad) {
@@ -3940,6 +3944,19 @@ class TienLenGame {
     }
     if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
     if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
+    if (typeof data.tutorialCompleted === 'boolean') {
+      this.tutorialCompleted = this.tutorialCompleted || data.tutorialCompleted;
+    }
+    if (typeof data.beginnerBannerUsed === 'boolean') {
+      this.beginnerBannerUsed = this.beginnerBannerUsed || data.beginnerBannerUsed;
+    }
+    if (typeof data.tutorialStep === 'number' && isNewerOrEqual) {
+      this.tutorialStep = data.tutorialStep;
+    }
+    if (this.unlockedBursts.size > 0 && (this.totalWishes || 0) > 0 && data.tutorialCompleted === undefined && this.tutorialStep === 0) {
+      this.tutorialCompleted = true;
+      this.beginnerBannerUsed = true;
+    }
     if (data.dailyQuestsDate === today && data.dailyQuestsState && typeof data.dailyQuestsState === 'object') {
       this.dailyQuestsDate = today;
       DAILY_QUESTS_CONFIG.forEach((q) => {
@@ -3977,6 +3994,9 @@ class TienLenGame {
     this.gachaHistoryFilter = 'all';
     this.arenaTheme = 'inazuma';
     this.autoRandomizeBots = true;
+    this.tutorialCompleted = false;
+    this.beginnerBannerUsed = false;
+    this.tutorialStep = 0;
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
     this.dailyRecoveredOnLoad = false;
@@ -4552,6 +4572,9 @@ class TienLenGame {
       equippedChopBurst: resolvedActiveChar,
       equippedWinBurst: resolvedActiveChar,
       gachaHistory: mergedHistory,
+      tutorialCompleted: Boolean(baseProf.tutorialCompleted || incomingProf.tutorialCompleted || mergedBursts.length > 0),
+      beginnerBannerUsed: Boolean(baseProf.beginnerBannerUsed || incomingProf.beginnerBannerUsed || mergedBursts.length > 0),
+      tutorialStep: Math.max(Number(baseProf.tutorialStep) || 0, Number(incomingProf.tutorialStep) || 0),
       dailyQuestsDate: today,
       dailyQuestsState: mergedQuestsState,
     };
@@ -4901,6 +4924,9 @@ class TienLenGame {
         selectedBannerBurstId: this.selectedBannerBurstId || 'raiden',
         totalWishes: this.totalWishes || 0,
         gachaHistory: (this.gachaHistory || []).slice(0, 300),
+        tutorialCompleted: !!this.tutorialCompleted,
+        beginnerBannerUsed: !!this.beginnerBannerUsed,
+        tutorialStep: this.tutorialStep || 0,
         lastDailyDate: this.lastDailyDate || today,
         dailyReliefUsed: this.dailyReliefUsed || 0,
         dailyQuestsDate: this.dailyQuestsDate || today,
@@ -5034,7 +5060,7 @@ class TienLenGame {
       typedName && typedName !== 'Nhà Lữ Hành' && (typedName !== 'Thắng' || usernameKey.includes('thang'))
         ? typedName
         : rawUser;
-    const keepCurrentData = keepEl ? keepEl.checked : true;
+    const keepCurrentData = keepEl ? keepEl.checked : false;
 
     if (!/^[a-zA-Z0-9_.-]{3,20}$/.test(rawUser)) {
       alert('⚠️ Tên tài khoản cần dài từ 3 đến 20 ký tự, viết liền không dấu (chữ cái, số, dấu gạch dưới)!');
@@ -5077,9 +5103,16 @@ class TienLenGame {
       return;
     }
 
-    // Mặc định (keepCurrentData = true): GIỮ NGUYÊN 100% toàn bộ dữ liệu đang chơi hiện tại!
+    // Mặc định (keepCurrentData = false): Tạo tài khoản Tân Thủ mới hoàn toàn, vào Hướng Dẫn Tân Thủ và nhận 1 Nhân Vật 5★ Limited miễn phí!
     if (!keepCurrentData) {
       this.resetProfileMemoryToDefaults();
+    }
+
+    const isFreshNewbie = !keepCurrentData || (this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0);
+    if (isFreshNewbie) {
+      this.tutorialCompleted = false;
+      this.beginnerBannerUsed = false;
+      this.tutorialStep = 1;
     }
 
     this.savedPlayerName = displayName;
@@ -5110,6 +5143,11 @@ class TienLenGame {
     );
     this.renderAccountModal();
     document.getElementById('account-modal')?.classList.add('hidden');
+    if (isFreshNewbie) {
+      this._pendingJoinRoomParam = '';
+      this.startNewbieTutorial(1);
+      return;
+    }
     if (this._pendingJoinRoomParam) {
       const pendingRoom = this._pendingJoinRoomParam;
       this._pendingJoinRoomParam = '';
@@ -5246,6 +5284,15 @@ class TienLenGame {
     );
     this.renderAccountModal();
     document.getElementById('account-modal')?.classList.add('hidden');
+    if (!this.tutorialCompleted && this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0) {
+      this._pendingJoinRoomParam = '';
+      this.startNewbieTutorial(1);
+      return;
+    }
+    if (!this.tutorialCompleted && this.tutorialStep >= 1 && this.tutorialStep <= 6) {
+      this.resumeNewbieTutorialOnBoot();
+      return;
+    }
     if (this._pendingJoinRoomParam) {
       const pendingRoom = this._pendingJoinRoomParam;
       this._pendingJoinRoomParam = '';
@@ -5506,8 +5553,8 @@ class TienLenGame {
             <input type="text" id="acc-reg-displayname" value="${this.savedPlayerName && this.savedPlayerName !== 'Thắng' && this.savedPlayerName !== 'Nhà Lữ Hành' ? this.savedPlayerName : ''}" placeholder="Mặc định lấy theo Tên tài khoản (Username)..." maxlength="18" oninput="this.dataset.userEdited = this.value.trim() ? '1' : '';" />
           </div>
           <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#a7f3d0;font-weight:700;cursor:pointer;margin-top:2px;">
-            <input type="checkbox" id="acc-reg-keep-data" checked style="width:16px;height:16px;accent-color:#10b981;" />
-            <span>✅ Giữ nguyên 100% dữ liệu đang chơi hiện tại (${curCoins.toLocaleString()} Xu, ${this.unlockedBursts.size} Nộ 5★, ${this.unlockedSkins.size} Skin Bài &amp; Pity) vào tài khoản này</span>
+            <input type="checkbox" id="acc-reg-keep-data" style="width:16px;height:16px;accent-color:#10b981;" />
+            <span>✅ Gộp dữ liệu khách trên máy này (${curCoins.toLocaleString()} Xu, ${this.unlockedBursts.size} Nộ 5★) — <em>Để trống nếu muốn tạo Tài Khoản Tân Thủ mới &amp; nhận quà 5★ Limited!</em></span>
           </label>
           <button class="primary-btn" id="btn-acc-register-submit" onclick="window.tienLenGame.registerAccount()" style="width:100%;margin-top:4px;font-size:13.5px;padding:10px;">
             🔐 Tạo Tài Khoản &amp; Đồng Bộ Đám Mây Ngay
@@ -5963,7 +6010,154 @@ class TienLenGame {
     return result;
   }
 
+  performBeginnerWish10() {
+    if (this.beginnerBannerUsed) {
+      alert('🎁 Banner Tân Thủ chỉ có thể Cầu Nguyện duy nhất 1 lần ×10 và đã được sử dụng!');
+      return;
+    }
+    const me = this.getLocalPlayer();
+    if (!me) return;
+    if (me.coins < WISH_COST_TEN) {
+      if (this.tutorialStep === 3 || !this.tutorialCompleted) {
+        me.coins = Math.max(20000, me.coins);
+        this.savedCoins = me.coins;
+      } else {
+        alert(`⚠️ Bạn cần ${WISH_COST_TEN.toLocaleString()} Xu để Cầu Nguyện Tân Thủ ×10!`);
+        return;
+      }
+    }
+
+    me.coins -= WISH_COST_TEN;
+    this.savedCoins = me.coins;
+    this.beginnerBannerUsed = true;
+
+    const results = [];
+    let totalRefund = 0;
+
+    // 8 món 3★ Avatar + 1 món 4★ Decor Bài Raiden + 1 món 5★ Limited Chắc Chắn: Raiden Shogun (Lôi Thần)
+    const pool3 = ANIME_AVATARS.filter((a) => a.id !== 'default_player');
+    for (let i = 0; i < 8; i++) {
+      this.totalWishes = (this.totalWishes || 0) + 1;
+      const chosenAvatar = pool3[(i * 3 + Math.floor(Math.random() * pool3.length)) % pool3.length];
+      const alreadyOwned = this.unlockedAvatars.has(chosenAvatar.id);
+      const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[3] : 0;
+      if (!alreadyOwned) {
+        this.unlockedAvatars.add(chosenAvatar.id);
+        if (this.equippedAvatar === 'default_player') {
+          this.equippedAvatar = chosenAvatar.id;
+          me.avatar = chosenAvatar.id;
+        }
+      }
+      totalRefund += refund;
+      const r3 = {
+        pullNo: this.totalWishes,
+        time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        star: 3,
+        category: 'avatar',
+        typeLabel: 'Avatar Nhân Vật 3★',
+        id: chosenAvatar.id,
+        name: `Avatar: ${chosenAvatar.name}`,
+        thumbUrl: chosenAvatar.imgUrl,
+        isNew: !alreadyOwned,
+        refund,
+        pityUsed: i + 1,
+        rateNote: '3★ Banner Tân Thủ',
+      };
+      this.gachaHistory.unshift(r3);
+      results.push(r3);
+    }
+
+    // Món thứ 9: 4★ Decor Bài Raiden Shogun
+    this.totalWishes = (this.totalWishes || 0) + 1;
+    const chosenSkin = getCardSkinMeta('raiden') || ANIME_CARD_SKINS.find((s) => s.id !== 'classic');
+    const skinOwned = this.unlockedSkins.has(chosenSkin.id);
+    const skinRefund = skinOwned ? DUPLICATE_REFUND_COINS[4] : 0;
+    if (!skinOwned) {
+      this.unlockedSkins.add(chosenSkin.id);
+      if (this.equippedSkin === 'classic') {
+        this.equippedSkin = chosenSkin.id;
+        me.cardSkin = chosenSkin.id;
+      }
+    }
+    totalRefund += skinRefund;
+    const r4 = {
+      pullNo: this.totalWishes,
+      time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      star: 4,
+      category: 'skin',
+      typeLabel: 'Decor Bài 4★ (Tặng Kèm)',
+      id: chosenSkin.id,
+      name: chosenSkin.name,
+      thumbUrl: `fanart/${chosenSkin.id}.jpg?v=66`,
+      isNew: !skinOwned,
+      refund: skinRefund,
+      pityUsed: 9,
+      rateNote: '🔥 4★ Banner Tân Thủ',
+    };
+    this.gachaHistory.unshift(r4);
+    results.push(r4);
+
+    // Món thứ 10: NỔ VÀNG 100% NHÂN VẬT 5★ LIMITED TẶNG TÂN THỦ — RAIDEN SHOGUN (⚡ Lôi Thần)
+    this.totalWishes = (this.totalWishes || 0) + 1;
+    const giftBurst = getBurstMeta('raiden') || GENSHIN_BURSTS[0];
+    const burstOwned = this.unlockedBursts.has(giftBurst.id);
+    const burstRefund = burstOwned ? DUPLICATE_REFUND_COINS[5] : 0;
+    this.unlockedBursts.add(giftBurst.id);
+    this.equippedActiveChar = giftBurst.id;
+    this.equippedChopBurst = giftBurst.id;
+    this.equippedWinBurst = giftBurst.id;
+    me.activeChar = giftBurst.id;
+    me.chopBurst = giftBurst.id;
+    me.winBurst = giftBurst.id;
+    totalRefund += burstRefund;
+
+    const r5 = {
+      pullNo: this.totalWishes,
+      time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      star: 5,
+      category: 'burst',
+      typeLabel: '🎁 QUÀ 5★ LIMITED TÂN THỦ',
+      id: giftBurst.id,
+      name: giftBurst.name,
+      thumbUrl: `fanart/${giftBurst.id}.jpg?v=66`,
+      videoUrl: giftBurst.videoUrl,
+      isNew: !burstOwned,
+      refund: burstRefund,
+      pityUsed: 10,
+      rateNote: '🌟 Cam Kết 100% Nổ 5★ Limited Tân Thủ',
+    };
+    this.gachaHistory.unshift(r5);
+    results.push(r5);
+    if (this.gachaHistory.length > 300) this.gachaHistory.length = 300;
+
+    if (totalRefund > 0) {
+      me.coins += totalRefund;
+      this.savedCoins = me.coins;
+    }
+
+    if (this.tutorialStep === 3) {
+      this.hideTravelerGuide();
+    }
+
+    this.showGachaMeteorAndResults(results, totalRefund);
+
+    setTimeout(() => {
+      this.addLog(
+        `🎁🌟 <strong>Banner Tân Thủ ×10:</strong> Chúc mừng bạn đã nổ vàng nhận <strong>Nhân Vật 5★ Limited: ⚡ Raiden Shogun (Lôi Thần)</strong> và tự động trang bị vào bàn đấu! (Banner Tân Thủ đã biến mất sau 10 lần roll duy nhất).`,
+        'log-win'
+      );
+      this.saveShopProfile();
+      this.renderShopModal();
+      this.renderAll();
+      this.syncCosmeticsInRoom();
+    }, 60);
+  }
+
   performWish(count = 1) {
+    if (!this.tutorialCompleted && this.tutorialStep === 3 && !this.beginnerBannerUsed) {
+      alert('🌟 Nhà Lữ Hành: Hãy bấm vào nút "🌟 Cầu Nguyện Tân Thủ ×10 (16,000 Vàng)" trên Banner Tân Thủ đặc biệt phía trên để nhận chắc chắn Nhân Vật 5★ Limited trước nhé!');
+      return;
+    }
     const me = this.getLocalPlayer();
     if (!me) return;
     const pullCount = count === 10 ? 10 : 1;
@@ -6225,7 +6419,40 @@ class TienLenGame {
         })
         .join('');
 
+      const beginnerBannerHtml = !this.beginnerBannerUsed
+        ? `
+          <div class="beginner-banner-box ${this.tutorialStep === 3 ? 'tutorial-highlight-pulse' : ''}" id="beginner-banner-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:260px;">
+                <img src="fanart/raiden.jpg?v=66" alt="Raiden Shogun" style="width:78px;height:78px;border-radius:16px;object-fit:cover;border:2.5px solid #fde047;box-shadow:0 0 20px rgba(250,204,21,0.6);flex-shrink:0;" />
+                <div>
+                  <div style="display:inline-block;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,#fde047,#f59e0b);color:#0f172a;font-size:11px;font-weight:900;margin-bottom:4px;">
+                    🎁 BANNER TÂN THỦ ĐẶC BIỆT • CHỈ ROLL DUY NHẤT 1 LẦN ×10 RỒI BIẾN MẤT!
+                  </div>
+                  <div style="font-size:18px;font-weight:900;color:#ffffff;text-shadow:0 2px 10px rgba(0,0,0,0.85);">
+                    ⚡ TẶNG CHẮC CHẮN 100% NHÂN VẬT 5★ LIMITED: RAIDEN SHOGUN (LÔI THẦN)
+                  </div>
+                  <div style="font-size:12.5px;color:#fde68a;margin-top:3px;line-height:1.4;">
+                    🔮 <strong>Kỹ Năng [Phím E] — Tịnh Thổ Cắt Vòng:</strong> Chém đứt bộ Lẻ/Đôi ≤ J trên bàn để <strong>cướp quyền Cầm Cái mở vòng mới</strong> ngay lập tức &amp; gắn <strong>Ấn Lôi ⚡</strong> kích hoạt <strong>Phản Ứng Điện Cảm (+5× cược)</strong>!
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:240px;">
+                <button type="button" class="gacha-wish-btn wish-10x ${this.tutorialStep === 3 ? 'tutorial-highlight-pulse' : ''}" id="btn-beginner-wish-10" onclick="window.tienLenGame.performBeginnerWish10()" style="width:100%;padding:12px 18px;border:2px solid #fef08a;">
+                  <span class="gacha-wish-btn-title">🌟 Cầu Nguyện Tân Thủ ×10</span>
+                  <span class="gacha-wish-btn-cost">🪙 ${WISH_COST_TEN.toLocaleString()} Vàng • Nổ Chắc Chắn 5★ Limited!</span>
+                </button>
+                <div style="font-size:11px;color:#e2e8f0;text-align:center;">
+                  ✨ Kèm 1 Decor Bài 4★ Raiden + 8 Avatar 3★ (Tự động biến mất ngay sau khi quay)
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+        : '';
+
       gachaPanel.innerHTML = `
+        ${beginnerBannerHtml}
         <div class="gacha-epitomized-bar">
           <div class="gacha-epitomized-title" style="flex-wrap:wrap;gap:6px;">
             <span>🌐 2 BANNER 5★ GIỚI HẠN HÔM NAY (ĐỒNG BỘ TOÀN SERVER • CHU KỲ #${dailyInfo.cycleIndex} — NGÀY ${dailyInfo.dayInCycle}/${dailyInfo.daysPerCycle} • KHÔNG TRÙNG NHÂN VẬT TRONG CHU KỲ):</span>
@@ -7365,16 +7592,28 @@ class TienLenGame {
     });
 
     document.getElementById('btn-summary-change-bet')?.addEventListener('click', () => {
+      if (this.isMidMatch()) {
+        alert('⛔ Ván bài hiện tại chưa kết thúc! Không thể quay về Sảnh Chờ khi trận đấu đang diễn ra.');
+        return;
+      }
       this.modalSummary.classList.add('hidden');
+      this.inInitialLobby = true;
       this.modalWifi.classList.remove('hidden');
       this.renderBetTiers();
       this.renderLobbyModal();
+      this.updateMidMatchLockUI();
       sfx.click();
+      if (!this.tutorialCompleted && (this.tutorialStep === 1 || this.tutorialStep === 2)) {
+        this.advanceTutorialStep(2);
+      }
     });
 
     document.getElementById('btn-close-gacha-results')?.addEventListener('click', () => {
       document.getElementById('gacha-wish-overlay')?.classList.add('hidden');
       sfx.click();
+      if (!this.tutorialCompleted && (this.tutorialStep === 3 || this.tutorialStep === 4) && this.beginnerBannerUsed) {
+        this.advanceTutorialStep(4);
+      }
     });
 
     document.getElementById('btn-top-watch-ad')?.addEventListener('click', () => {
@@ -7548,6 +7787,10 @@ class TienLenGame {
 
     this.btnWifi.addEventListener('click', async () => {
       if (!this.requireAccountLogin()) return;
+      if (this.isMidMatch()) {
+        alert('⛔ Ván bài hiện tại chưa kết thúc! Bạn phải đánh xong ván bài này mới được quay về Màn Hình Chờ / Đổi Chế Độ.');
+        return;
+      }
       await this.refreshServerInfo();
       if (this.roomId) {
         document.getElementById('share-link-input').value = this.getShareableRoomUrl(this.roomId);
@@ -7555,6 +7798,7 @@ class TienLenGame {
       ['mode-setup-modal', 'pause-modal', 'inventory-modal', 'shop-modal', 'quests-modal', 'rules-modal', 'account-modal', 'char-skill-detail-modal', 'summary-modal'].forEach(
         (id) => document.getElementById(id)?.classList.add('hidden')
       );
+      this.inInitialLobby = true;
       this.modalWifi.classList.remove('hidden');
       this.renderSoloPlayerCountUI();
       this.renderBetTiers();
@@ -7565,29 +7809,43 @@ class TienLenGame {
 
     document.getElementById('btn-close-wifi').addEventListener('click', () => {
       if (!this.requireAccountLogin()) return;
-      const wasInitial = this.inInitialLobby;
+      if (!this.tutorialCompleted && (this.tutorialStep === 2 || this.tutorialStep === 3 || this.tutorialStep === 4)) {
+        alert('🌟 Nhà Lữ Hành: Hãy làm theo hướng dẫn của mình trên màn hình trước khi vào bàn nhé!');
+        return;
+      }
+      if (this.isMultiplayer && this.roomId) {
+        if (!this.isMidMatch()) {
+          alert(`⛔ Bạn đang ở trong Phòng Chờ Nhiều Người (#${this.roomId})! Không được phép ra khỏi Sảnh Chờ khi trận đấu chưa bắt đầu (hoặc bấm "✕ Rời phòng" nếu muốn thoát phòng).`);
+          return;
+        }
+        document.getElementById('mode-setup-modal')?.classList.add('hidden');
+        this.modalWifi.classList.add('hidden');
+        this.updateMidMatchLockUI();
+        return;
+      }
+      if (!this.isMidMatch()) {
+        alert('⛔ Hiện chưa có ván đấu nào đang diễn ra! Vui lòng bấm chọn "🤖 CHƠI VỚI BOT" hoặc "👥 CHƠI VỚI NGƯỜI" trên Sảnh Chờ để bắt đầu ván đấu.');
+        return;
+      }
       this.inInitialLobby = false;
       document.getElementById('mode-setup-modal')?.classList.add('hidden');
       this.modalWifi.classList.add('hidden');
-      if (!this.isMultiplayer) {
-        const curActiveCount = this.players.filter((p) => p.active).length;
-        if (wasInitial || this.isGameOver || curActiveCount !== (this.soloPlayerCount || 4)) {
-          this.switchToSoloBotMode();
-          return;
-        }
-        this.saveActiveMatchSnapshot();
-        this.updateMidMatchLockUI();
-        if (!this.isGameOver) {
-          clearTimeout(this.botTimer);
-          this.promptCurrentTurn();
-        }
+      this.saveActiveMatchSnapshot();
+      this.updateMidMatchLockUI();
+      if (!this.isGameOver) {
+        clearTimeout(this.botTimer);
+        this.promptCurrentTurn();
       }
     });
 
     document.getElementById('btn-create-room')?.addEventListener('click', () => {
       if (!this.requireAccountLogin()) return;
       if (!this.isMultiplayer && this.isMidMatch()) {
-        alert('⛔ Bạn đang đánh dở ván bài! Vui lòng hoàn thành ván hiện tại trước khi Tạo Phòng mới.');
+        alert('⛔ Bạn đang đánh dở ván bài với Bot! Không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
+        return;
+      }
+      if (this.isMultiplayer && this.isMidMatch()) {
+        alert('⛔ Trận đấu trong phòng hiện tại chưa kết thúc! Bạn không được phép tạo phòng khác khi ván bài đang diễn ra.');
         return;
       }
       this.inInitialLobby = false;
@@ -7638,6 +7896,14 @@ class TienLenGame {
 
     document.getElementById('btn-solo-bot-mode').addEventListener('click', () => {
       if (!this.requireAccountLogin()) return;
+      if (this.isMultiplayer && this.roomId) {
+        if (this.isMidMatch()) {
+          alert(`⛔ Bạn đang trong trận đấu với Người (Phòng #${this.roomId}) chưa kết thúc! Tuyệt đối không thể chơi 2 trận với Người và với Bot cùng 1 lúc.`);
+        } else {
+          alert(`⛔ Bạn đang ở trong Phòng Đấu Với Người (#${this.roomId})! Không thể vào trận Đấu Với Bot cùng lúc. Vui lòng bấm "✕ Rời phòng" trước nếu muốn chuyển sang chơi với Bot.`);
+        }
+        return;
+      }
       document.getElementById('mode-setup-modal')?.classList.add('hidden');
       if (!this.isMultiplayer && this.isMidMatch()) {
         // Nếu đang đánh dở ván bài thì chỉ đóng Sảnh Chờ để đánh tiếp, tuyệt đối không reset ván!
@@ -7650,6 +7916,10 @@ class TienLenGame {
       }
       this.inInitialLobby = false;
       this.modalWifi.classList.add('hidden');
+      if (!this.tutorialCompleted && this.tutorialStep === 4) {
+        this.startTutorialMatch2WithRaiden();
+        return;
+      }
       this.switchToSoloBotMode();
     });
 
@@ -7730,14 +8000,20 @@ class TienLenGame {
 
     this.btnRules.addEventListener('click', () => {
       document.getElementById('pause-modal')?.classList.add('hidden');
+      if (!this.tutorialCompleted && this.tutorialStep >= 6) {
+        this.hideTravelerGuide();
+        if (this.modalSummary) this.modalSummary.classList.add('hidden');
+      }
       this.modalRules.classList.remove('hidden');
       sfx.click();
     });
     document.getElementById('btn-close-rules').addEventListener('click', () => {
       this.modalRules.classList.add('hidden');
+      this.onCloseRulesModalCompleteTutorial();
     });
     document.getElementById('btn-ok-rules').addEventListener('click', () => {
       this.modalRules.classList.add('hidden');
+      this.onCloseRulesModalCompleteTutorial();
     });
 
     this.btnResetCoins.addEventListener('click', () => {
@@ -7918,10 +8194,34 @@ class TienLenGame {
 
   openModeSetupModal(mode = 'bot') {
     if (!this.requireAccountLogin()) return;
-    this.selectLobbyMode(mode);
+    const targetMode = mode === 'human' ? 'human' : 'bot';
+    if (!this.tutorialCompleted && (this.tutorialStep === 2 || this.tutorialStep === 3)) {
+      alert('🌟 Nhà Lữ Hành: Hãy vào Sảnh Cầu Nguyện để nhận Nhân Vật 5★ Limited tặng Tân Thủ trước khi tạo bàn nhé!');
+      return;
+    }
+    if (!this.tutorialCompleted && this.tutorialStep === 4 && targetMode === 'human') {
+      alert('🌟 Nhà Lữ Hành: Ở bước hướng dẫn này, hãy bấm chọn "🤖 CHƠI VỚI BOT" để mình hướng dẫn bạn xài chiêu của Raiden Shogun và Phản Ứng Nguyên Tố nhé!');
+      return;
+    }
+    if (targetMode === 'bot' && this.isMultiplayer && this.roomId) {
+      if (this.isMidMatch()) {
+        alert(`⛔ Bạn đang trong trận đấu với Người (Phòng #${this.roomId}) chưa kết thúc! Tuyệt đối không thể chơi 2 trận với Người và với Bot cùng 1 lúc.`);
+      } else {
+        alert(`⛔ Bạn đang ở trong Phòng Đấu Với Người (#${this.roomId})! Không thể mở bàn Đấu Với Bot cùng lúc. Vui lòng bấm "✕ Rời phòng" trước nếu muốn chuyển sang chơi với Bot.`);
+      }
+      return;
+    }
+    if (targetMode === 'human' && !this.isMultiplayer && this.isMidMatch()) {
+      alert('⛔ Bạn đang trong trận đấu với Bot chưa kết thúc! Tuyệt đối không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
+      return;
+    }
+    this.selectLobbyMode(targetMode);
     const modal = document.getElementById('mode-setup-modal');
     if (modal) {
       modal.classList.remove('hidden');
+    }
+    if (!this.tutorialCompleted && this.tutorialStep === 4 && targetMode === 'bot') {
+      this.renderTravelerGuide();
     }
   }
 
@@ -7935,7 +8235,14 @@ class TienLenGame {
   }
 
   selectLobbyMode(mode) {
-    this.selectedLobbyMode = mode === 'human' ? 'human' : 'bot';
+    const requestedMode = mode === 'human' ? 'human' : 'bot';
+    if (requestedMode === 'bot' && this.isMultiplayer && this.roomId) {
+      this.selectedLobbyMode = 'human';
+    } else if (requestedMode === 'human' && !this.isMultiplayer && this.isMidMatch()) {
+      this.selectedLobbyMode = 'bot';
+    } else {
+      this.selectedLobbyMode = requestedMode;
+    }
     const cardBot = document.getElementById('mode-card-bot');
     const cardHuman = document.getElementById('mode-card-human');
     const panelBot = document.getElementById('lobby-bot-panel');
@@ -8089,17 +8396,8 @@ class TienLenGame {
       (p) => p.active && p.finishRank === null && Array.isArray(p.hand) && p.hand.length > 0
     );
     if (activeWithCards.length < 2) return false;
-    if (!this.isMultiplayer) {
-      const anyActionTaken =
-        !!this.currentCombo ||
-        !!this.previousCombo ||
-        activeWithCards.some((p) => p.hand.length < 13 || p.passed || p.skillUsed);
-      const inLobbyOrSetup =
-        (this.modalWifi && !this.modalWifi.classList.contains('hidden')) ||
-        !document.getElementById('mode-setup-modal')?.classList.contains('hidden');
-      if (!anyActionTaken && inLobbyOrSetup) {
-        return false;
-      }
+    if (this.isMultiplayer) {
+      return (this.matchCount || 0) >= 1;
     }
     return true;
   }
@@ -8114,6 +8412,26 @@ class TienLenGame {
         : 'Chia ván bài mới';
       this.btnNewGame.style.opacity = locked ? '0.55' : '1';
       this.btnNewGame.style.cursor = locked ? 'not-allowed' : 'pointer';
+    }
+    if (this.btnWifi) {
+      this.btnWifi.style.opacity = locked ? '0.6' : '1';
+      this.btnWifi.style.cursor = locked ? 'not-allowed' : 'pointer';
+      const subEl = document.getElementById('wifi-status-label');
+      if (subEl) {
+        subEl.textContent = locked
+          ? '🔒 Đánh xong ván mới được về Sảnh'
+          : this.isMultiplayer && this.roomId
+          ? `Phòng #${this.roomId}`
+          : 'Chọn Chế Độ / Đổi Cược';
+      }
+    }
+    const btnCloseWifi = document.getElementById('btn-close-wifi');
+    if (btnCloseWifi) {
+      const canReturnTable = this.isMidMatch();
+      btnCloseWifi.style.opacity = canReturnTable ? '1' : '0.55';
+      btnCloseWifi.title = canReturnTable
+        ? 'Đóng Sảnh Chờ để quay lại bàn đang đánh'
+        : 'Hiện chưa có ván đấu nào đang diễn ra — Hãy chọn Chơi Với Bot hoặc Chơi Với Người!';
     }
     const btnTopRandom = document.getElementById('btn-top-random-bots');
     if (btnTopRandom) {
@@ -11725,6 +12043,12 @@ class TienLenGame {
     this.updateArenaBackdropCharacters();
     this.renderRoundSkillStatusBar();
     this.renderAll();
+    if (!this.tutorialCompleted && this.tutorialStep === 5 && player.id === this.mySeatId) {
+      this.tutorialMatch2SkillUsed = true;
+      setTimeout(() => {
+        this.renderTravelerGuide();
+      }, 600);
+    }
     setTimeout(() => {
       this.saveActiveMatchSnapshot();
     }, 350);
@@ -13426,7 +13750,11 @@ class TienLenGame {
     const cleanId = String(roomId || '').trim().toUpperCase();
     if (!cleanId) return;
     if (!this.isMultiplayer && this.isMidMatch()) {
-      alert('⛔ Bạn đang đánh dở ván bài với Bot! Vui lòng hoàn thành ván hiện tại trước khi vào Bàn Người Chơi.');
+      alert('⛔ Bạn đang đánh dở ván bài với Bot! Không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
+      return;
+    }
+    if (this.isMultiplayer && this.roomId && this.roomId !== cleanId && this.isMidMatch()) {
+      alert(`⛔ Bạn đang trong trận đấu tại Phòng #${this.roomId} chưa kết thúc! Không thể chuyển sang bàn khác khi trận đang diễn ra.`);
       return;
     }
     if (this.isMultiplayer && this.roomId === cleanId) {
@@ -13794,6 +14122,14 @@ class TienLenGame {
   }
 
   async createWifiRoom() {
+    if (!this.isMultiplayer && this.isMidMatch()) {
+      alert('⛔ Bạn đang đánh dở ván bài với Bot! Không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
+      return;
+    }
+    if (this.isMultiplayer && this.isMidMatch()) {
+      alert('⛔ Trận đấu trong phòng hiện tại chưa kết thúc! Bạn không được phép tạo phòng khác khi ván bài đang diễn ra.');
+      return;
+    }
     await this.refreshServerInfo();
     this.setupMultiplayerLifecycleHooks();
     const myName =
@@ -13935,6 +14271,16 @@ class TienLenGame {
       .trim()
       .toUpperCase();
     if (!cleanCode) return;
+    if (!isAutoRestore) {
+      if (!this.isMultiplayer && this.isMidMatch()) {
+        alert('⛔ Bạn đang đánh dở ván bài với Bot! Không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
+        return;
+      }
+      if (this.isMultiplayer && this.roomId && this.roomId !== cleanCode && this.isMidMatch()) {
+        alert(`⛔ Bạn đang trong trận đấu tại Phòng #${this.roomId} chưa kết thúc! Không thể vào phòng khác khi trận đang diễn ra.`);
+        return;
+      }
+    }
 
     await this.refreshServerInfo();
     this.setupMultiplayerLifecycleHooks();
@@ -14169,6 +14515,14 @@ class TienLenGame {
   }
 
   switchToSoloBotMode() {
+    if (this.isMultiplayer && this.roomId) {
+      if (this.isMidMatch()) {
+        alert(`⛔ Bạn đang trong trận đấu với Người (Phòng #${this.roomId}) chưa kết thúc! Tuyệt đối không thể chơi 2 trận với Người và với Bot cùng 1 lúc.`);
+      } else {
+        alert(`⛔ Bạn đang ở trong Phòng Đấu Với Người (#${this.roomId})! Không thể vào trận Đấu Với Bot cùng lúc. Vui lòng bấm "✕ Rời phòng" trước nếu muốn chuyển sang chơi với Bot.`);
+      }
+      return;
+    }
     this.stopMultiplayerSync();
     this.clearMultiplayerSessionFromLocal();
     this.isMultiplayer = false;
@@ -15900,6 +16254,9 @@ class TienLenGame {
         this.elTurnBanner.textContent = `👉 Lượt của bạn! Đánh chặn ${this.currentCombo.label} hoặc Bỏ lượt (15s).`;
       }
       this.updateHumanActionButtons();
+      if (!this.tutorialCompleted && this.tutorialStep === 5) {
+        this.renderTravelerGuide();
+      }
     } else {
       this.elTurnBanner.textContent = `⏳ Đang tới lượt của ${currentPlayer.name} (15s)...`;
     }
@@ -18242,6 +18599,14 @@ class TienLenGame {
 
     this.resetSummaryBotPrompt();
     this.modalSummary.classList.remove('hidden');
+
+    if (!this.tutorialCompleted) {
+      if (this.tutorialStep === 1) {
+        this.advanceTutorialStep(2);
+      } else if (this.tutorialStep === 5) {
+        this.advanceTutorialStep(6);
+      }
+    }
   }
 
   // ============================================================================
@@ -18541,6 +18906,438 @@ class TienLenGame {
     this.renderHumanHand();
     this.updateHumanActionButtons();
     this.updateMidMatchLockUI();
+  }
+
+  // ============================================================================
+  // HƯỚNG DẪN TÂN THỦ — NHÀ LỮ HÀNH (TRAVELER TUTORIAL) & BANNER TÂN THỦ 5★
+  // ============================================================================
+  clearTutorialHighlights() {
+    document.querySelectorAll('.tutorial-highlight-pulse').forEach((el) => {
+      el.classList.remove('tutorial-highlight-pulse');
+    });
+  }
+
+  hideTravelerGuide() {
+    this.clearTutorialHighlights();
+    const overlay = document.getElementById('traveler-guide-overlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+
+  startNewbieTutorial(forceReset = false) {
+    if (this.isMultiplayer && this.roomId) {
+      this.showCenterToast('⚠️ Vui lòng rời phòng Online trước khi mở Hướng Dẫn Tân Thủ!');
+      return;
+    }
+    if (forceReset) {
+      this.beginnerBannerUsed = false;
+    }
+    this.tutorialCompleted = false;
+    this.tutorialStep = 1;
+    this.tutorialMatch2SkillUsed = false;
+
+    // Trong ván khởi động đầu tiên (Step 1), người chơi mới chưa có kỹ năng 5★ để thấy sự khác biệt với 3 Bot
+    if (!this.beginnerBannerUsed) {
+      this.equippedBurst = 'none';
+    }
+
+    if (this.modalWifi) this.modalWifi.classList.add('hidden');
+    if (this.modalRules) this.modalRules.classList.add('hidden');
+    if (this.modalSummary) this.modalSummary.classList.add('hidden');
+    if (this.modalShop) this.modalShop.classList.add('hidden');
+
+    this.isMultiplayer = false;
+    this.inInitialLobby = false;
+    this.activeCount = 4;
+    this.betPerCard = 100;
+    this.matchCount = 0;
+
+    // Thiết lập 3 Bot mang 3 Nhân Vật 5★ nổi bật để người mới quan sát kỹ năng của Bot
+    const botConfigs = [
+      { id: 1, name: 'Bot Furina 💧', avatar: '💧', burst: 'furina' },
+      { id: 2, name: 'Bot Arlecchino 🔥', avatar: '🔥', burst: 'arlecchino' },
+      { id: 3, name: 'Bot Zhongli 🪨', avatar: '🪨', burst: 'zhongli' },
+    ];
+    botConfigs.forEach((cfg) => {
+      const p = this.players[cfg.id];
+      if (p) {
+        p.active = true;
+        p.isBot = true;
+        p.name = cfg.name;
+        p.avatar = cfg.avatar;
+        p.winBurst = cfg.burst;
+      }
+    });
+    if (this.players[0]) {
+      this.players[0].winBurst = 'none';
+    }
+
+    this.saveShopProfile();
+    this.startNewMatch(true);
+    this.renderTravelerGuide();
+  }
+
+  resumeNewbieTutorialOnBoot() {
+    if (this.tutorialCompleted) {
+      this.hideTravelerGuide();
+      return;
+    }
+    const step = Number(this.tutorialStep) || 1;
+    if (step <= 1) {
+      this.startNewbieTutorial(false);
+    } else if (step === 2) {
+      this.advanceTutorialStep(3);
+    } else if (step === 3) {
+      if (this.beginnerBannerUsed) {
+        this.advanceTutorialStep(4);
+      } else {
+        if (this.playerCoins < 20000) {
+          this.playerCoins = 20000;
+          if (this.players[this.mySeatId]) {
+            this.players[this.mySeatId].coins = 20000;
+          }
+          this.saveShopProfile();
+        }
+        this.inInitialLobby = true;
+        this.isGameOver = true;
+        if (this.modalWifi) this.modalWifi.classList.remove('hidden');
+        this.renderAll();
+        this.renderTravelerGuide();
+      }
+    } else if (step === 4) {
+      this.inInitialLobby = true;
+      this.isGameOver = true;
+      if (this.modalWifi) this.modalWifi.classList.remove('hidden');
+      this.renderAll();
+      this.renderTravelerGuide();
+    } else if (step === 5) {
+      this.startTutorialMatch2WithRaiden();
+    } else if (step >= 6) {
+      this.renderTravelerGuide();
+    }
+  }
+
+  advanceTutorialStep(nextStep) {
+    if (this.tutorialCompleted) return;
+    this.tutorialStep = nextStep;
+
+    if (nextStep === 3) {
+      // Nhà Lữ Hành nâng tiền người chơi mới lên đủ 20,000 Vàng để roll Banner Tân Thủ (16,000 Vàng) và dư vốn đánh bài
+      if (this.playerCoins < 20000) {
+        const added = 20000 - this.playerCoins;
+        this.playerCoins = 20000;
+        const localP = this.getLocalPlayer();
+        if (localP) localP.coins = this.playerCoins;
+        this.playSound('coin');
+        this.showComboBanner(`🎁 NHÀ LỮ HÀNH TẶNG +${added.toLocaleString()} VÀNG ➔ ĐỦ 20,000 VÀNG!`);
+        this.addLog(
+          `🌟 <strong>[Quà Tân Thủ Nhà Lữ Hành]</strong> Đã nâng ngân quỹ của bạn lên đủ <strong>20,000 Vàng</strong> để Cầu Nguyện Banner Tân Thủ 5★ Limited!`,
+          'log-win'
+        );
+      }
+      this.renderAll();
+    }
+
+    this.saveShopProfile();
+    this.renderTravelerGuide();
+  }
+
+  startTutorialMatch2WithRaiden() {
+    this.tutorialStep = 5;
+    this.tutorialMatch2SkillUsed = false;
+
+    if (!this.ownedBursts.includes('raiden')) {
+      this.ownedBursts.push('raiden');
+    }
+    this.equippedBurst = 'raiden';
+
+    if (this.modalWifi) this.modalWifi.classList.add('hidden');
+    if (this.modalShop) this.modalShop.classList.add('hidden');
+    if (this.modalSummary) this.modalSummary.classList.add('hidden');
+
+    this.isMultiplayer = false;
+    this.inInitialLobby = false;
+    this.activeCount = 4;
+    this.betPerCard = 100;
+    this.matchCount = 0;
+
+    // Khởi tạo ván bài chuẩn rồi sắp xếp kịch bản thực hành Kỹ Năng Raiden Shogun + Phản Ứng Nguyên Tố Điện Cảm
+    this.startNewMatch(true);
+    clearTimeout(this.botTimer);
+
+    // Gán Nhân Vật cho 4 ghế: Bạn (Seat 0 = Raiden ⚡), Seat 1 = Nahida 🌿, Seat 2 = Arlecchino 🔥, Seat 3 = Furina 💧
+    const p0 = this.players[0];
+    const p1 = this.players[1];
+    const p2 = this.players[2];
+    const p3 = this.players[3];
+    if (p0) {
+      p0.winBurst = 'raiden';
+      p0.skillUsed = false;
+    }
+    if (p1) {
+      p1.name = 'Bot Nahida 🌿';
+      p1.avatar = '🌿';
+      p1.winBurst = 'nahida';
+      p1.skillUsed = true; // Tạm khóa skill bot trong ván hướng dẫn để người mới dễ thực hành
+    }
+    if (p2) {
+      p2.name = 'Bot Arlecchino 🔥';
+      p2.avatar = '🔥';
+      p2.winBurst = 'arlecchino';
+      p2.skillUsed = true;
+    }
+    if (p3) {
+      p3.name = 'Bot Furina 💧';
+      p3.avatar = '💧';
+      p3.winBurst = 'furina';
+      p3.skillUsed = true;
+    }
+
+    // Sắp xếp bộ bài 52 lá sao cho:
+    // - Seat 3 (Bot Furina 💧, ngồi ngay trước Seat 0 theo chiều đánh 3 -> 0) cầm Đôi 3 (3♠ 3♦) để mở đầu đánh Đôi 3 mang nguyên tố Thủy (💧)
+    // - Seat 0 (Bạn - Raiden Shogun ⚡) cầm bộ bài gồm các Đôi lớn + Heo Cơ (2♥) để sau khi bấm [E] Tịnh Thổ Cắt Vòng sẽ dễ dàng đánh hết bài Về Nhất!
+    const fullDeck = buildDeck();
+    const pickCards = (codes) => {
+      const picked = [];
+      codes.forEach((code) => {
+        const idx = fullDeck.findIndex((c) => `${c.rank}${c.suit}` === code);
+        if (idx !== -1) {
+          picked.push(fullDeck.splice(idx, 1)[0]);
+        }
+      });
+      return picked;
+    };
+
+    const humanHand = pickCards([
+      '4♠', '4♣',
+      '6♠', '6♦',
+      '8♠', '8♥',
+      '10♠', '10♦',
+      'Q♠', 'Q♥',
+      'A♠', 'A♥',
+      '2♥',
+    ]);
+    const furinaHand = pickCards([
+      '3♠', '3♦',
+      '3♣', '5♠', '7♣', '9♦', 'J♣', 'K♠',
+      '4♦', '5♦', '7♥', '9♠', 'J♦',
+    ]);
+    const nahidaHand = fullDeck.splice(0, 13);
+    const arlecchinoHand = fullDeck.splice(0, 13);
+
+    p0.hand = sortHandByMode(humanHand, this.sortMode);
+    p1.hand = sortCardsAsc(nahidaHand);
+    p2.hand = sortCardsAsc(arlecchinoHand);
+    p3.hand = sortCardsAsc(furinaHand);
+
+    this.currentCombo = null;
+    this.previousCombo = null;
+    this.trickOwnerId = null;
+    this.mustPlay3Spade = true;
+    this.currentTurn = 3; // Bot Furina 💧 cầm 3♠ đi trước, đánh xong tới lượt Seat 0 (Bạn) ngay lập tức!
+
+    this.addLog(
+      '🌟 <strong>[Ván Thực Hành Tân Thủ]</strong> Nhà Lữ Hành đã sắp xếp bàn đấu: <strong>Bot Furina (💧 Thủy)</strong> cầm <strong>3♠</strong> đi trước, ngay sau đó sẽ đến lượt của bạn (<strong>⚡ Raiden Shogun</strong>)!',
+      'log-win'
+    );
+    this.renderAll();
+    this.renderTravelerGuide();
+
+    // Cho Bot Furina (Seat 3) đánh Đôi 3 (3♠ 3♦) mang ấn Thủy (💧) xuống bàn sau 850ms
+    this.botTimer = setTimeout(() => {
+      if (this.isGameOver || this.currentTurn !== 3) return;
+      const pair3 = p3.hand.filter((c) => c.rankIndex === 0 && (c.suit === '♠' || c.suit === '♦'));
+      const combo = classifyCombo(pair3);
+      if (combo) {
+        this.playCombo(p3, combo);
+      } else {
+        this.executeBotTurn(p3);
+      }
+    }, 850);
+  }
+
+  onCloseRulesModalCompleteTutorial() {
+    if (this.tutorialCompleted) return;
+    if (this.tutorialStep >= 6) {
+      this.tutorialCompleted = true;
+      this.tutorialStep = 7;
+      this.hideTravelerGuide();
+      this.saveShopProfile();
+      if (this.modalSummary) this.modalSummary.classList.add('hidden');
+      this.showComboBanner('🎉 HOÀN THÀNH HƯỚNG DẪN TÂN THỦ! CHÚC BẠN CHƠI VUI VẺ!');
+      this.addLog(
+        '🌟 <strong>[Hoàn Thành Hướng Dẫn Tân Thủ]</strong> Bạn đã tốt nghiệp khóa huấn luyện của <strong>Nhà Lữ Hành</strong>! Giờ bạn có thể tự do đấu với Bot hoặc chơi Online cùng bạn bè.',
+        'log-win'
+      );
+      this.openModeSetupModal();
+    }
+  }
+
+  replayNewbieTutorialFromRules() {
+    if (this.isMultiplayer && this.roomId) {
+      this.showCenterToast('⚠️ Vui lòng rời phòng Online trước khi chạy lại Hướng Dẫn Tân Thủ!');
+      return;
+    }
+    this.startNewbieTutorial(true);
+  }
+
+  renderTravelerGuide() {
+    const overlay = document.getElementById('traveler-guide-overlay');
+    const stepPill = document.getElementById('traveler-guide-step-pill');
+    const textEl = document.getElementById('traveler-guide-text');
+    const btnPrimary = document.getElementById('btn-traveler-primary');
+    if (!overlay || !stepPill || !textEl || !btnPrimary) return;
+
+    this.clearTutorialHighlights();
+
+    if (this.tutorialCompleted) {
+      overlay.classList.add('hidden');
+      return;
+    }
+
+    const step = Number(this.tutorialStep) || 1;
+    overlay.classList.remove('hidden');
+
+    if (step === 1) {
+      stepPill.textContent = 'Bước 1/6 • Ván Khởi Động Với 3 Bot';
+      textEl.innerHTML = `
+        Chào mừng bạn đến với <strong>Tiến Lên Miền Nam — Genshin Impact Edition</strong>! ✨<br>
+        Mình là <strong>Nhà Lữ Hành</strong>. Trước tiên, bạn hãy đánh hết <strong>1 ván bài khởi động với 3 Bot</strong> trên bàn nhé! Hãy để ý cách các Bot tung <strong>Kỹ Năng Nộ 5★</strong> và <strong>Phản Ứng Nguyên Tố</strong> trong ván đấu.
+      `;
+      btnPrimary.textContent = '⚡ Kết Thúc Nhanh Ván Khởi Động (Qua Bước 2)';
+      btnPrimary.onclick = () => {
+        if (!this.isGameOver) {
+          clearTimeout(this.botTimer);
+          this.stopTurnCountdown();
+          this.finishMatch(0, false);
+        } else {
+          this.advanceTutorialStep(2);
+        }
+      };
+      return;
+    }
+
+    if (step === 2) {
+      stepPill.textContent = 'Bước 2/6 • Về Màn Hình Chờ';
+      textEl.innerHTML = `
+        Ván khởi động kết thúc rồi! Bạn thấy <strong>3 con Bot vừa xài Kỹ Năng Nhân Vật 5★</strong> cực kỳ lợi hại mà bạn chưa có phải không? 😊<br>
+        Đừng lo, mình sẽ hướng dẫn bạn sở hữu ngay! Hãy bấm nút <strong>🏠 Đổi Cược / Về Sảnh Chờ</strong> để quay về màn hình chờ nhé!
+      `;
+      const btnChangeBet = document.getElementById('btn-summary-change-bet');
+      if (btnChangeBet) btnChangeBet.classList.add('tutorial-highlight-pulse');
+
+      btnPrimary.textContent = '🏠 Về Màn Hình Chờ Ngay';
+      btnPrimary.onclick = () => {
+        if (this.modalSummary) this.modalSummary.classList.add('hidden');
+        this.openModeSetupModal();
+        this.advanceTutorialStep(3);
+      };
+      return;
+    }
+
+    if (step === 3) {
+      stepPill.textContent = 'Bước 3/6 • Tặng 20,000 Vàng & Roll Banner Tân Thủ';
+      const shopOpen = this.modalShop && !this.modalShop.classList.contains('hidden');
+      if (!shopOpen) {
+        textEl.innerHTML = `
+          🎁 Mình vừa nâng tiền của bạn lên đủ <strong>20,000 Vàng</strong> rồi đấy!<br>
+          Thấy Bot xài kỹ năng mà bạn không có — đừng lo! Bây giờ mình sẽ đưa bạn đến <strong>1 Banner Tân Thủ đặc biệt chỉ roll được duy nhất 10 lần rồi biến mất</strong>, chắc chắn nổ vàng tặng bạn <strong>5★ Limited Raiden Shogun (⚡ Lôi Thần)</strong>!
+        `;
+        if (this.btnShop) this.btnShop.classList.add('tutorial-highlight-pulse');
+        btnPrimary.textContent = '🌠 Mở Banner Cầu Nguyện Tân Thủ Ngay';
+        btnPrimary.onclick = () => {
+          this.openShopModal();
+          this.renderTravelerGuide();
+        };
+      } else {
+        textEl.innerHTML = `
+          🌟 Đây là <strong>Banner Cầu Nguyện Tân Thủ</strong> (chỉ xuất hiện <strong>duy nhất 1 lần ×10</strong> rồi biến mất vĩnh viễn)!<br>
+          Hãy bấm nút <strong>✨ Cầu Nguyện ×10 (16,000 Vàng)</strong> để rước <strong>5★ Limited Raiden Shogun — Lôi Thần</strong> về đội nhé!
+        `;
+        const btnBeginner10 = document.getElementById('btn-wish-beginner-10');
+        if (btnBeginner10) btnBeginner10.classList.add('tutorial-highlight-pulse');
+        btnPrimary.textContent = '✨ Cầu Nguyện ×10 (Chắc Chắn Nổ 5★ Raiden Shogun!)';
+        btnPrimary.onclick = () => {
+          this.performBeginnerWish10();
+        };
+      }
+      return;
+    }
+
+    if (step === 4) {
+      stepPill.textContent = 'Bước 4/6 • Cơ Chế Cầu Nguyện & Tạo Phòng Đấu Bot';
+      textEl.innerHTML = `
+        🎉 <strong>Chúc mừng bạn đã nổ vàng 5★ Limited Raiden Shogun (⚡ Lôi Thần)!</strong><br>
+        📌 <strong>Cơ chế Cầu Nguyện (Gacha):</strong> Mỗi ngày toàn Server có chung <strong>2 Banner 5★ Limited</strong> (reset lúc 00:00, không trùng nhân vật nào trong suốt chu kỳ 25 ngày, bảo hiểm 4★ ở 10 roll &amp; 5★ ở 90 roll).<br>
+        Giờ hãy <strong>thử xài chiêu của Raiden Shogun</strong> nhé! Bấm nút bên dưới để <strong>Tạo Phòng Chơi Với Bot</strong>!
+      `;
+      const btnSoloBot = document.getElementById('btn-solo-bot-mode');
+      if (btnSoloBot) btnSoloBot.classList.add('tutorial-highlight-pulse');
+
+      btnPrimary.textContent = '🤖 Tạo Phòng & Thử Chiêu Raiden Shogun Ngay';
+      btnPrimary.onclick = () => {
+        if (this.modalShop) this.modalShop.classList.add('hidden');
+        this.startTutorialMatch2WithRaiden();
+      };
+      return;
+    }
+
+    if (step === 5) {
+      stepPill.textContent = 'Bước 5/6 • Thực Hành Kỹ Năng [E] & Phản Ứng Nguyên Tố';
+      if (!this.tutorialMatch2SkillUsed) {
+        const canUseNow = this.currentTurn === this.mySeatId && this.currentCombo && this.trickOwnerId !== this.mySeatId;
+        if (this.btnSkill && canUseNow) {
+          this.btnSkill.classList.add('tutorial-highlight-pulse');
+        }
+        textEl.innerHTML = `
+          ⚡ <strong>Cách xài chiêu Raiden Shogun &amp; Phản Ứng Nguyên Tố:</strong><br>
+          <strong>Bot Furina (💧 Thủy)</strong> vừa đánh <strong>Đôi 3 (3♠ 3♦)</strong> mang ấn <strong>💧 Thủy</strong> xuống bàn! Ngay lúc này, hãy bấm nút <strong>⚡ Kỹ Năng [Phím E]</strong> để tung tuyệt kỹ <strong>Tịnh Thổ Cắt Vòng</strong>:<br>
+          • Chặt đứt vòng đấu không cần đánh bài &amp; <strong>cướp quyền Cầm Cái mở vòng mới</strong>!<br>
+          • Kết hợp <strong>⚡ Lôi</strong> (Raiden) + <strong>💧 Thủy</strong> (Furina) kích nổ <strong>Phản Ứng Điện Cảm (+5× cược = +500 Xu)</strong>!
+        `;
+        btnPrimary.textContent = canUseNow
+          ? '⚡ Bấm Kích Hoạt Kỹ Năng Raiden Shogun [Phím E] Ngay!'
+          : '⏳ Đợi Bot Furina đánh Đôi 3 xuống bàn...';
+        btnPrimary.onclick = () => {
+          const check = this.canUseCharacterSkill(this.getLocalPlayer());
+          if (check.ok) {
+            this.onHumanUseSkill();
+          } else {
+            this.showCenterToast(`💡 ${check.reason}`);
+          }
+        };
+      } else {
+        textEl.innerHTML = `
+          ⚡✕💧 <strong>ĐIỆN CẢM KÍCH HOẠT (+500 Xu)! Tuyệt vời!</strong><br>
+          Bạn thấy đó: Khi nguyên tố của bạn (<strong>⚡ Lôi</strong>) va chạm với nguyên tố của đối thủ vừa đánh trên bàn (<strong>💧 Thủy / 🔥 Hỏa / ❄️ Băng / 🌿 Thảo / 🍃 Phong / 🪨 Nham</strong>), hệ thống sẽ kích nổ <strong>Phản Ứng Nguyên Tố</strong> thưởng nóng <strong>+5× mức cược Xu</strong>!<br>
+          Giờ bạn đang <strong>Cầm Cái mở vòng mới</strong> — hãy đánh hết các Đôi và <strong>Heo Cơ (2♥)</strong> trên tay để Về Nhất kết thúc trận đấu nhé!
+        `;
+        btnPrimary.textContent = '🏆 Đánh Hết Bài Để Về Nhất (Hoặc Bấm Để Thắng Nhanh)';
+        btnPrimary.onclick = () => {
+          if (!this.isGameOver) {
+            clearTimeout(this.botTimer);
+            this.stopTurnCountdown();
+            this.finishMatch(0, false);
+          }
+        };
+      }
+      return;
+    }
+
+    if (step >= 6) {
+      stepPill.textContent = 'Bước 6/6 • Tạm Biệt Nhà Lữ Hành & Xem Luật Chơi';
+      textEl.innerHTML = `
+        🎉 <strong>Chúc mừng bạn đã hoàn thành khóa huấn luyện Tân Thủ!</strong><br>
+        <strong>Nhà Lữ Hành</strong> xin tạm biệt bạn tại đây. Nếu có bất kỳ thắc mắc nào về tỷ lệ chặt Heo/Hàng, danh sách 58 Nhân Vật 5★ hay bảng Phản Ứng Nguyên Tố, bạn chỉ cần bấm vào nút <strong>📖 Luật Chơi</strong> để đọc nhé!<br>
+        <em>(Bấm nút bên dưới để mở bảng Luật Chơi Tiến Lên Miền Nam — Genshin Edition, sau khi thoát ra là bạn có thể chơi bình thường!)</em>
+      `;
+      if (this.btnRules) this.btnRules.classList.add('tutorial-highlight-pulse');
+      btnPrimary.textContent = '📖 Mở Luật Chơi Genshin Edition & Bắt Đầu Chơi Bình Thường';
+      btnPrimary.onclick = () => {
+        this.hideTravelerGuide();
+        if (this.modalSummary) this.modalSummary.classList.add('hidden');
+        if (this.modalRules) this.modalRules.classList.remove('hidden');
+      };
+    }
   }
 }
 

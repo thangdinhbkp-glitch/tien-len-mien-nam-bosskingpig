@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=56" />
+  <link rel="stylesheet" href="styles.css?v=57" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -834,44 +834,73 @@
 
     <!-- Rules Modal -->
     <div class="modal-backdrop hidden" id="rules-modal">
-      <div class="modal-card rules-card">
+      <div class="modal-card rules-card" style="max-width: 820px;">
         <div class="modal-header">
-          <h2>📖 LUẬT TIẾN LÊN MIỀN NAM (ĐẾM LÁ - NHẤT ĂN TẤT)</h2>
+          <div>
+            <h2>📖 LUẬT CHƠI TIẾN LÊN MIỀN NAM — GENSHIN IMPACT EDITION</h2>
+            <p style="font-size:12.5px;color:#cbd5e1;margin:2px 0 0;">Luật Đếm Lá (Nhất Ăn Tất) • Kỹ Năng Nhân Vật 5★ [Phím E] • Phản Ứng Nguyên Tố • Cầu Nguyện Gacha</p>
+          </div>
           <button class="close-modal-btn" id="btn-close-rules">✕</button>
         </div>
-        <div class="modal-body rules-content">
+        <div class="modal-body rules-content" style="max-height:72vh;overflow-y:auto;">
           <div class="rule-section">
-            <h3>1. Nhất Ăn Tất (Đếm Lá) & Chọn Mức Cược Bàn Bài</h3>
+            <h3>1. 🃏 Luật Cơ Bản: Nhất Ăn Tất (Đếm Lá) &amp; Quy Định Bàn Chơi</h3>
             <p>
-              • Hỗ trợ <strong>2 Chế độ</strong>: <strong>Đấu Với Bot (1v3)</strong> hoặc <strong>Đấu Với Người (2–4 người)</strong>, mỗi chế độ được tùy chọn <strong>Mức cược (X xu / lá)</strong>.<br/>
-              • Ngay khi có <strong>1 người đánh hết bài trước tiên (Về Nhất)</strong>, ván bài lập tức kết thúc!<br/>
-              • Toàn bộ người chơi còn lại phải <strong>lật ngửa bài trên tay (Show bài)</strong> để đếm lá và tính phạt theo mức cược bàn:<br/>
-              &nbsp;&nbsp;– <strong>Mỗi lá bài còn lại:</strong> Phạt <strong>1x mức cược / lá</strong>.<br/>
-              &nbsp;&nbsp;– <strong>Cóng (Còn nguyên 13 lá):</strong> Phạt gấp đôi số lá = <strong>26x mức cược</strong> (+ tiền thối Heo/Hàng/3♠ nếu có).
+              • Hỗ trợ <strong>2 Chế độ độc lập</strong>: <strong>🤖 Đấu Với Bot (2–4 người)</strong> hoặc <strong>👥 Đấu Với Người Online/WiFi (2–4 người)</strong>. <em>(Lưu ý: Không thể chơi 2 trận với Người và với Bot cùng 1 lúc, và không được rời Sảnh Chờ / Bàn Đấu khi ván bài chưa kết thúc).</em><br/>
+              • <strong>Thời gian mỗi lượt:</strong> Giới hạn <strong>15 giây / lượt</strong>. Hết 15 giây hệ thống sẽ tự động đánh lá/bộ hợp lệ nhỏ nhất hoặc bỏ lượt.<br/>
+              • <strong>Nhất Ăn Tất (Đếm Lá):</strong> Ngay khi có <strong>1 người đánh hết 13 lá trước tiên (Về Nhất)</strong>, ván bài lập tức kết thúc! Tất cả người chơi còn lại lật ngửa bài trên tay để đếm lá tính phạt:<br/>
+              &nbsp;&nbsp;– <strong>Mỗi lá bài còn lại:</strong> Phạt <strong>1× mức cược / lá</strong>.<br/>
+              &nbsp;&nbsp;– <strong>Cóng (Còn nguyên 13 lá chưa đánh lá nào):</strong> Phạt gấp đôi = <strong>26× mức cược</strong> (+ tiền thối Heo/Hàng/3♠ nếu có).
             </p>
           </div>
           <div class="rule-section">
-            <h3>2. Tỷ Lệ Phạt Thối Bài & Chặt Heo/Hàng (Nhân theo Mức Cược/lá)</h3>
+            <h3>2. 💥 Tỷ Lệ Chặt Heo/Hàng, Phạt Thối Bài &amp; Tới Trắng</h3>
             <p>
               Mọi khoản thưởng Chặt và phạt Thối đều nhân tự động theo <strong>Mức cược / lá</strong> của bàn:<br/>
-              • <strong>Thối 3 Bích (3♠):</strong> Phạt thêm <strong>5x mức cược</strong>.<br/>
-              • <strong>Thối / Chặt Heo đen (2♠, 2♣):</strong> <strong>2.5x mức cược / cây</strong>.<br/>
-              • <strong>Thối / Chặt Heo đỏ (2♦, 2♥):</strong> <strong>5x mức cược / cây</strong> (Đôi Heo: <strong>10x mức cược</strong>).<br/>
-              • <strong>Thối / Chặt 3 đôi thông:</strong> <strong>7.5x mức cược</strong>.<br/>
-              • <strong>Thối / Chặt Tứ quý:</strong> <strong>10x mức cược</strong>.<br/>
-              • <strong>Thối / Chặt 4 đôi thông:</strong> <strong>12.5x mức cược</strong>.
+              • <strong>Thối 3 Bích (3♠):</strong> Phạt thêm <strong>5× mức cược</strong>. | <strong>Đút 3 Bích (Đánh 3♠ cuối cùng Về Nhất):</strong> Mỗi nhà thua nộp thêm <strong>7.5× mức cược</strong>.<br/>
+              • <strong>Thối / Chặt Heo đen (2♠, 2♣):</strong> <strong>2.5× mức cược / cây</strong>.<br/>
+              • <strong>Thối / Chặt Heo đỏ (2♦, 2♥):</strong> <strong>5× mức cược / cây</strong> (Đôi Heo đỏ: <strong>10× mức cược</strong>).<br/>
+              • <strong>Thối / Chặt 3 đôi thông:</strong> <strong>7.5× mức cược</strong> (Chặt được 1 Heo hoặc 3 đôi thông nhỏ hơn, không cần vòng).<br/>
+              • <strong>Thối / Chặt Tứ quý:</strong> <strong>10× mức cược</strong> (Chặt được 1 Heo, Đôi Heo, 3 đôi thông hoặc Tứ quý nhỏ hơn).<br/>
+              • <strong>Thối / Chặt 4 đôi thông:</strong> <strong>12.5× mức cược</strong> (Chặt tự do bất kỳ lúc nào không cần tới lượt!).<br/>
+              • <strong>Tới Trắng (Sảnh Rồng 3→A, Tứ quý Heo, 6 đôi, 5/6 đôi thông, Tứ quý 3 ván đầu):</strong> Thắng ngay lập tức, mỗi nhà thua nộp <strong>15× mức cược</strong> + tiền thối bài.
             </p>
           </div>
           <div class="rule-section">
-            <h3>3. Luật Đút 3 Bích & Tới Trắng</h3>
+            <h3>3. ⚡ Hệ Thống 58 Nhân Vật 5★: Kỹ Năng Chiến Thuật [Phím E] &amp; Nội Tại Cược</h3>
             <p>
-              • <strong>Đút 3 Bích (Đánh 3♠ cuối cùng Về Nhất):</strong> Mỗi nhà thua bị phạt thêm <strong>7.5x mức cược</strong>.<br/>
-              • <strong>Tới Trắng (Sảnh Rồng, Tứ quý Heo, 6 đôi, 5/6 đôi thông, Tứ quý 3 ván đầu):</strong> Mỗi nhà thua nộp <strong>15x mức cược</strong> + tiền thối bài.
+              • Mỗi người chơi được trang bị <strong>1 Nhân Vật 5★</strong> đã sở hữu trong <strong>🎒 Kho Đồ</strong> (Tân thủ hoàn thành hướng dẫn của Nhà Lữ Hành được tặng miễn phí <strong>⚡ Raiden Shogun 5★ Limited</strong>!).<br/>
+              • <strong>Kỹ Năng Chiến Thuật Chủ Động ([Phím E] — 1 lần / ván):</strong> Khi tới lượt bạn và đủ điều kiện, nút <strong>🔮 Kỹ Năng [E]</strong> sẽ sáng lên. Bấm nút hoặc nhấn phím <strong>E</strong> để tung hoạt ảnh Nộ (Elemental Burst) kèm hiệu ứng đảo ngược tình thế (cắt vòng cướp cái, đổi chất bài, nhảy cóc sảnh, giảm bậc đánh đè, miễn phạt thối bài, v.v.).<br/>
+              • <strong>Nhóm 8 Nhân Vật 5★ Nội Tại Kinh Tế &amp; Cược (Tự động kích hoạt 100%):</strong> <strong>Chiori</strong> (Thắng +25% Xu), <strong>Pantalone</strong> (Thua giảm 30% Xu), <strong>Zhongli</strong> (Khiên miễn 1 lần bị Chặt/Thối), <strong>Ningguang</strong> (+100 Xu/lá đánh ra), <strong>Dori</strong> (Hoàn trả +80 Xu/lá dư khi thua), <strong>Mona</strong> (Nhìn thấu số Heo &amp; Hàng + Thưởng thắng +15%), <strong>Tartaglia</strong> (Tiền thưởng Chặt Heo/Hàng ×2), và <strong>Tighnari</strong> (Miễn 100% tiền phạt Thối Heo/Hàng/3♠ cuối ván).<br/>
+              • 💡 <strong>Mẹo:</strong> Trong trận đấu, bạn có thể <strong>bấm trực tiếp vào Ảnh đại diện hoặc Ô tên nhân vật</strong> của bất kỳ ai trên bàn để đọc chi tiết kỹ năng của nhân vật đó!
+            </p>
+          </div>
+          <div class="rule-section">
+            <h3>4. 🌈 Cơ Chế Phản Ứng Nguyên Tố Genshin Impact (+5× Mức Cược Xu)</h3>
+            <p>
+              • Khi bạn hoặc đối thủ đang trang bị Nhân Vật 5★ có hệ nguyên tố (<strong>🔥 Hỏa, 💧 Thủy, ⚡ Lôi, ❄️ Băng, 🌿 Thảo, 🌪️ Phong, 🪨 Nham</strong>), mỗi bộ bài đánh ra sẽ mang <strong>Ấn Nguyên Tố</strong> của nhân vật đó lên bàn.<br/>
+              • Nếu người tiếp theo đánh đè lên bộ bài trên bàn bằng một <strong>Hệ Nguyên Tố tương tác</strong>, bàn bài sẽ bùng nổ <strong>Phản Ứng Nguyên Tố Genshin</strong> và <strong>thưởng nóng ngay lập tức +5× Mức Cược Xu</strong> (VD: bàn cược 100 Xu/lá thưởng nóng <strong>+500 Xu</strong> trực tiếp vào ví!):<br/>
+              &nbsp;&nbsp;– <strong>🔥 Hỏa + 💧 Thủy:</strong> <strong>Bốc Hơi (Vaporize)</strong> • <strong>🔥 Hỏa + ❄️ Băng:</strong> <strong>Tan Chảy (Melt)</strong><br/>
+              &nbsp;&nbsp;– <strong>⚡ Lôi + 💧 Thủy:</strong> <strong>Điện Cảm (Electro-Charged)</strong> • <strong>⚡ Lôi + 🔥 Hỏa:</strong> <strong>Quá Tải (Overloaded)</strong><br/>
+              &nbsp;&nbsp;– <strong>❄️ Băng + 💧 Thủy:</strong> <strong>Đóng Băng (Freeze)</strong> • <strong>❄️ Băng + ⚡ Lôi:</strong> <strong>Siêu Dẫn (Superconduct)</strong><br/>
+              &nbsp;&nbsp;– <strong>🌿 Thảo + 💧/🔥/⚡:</strong> <strong>Sum Suê / Đốt Cháy / Sinh Trưởng</strong> • <strong>🌪️ Phong / 🪨 Nham:</strong> <strong>Khuếch Tán / Kết Tinh</strong>.
+            </p>
+          </div>
+          <div class="rule-section">
+            <h3>5. 🌠 Cơ Chế Cầu Nguyện (Gacha Banner) &amp; Nhiệm Vụ Ủy Thác Hàng Ngày</h3>
+            <p>
+              • <strong>Giá Cầu Nguyện:</strong> <strong>1,600 Xu = 1 Lượt Roll</strong> (<strong>16,000 Xu = 10 Lượt Roll</strong>).<br/>
+              • <strong>2 Banner Limited / Ngày (Đồng Bộ Toàn Server):</strong> Mỗi ngày toàn bộ người chơi trên Server có chung <strong>2 Nhân Vật 5★ Giới Hạn (UP)</strong>, tự động làm mới vào <strong>00:00 mỗi ngày</strong>. Trong <strong>1 chu kỳ 25 ngày (50 nhân vật Limited)</strong> cam kết <strong>không lặp lại bất kỳ nhân vật nào</strong>!<br/>
+              • <strong>Bảo Hiểm Pity chuẩn Genshin:</strong> Tối đa <strong>10 Roll</strong> chắc chắn nổ <strong>4★ trở lên</strong> (Decor Bài 4★). Tối đa <strong>90 Roll</strong> chắc chắn nổ <strong>Nhân Vật 5★</strong> (Bắt đầu tăng mạnh tỷ lệ Soft Pity từ Roll thứ 74). Nếu lần nổ 5★ trước lệch Rate ra Thường Trực, lần nổ 5★ tiếp theo <strong>Bảo Hiểm 100% trúng Nhân Vật 5★ UP</strong> của Banner đang chọn!<br/>
+              • <strong>Ủy Thác Hàng Ngày &amp; Lưu Đám Mây:</strong> Hoàn thành 4 nhiệm vụ mỗi ngày nhận miễn phí <strong>10 Roll (+16,000 Xu)</strong>. Hãy bấm <strong>🔐 Tài Khoản</strong> ở Sảnh Chờ để đăng ký tài khoản lưu trữ Đám Mây giữ nguyên 100% vật phẩm!
             </p>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="primary-btn" id="btn-ok-rules">Đã hiểu!</button>
+        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <button type="button" class="tool-btn" id="btn-replay-newbie-tutorial" onclick="window.tienLenGame.replayNewbieTutorialFromRules()" title="Xem lại hướng dẫn của Nhà Lữ Hành về cách dùng Kỹ Năng [E] và Phản Ứng Nguyên Tố">
+            🎓 Chơi Lại Ván Hướng Dẫn Kỹ Năng &amp; Phản Ứng
+          </button>
+          <button class="primary-btn" id="btn-ok-rules">✅ Đã Hiểu Luật Chơi!</button>
         </div>
       </div>
     </div>
@@ -1220,8 +1249,32 @@
       </div>
     </div>
     <audio id="bgm-audio" preload="auto"></audio>
+
+    <!-- HƯỚNG DẪN TÂN THỦ • NHÀ LỮ HÀNH (TRAVELER INTERACTIVE TUTORIAL GUIDE OVERLAY) -->
+    <div class="traveler-guide-overlay hidden" id="traveler-guide-overlay">
+      <div class="traveler-guide-card" id="traveler-guide-card">
+        <div class="traveler-guide-avatar-wrap">
+          <div class="traveler-guide-avatar" id="traveler-guide-avatar">🌟</div>
+          <div class="traveler-guide-badge">HƯỚNG DẪN TÂN THỦ</div>
+        </div>
+        <div class="traveler-guide-body">
+          <div class="traveler-guide-header">
+            <span class="traveler-guide-name" id="traveler-guide-name">✨ Nhà Lữ Hành (Lumine &amp; Aether)</span>
+            <span class="traveler-guide-step-pill" id="traveler-guide-step-pill">Bước 1/6</span>
+          </div>
+          <div class="traveler-guide-text" id="traveler-guide-text">
+            Chào mừng bạn đến với thế giới Tiến Lên Miền Nam — Genshin Impact Edition!
+          </div>
+          <div class="traveler-guide-actions" id="traveler-guide-actions">
+            <button type="button" class="primary-btn traveler-action-btn" id="btn-traveler-primary">
+              Tiếp tục ▸
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script src="game.js?v=72"></script>
+  <script src="game.js?v=73"></script>
 </body>
 </html>

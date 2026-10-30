@@ -9476,6 +9476,7 @@ function canBeatCombo(candidate, current) {
 
   const targetIsSingle2 = current.type === COMBO_TYPES.SINGLE && current.highRank === 12;
   const targetIsPair2 = current.type === COMBO_TYPES.PAIR && current.highRank === 12;
+  const targetIsTriple2 = current.type === COMBO_TYPES.TRIPLE && current.highRank === 12;
   const targetIs3Pairs = current.type === COMBO_TYPES.THREE_PAIRS;
   const targetIsQuad = current.type === COMBO_TYPES.FOUR_OF_A_KIND;
 
@@ -9498,7 +9499,7 @@ function canBeatCombo(candidate, current) {
   }
 
   if (candidate.type === COMBO_TYPES.FOUR_PAIRS) {
-    if (targetIsSingle2 || targetIsPair2 || targetIs3Pairs || targetIsQuad) {
+    if (targetIsSingle2 || targetIsPair2 || targetIsTriple2 || targetIs3Pairs || targetIsQuad) {
       return {
         ok: true,
         isChop: true,
@@ -15987,7 +15988,7 @@ class TienLenGame {
       this.useCharacterSkill(seat, evt.selectedIds || []);
     } else if (evt.type === 'PLAY_CARDS') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
-      if (!seat || this.currentTurn !== seat.id || this.isGameOver) return;
+      if (!seat || this.isGameOver) return;
       const cardIdSet = new Set(evt.cardIds || []);
       const chosenCards = seat.hand.filter((c) => cardIdSet.has(c.id));
       const combo = classifyCombo(chosenCards);
@@ -16846,7 +16847,14 @@ class TienLenGame {
   }
 
   playCombo(player, combo) {
-    if (this.isGameOver || this.isBurstPlaying || !player || !player.active || this.currentTurn !== player.id) return false;
+    if (this.isGameOver || this.isBurstPlaying || !player || !player.active || !combo) return false;
+    const isFourPairsCutAnytime =
+      combo.type === COMBO_TYPES.FOUR_PAIRS &&
+      this.currentCombo &&
+      this.trickOwnerId !== player.id &&
+      canBeatCombo(combo, this.currentCombo).ok;
+    if (this.currentTurn !== player.id && !isFourPairsCutAnytime) return false;
+    this.currentTurn = player.id;
     this.raidenSlashMustSingle = false;
     const beatCheck = canBeatCombo(combo, this.currentCombo);
     if (!beatCheck.ok) return false;
@@ -17864,10 +17872,12 @@ class TienLenGame {
       return;
     }
 
+    const onlyFourPairs =
+      (human.passed || this.currentTurn !== this.mySeatId) && this.canPlayerCutWithFourPairs(human);
     const currentSelected = this.getSelectedCards();
     if (currentSelected.length > 0) {
-      const manualCandidate = classifyCombo([...currentSelected, clickedCard]);
-      const onlyFourPairs = human.passed && this.canPlayerCutWithFourPairs(human);
+      const nextCards = [...currentSelected, clickedCard];
+      const manualCandidate = classifyCombo(nextCards);
       if (
         manualCandidate &&
         (!onlyFourPairs || manualCandidate.type === COMBO_TYPES.FOUR_PAIRS) &&
@@ -17879,9 +17889,85 @@ class TienLenGame {
         this.updateHumanActionButtons();
         return;
       }
+
+      // Kiểm tra xem tập bài đang chọn + lá vừa bấm có thể hoàn thiện thành 4 Đôi Thông / 3 Đôi Thông / Tứ Quý hợp lệ (giữ nguyên 100% chất bài người chơi đã chọn) hay không
+      const usableHand =
+        activeNaviaLockedCardIds && activeNaviaLockedCardIds.size > 0
+          ? human.hand.filter((c) => !activeNaviaLockedCardIds.has(c.id))
+          : human.hand;
+      const allUnder2 = nextCards.every((c) => c.rankIndex < 12);
+      if (allUnder2) {
+        const seedByRank = new Map();
+        let validPairSeed = true;
+        for (const c of nextCards) {
+          const arr = seedByRank.get(c.rankIndex) || [];
+          arr.push(c);
+          if (arr.length > 2) validPairSeed = false;
+          seedByRank.set(c.rankIndex, arr);
+        }
+        if (validPairSeed && seedByRank.size >= 2) {
+          for (const pairCount of [4, 3]) {
+            if (onlyFourPairs && pairCount !== 4) continue;
+            for (let start = 0; start <= 12 - pairCount; start++) {
+              const endRank = start + pairCount - 1;
+              const allRanksInWindow = Array.from(seedByRank.keys()).every(
+                (r) => r >= start && r <= endRank
+              );
+              if (!allRanksInWindow) continue;
+              let canBuild = true;
+              const builtCards = [];
+              for (let r = start; r <= endRank; r++) {
+                const chosenForRank = seedByRank.get(r) || [];
+                const handForRank = usableHand.filter(
+                  (c) => c.rankIndex === r && !chosenForRank.some((sc) => sc.id === c.id)
+                );
+                if (chosenForRank.length + handForRank.length < 2) {
+                  canBuild = false;
+                  break;
+                }
+                const needed = 2 - chosenForRank.length;
+                const sortedRem = sortCardsAsc(handForRank);
+                const picks =
+                  r === endRank
+                    ? sortedRem.slice(sortedRem.length - needed)
+                    : sortedRem.slice(0, needed);
+                builtCards.push(...chosenForRank, ...picks);
+              }
+              if (canBuild) {
+                const pairRunCombo = classifyCombo(builtCards);
+                if (
+                  pairRunCombo &&
+                  (!this.mustPlay3Spade || pairRunCombo.cards.some((c) => c.value === 0)) &&
+                  canBeatCombo(pairRunCombo, this.currentCombo).ok
+                ) {
+                  this.selectedCardIds = new Set(pairRunCombo.cards.map((c) => c.id));
+                  sfx.click();
+                  this.renderHumanHand();
+                  this.updateHumanActionButtons();
+                  return;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      const curCombo = classifyCombo(currentSelected);
+      const curComboValidBeat =
+        curCombo &&
+        (!onlyFourPairs || curCombo.type === COMBO_TYPES.FOUR_PAIRS) &&
+        canBeatCombo(curCombo, this.currentCombo).ok;
+
+      // Nếu người chơi bấm thêm 1 lá cùng số với lá đang chọn (để đổi chất bài hoặc gom Sám/Tứ quý), hoặc các lá đang chọn chưa tạo thành bộ chặn hợp lệ -> Cộng thẳng lá vừa bấm, KHÔNG xóa lựa chọn cũ!
+      if (!curComboValidBeat || currentSelected.some((c) => c.rankIndex === clickedCard.rankIndex)) {
+        this.selectedCardIds.add(cardId);
+        sfx.click();
+        this.renderHumanHand();
+        this.updateHumanActionButtons();
+        return;
+      }
     }
 
-    const onlyFourPairs = human.passed && this.canPlayerCutWithFourPairs(human);
     const validMoves = getValidMoves(
       human.hand,
       this.currentCombo,
@@ -17894,7 +17980,50 @@ class TienLenGame {
     );
 
     if (movesWithClicked.length > 0) {
+      // Nếu có nước đi hợp lệ chứa toàn bộ các lá đang chọn CỘNG THÊM lá vừa bấm (VD: mở rộng Sảnh, nâng 3 đôi thông lên 4 đôi thông) -> Ưu tiên chọn bộ mở rộng đó!
+      if (currentSelected.length > 0) {
+        const supersetMoves = movesWithClicked.filter((m) =>
+          currentSelected.every((sc) => m.cards.some((mc) => mc.id === sc.id))
+        );
+        if (supersetMoves.length > 0) {
+          supersetMoves.sort((a, b) => {
+            if (
+              (a.type === COMBO_TYPES.FOUR_PAIRS && b.type === COMBO_TYPES.THREE_PAIRS) ||
+              (a.type === COMBO_TYPES.THREE_PAIRS && b.type === COMBO_TYPES.FOUR_PAIRS)
+            ) {
+              return b.length - a.length;
+            }
+            return a.length - b.length || a.highValue - b.highValue;
+          });
+          const supMove = supersetMoves[0];
+          this.selectedCardIds = new Set(supMove.cards.map((c) => c.id));
+          sfx.click();
+          this.renderHumanHand();
+          this.updateHumanActionButtons();
+          return;
+        }
+      }
+
+      const bombPriority = (type) => {
+        if (type === COMBO_TYPES.FOUR_PAIRS) return 3;
+        if (type === COMBO_TYPES.FOUR_OF_A_KIND) return 2;
+        if (type === COMBO_TYPES.THREE_PAIRS) return 1;
+        return 0;
+      };
+
       movesWithClicked.sort((a, b) => {
+        // Khi Mualani bật Cá Mập Đè Khác Loại: ưu tiên bộ nhiều lá đè khác loại lên đầu
+        if (activeMualaniCrossBeat && this.currentCombo) {
+          const aCross = a.length > this.currentCombo.length ? 0 : 1;
+          const bCross = b.length > this.currentCombo.length ? 0 : 1;
+          if (aCross !== bCross) return aCross - bCross;
+        }
+        // Khi cả 2 đều là Hàng (3 đôi thông, Tứ quý, 4 đôi thông): luôn ưu tiên 4 Đôi Thông > Tứ Quý > 3 Đôi Thông để không chặn chặt 4 đôi thông!
+        if (a.isBomb && b.isBomb) {
+          const bpDiff = bombPriority(b.type) - bombPriority(a.type);
+          if (bpDiff !== 0) return bpDiff;
+          return a.highValue - b.highValue;
+        }
         const aSameType = a.type === this.currentCombo.type ? 0 : 1;
         const bSameType = b.type === this.currentCombo.type ? 0 : 1;
         if (aSameType !== bSameType) return aSameType - bSameType;
@@ -17913,8 +18042,8 @@ class TienLenGame {
         });
       });
     } else {
-      this.selectedCardIds = new Set([cardId]);
-      this.companionCardIds.clear();
+      // Không tự ý xóa các lá đang chọn nếu người chơi bấm thêm lá bài thủ công
+      this.selectedCardIds.add(cardId);
     }
 
     sfx.click();
@@ -18040,7 +18169,17 @@ class TienLenGame {
       return;
     }
 
-    if (!isMyTurn) {
+    const canFourPairsCutAnytime =
+      !this.isGameOver &&
+      !this.isBurstPlaying &&
+      human.finishRank === null &&
+      this.currentCombo &&
+      this.trickOwnerId !== this.mySeatId &&
+      combo &&
+      combo.type === COMBO_TYPES.FOUR_PAIRS &&
+      canBeatCombo(combo, this.currentCombo).ok;
+
+    if (!isMyTurn && !canFourPairsCutAnytime) {
       this.btnPlay.disabled = true;
       this.btnPass.disabled = true;
       return;
@@ -18050,7 +18189,7 @@ class TienLenGame {
       this.currentCombo &&
       getValidMoves(human.hand, this.currentCombo, this.mustPlay3Spade, false).length > 0;
     const forcePlayLocked = this.yaeForcePlayRound && !human.passed && canBeatAny;
-    this.btnPass.disabled = this.currentCombo === null || forcePlayLocked;
+    this.btnPass.disabled = !isMyTurn || this.currentCombo === null || forcePlayLocked;
     if (forcePlayLocked) {
       this.btnPass.title = '🌸 Hồ Ly Dụ Hoặc (Yae Miko): Bạn đang có bài chặn được nên không thể Bỏ lượt!';
     } else {
@@ -18062,7 +18201,7 @@ class TienLenGame {
       return;
     }
 
-    if (human.passed && combo.type !== COMBO_TYPES.FOUR_PAIRS) {
+    if ((human.passed || !isMyTurn) && combo.type !== COMBO_TYPES.FOUR_PAIRS) {
       this.btnPlay.disabled = true;
       return;
     }
@@ -18076,10 +18215,16 @@ class TienLenGame {
   }
 
   onHumanPlay() {
-    if (this.isGameOver || this.isBurstPlaying || this.currentTurn !== this.mySeatId) return;
+    if (this.isGameOver || this.isBurstPlaying) return;
     const selectedCards = this.getSelectedCards();
     const combo = classifyCombo(selectedCards);
     if (!combo) return;
+    const isFourPairsCutAnytime =
+      combo.type === COMBO_TYPES.FOUR_PAIRS &&
+      this.currentCombo &&
+      this.trickOwnerId !== this.mySeatId &&
+      canBeatCombo(combo, this.currentCombo).ok;
+    if (this.currentTurn !== this.mySeatId && !isFourPairsCutAnytime) return;
 
     const cardIds = combo.cards.map((c) => c.id);
     this.selectedCardIds.clear();

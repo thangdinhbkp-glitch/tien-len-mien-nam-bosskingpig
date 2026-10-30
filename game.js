@@ -8169,6 +8169,9 @@ class TienLenGame {
           this.openAccountModal(this.accountModalTab || 'register');
           return;
         }
+        if (!this.tutorialCompleted && this.tutorialStep >= 1 && this.tutorialStep <= 6) {
+          return;
+        }
         if (pauseModal && !pauseModal.classList.contains('hidden')) {
           this.closePauseModal();
           return;
@@ -8197,6 +8200,20 @@ class TienLenGame {
       ) {
         return;
       }
+      if (!this.tutorialCompleted && this._tutorialTargetEl) {
+        if ((e.key === 'e' || e.key === 'E') && this._tutorialTargetEl === this.btnCharSkill) {
+          if (this.btnCharSkill && !this.btnCharSkill.disabled) {
+            e.preventDefault();
+            this.onHumanUseSkill();
+          }
+        } else if ((e.code === 'Space' || e.code === 'Enter') && this._tutorialTargetEl === this.btnPlay) {
+          if (!this.btnPlay.disabled) {
+            e.preventDefault();
+            this.onHumanPlay();
+          }
+        }
+        return;
+      }
       if (e.code === 'Space' || e.code === 'Enter') {
         if (!this.btnPlay.disabled) {
           e.preventDefault();
@@ -8217,6 +8234,8 @@ class TienLenGame {
         }
       }
     });
+
+    this.setupTutorialInteractionGuard();
   }
 
   isFullscreenActive() {
@@ -19120,6 +19139,109 @@ class TienLenGame {
   // ============================================================================
   // HƯỚNG DẪN TÂN THỦ — NHÀ LỮ HÀNH (TRAVELER TUTORIAL) & BANNER TÂN THỦ 5★
   // ============================================================================
+  setupTutorialInteractionGuard() {
+    if (this._tutorialInteractionGuardBound) return;
+    this._tutorialInteractionGuardBound = true;
+
+    const flashTutorialPointerNotice = () => {
+      const now = Date.now();
+      if (this._lastTutorialWarnAt && now - this._lastTutorialWarnAt < 650) return;
+      this._lastTutorialWarnAt = now;
+      sfx.pass();
+      const pill = document.getElementById('tutorial-pointer-label');
+      if (pill) {
+        pill.classList.add('pointer-attention-flash');
+        setTimeout(() => pill.classList.remove('pointer-attention-flash'), 500);
+      }
+      this.showCenterToast('🌟 Nhà Lữ Hành (Aether): Chỉ bấm được vào nút đang có mũi tên vàng chỉ vào thôi nhé!');
+    };
+
+    const isAllowedTutorialElement = (targetNode) => {
+      if (!targetNode || !(targetNode instanceof Element)) return true;
+      if (this.tutorialCompleted || !this.tutorialStep || this.tutorialStep < 1 || this.tutorialStep > 6) {
+        return true;
+      }
+
+      // 1. Cho phép thao tác trong bảng Đăng Ký / Đăng Nhập khi chưa có tài khoản
+      const accModal = document.getElementById('account-modal');
+      if (accModal && !accModal.classList.contains('hidden') && !this.currentAccountUsername) {
+        return accModal.contains(targetNode);
+      }
+
+      // 2. Khi đang chiếu Video Hoạt Ảnh Kỹ Năng Nộ: chỉ cho phép bấm nút Bỏ qua (Skip) của video Nộ
+      const burstOverlay = document.getElementById('genshin-burst-overlay');
+      if (burstOverlay && !burstOverlay.classList.contains('hidden')) {
+        return Boolean(targetNode.closest('#btn-skip-burst'));
+      }
+
+      // 3. KHI MŨI TÊN HƯỚNG DẪN ĐANG CHỈ VÀO 1 NÚT CỤ THỂ (this._tutorialTargetEl):
+      // Chỉ cho phép bấm đúng vào nút mà mũi tên đang chỉ!
+      if (this._tutorialTargetEl) {
+        if (this._tutorialTargetEl.contains(targetNode)) {
+          return true;
+        }
+        // Ngoại lệ ở Bước 5 sau khi đã tung Kỹ Năng [E]: khi mũi tên chỉ vào nút "Đánh bài" (#btn-play),
+        // người chơi vẫn có thể bấm chọn/đổi lá bài trên tay (#human-hand) hoặc bấm Bỏ chọn / Xếp bài
+        if (
+          this.tutorialStep === 5 &&
+          this.tutorialMatch2SkillUsed &&
+          !this.tutorialMatch2FirstCardPlayed &&
+          (this.elHumanHand?.contains(targetNode) || targetNode.closest('#btn-unselect, #btn-sort'))
+        ) {
+          return true;
+        }
+        return false;
+      }
+
+      // 4. Khi đang ở Bước 5 đầu ván (đợi 0.85s cho Bot Furina đánh Đôi 3 xuống bàn): khóa tạm mọi nút để tránh bấm nhầm
+      if (this.tutorialStep === 5 && !this.tutorialMatch2SkillUsed && this.currentTurn !== this.mySeatId) {
+        return false;
+      }
+
+      // 5. Khi đang đánh ván bài thực chiến trong Hướng Dẫn (Bước 1 hoặc Bước 5 sau khi đánh lá đầu tiên):
+      // Chỉ cho phép bấm chọn bài & các nút điều khiển đánh bài trên bàn, khóa các nút mở Menu/Cầu Nguyện/Kho Đồ/Luật Chơi bên ngoài
+      if (this.tutorialStep === 1 || (this.tutorialStep === 5 && this.tutorialMatch2FirstCardPlayed)) {
+        if (
+          this.elHumanHand?.contains(targetNode) ||
+          targetNode.closest(
+            '#btn-play, #btn-pass, #btn-sort, #btn-unselect, #btn-hint, #btn-char-skill, #btn-speed, #btn-sound, #btn-bgm, #btn-fullscreen'
+          )
+        ) {
+          return true;
+        }
+        return false;
+      }
+
+      return true;
+    };
+
+    const interceptEvent = (e) => {
+      if (this.tutorialCompleted || !this.tutorialStep || this.tutorialStep < 1 || this.tutorialStep > 6) {
+        return;
+      }
+      const targetNode = e.target;
+      if (!(targetNode instanceof Element)) return;
+
+      const interactiveEl = targetNode.closest(
+        'button, a, input, select, textarea, label, [onclick], .mode-choice-card, .playing-card, .gacha-up-chip, .shop-tab, .close-modal-btn, .seat-char-skill-box, .bet-tier-btn, .inv-equip-slot'
+      );
+      if (!interactiveEl) return;
+
+      if (!isAllowedTutorialElement(interactiveEl)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        if (e.type === 'click') {
+          flashTutorialPointerNotice();
+        }
+      }
+    };
+
+    window.addEventListener('pointerdown', interceptEvent, true);
+    window.addEventListener('mousedown', interceptEvent, true);
+    window.addEventListener('click', interceptEvent, true);
+  }
+
   clearTutorialHighlights() {
     if (this._tutorialPointerRaf) {
       cancelAnimationFrame(this._tutorialPointerRaf);

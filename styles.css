@@ -7354,8 +7354,8 @@ body.pseudo-fullscreen-mode {
 }
 
 .traveler-guide-avatar {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   border: 2.5px solid #fde047;
   background: radial-gradient(circle at 30% 30%, #fef08a, #ca8a04 65%, #422006 100%);
@@ -7363,7 +7363,7 @@ body.pseudo-fullscreen-mode {
   align-items: center;
   justify-content: center;
   font-size: 30px;
-  box-shadow: 0 0 16px rgba(250, 204, 21, 0.65);
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.78);
   overflow: hidden;
 }
 
@@ -7371,6 +7371,15 @@ body.pseudo-fullscreen-mode {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.tutorial-pointer-pill.pointer-attention-flash {
+  background: linear-gradient(135deg, #fef08a 0%, #ef4444 100%) !important;
+  color: #ffffff !important;
+  transform: scale(1.12);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.95), 0 0 14px #fde047 !important;
 }
 
 .traveler-guide-badge {

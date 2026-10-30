@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=58" />
+  <link rel="stylesheet" href="styles.css?v=77" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -897,8 +897,8 @@
           </div>
         </div>
         <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <button type="button" class="tool-btn" id="btn-replay-newbie-tutorial" onclick="window.tienLenGame.replayNewbieTutorialFromRules()" title="Xem lại hướng dẫn của Nhà Lữ Hành về cách dùng Kỹ Năng [E] và Phản Ứng Nguyên Tố">
-            🎓 Chơi Lại Ván Hướng Dẫn Kỹ Năng &amp; Phản Ứng
+          <button type="button" class="tool-btn" id="btn-replay-newbie-tutorial" onclick="window.tienLenGame.replayNewbieTutorialFromRules()" title="Xem lại hướng dẫn của Nhà Lữ Hành Aether về cách dùng Kỹ Năng [E] và Phản Ứng Nguyên Tố">
+            <img src="fanart/aether.png" alt="Aether" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:5px;border:1.5px solid #fde047;object-fit:cover;" /> Chơi Lại Hướng Dẫn Nhà Lữ Hành (Aether)
           </button>
           <button class="primary-btn" id="btn-ok-rules">✅ Đã Hiểu Luật Chơi!</button>
         </div>
@@ -1254,12 +1254,14 @@
     <div class="traveler-guide-overlay hidden" id="traveler-guide-overlay">
       <div class="traveler-guide-card" id="traveler-guide-card">
         <div class="traveler-guide-avatar-wrap">
-          <div class="traveler-guide-avatar" id="traveler-guide-avatar">🌟</div>
+          <div class="traveler-guide-avatar" id="traveler-guide-avatar">
+            <img src="fanart/aether.png" alt="Nhà Lữ Hành Aether" />
+          </div>
           <div class="traveler-guide-badge">HƯỚNG DẪN TÂN THỦ</div>
         </div>
         <div class="traveler-guide-body">
           <div class="traveler-guide-header">
-            <span class="traveler-guide-name" id="traveler-guide-name">✨ Nhà Lữ Hành (Lumine &amp; Aether)</span>
+            <span class="traveler-guide-name" id="traveler-guide-name">✨ Nhà Lữ Hành (Aether)</span>
             <span class="traveler-guide-step-pill" id="traveler-guide-step-pill">Bước 2/6</span>
           </div>
           <div class="traveler-guide-text" id="traveler-guide-text">
@@ -1277,6 +1279,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=76"></script>
+  <script src="game.js?v=77"></script>
 </body>
 </html>

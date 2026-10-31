@@ -19645,8 +19645,45 @@ class TienLenGame {
     const pointer = document.getElementById('tutorial-screen-pointer');
     if (pointer) {
       pointer.classList.add('hidden');
-      pointer.classList.remove('point-up', 'point-down');
+      pointer.classList.remove('point-up', 'point-down', 'pointer-pass-through');
     }
+  }
+
+  toggleTravelerGuideCompact(event) {
+    if (event) event.stopPropagation();
+    const overlay = document.getElementById('traveler-guide-overlay');
+    const btn = document.getElementById('btn-toggle-traveler-compact');
+    if (!overlay) return;
+    this._travelerGuideManualMinimized = !overlay.classList.contains('guide-minimized');
+    overlay.classList.toggle('guide-minimized', this._travelerGuideManualMinimized);
+    if (btn) {
+      btn.textContent = this._travelerGuideManualMinimized ? '➕ Mở rộng' : '➖ Thu gọn';
+    }
+  }
+
+  onClickTutorialPointer(event) {
+    if (event) event.stopPropagation();
+    if (!this._tutorialTargetEl || this.tutorialCompleted) return;
+    if (this._tutorialTargetEl === this.elHumanHand) {
+      if (this.tutorialStep === 5 && this.tutorialMatch2SkillUsed && !this.tutorialMatch2FirstCardPlayed) {
+        const human = this.getLocalPlayer();
+        if (human) {
+          const straightCards = human.hand.filter((c) => ['5', '6', '7', '8', '9'].includes(c.rank));
+          const tripleCards = human.hand.filter((c) => c.rank === '4');
+          const suggest = straightCards.length >= 4 ? straightCards : tripleCards;
+          if (suggest.length >= 3) {
+            this.selectedCardIds = new Set(suggest.map((c) => c.id));
+            this.renderHumanHand();
+            this.updateControls();
+            this.renderTravelerGuide();
+          }
+        }
+      }
+      return;
+    }
+    try {
+      this._tutorialTargetEl.click();
+    } catch (_) {}
   }
 
   pointToScreenElement(targetEl, labelText = 'BẤM VÀO NÚT NÀY') {
@@ -19658,17 +19695,21 @@ class TienLenGame {
 
     if (this._lastScrolledTutorialEl !== targetEl) {
       this._lastScrolledTutorialEl = targetEl;
-      try {
-        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      } catch (_) {}
+      if (targetEl.closest && targetEl.closest('.modal-overlay, .gacha-wish-overlay')) {
+        try {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        } catch (_) {}
+      }
     }
 
     const pointer = document.getElementById('tutorial-screen-pointer');
     const labelEl = document.getElementById('tutorial-pointer-label');
     const overlay = document.getElementById('traveler-guide-overlay');
+    const toggleBtn = document.getElementById('btn-toggle-traveler-compact');
     if (!pointer || !labelEl) return;
 
     labelEl.textContent = labelText;
+    pointer.classList.toggle('pointer-pass-through', targetEl === this.elHumanHand);
     pointer.classList.remove('hidden');
 
     const updatePosition = () => {
@@ -19683,24 +19724,47 @@ class TienLenGame {
         pointer.classList.remove('hidden');
         const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
         const vh = window.innerHeight || document.documentElement.clientHeight || 768;
-        const cx = Math.max(125, Math.min(vw - 125, rect.left + rect.width / 2));
+        const spaceAbove = rect.top;
+        const spaceBelow = vh - rect.bottom;
 
-        // Nếu nút cách đỉnh màn hình > 135px -> Đặt mũi tên ở TRÊN nút chỉ XUỐNG (👇)
-        // Ngược lại nếu nút nằm sát đỉnh -> Đặt mũi tên ở DƯỚI nút chỉ LÊN (👆)
-        const placeAbove = rect.top > 135;
+        // 1. Đặt khung thoại Nhà Lữ Hành ở nửa màn hình xa nút mục tiêu nhất (ĐỈNH nếu nút ở nửa dưới, ĐÁY nếu nút ở nửa trên)
+        const placeOverlayAtBottom = spaceBelow > spaceAbove;
+        if (overlay) {
+          overlay.classList.toggle('guide-bottom-pos', placeOverlayAtBottom);
+          if (this._travelerGuideManualMinimized) {
+            overlay.classList.add('guide-minimized');
+          } else {
+            overlay.classList.remove('guide-minimized');
+            const ovRect = overlay.getBoundingClientRect();
+            const overlapsTarget =
+              ovRect.height > 0 && ovRect.bottom > rect.top - 8 && ovRect.top < rect.bottom + 8;
+            if (overlapsTarget) {
+              overlay.classList.add('guide-minimized');
+            }
+          }
+          if (toggleBtn) {
+            toggleBtn.textContent = overlay.classList.contains('guide-minimized')
+              ? '➕ Mở rộng'
+              : '➖ Thu gọn';
+          }
+        }
+
+        // 2. Đặt mũi tên chỉ tay ở phía thoáng nhất để không đè lên nút và không va chạm khung thoại
+        const ovRectAfter = overlay ? overlay.getBoundingClientRect() : null;
+        const freeAbove =
+          ovRectAfter && !placeOverlayAtBottom ? rect.top - ovRectAfter.bottom : spaceAbove;
+        const freeBelow =
+          ovRectAfter && placeOverlayAtBottom ? ovRectAfter.top - rect.bottom : spaceBelow;
+        const placeAbove = freeAbove >= 44 || freeAbove >= freeBelow;
+
+        const cx = Math.max(105, Math.min(vw - 105, rect.left + rect.width / 2));
         pointer.classList.toggle('point-down', placeAbove);
         pointer.classList.toggle('point-up', !placeAbove);
         pointer.style.left = `${Math.round(cx)}px`;
         if (placeAbove) {
-          pointer.style.top = `${Math.max(8, Math.round(rect.top - 8))}px`;
+          pointer.style.top = `${Math.max(6, Math.round(rect.top - 6))}px`;
         } else {
-          pointer.style.top = `${Math.min(vh - 8, Math.round(rect.bottom + 8))}px`;
-        }
-
-        // Tự động đặt khung thoại Nhà Lữ Hành ở ĐỈNH hoặc ĐÁY để không bao giờ che nút đang chỉ
-        if (overlay) {
-          const targetInTopZone = rect.top < 210;
-          overlay.classList.toggle('guide-bottom-pos', targetInTopZone);
+          pointer.style.top = `${Math.min(vh - 6, Math.round(rect.bottom + 6))}px`;
         }
       }
       this._tutorialPointerRaf = requestAnimationFrame(updatePosition);
@@ -19714,7 +19778,7 @@ class TienLenGame {
     const overlay = document.getElementById('traveler-guide-overlay');
     if (overlay) {
       overlay.classList.add('hidden');
-      overlay.classList.remove('guide-bottom-pos');
+      overlay.classList.remove('guide-bottom-pos', 'guide-minimized');
     }
   }
 

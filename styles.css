@@ -7426,6 +7426,46 @@ body.pseudo-fullscreen-mode {
   color: #bae6fd;
 }
 
+.traveler-guide-collapse-btn {
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(250, 204, 21, 0.18);
+  border: 1px solid rgba(250, 204, 21, 0.65);
+  color: #fde047;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.traveler-guide-collapse-btn:hover,
+.traveler-guide-collapse-btn:active {
+  background: rgba(250, 204, 21, 0.35);
+  transform: scale(1.04);
+}
+
+.traveler-guide-overlay.guide-minimized {
+  width: auto;
+  max-width: 92vw;
+}
+
+.traveler-guide-overlay.guide-minimized .traveler-guide-card {
+  padding: 4px 10px;
+  gap: 8px;
+  border-radius: 999px;
+}
+
+.traveler-guide-overlay.guide-minimized .traveler-guide-avatar {
+  width: 28px;
+  height: 28px;
+}
+
+.traveler-guide-overlay.guide-minimized .traveler-guide-badge,
+.traveler-guide-overlay.guide-minimized .traveler-guide-text {
+  display: none !important;
+}
+
 .traveler-guide-text {
   font-size: 13px;
   line-height: 1.45;
@@ -7459,12 +7499,19 @@ body.pseudo-fullscreen-mode {
 .tutorial-screen-pointer {
   position: fixed;
   z-index: 260000;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.92));
+}
+
+.tutorial-screen-pointer.pointer-pass-through {
+  pointer-events: none;
 }
 
 .tutorial-screen-pointer.point-down {
@@ -7542,25 +7589,51 @@ body.pseudo-fullscreen-mode {
   overflow: hidden;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px), (max-height: 540px) {
+  .traveler-guide-overlay {
+    top: 4px;
+    width: min(640px, 95vw);
+  }
+  .traveler-guide-overlay.guide-bottom-pos {
+    top: auto;
+    bottom: 4px;
+  }
   .traveler-guide-card {
-    padding: 9px 12px;
-    gap: 9px;
+    padding: 5px 10px;
+    gap: 7px;
+    border-radius: 12px;
+    border-width: 1.5px;
   }
   .traveler-guide-avatar {
-    width: 46px;
-    height: 46px;
-    font-size: 24px;
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+    border-width: 1.5px;
+  }
+  .traveler-guide-badge {
+    display: none;
+  }
+  .traveler-guide-name {
+    font-size: 12px;
+  }
+  .traveler-guide-step-pill {
+    font-size: 10px;
+    padding: 1px 7px;
+  }
+  .traveler-guide-collapse-btn {
+    font-size: 9.5px;
+    padding: 1px 6px;
   }
   .traveler-guide-text {
-    font-size: 11.8px;
+    font-size: 11px;
+    line-height: 1.25;
   }
   .tutorial-pointer-pill {
-    font-size: 11.5px;
-    padding: 5px 11px;
+    font-size: 10.8px;
+    padding: 4px 10px;
   }
   .tutorial-pointer-arrow {
-    font-size: 26px;
+    font-size: 22px;
   }
 }
 

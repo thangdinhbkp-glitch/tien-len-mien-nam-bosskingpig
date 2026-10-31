@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=78" />
+  <link rel="stylesheet" href="styles.css?v=82" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -1268,7 +1268,12 @@
         <div class="traveler-guide-body">
           <div class="traveler-guide-header">
             <span class="traveler-guide-name" id="traveler-guide-name">✨ Nhà Lữ Hành (Aether)</span>
-            <span class="traveler-guide-step-pill" id="traveler-guide-step-pill">Bước 2/6</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="traveler-guide-step-pill" id="traveler-guide-step-pill">Bước 2/6</span>
+              <button type="button" class="traveler-guide-collapse-btn" id="btn-toggle-traveler-compact" onclick="window.tienLenGame?.toggleTravelerGuideCompact(event)" title="Thu gọn / Mở rộng khung hướng dẫn">
+                ➖ Thu gọn
+              </button>
+            </div>
           </div>
           <div class="traveler-guide-text" id="traveler-guide-text">
             Chào mừng bạn đến với thế giới Tiến Lên Miền Nam — Genshin Impact Edition!
@@ -1278,13 +1283,13 @@
     </div>
 
     <!-- CON TRỎ MŨI TÊN CHỈ VÀO NÚT CÓ SẴN TRÊN MÀN HÌNH KHI HƯỚNG DẪN TÂN THỦ -->
-    <div class="tutorial-screen-pointer hidden" id="tutorial-screen-pointer">
+    <div class="tutorial-screen-pointer hidden" id="tutorial-screen-pointer" onclick="window.tienLenGame?.onClickTutorialPointer(event)">
       <div class="tutorial-pointer-arrow tutorial-pointer-arrow-up">👆</div>
       <div class="tutorial-pointer-pill" id="tutorial-pointer-label">BẤM VÀO NÚT NÀY</div>
       <div class="tutorial-pointer-arrow tutorial-pointer-arrow-down">👇</div>
     </div>
   </div>
 
-  <script src="game.js?v=81"></script>
+  <script src="game.js?v=82"></script>
 </body>
 </html>

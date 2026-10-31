@@ -19136,6 +19136,93 @@ class TienLenGame {
     };
   }
 
+  // Đếm bài chuẩn Cao Thủ Đời Thực (100% KHÔNG nhìn bài đối thủ — chỉ nhớ bài đã đánh ra bàn + bài trên tay mình!)
+  getUnseenDeckCardsForBot(bot) {
+    const seenValues = new Set();
+    if (bot && Array.isArray(bot.hand)) {
+      bot.hand.forEach((c) => seenValues.add(c.rankIndex * 4 + c.suitIndex));
+    }
+    if (Array.isArray(this.matchGraveyardCards)) {
+      this.matchGraveyardCards.forEach((c) => seenValues.add(c.rankIndex * 4 + c.suitIndex));
+    }
+    if (this.currentCombo && Array.isArray(this.currentCombo.cards)) {
+      this.currentCombo.cards.forEach((c) => seenValues.add(c.rankIndex * 4 + c.suitIndex));
+    }
+    const unseen = [];
+    for (let r = 0; r < 13; r++) {
+      for (let s = 0; s < 4; s++) {
+        const val = r * 4 + s;
+        if (!seenValues.has(val)) {
+          unseen.push({
+            id: `unseen_${r}_${s}`,
+            rank: RANKS[r],
+            suit: SUITS[s],
+            rankIndex: r,
+            suitIndex: s,
+            isRed: s >= 2,
+            value: val,
+          });
+        }
+      }
+    }
+    return unseen;
+  }
+
+  canOpponentPotentiallyBeat(bot, opp, move, unseenPool = null) {
+    if (!move || !opp) return false;
+    const oppLen = opp.hand ? opp.hand.length : 0;
+    if (oppLen <= 0) return false;
+    if (oppLen < move.length && oppLen < 4) return false;
+
+    const mem = this.getMatchPlayerMemory(opp.id);
+    const effMoveRank =
+      activeKokomiReverseRank && move.highRank < 12 ? 11 - move.highRank : move.highRank;
+
+    if (mem) {
+      if (move.type === COMBO_TYPES.SINGLE && mem.singlePassCount > 0 && effMoveRank >= mem.passedSingleCeiling) {
+        return false;
+      }
+      if (move.type === COMBO_TYPES.PAIR && mem.pairPassCount > 0 && effMoveRank >= mem.passedPairCeiling) {
+        return false;
+      }
+      if (move.type === COMBO_TYPES.TRIPLE && mem.triplePassCount > 0 && effMoveRank >= mem.passedTripleCeiling) {
+        return false;
+      }
+      if (
+        move.type === COMBO_TYPES.STRAIGHT &&
+        mem.passedStraightByLen &&
+        mem.passedStraightByLen[move.length] !== undefined &&
+        effMoveRank >= mem.passedStraightByLen[move.length]
+      ) {
+        return false;
+      }
+    }
+
+    const pool = unseenPool || this.getUnseenDeckCardsForBot(bot);
+    if (pool.length === 0) return false;
+
+    const possibleCounters = getValidMoves(pool, move, false, false).filter(
+      (c) => c.length <= oppLen
+    );
+    if (possibleCounters.length === 0) return false;
+
+    const share = Math.min(1, oppLen / Math.max(oppLen, pool.length));
+    if (move.type === COMBO_TYPES.SINGLE) {
+      return possibleCounters.length * share >= 0.35 || effMoveRank <= 10;
+    }
+    if (move.type === COMBO_TYPES.PAIR) {
+      return possibleCounters.length * share * share >= 0.16 || (effMoveRank <= 8 && oppLen >= 4);
+    }
+    if (move.type === COMBO_TYPES.TRIPLE || move.type === COMBO_TYPES.STRAIGHT) {
+      const k = Math.min(3, move.length);
+      return (
+        possibleCounters.length * Math.pow(share, k) >= 0.14 ||
+        (effMoveRank <= 7 && move.length <= 4 && oppLen >= move.length + 2)
+      );
+    }
+    return possibleCounters.length > 0;
+  }
+
   isMoveUnbeatableByOpponents(bot, move, onlyUnpassed = false) {
     if (!move) return false;
     const opps = this.players.filter(
@@ -19147,14 +19234,16 @@ class TienLenGame {
         (!onlyUnpassed || !p.passed)
     );
     if (opps.length === 0) return true;
+    const unseenPool = this.getUnseenDeckCardsForBot(bot);
     for (const opp of opps) {
-      const counters = getValidMoves(opp.hand, move, false, false);
-      if (counters.length > 0) return false;
+      if (this.canOpponentPotentiallyBeat(bot, opp, move, unseenPool)) {
+        return false;
+      }
     }
     return true;
   }
 
-  // Kiểm tra xem nếu Bot đánh `move` ra bàn, có đối thủ nào đỡ được VÀ hết sạch bài Về Nhất ngay lập tức (Mate in 1 cho đối thủ) không!
+  // Phán đoán nguy cơ đút bài cho đối thủ Về Nhất ngay (100% KHÔNG nhìn bài đối thủ — chỉ dựa vào số lá còn lại + lịch sử bỏ lượt + đếm bài!)
   doesMoveAllowOpponentInstantWin(bot, move, onlyUnpassed = false) {
     if (!move) return false;
     const opps = this.players.filter(
@@ -19165,20 +19254,21 @@ class TienLenGame {
         p.hand.length > 0 &&
         (!onlyUnpassed || !p.passed)
     );
+    const unseenPool = this.getUnseenDeckCardsForBot(bot);
+    const effMoveRank =
+      activeKokomiReverseRank && move.highRank < 12 ? 11 - move.highRank : move.highRank;
     for (const opp of opps) {
-      if (opp.hand.length > move.length && opp.hand.length < 6) {
-        // Đối thủ có thể tung Hàng chặt nếu còn đúng 6 hoặc 8 lá, còn bình thường chỉ hết bài khi số lá bằng độ dài bộ đè
-        continue;
-      }
-      const counters = getValidMoves(opp.hand, move, false, false);
-      if (counters.some((c) => c.length === opp.hand.length)) {
+      const oppLen = opp.hand.length;
+      if (oppLen !== move.length) continue;
+      if (oppLen > 3) continue;
+      if (effMoveRank <= 9 && this.canOpponentPotentiallyBeat(bot, opp, move, unseenPool)) {
         return true;
       }
     }
     return false;
   }
 
-  // Đếm số đối thủ có khả năng đỡ được `move` (0 = Bất bại hoàn toàn, 1 = Cận Boss chỉ 1 nhà đỡ được)
+  // Đếm số đối thủ có khả năng đỡ được `move` dựa trên Đếm Bài & Lịch Sử Bỏ Lượt (0 = Bất bại, 1 = Cận Boss)
   countOpponentsWhoCanBeat(bot, move, onlyUnpassed = false) {
     if (!move) return 99;
     const opps = this.players.filter(
@@ -19189,10 +19279,10 @@ class TienLenGame {
         p.hand.length > 0 &&
         (!onlyUnpassed || !p.passed)
     );
+    const unseenPool = this.getUnseenDeckCardsForBot(bot);
     let count = 0;
     for (const opp of opps) {
-      const counters = getValidMoves(opp.hand, move, false, false);
-      if (counters.length > 0) count++;
+      if (this.canOpponentPotentiallyBeat(bot, opp, move, unseenPool)) count++;
     }
     return count;
   }
@@ -19528,13 +19618,17 @@ class TienLenGame {
         return false;
       })();
 
-    let opponentTwosCount = 0;
-    let opponentHasPairOfTwos = false;
-    activeOpponents.forEach((p) => {
-      const twos = p.hand.filter((c) => c.rankIndex === 12).length;
-      opponentTwosCount += twos;
-      if (twos >= 2) opponentHasPairOfTwos = true;
-    });
+    // Đếm số Heo (2) chưa xuất hiện trên bàn (4 con Heo trong bộ 52 lá trừ đi số Heo trên tay Bot và số Heo đã đánh ra bàn)
+    const botTwosCount = bot.hand.filter((c) => c.rankIndex === 12).length;
+    const graveyardTwosCount = (this.matchGraveyardCards || []).filter((c) => c.rankIndex === 12).length;
+    const tableTwosCount =
+      this.currentCombo && Array.isArray(this.currentCombo.cards)
+        ? this.currentCombo.cards.filter((c) => c.rankIndex === 12).length
+        : 0;
+    const opponentTwosCount = Math.max(0, 4 - botTwosCount - graveyardTwosCount - tableTwosCount);
+    const maxOpponentCards =
+      activeOpponents.length > 0 ? Math.max(...activeOpponents.map((p) => p.hand.length)) : 0;
+    const opponentHasPairOfTwos = opponentTwosCount >= 2 && maxOpponentCards >= 2;
 
     const lowCardsCount = bot.hand.filter(
       (c) => c.rankIndex <= 6 && !struct.bombRanks.has(c.rankIndex)

@@ -1041,7 +1041,7 @@ const GENSHIN_BURSTS = [
     name: 'Cyno — Nghi Lễ Thần Dẫn Đường',
     desc: '[Huyền Thoại] Tổng Quản Mahamatra ban hành Thiết Quân Luật trong vòng này: CẤM toàn bộ đối thủ đánh ra các quân bài Hoàng Gia (J, Q, K, A, 2 — chỉ được đỡ bằng 3→10) & giáng cấp bài lớn trên bàn xuống 9!',
     price: 150000,
-    mp4Url: 'cyno_burst.mp4?v=64',
+    mp4Url: 'cyno_burst.mp4?v=110',
     audioUrl: 'cyno_burst.ogg?v=64',
     posterUrl: 'fanart/cyno.jpg?v=66',
     theme: 'theme-electro',

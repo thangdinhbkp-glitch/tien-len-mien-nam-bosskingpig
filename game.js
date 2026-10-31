@@ -3318,7 +3318,7 @@ class TienLenGame {
 
     const botBankroll = Math.max(INITIAL_COINS, this.betPerCard * 500);
     this.players = [
-      { id: 0, name: this.savedPlayerName || this.currentAccountUsername || 'Nhà Lữ Hành', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, activeChar: this.equippedActiveChar || 'raiden', skillUsed: false, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
+      { id: 0, name: this.savedPlayerName || this.currentAccountUsername || 'Nhà Lữ Hành', avatar: this.equippedAvatar, cardSkin: this.equippedSkin, chopBurst: this.equippedChopBurst, winBurst: this.equippedWinBurst, activeChar: this.equippedActiveChar || 'none', skillUsed: false, isBot: false, active: true, hand: [], coins: this.savedCoins, passed: false, finishRank: null, clientId: 'host' },
       { id: 1, name: 'Bot Furina', avatar: BOT_ANIME_AVATARS[1], cardSkin: 'furina', chopBurst: 'furina', winBurst: 'furina', activeChar: 'furina', skillUsed: false, isBot: true, active: this.soloPlayerCount >= 3, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
       { id: 2, name: 'Bot Raiden Shogun', avatar: BOT_ANIME_AVATARS[2], cardSkin: 'raiden', chopBurst: 'raiden', winBurst: 'raiden', activeChar: 'raiden', skillUsed: false, isBot: true, active: true, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
       { id: 3, name: 'Bot Skirk', avatar: BOT_ANIME_AVATARS[3], cardSkin: 'skirk', chopBurst: 'skirk', winBurst: 'skirk', activeChar: 'skirk', skillUsed: false, isBot: true, active: this.soloPlayerCount === 4, hand: [], coins: botBankroll, passed: false, finishRank: null, clientId: null },
@@ -3967,21 +3967,15 @@ class TienLenGame {
       });
     }
     if (isNewerOrEqual || !this.equippedActiveChar || this.equippedActiveChar === 'none') {
-      if (data.equippedChopBurst && this.unlockedBursts.has(data.equippedChopBurst)) {
-        this.equippedChopBurst = data.equippedChopBurst;
-      }
-      if (data.equippedWinBurst && this.unlockedBursts.has(data.equippedWinBurst)) {
-        this.equippedWinBurst = data.equippedWinBurst;
-      }
-      if (data.equippedActiveChar && this.unlockedBursts.has(data.equippedActiveChar)) {
+      if (data.equippedActiveChar === 'none' && isNewerOrEqual) {
+        this.equippedActiveChar = 'none';
+      } else if (data.equippedActiveChar && this.unlockedBursts.has(data.equippedActiveChar)) {
         this.equippedActiveChar = data.equippedActiveChar;
-      } else if (this.equippedChopBurst && this.unlockedBursts.has(this.equippedChopBurst)) {
-        this.equippedActiveChar = this.equippedChopBurst;
-      } else if (this.equippedWinBurst && this.unlockedBursts.has(this.equippedWinBurst)) {
-        this.equippedActiveChar = this.equippedWinBurst;
-      } else if (this.unlockedBursts.size > 0) {
-        this.equippedActiveChar = Array.from(this.unlockedBursts)[0];
-      } else {
+      } else if (data.equippedChopBurst && this.unlockedBursts.has(data.equippedChopBurst)) {
+        this.equippedActiveChar = data.equippedChopBurst;
+      } else if (data.equippedWinBurst && this.unlockedBursts.has(data.equippedWinBurst)) {
+        this.equippedActiveChar = data.equippedWinBurst;
+      } else if (!this.equippedActiveChar || !this.unlockedBursts.has(this.equippedActiveChar)) {
         this.equippedActiveChar = 'none';
       }
       this.equippedChopBurst = this.equippedActiveChar || 'none';
@@ -4566,11 +4560,13 @@ class TienLenGame {
     const newerChar = newer.equippedActiveChar || newer.equippedChopBurst || newer.equippedWinBurst || 'none';
     const olderChar = older.equippedActiveChar || older.equippedChopBurst || older.equippedWinBurst || 'none';
     const resolvedActiveChar =
-      newerChar && newerChar !== 'none' && mergedBursts.includes(newerChar)
-        ? newerChar
-        : olderChar && olderChar !== 'none' && mergedBursts.includes(olderChar)
-          ? olderChar
-          : mergedBursts[0] || 'none';
+      newer.equippedActiveChar === 'none'
+        ? 'none'
+        : newerChar && newerChar !== 'none' && mergedBursts.includes(newerChar)
+          ? newerChar
+          : olderChar && olderChar !== 'none' && mergedBursts.includes(olderChar)
+            ? olderChar
+            : 'none';
 
     const today = this.getTodayKey();
     const mergedQuestsState = this.getDefaultDailyQuestsState();
@@ -5058,7 +5054,7 @@ class TienLenGame {
   }
 
   requireAccountLogin() {
-    if (this.currentAccountUsername) return true;
+    if (this.currentAccountUsername || (!this.tutorialCompleted && this.tutorialStep >= 1)) return true;
     clearTimeout(this.botTimer);
     clearInterval(this.turnCountdownInterval);
     this.openAccountModal(this.accountModalTab || 'register');
@@ -5857,18 +5853,30 @@ class TienLenGame {
     } else if (!['bursts', 'skins', 'avatars'].includes(this.activeInventoryTab)) {
       this.activeInventoryTab = 'bursts';
     }
+    this.modalShop?.classList.add('hidden');
     document.getElementById('pause-modal')?.classList.add('hidden');
     this.renderInventoryModal();
     document.getElementById('inventory-modal')?.classList.remove('hidden');
     sfx.click();
+    if (!this.tutorialCompleted && this.tutorialStep >= 1) {
+      this.renderTravelerGuide();
+    }
     if (this.currentAccountUsername) {
       this.pullAccountFromCloudAndSync(this.currentAccountUsername);
     }
   }
 
   closeInventoryModal() {
+    if (!this.tutorialCompleted && this.tutorialStep === 4 && this.equippedActiveChar !== 'raiden') {
+      alert('🌟 Nhà Lữ Hành: Bạn phải bấm nút "⚡ Trang Bị Nhân Vật Này" ở thẻ Raiden Shogun trước khi đóng Kho Đồ nhé!');
+      this.renderTravelerGuide();
+      return;
+    }
     document.getElementById('inventory-modal')?.classList.add('hidden');
     sfx.click();
+    if (!this.tutorialCompleted && this.tutorialStep >= 1) {
+      this.renderTravelerGuide();
+    }
   }
 
   openGachaFromInventory() {
@@ -5972,18 +5980,8 @@ class TienLenGame {
       const alreadyOwned = this.unlockedBursts.has(chosenBurst.id);
       const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[5] : 0;
       if (!alreadyOwned) {
+        // Chỉ mở khóa lưu vào Kho Đồ — người chơi phải vào Kho Đồ bấm Trang Bị mới sử dụng được nhân vật!
         this.unlockedBursts.add(chosenBurst.id);
-        // Tự động gắn nhân vật 5★ vừa mở khóa nếu người chơi chưa có nhân vật 5★ nào đang xài
-        if (!this.equippedActiveChar || this.equippedActiveChar === 'none' || !this.unlockedBursts.has(this.equippedActiveChar)) {
-          this.equippedActiveChar = chosenBurst.id;
-          this.equippedChopBurst = chosenBurst.id;
-          this.equippedWinBurst = chosenBurst.id;
-          if (me) {
-            me.activeChar = chosenBurst.id;
-            me.chopBurst = chosenBurst.id;
-            me.winBurst = chosenBurst.id;
-          }
-        }
       }
 
       const result = {
@@ -6181,12 +6179,13 @@ class TienLenGame {
     const burstOwned = this.unlockedBursts.has(giftBurst.id);
     const burstRefund = burstOwned ? DUPLICATE_REFUND_COINS[5] : 0;
     this.unlockedBursts.add(giftBurst.id);
-    this.equippedActiveChar = giftBurst.id;
-    this.equippedChopBurst = giftBurst.id;
-    this.equippedWinBurst = giftBurst.id;
-    me.activeChar = giftBurst.id;
-    me.chopBurst = giftBurst.id;
-    me.winBurst = giftBurst.id;
+    // Chỉ mở khóa lưu vào Kho Đồ, chưa tự động trang bị để Nhà Lữ Hành hướng dẫn người chơi vào Kho Đồ mặc Raiden Shogun!
+    this.equippedActiveChar = 'none';
+    this.equippedChopBurst = 'none';
+    this.equippedWinBurst = 'none';
+    me.activeChar = 'none';
+    me.chopBurst = 'none';
+    me.winBurst = 'none';
     totalRefund += burstRefund;
 
     const r5 = {
@@ -6840,8 +6839,8 @@ class TienLenGame {
             }
           </div>
           <div class="inv-equip-meta">
-            <span class="inv-equip-label">⭐⭐⭐⭐⭐ Nhân Vật &amp; Nộ 5★ Đang Xài</span>
-            <strong class="inv-equip-val">${hasChar ? `${charSkill.icon} ${charSkill.charName} (${charSkill.name})` : 'Chưa sở hữu Nộ 5★'}</strong>
+            <span class="inv-equip-label">⭐⭐⭐⭐⭐ Nhân Vật &amp; Nộ 5★ Đang Trang Bị</span>
+            <strong class="inv-equip-val">${hasChar ? `${charSkill.icon} ${charSkill.charName} (${charSkill.name})` : this.unlockedBursts.size > 0 ? '⚠️ Chưa trang bị nhân vật (Hãy bấm Trang Bị bên dưới!)' : 'Chưa sở hữu Nộ 5★'}</strong>
           </div>
         </div>
         <div class="inv-equip-slot ${activeInvTab === 'skins' ? 'active-slot' : ''}" onclick="window.tienLenGame.switchInventoryTab('skins')">
@@ -6920,8 +6919,8 @@ class TienLenGame {
             } else {
               actionsHtml = `
                 <div class="shop-burst-actions">
-                  <button class="shop-buy-btn ${isEquipped ? 'equipped-btn' : 'equip-btn'}" style="width:100%;" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}')">
-                    ${isEquipped ? '✅ Đang Xài (Kỹ Năng + Nộ Chặt Heo & Về Nhất)' : '⚡ Trang Bị Nhân Vật Này (Kỹ Năng & Nộ)'}
+                  <button id="btn-equip-burst-${b.id}" class="shop-buy-btn ${isEquipped ? 'equipped-btn' : 'equip-btn'}" style="width:100%;" onclick="window.tienLenGame.buyOrEquipBurst('${b.id}')">
+                    ${isEquipped ? '✅ Đang Trang Bị (Kỹ Năng + Nộ Chặt Heo & Về Nhất)' : '⚡ Trang Bị Nhân Vật Này (Kỹ Năng & Nộ)'}
                   </button>
                 </div>
               `;
@@ -7148,6 +7147,10 @@ class TienLenGame {
     me.activeChar = burstId;
     me.chopBurst = burstId;
     me.winBurst = burstId;
+    const sk = CHARACTER_SKILLS[burstId];
+    if (sk) {
+      this.showComboBanner(`⚡ ĐÃ TRANG BỊ NHÂN VẬT 5★: ${sk.icon} ${sk.charName.toUpperCase()} (${sk.name.toUpperCase()})!`);
+    }
 
     this.saveShopProfile();
     this.saveActiveMatchSnapshot();
@@ -7158,6 +7161,9 @@ class TienLenGame {
     this.renderShopModal();
     this.renderAll();
     this.syncCosmeticsInRoom();
+    if (!this.tutorialCompleted && this.tutorialStep >= 1) {
+      this.renderTravelerGuide();
+    }
   }
 
   // ============================================================================
@@ -8356,6 +8362,11 @@ class TienLenGame {
       alert('🌟 Nhà Lữ Hành: Hãy vào Sảnh Cầu Nguyện để nhận Nhân Vật 5★ Limited tặng Tân Thủ trước khi tạo bàn nhé!');
       return;
     }
+    if (!this.tutorialCompleted && this.tutorialStep === 4 && this.equippedActiveChar !== 'raiden') {
+      alert('🌟 Nhà Lữ Hành: Bạn phải vào "🎒 Kho Đồ" mặc Raiden Shogun trước thì mới sử dụng được nhân vật trên bàn đấu nhé!');
+      this.renderTravelerGuide();
+      return;
+    }
     if (!this.tutorialCompleted && this.tutorialStep === 4 && targetMode === 'human') {
       alert('🌟 Nhà Lữ Hành: Ở bước hướng dẫn này, hãy bấm chọn "🤖 CHƠI VỚI BOT" để mình hướng dẫn bạn xài chiêu của Raiden Shogun và Phản Ứng Nguyên Tố nhé!');
       return;
@@ -8791,7 +8802,7 @@ class TienLenGame {
         cardSkin: idx === 0 ? this.equippedSkin : p.cardSkin || 'raiden',
         chopBurst: idx === 0 ? this.equippedChopBurst : p.chopBurst || 'raiden',
         winBurst: idx === 0 ? this.equippedWinBurst : p.winBurst || 'raiden',
-        activeChar: idx === 0 ? p.activeChar || this.equippedActiveChar || 'raiden' : p.activeChar || p.chopBurst || p.cardSkin || 'raiden',
+        activeChar: idx === 0 ? this.equippedActiveChar || 'none' : p.activeChar || p.chopBurst || p.cardSkin || 'raiden',
         skillUsed: !!p.skillUsed,
         isBot: idx === 0 ? false : !!p.isBot,
         active: !!p.active,
@@ -8842,39 +8853,29 @@ class TienLenGame {
 
   getPlayerActiveCharId(player) {
     if (!player) {
-      return this.equippedActiveChar && this.unlockedBursts?.has(this.equippedActiveChar)
+      return this.equippedActiveChar && this.equippedActiveChar !== 'none' && this.unlockedBursts?.has(this.equippedActiveChar)
         ? this.equippedActiveChar
         : 'none';
     }
-    // Người chơi chính: CHỈ được xài nhân vật & kỹ năng của nhân vật mà mình ĐANG SỞ HỮU Hoạt Ảnh Nộ 5★!
+    // Người chơi chính: PHẢI TRANG BỊ nhân vật trong Kho Đồ mới sử dụng được Kỹ Năng [E], Nguyên Tố & Hoạt Ảnh Nộ 5★!
     if (player.id === this.mySeatId && !player.isBot) {
       if (!this.tutorialCompleted && this.tutorialStep === 1 && !this.beginnerBannerUsed) {
         return 'none';
       }
-      const candidates = [
-        this.equippedActiveChar,
-        this.equippedChopBurst,
-        this.equippedWinBurst,
-        player.activeChar,
-        player.chopBurst,
-        player.winBurst,
-      ];
-      for (const id of candidates) {
-        if (id && CHARACTER_SKILLS[id] && this.unlockedBursts.has(id)) {
-          return id;
-        }
-      }
-      if (this.unlockedBursts && this.unlockedBursts.size > 0) {
-        const firstOwned = Array.from(this.unlockedBursts).find((id) => CHARACTER_SKILLS[id]);
-        if (firstOwned) return firstOwned;
+      if (
+        this.equippedActiveChar &&
+        this.equippedActiveChar !== 'none' &&
+        CHARACTER_SKILLS[this.equippedActiveChar] &&
+        this.unlockedBursts.has(this.equippedActiveChar)
+      ) {
+        return this.equippedActiveChar;
       }
       return 'none';
     }
-    // Khách trong phòng Multiplayer (không phải Bot): lấy theo Burst nhân vật họ đang trang bị
+    // Khách trong phòng Multiplayer (không phải Bot): lấy theo nhân vật họ đang trang bị
     if (!player.isBot) {
-      const guestCandidates = [player.activeChar, player.chopBurst, player.winBurst];
-      for (const id of guestCandidates) {
-        if (id && CHARACTER_SKILLS[id]) return id;
+      if (player.activeChar && player.activeChar !== 'none' && CHARACTER_SKILLS[player.activeChar]) {
+        return player.activeChar;
       }
       return 'none';
     }
@@ -8895,10 +8896,12 @@ class TienLenGame {
   getPlayerElement(player, combo = null) {
     if (player) {
       const activeId = this.getPlayerActiveCharId(player);
-      if (activeId && CHARACTER_ELEMENTS[activeId]) return CHARACTER_ELEMENTS[activeId];
-      const candidates = [player.chopBurst, player.winBurst, player.avatar, player.cardSkin];
-      for (const id of candidates) {
-        if (id && CHARACTER_ELEMENTS[id]) return CHARACTER_ELEMENTS[id];
+      if (activeId && activeId !== 'none' && CHARACTER_ELEMENTS[activeId]) return CHARACTER_ELEMENTS[activeId];
+      if (player.isBot) {
+        const candidates = [player.chopBurst, player.winBurst, player.avatar, player.cardSkin];
+        for (const id of candidates) {
+          if (id && CHARACTER_ELEMENTS[id]) return CHARACTER_ELEMENTS[id];
+        }
       }
     }
     if (combo && combo.highCard) {
@@ -8911,10 +8914,12 @@ class TienLenGame {
     return 'electro';
   }
 
-  getSpecialPlayReaction(player, combo) {
+  getSpecialPlayReaction(player, combo, targetOpponent = null) {
     const attackerElem = this.getPlayerElement(player, combo);
     let defenderElem = null;
-    if (this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== player.id) {
+    if (targetOpponent && targetOpponent.id !== player?.id) {
+      defenderElem = this.getPlayerElement(targetOpponent, this.currentCombo);
+    } else if (this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== player.id) {
       defenderElem = this.getPlayerElement(this.players[this.trickOwnerId], this.currentCombo);
     }
     if (!defenderElem || defenderElem === attackerElem) {
@@ -10649,6 +10654,7 @@ class TienLenGame {
 
     if (charId === 'raiden') {
       const oldLabel = this.currentCombo ? this.currentCombo.label : 'bộ bài trên bàn';
+      this.lastSkillCutTargetId = prevTrickOwner ? prevTrickOwner.id : null;
       this.previousCombo = this.currentCombo;
       this.currentCombo = null;
       this.trickOwnerId = player.id;
@@ -12204,6 +12210,13 @@ class TienLenGame {
     this.renderAll();
     if (!this.tutorialCompleted && this.tutorialStep === 5 && player.id === this.mySeatId) {
       this.tutorialMatch2SkillUsed = true;
+      // Sau khi dùng [E] Tịnh Thổ Cắt Vòng, tự động gợi ý chọn sẵn bộ Sảnh Lớn 5 lá (5-6-7-8-9) trên tay để người chơi bấm Đánh Bài kích hoạt Phản Ứng Nguyên Tố!
+      const straightCards = player.hand.filter((c) => ['5', '6', '7', '8', '9'].includes(c.rank));
+      if (straightCards.length >= 4) {
+        this.selectedCardIds = new Set(straightCards.map((c) => c.id));
+        this.renderHumanHand();
+        this.updateControls();
+      }
       setTimeout(() => {
         this.renderTravelerGuide();
       }, 600);
@@ -16813,21 +16826,48 @@ class TienLenGame {
         combo.length >= 4 ||
         combo.type === COMBO_TYPES.TRIPLE;
 
-      const prevPlayer =
+      const hasEquippedChar = this.getPlayerActiveCharId(player) !== 'none';
+      const cutTargetPlayer =
+        this.lastSkillCutTargetId !== undefined &&
+        this.lastSkillCutTargetId !== null &&
+        this.lastSkillCutTargetId !== player.id
+          ? this.players[this.lastSkillCutTargetId]
+          : null;
+      this.lastSkillCutTargetId = null;
+
+      let prevPlayer =
         this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== player.id
           ? this.players[this.trickOwnerId]
-          : null;
+          : cutTargetPlayer;
+
+      // Khi người chơi ĐÃ TRANG BỊ NHÂN VẬT và đánh Sảnh Lớn (≥ 4 lá) hoặc Sám Cô (3 lá) / Heo / Hàng mở vòng mới,
+      // tự động tìm đối thủ khác hệ trên bàn để kích hoạt Phản Ứng Nguyên Tố!
+      if (isHeavy && hasEquippedChar && !prevPlayer) {
+        const attackerElem = this.getPlayerElement(player, combo);
+        prevPlayer =
+          this.players.find(
+            (p) =>
+              p.active &&
+              p.id !== player.id &&
+              p.finishRank === null &&
+              this.getPlayerActiveCharId(p) !== 'none' &&
+              checkGenuineGenshinReaction(attackerElem, this.getPlayerElement(p))
+          ) || null;
+      }
+
       const hasElementalClash =
+        hasEquippedChar &&
         prevPlayer &&
+        this.getPlayerActiveCharId(prevPlayer) !== 'none' &&
         checkGenuineGenshinReaction(
           this.getPlayerElement(player, combo),
           this.getPlayerElement(prevPlayer, this.currentCombo)
         );
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      // CHỈ kích hoạt Phản Ứng Nguyên Tố khi KHÔNG phải người đánh đầu tiên trong vòng (có prevPlayer trên bàn) VÀ đánh bài TO (isHeavy)
-      if (isHeavy && prevPlayer) {
-        const rx = this.getSpecialPlayReaction(player, combo);
+      // Kích hoạt Phản Ứng Nguyên Tố khi đã trang bị nhân vật VÀ đánh bài lớn (Sảnh Lớn ≥ 4 lá, Sám Cô, Heo 2, Hàng)
+      if (isHeavy && hasEquippedChar && prevPlayer) {
+        const rx = this.getSpecialPlayReaction(player, combo, prevPlayer);
         combo.reaction = rx;
         this.triggerArenaReactionFlash(rx);
         const rxBonus = hasElementalClash ? this.applyElementalReactionBonus(player, prevPlayer, rx) : 0;
@@ -18494,6 +18534,25 @@ class TienLenGame {
     if (this.currentTurn !== this.mySeatId && !isFourPairsCutAnytime) return;
 
     if (!this.tutorialCompleted && this.tutorialStep === 5 && this.tutorialMatch2SkillUsed && !this.tutorialMatch2FirstCardPlayed) {
+      const isReactionCombo =
+        combo.type === COMBO_TYPES.TRIPLE ||
+        (combo.type === COMBO_TYPES.STRAIGHT && combo.length >= 4);
+      if (!isReactionCombo) {
+        const human = this.getLocalPlayer();
+        if (human) {
+          const straightCards = human.hand.filter((c) => ['5', '6', '7', '8', '9'].includes(c.rank));
+          const tripleCards = human.hand.filter((c) => c.rank === '4');
+          const suggest = straightCards.length >= 4 ? straightCards : tripleCards;
+          if (suggest.length >= 3) {
+            this.selectedCardIds = new Set(suggest.map((c) => c.id));
+            this.renderHumanHand();
+            this.updateControls();
+          }
+        }
+        this.showCenterToast('🌟 Nhà Lữ Hành: Hãy đánh bộ Sảnh Lớn (5-6-7-8-9) hoặc Sám Cô (4-4-4 / Q-Q-Q) đang có trên tay để kích hoạt Phản Ứng Nguyên Tố nhé!');
+        this.renderTravelerGuide();
+        return;
+      }
       this.tutorialMatch2FirstCardPlayed = true;
       this.hideTravelerGuide();
     }
@@ -19445,8 +19504,11 @@ class TienLenGame {
     this.tutorialStep = nextStep;
 
     if (nextStep === 3) {
-      // Đảm bảo Banner Tân Thủ luôn hiển thị ở Bước 3 và đưa người chơi về đúng Sảnh Chờ (#wifi-modal) nơi có nút "🌠 Cầu Nguyện"
+      // Đảm bảo Banner Tân Thủ luôn hiển thị ở Bước 3 và chưa trang bị sẵn nhân vật để Bước 4 hướng dẫn vào Kho Đồ mặc Raiden Shogun
       this.beginnerBannerUsed = false;
+      this.equippedActiveChar = 'none';
+      this.equippedChopBurst = 'none';
+      this.equippedWinBurst = 'none';
       if (this.modalSummary) this.modalSummary.classList.add('hidden');
       document.getElementById('pause-modal')?.classList.add('hidden');
       this.inInitialLobby = true;
@@ -19456,6 +19518,11 @@ class TienLenGame {
       }
       // Nhà Lữ Hành nâng tiền người chơi mới lên đủ 20,000 Vàng để roll Banner Tân Thủ (16,000 Vàng) và dư vốn đánh bài
       const localP = this.getLocalPlayer();
+      if (localP) {
+        localP.activeChar = 'none';
+        localP.chopBurst = 'none';
+        localP.winBurst = 'none';
+      }
       const curCoins = localP ? localP.coins : this.savedCoins;
       if (curCoins < 20000) {
         const added = 20000 - curCoins;
@@ -19543,7 +19610,7 @@ class TienLenGame {
 
     // Sắp xếp bộ bài 52 lá sao cho:
     // - Seat 3 (Bot Furina 💧, ngồi ngay trước Seat 0 theo chiều đánh 3 -> 0) cầm Đôi 3 (3♠ 3♦) để mở đầu đánh Đôi 3 mang nguyên tố Thủy (💧)
-    // - Seat 0 (Bạn - Raiden Shogun ⚡) cầm bộ bài gồm các Đôi lớn + Heo Cơ (2♥) để sau khi bấm [E] Tịnh Thổ Cắt Vòng sẽ dễ dàng đánh hết bài Về Nhất!
+    // - Seat 0 (Bạn - Raiden Shogun ⚡) cầm Sám Cô (4-4-4, Q-Q-Q) + Sảnh Lớn 5 lá (5-6-7-8-9) + A♠ + Heo Cơ (2♥) để sau khi bấm [E] sẽ thực hành đánh Sảnh Lớn hoặc Sám Cô kích nổ Phản Ứng Nguyên Tố!
     const fullDeck = createDeck();
     const pickCards = (codes) => {
       const picked = [];
@@ -19557,18 +19624,16 @@ class TienLenGame {
     };
 
     const humanHand = pickCards([
-      '4♠', '4♣',
-      '6♠', '6♦',
-      '8♠', '8♥',
-      '10♠', '10♦',
-      'Q♠', 'Q♥',
-      'A♠', 'A♥',
+      '4♠', '4♣', '4♥',
+      '5♠', '6♦', '7♠', '8♥', '9♣',
+      'Q♠', 'Q♦', 'Q♥',
+      'A♠',
       '2♥',
     ]);
     const furinaHand = pickCards([
       '3♠', '3♦',
-      '3♣', '5♠', '7♣', '9♦', 'J♣', 'K♠',
-      '4♦', '5♦', '7♥', '9♠', 'J♦',
+      '3♣', '4♦', '5♦', '6♠', '7♣', '7♥',
+      '8♠', '9♦', '10♠', '10♦', 'J♣',
     ]);
     const nahidaHand = fullDeck.splice(0, 13);
     const arlecchinoHand = fullDeck.splice(0, 13);
@@ -19698,7 +19763,7 @@ class TienLenGame {
         const resultsVisible = resultsStage && !resultsStage.classList.contains('hidden');
         textEl.innerHTML = `
           🎉 <strong>Nổ vàng 5★ Limited Raiden Shogun (⚡ Lôi Thần) rồi!</strong><br>
-          Hãy bấm vào nút <strong>✅ Xác Nhận &amp; Thu Nhận</strong> có sẵn bên dưới để nhận nhân vật và tự động trang bị vào bàn đấu nhé!
+          ⚠️ <strong>Lưu ý:</strong> Nhân vật mới quay trúng chỉ mới lưu vào <strong>Kho Đồ</strong> — bạn <strong>phải Trang Bị nhân vật trong Kho Đồ</strong> mới sử dụng được! Hãy bấm <strong>✅ Xác Nhận &amp; Thu Nhận</strong> bên dưới nhé!
         `;
         const targetBtn = resultsVisible
           ? document.getElementById('btn-close-gacha-results')
@@ -19728,65 +19793,118 @@ class TienLenGame {
       return;
     }
 
-    // BƯỚC 4: Giải thích cơ chế Gacha ➔ Chỉ vào nút Đóng Sảnh ➔ Chỉ vào thẻ "🤖 CHƠI VỚI BOT" ➔ Chỉ vào nút "⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY"
+    // BƯỚC 4: Hướng dẫn vào Kho Đồ mặc Raiden Shogun ➔ Đóng Kho Đồ ➔ Chỉ vào thẻ "🤖 CHƠI VỚI BOT" ➔ Chỉ vào nút "⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY"
     if (step === 4) {
-      stepPill.textContent = 'Bước 4/6 • Cơ Chế Cầu Nguyện & Tạo Phòng Đấu Bot';
+      const invModal = document.getElementById('inventory-modal');
+      const invOpen = invModal && !invModal.classList.contains('hidden');
       const shopOpen = this.modalShop && !this.modalShop.classList.contains('hidden');
       const modeModal = document.getElementById('mode-setup-modal');
       const modeOpen = modeModal && !modeModal.classList.contains('hidden');
+      const isRaidenEquipped = this.equippedActiveChar === 'raiden';
 
-      if (shopOpen) {
-        textEl.innerHTML = `
-          🎉 <strong>Chúc mừng bạn đã sở hữu &amp; trang bị 5★ Limited Raiden Shogun (⚡ Lôi Thần)!</strong><br>
-          📌 <strong>Cơ chế Cầu Nguyện:</strong> Mỗi ngày toàn Server có chung <strong>2 Banner 5★ Limited</strong> (reset 00:00, không trùng nhân vật trong chu kỳ 25 ngày, bảo hiểm 4★ ở 10 roll &amp; 5★ ở 90 roll).<br>
-          Giờ hãy bấm vào nút <strong>✅ Đóng Sảnh Cầu Nguyện</strong> ở góc dưới bên phải để ra tạo phòng thử chiêu nhé!
-        `;
-        const btnOkShop = document.getElementById('btn-ok-shop') || document.getElementById('btn-close-shop');
-        this.pointToScreenElement(btnOkShop, 'BẤM ĐÓNG SẢNH CẦU NGUYỆN');
-      } else if (!modeOpen) {
-        textEl.innerHTML = `
-          📌 <strong>Cơ chế Cầu Nguyện:</strong> Mỗi ngày Server có chung <strong>2 Banner 5★ Limited</strong> (reset 00:00, không trùng trong chu kỳ 25 ngày, bảo hiểm 90 roll).<br>
-          Bây giờ hãy bấm vào ô <strong>🤖 CHƠI VỚI BOT (⚔️ MỞ BÀN BOT)</strong> có sẵn trên màn hình để tạo phòng thử chiêu <strong>Raiden Shogun</strong> nhé!
-        `;
-        const cardBot = document.getElementById('mode-card-bot');
-        this.pointToScreenElement(cardBot, 'BẤM CHỌN CHƠI VỚI BOT');
+      if (!isRaidenEquipped) {
+        stepPill.textContent = 'Bước 4/6 • Vào Kho Đồ Trang Bị Raiden Shogun';
+        if (invOpen) {
+          if (this.activeInventoryTab !== 'bursts') {
+            this.activeInventoryTab = 'bursts';
+            this.renderInventoryModal();
+          }
+          textEl.innerHTML = `
+            🎒 <strong>Đây là Kho Đồ Cá Nhân của bạn!</strong><br>
+            ⚠️ <strong>Quy tắc bắt buộc:</strong> Bạn phải bấm <strong>Trang Bị</strong> thì mới sử dụng được Kỹ Năng <code>[E]</code>, Phản Ứng Nguyên Tố &amp; Hoạt Ảnh Nộ của nhân vật trên bàn đấu!<br>
+            Hãy bấm vào nút <strong>⚡ Trang Bị Nhân Vật Này (Kỹ Năng &amp; Nộ)</strong> ở thẻ <strong>Raiden Shogun</strong> đang có mũi tên chỉ vào nhé!
+          `;
+          const btnEquipRaiden = document.getElementById('btn-equip-burst-raiden');
+          this.pointToScreenElement(btnEquipRaiden, 'BẤM MẶC RAIDEN SHOGUN TẠI ĐÂY');
+        } else if (shopOpen) {
+          textEl.innerHTML = `
+            🎉 <strong>Chúc mừng bạn đã quay trúng 5★ Limited Raiden Shogun (⚡ Lôi Thần)!</strong><br>
+            ⚠️ <strong>Lưu ý quan trọng:</strong> Phải <strong>trang bị nhân vật trong Kho Đồ</strong> thì mới sử dụng được nhân vật đó khi đánh bài! Hãy bấm vào nút <strong>🎒 Mở Kho Đồ</strong> ở góc trên bên phải để đi mặc <strong>Raiden Shogun</strong> vào nhé!
+          `;
+          const btnShopOpenInv =
+            document.getElementById('btn-shop-open-inventory') ||
+            document.getElementById('btn-ok-shop') ||
+            document.getElementById('btn-close-shop');
+          this.pointToScreenElement(btnShopOpenInv, 'BẤM MỞ KHO ĐỒ ĐỂ MẶC RAIDEN');
+        } else {
+          if (!this.modalWifi || this.modalWifi.classList.contains('hidden')) {
+            this.inInitialLobby = true;
+            this.modalWifi?.classList.remove('hidden');
+          }
+          textEl.innerHTML = `
+            ⚠️ <strong>Bạn vừa nhận 5★ Raiden Shogun nhưng CHƯA TRANG BỊ!</strong><br>
+            Phải vào <strong>🎒 Kho Đồ</strong> mặc nhân vật vào thì khi vào bàn mới dùng được Kỹ Năng <code>[E]</code> và Phản Ứng Nguyên Tố. Hãy bấm vào nút <strong>🎒 Kho Đồ</strong> đang có mũi tên chỉ vào nhé!
+          `;
+          const btnLobbyInv = document.getElementById('btn-lobby-inventory');
+          this.pointToScreenElement(btnLobbyInv, 'BẤM MỞ KHO ĐỒ ĐỂ MẶC RAIDEN');
+        }
       } else {
-        textEl.innerHTML = `
-          Tuyệt lắm! Bây giờ hãy bấm vào nút <strong>⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY</strong> có sẵn bên dưới để bắt đầu ván thực hành <strong>Kỹ Năng [E]</strong> và <strong>Phản Ứng Nguyên Tố</strong> nhé!
-        `;
-        const btnSoloBot = document.getElementById('btn-solo-bot-mode');
-        this.pointToScreenElement(btnSoloBot, 'BẤM VÀO BÀN ĐẤU VỚI BOT');
+        stepPill.textContent = 'Bước 4/6 • Đã Mặc Raiden & Tạo Phòng Đấu Bot';
+        if (invOpen) {
+          textEl.innerHTML = `
+            ✅ <strong>Tuyệt vời! Bạn đã mặc 5★ Raiden Shogun (⚡ Lôi Thần) thành công!</strong><br>
+            Giờ nhân vật, Kỹ Năng <code>[E]</code> và Nguyên Tố Lôi của bạn đã sẵn sàng chiến đấu. Hãy bấm vào nút <strong>✅ Đóng Kho Đồ</strong> ở góc dưới bên phải để ra Sảnh Chờ tạo phòng thử chiêu nhé!
+          `;
+          const btnOkInv = document.getElementById('btn-ok-inventory') || document.getElementById('btn-close-inventory');
+          this.pointToScreenElement(btnOkInv, 'BẤM ĐÓNG KHO ĐỒ');
+        } else if (shopOpen) {
+          textEl.innerHTML = `
+            ✅ <strong>Bạn đã trang bị 5★ Limited Raiden Shogun (⚡ Lôi Thần)!</strong><br>
+            Hãy bấm vào nút <strong>✅ Đóng Sảnh Cầu Nguyện</strong> ở góc dưới bên phải để ra tạo phòng thử chiêu nhé!
+          `;
+          const btnOkShop = document.getElementById('btn-ok-shop') || document.getElementById('btn-close-shop');
+          this.pointToScreenElement(btnOkShop, 'BẤM ĐÓNG SẢNH CẦU NGUYỆN');
+        } else if (!modeOpen) {
+          textEl.innerHTML = `
+            ✅ <strong>Đã trang bị 5★ Raiden Shogun!</strong> Mỗi ngày Server có chung <strong>2 Banner 5★ Limited</strong> (reset 00:00, bảo hiểm 90 roll).<br>
+            Bây giờ hãy bấm vào ô <strong>🤖 CHƠI VỚI BOT (⚔️ MỞ BÀN BOT)</strong> có sẵn trên màn hình để tạo phòng thử chiêu <strong>Raiden Shogun</strong> nhé!
+          `;
+          const cardBot = document.getElementById('mode-card-bot');
+          this.pointToScreenElement(cardBot, 'BẤM CHỌN CHƠI VỚI BOT');
+        } else {
+          textEl.innerHTML = `
+            Tuyệt lắm! Bây giờ hãy bấm vào nút <strong>⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY</strong> có sẵn bên dưới để bắt đầu ván thực hành <strong>Kỹ Năng [E]</strong> và <strong>Phản Ứng Nguyên Tố</strong> nhé!
+          `;
+          const btnSoloBot = document.getElementById('btn-solo-bot-mode');
+          this.pointToScreenElement(btnSoloBot, 'BẤM VÀO BÀN ĐẤU VỚI BOT');
+        }
       }
       return;
     }
 
-    // BƯỚC 5: Ván 2 thực hành Kỹ Năng [E] của Raiden Shogun & giải thích Phản Ứng Nguyên Tố khi đánh bài
+    // BƯỚC 5: Ván 2 thực hành Kỹ Năng [E] của Raiden Shogun & hướng dẫn đánh Sảnh Lớn / Sám Cô kích hoạt Phản Ứng Nguyên Tố
     if (step === 5) {
       if (this.tutorialMatch2FirstCardPlayed) {
         this.hideTravelerGuide();
         return;
       }
-      stepPill.textContent = 'Bước 5/6 • Thực Hành Kỹ Năng [E] & Cơ Chế Phản Ứng';
+      stepPill.textContent = 'Bước 5/6 • Thực Hành Kỹ Năng [E] & Đánh Sảnh/Sám Nổ Phản Ứng';
       if (!this.tutorialMatch2SkillUsed) {
         const canUseNow = this.currentTurn === this.mySeatId && this.currentCombo && this.trickOwnerId !== this.mySeatId;
         textEl.innerHTML = `
-          ⚡ <strong>Cách xài Kỹ Năng [E] của Raiden Shogun:</strong><br>
-          <strong>Bot Furina (💧 Thủy)</strong> vừa đánh <strong>Đôi 3 (3♠ 3♦)</strong> xuống bàn! Hãy bấm vào nút <strong>🔮 Kỹ Năng [E]</strong> có sẵn trên thanh điều khiển để tung tuyệt kỹ <strong>Tịnh Thổ Cắt Vòng</strong>:<br>
+          ⚡ <strong>Bước 5.1 — Thực hành Kỹ Năng [E] của Raiden Shogun:</strong><br>
+          <strong>Bot Furina (💧 Thủy)</strong> vừa đánh <strong>Đôi 3 (3♠ 3♦)</strong> xuống bàn! Hãy bấm vào nút <strong>🔮 Kỹ Năng [E]</strong> trên thanh điều khiển để tung tuyệt kỹ <strong>Tịnh Thổ Cắt Vòng</strong>:<br>
           • Chém đứt bộ bài Lẻ/Đôi ≤ J trên bàn <strong>không tốn lá bài nào</strong> và <strong>cướp quyền Cầm Cái mở vòng mới</strong> ngay lập tức!
         `;
         if (canUseNow && this.btnCharSkill) {
           this.pointToScreenElement(this.btnCharSkill, 'BẤM NÚT KỸ NĂNG [E] TẠI ĐÂY');
         }
       } else {
+        const selectedCards = this.getSelectedCards();
+        const selCombo = classifyCombo(selectedCards);
+        const isReactionReady =
+          selCombo &&
+          (selCombo.type === COMBO_TYPES.TRIPLE ||
+            (selCombo.type === COMBO_TYPES.STRAIGHT && selCombo.length >= 4));
         textEl.innerHTML = `
-          ⚡ <strong>Tuyệt kỹ [E] Tịnh Thổ Cắt Vòng đã chém đứt vòng đấu &amp; giúp bạn Cầm Cái mở vòng mới!</strong><br>
-          💡 <strong>Cơ chế Phản Ứng Nguyên Tố (+5× cược):</strong> Bấm kỹ năng <strong>[E]</strong> không nổ phản ứng — <strong>Phản Ứng Nguyên Tố</strong> chỉ nổ khi bạn <strong>ĐÁNH BÀI MẠNH (Sám, Sảnh ≥ 4 lá, Heo 2, Hàng) hoặc Chặt bài đè trực tiếp lên bài trên bàn của đối thủ khác hệ</strong> (VD: <strong>⚡ Lôi</strong> đánh đè lên bài <strong>💧 Thủy / 🔥 Hỏa / 🌿 Thảo</strong>)!<br>
-          Giờ hãy chọn bài trên tay rồi bấm nút <strong>🔥 Đánh bài</strong> để mở vòng mới và đánh hết ván nhé!
+          💥 <strong>Bước 5.2 — Đánh Sảnh Lớn hoặc Sám Cô để thực hiện Phản Ứng Nguyên Tố (+5× cược)!</strong><br>
+          Khi đã trang bị nhân vật, việc đánh <strong>Sảnh Lớn (≥ 4 lá)</strong> hoặc <strong>Sám Cô (3 lá cùng số)</strong> sẽ kết hợp Nguyên Tố của bạn (<strong>⚡ Lôi</strong>) với đối thủ (<strong>💧 Thủy</strong>) kích nổ <strong>Phản Ứng Nguyên Tố ⚡💧 Điện Cảm (+500 Xu)</strong>!<br>
+          👉 Mình đã gợi ý sẵn <strong>Sảnh Lớn <code>5-6-7-8-9</code></strong> trên tay (hoặc bạn có thể chọn <strong>Sám Cô <code>4-4-4</code> / <code>Q-Q-Q</code></strong>) — hãy bấm nút <strong>🔥 Đánh bài</strong> để nổ phản ứng nhé!
         `;
-        if (this.btnPlay && !this.btnPlay.disabled) {
-          this.pointToScreenElement(this.btnPlay, 'BẤM NÚT ĐÁNH BÀI');
+        if (isReactionReady && this.btnPlay && !this.btnPlay.disabled) {
+          this.pointToScreenElement(this.btnPlay, 'BẤM ĐÁNH SẢNH LỚN / SÁM CÔ NỔ PHẢN ỨNG');
         } else {
-          this.pointToScreenElement(this.elHumanHand, 'CHỌN BÀI TRÊN TAY ĐỂ ĐÁNH');
+          this.pointToScreenElement(this.elHumanHand, 'CHỌN SẢNH LỚN (5-6-7-8-9) HOẶC SÁM CÔ (4-4-4)');
         }
       }
       return;

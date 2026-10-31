@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=111" />
+  <link rel="stylesheet" href="styles.css?v=112" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -32,6 +32,9 @@
         </div>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
+        </button>
+        <button class="top-fullscreen-btn" id="btn-top-skip-burst" onclick="window.tienLenGame.toggleSkipBurstAnimations()" title="Bấm để Tắt / Bật hoàn toàn hoạt ảnh Nộ của mọi nhân vật">
+          🎬 Hoạt Ảnh Nộ: BẬT
         </button>
         <button class="top-fullscreen-btn" id="btn-top-fullscreen" onclick="window.tienLenGame.toggleFullscreen()" title="Bật / Tắt chế độ Toàn màn hình trên điện thoại &amp; máy tính">
           ⛶ Toàn màn hình
@@ -727,6 +730,12 @@
             <button class="pause-tool-btn icon-btn anime-theme-btn" id="btn-bgm">
               🎵 Nhạc: <span id="bgm-label">Auto 🔄: Inazuma 🌸</span>
             </button>
+            <button class="pause-tool-btn icon-btn" id="btn-pause-skip-burst" onclick="window.tienLenGame.toggleSkipBurstAnimations()">
+              🎬 Hoạt Ảnh Nộ: BẬT
+            </button>
+            <button class="pause-tool-btn icon-btn" id="btn-pause-skip-gacha" onclick="window.tienLenGame.toggleSkipGachaAnimations()">
+              🌠 Hoạt Ảnh Gacha: BẬT
+            </button>
             <button class="pause-tool-btn icon-btn" id="btn-sound">
               🔊 Âm thanh
             </button>
@@ -954,6 +963,9 @@
             <p>Cầu Nguyện mở khóa: ⭐⭐⭐⭐⭐ Nhân Vật &amp; Kỹ Năng Nộ (5★) • ⭐⭐⭐⭐ Decor Bài (4★) • ⭐⭐⭐ Avatar (3★) • Trùng đồ hoàn Xu!</p>
           </div>
           <div class="shop-header-right">
+            <button class="tool-btn" id="btn-shop-skip-gacha" onclick="window.tienLenGame.toggleSkipGachaAnimations()" title="Bấm để Bỏ qua toàn bộ hoạt ảnh sao băng &amp; 5★ khi quay Gacha (vào thẳng kết quả)" style="padding:7px 12px;font-size:12.5px;font-weight:800;border-radius:10px;">
+              🌠 Hoạt Ảnh Gacha: BẬT
+            </button>
             <button class="inventory-top-btn" id="btn-shop-open-inventory" onclick="window.tienLenGame.openInventoryModal('bursts')" title="Chuyển sang Kho Đồ để trang bị Nhân Vật 5★, Decor Bài &amp; Avatar đã mở khóa">
               🎒 Mở Kho Đồ
             </button>
@@ -1122,6 +1134,7 @@
       <!-- Stage 1: Official Genshin Impact Shooting Meteor Video Cutscene -->
       <div class="gacha-meteor-stage" id="gacha-meteor-stage">
         <video class="gacha-meteor-video" id="gacha-meteor-video" playsinline preload="auto"></video>
+        <button class="gacha-skip-btn" id="btn-always-skip-gacha" onclick="window.tienLenGame.toggleSkipGachaAnimations(true)" style="right:140px;background:rgba(220,38,38,0.85);border-color:#fca5a5;">⏭️ Tắt Luôn Hoạt Ảnh Gacha</button>
         <button class="gacha-skip-btn" id="btn-skip-gacha-meteor">Skip ▸</button>
       </div>
 
@@ -1310,6 +1323,14 @@
 
     <!-- GENSHIN IMPACT ELEMENTAL BURST CINEMATIC VIDEO + VOICE ANIMATION OVERLAY -->
     <div class="genshin-burst-overlay hidden" id="genshin-burst-overlay">
+      <div style="position:absolute;top:18px;right:20px;z-index:30;display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="button" class="gacha-skip-btn" onclick="event.stopPropagation(); window.tienLenGame.toggleSkipBurstAnimations(true);" style="position:static;background:rgba(220,38,38,0.88);border:1.5px solid #fca5a5;padding:8px 16px;font-weight:800;">
+          🚫 Tắt Luôn Hoạt Ảnh Nộ
+        </button>
+        <button type="button" class="gacha-skip-btn" onclick="event.stopPropagation(); window.tienLenGame.skipCurrentBurstNow();" style="position:static;padding:8px 16px;font-weight:800;">
+          Skip ▸
+        </button>
+      </div>
       <div class="burst-bg-fx" id="burst-bg-fx"></div>
       <div class="burst-chakra-ring" id="burst-chakra-ring"></div>
       <div class="burst-character-wrap">
@@ -1360,6 +1381,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=111"></script>
+  <script src="game.js?v=112"></script>
 </body>
 </html>

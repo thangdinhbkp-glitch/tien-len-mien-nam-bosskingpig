@@ -3676,6 +3676,12 @@ class TienLenGame {
     this.lastShownBurstId = 0;
     this.burstTimeout = null;
     this.isBurstPlaying = false;
+    this.skipAllBurstAnimations = false;
+    this.skipGachaAnimations = false;
+    try {
+      this.skipAllBurstAnimations = localStorage.getItem('tlmn_skip_burst_anim_v1') === '1';
+      this.skipGachaAnimations = localStorage.getItem('tlmn_skip_gacha_anim_v1') === '1';
+    } catch (_) {}
     this.logsData = [];
 
     this.sortMode = 'asc';
@@ -3696,6 +3702,7 @@ class TienLenGame {
     this._returnToSummaryAfterModal = false;
 
     this.bindDOM();
+    this.syncSkipAnimationButtonsUI();
     sfx.onTrackChanged = () => this.syncBGMButtonsUI();
     this.applyArenaThemeUI();
     this.randomizeBotCharacters(false);
@@ -3826,10 +3833,70 @@ class TienLenGame {
     } catch (_) {}
   }
 
+  syncSkipAnimationButtonsUI() {
+    const skipBurst = !!this.skipAllBurstAnimations;
+    const skipGacha = !!this.skipGachaAnimations;
+    ['btn-top-skip-burst', 'btn-pause-skip-burst'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = skipBurst ? '🚫 Hoạt Ảnh Nộ: ĐÃ TẮT' : '🎬 Hoạt Ảnh Nộ: BẬT';
+        el.style.borderColor = skipBurst ? '#f87171' : '';
+        el.style.color = skipBurst ? '#fca5a5' : '';
+      }
+    });
+    ['btn-shop-skip-gacha', 'btn-pause-skip-gacha'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = skipGacha ? '⏭️ Hoạt Ảnh Gacha: ĐÃ TẮT' : '🌠 Hoạt Ảnh Gacha: BẬT';
+        el.style.borderColor = skipGacha ? '#f87171' : '';
+        el.style.color = skipGacha ? '#fca5a5' : '';
+      }
+    });
+  }
+
+  toggleSkipBurstAnimations(forceOn = false) {
+    this.skipAllBurstAnimations = forceOn ? true : !this.skipAllBurstAnimations;
+    try {
+      localStorage.setItem('tlmn_skip_burst_anim_v1', this.skipAllBurstAnimations ? '1' : '0');
+    } catch (_) {}
+    this.syncSkipAnimationButtonsUI();
+    sfx.click();
+    if (this.skipAllBurstAnimations && this.isBurstPlaying && typeof this._activeFinishBurstFn === 'function') {
+      this._activeFinishBurstFn();
+    }
+    this.showComboBanner(
+      this.skipAllBurstAnimations
+        ? '🚫 ĐÃ TẮT HOẠT ẢNH NỘ — Bỏ qua 100% video Nộ của mọi nhân vật!'
+        : '🎬 ĐÃ BẬT LẠI HOẠT ẢNH KỸ NĂNG NỘ!'
+    );
+  }
+
+  skipCurrentBurstNow() {
+    if (typeof this._activeFinishBurstFn === 'function') {
+      this._activeFinishBurstFn();
+    }
+  }
+
+  toggleSkipGachaAnimations(forceOn = false) {
+    this.skipGachaAnimations = forceOn ? true : !this.skipGachaAnimations;
+    try {
+      localStorage.setItem('tlmn_skip_gacha_anim_v1', this.skipGachaAnimations ? '1' : '0');
+    } catch (_) {}
+    this.syncSkipAnimationButtonsUI();
+    sfx.click();
+    if (this.skipGachaAnimations && typeof this._activeOpenGachaResultsFn === 'function') {
+      this._activeOpenGachaResultsFn();
+    }
+  }
+
   triggerGenshinBurst(burstId, detailText, onDoneCallback = null, lockGameplay = false) {
-    if (!burstId || burstId === 'none') {
+    if (!burstId || burstId === 'none' || this.skipAllBurstAnimations) {
+      this.isBurstPlaying = false;
+      this.updateHumanActionButtons();
       if (onDoneCallback) {
         onDoneCallback();
+      } else if (!this.isGameOver && !this.inInitialLobby && this.modalWifi?.classList.contains('hidden')) {
+        this.promptCurrentTurn();
       }
       return;
     }
@@ -3964,6 +4031,7 @@ class TienLenGame {
       sfx.duckBGM(false);
       overlay.classList.add('hidden');
       overlay.onclick = null;
+      this._activeFinishBurstFn = null;
       this.isBurstPlaying = false;
       this.updateHumanActionButtons();
       if (onDoneCallback) {
@@ -3972,6 +4040,8 @@ class TienLenGame {
         this.promptCurrentTurn();
       }
     };
+    this._activeFinishBurstFn = finishBurst;
+    overlay.onclick = finishBurst;
 
     const startDurationCountdown = () => {
       if (seqId !== this._burstSeqId) return;
@@ -7065,6 +7135,15 @@ class TienLenGame {
     }
 
     const openResultsGrid = () => {
+      this._activeOpenGachaResultsFn = null;
+      clearTimeout(this.gachaMeteorTimer);
+      if (meteorVideo) {
+        meteorVideo.onended = null;
+        meteorVideo.onerror = null;
+        try {
+          meteorVideo.pause();
+        } catch (_) {}
+      }
       this.stopGachaSplashMedia();
       meteorStage.classList.add('hidden');
       if (splashStage) {
@@ -7077,6 +7156,12 @@ class TienLenGame {
         this.renderTravelerGuide();
       }
     };
+    this._activeOpenGachaResultsFn = openResultsGrid;
+
+    if (this.skipGachaAnimations) {
+      openResultsGrid();
+      return;
+    }
 
     let meteorFinished = false;
     const finishMeteorStage = () => {

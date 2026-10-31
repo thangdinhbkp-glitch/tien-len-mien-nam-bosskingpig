@@ -1388,9 +1388,12 @@ function resolveGenshinReaction(attackerElem, defenderElem) {
   }
   if (pair.has('dendro') && pair.has('hydro')) {
     return {
+      id: 'bloom',
+      isBloom: true,
       shortName: '🌿💧 Sum Suê (Bloom)',
       badge: '🌿💧 PHẢN ỨNG SUM SUÊ (BLOOM)',
       cssClass: 'reaction-bloom',
+      multiplier: 5,
     };
   }
   return null;
@@ -1953,6 +1956,66 @@ function buildReactionVfxHtml(rx) {
       <polyline points="85,140 155,95 175,155 235,95 315,140" fill="none" stroke="#c084fc" stroke-width="5"/>
     `;
     particles = ['❄️', '⚡', '🧊', '⚡', '❄️', '💜', '✨', '⚡'];
+  } else if (cls === 'reaction-hyperbloom') {
+    ringColor = '#c084fc';
+    clashIcons = '🌿 💧 ⚡';
+    svgInner = `
+      <circle cx="200" cy="140" r="88" fill="none" stroke="#4ade80" stroke-width="5" stroke-dasharray="12 6"/>
+      <circle cx="200" cy="140" r="64" fill="none" stroke="#38bdf8" stroke-width="4"/>
+      <polyline points="75,140 145,95 175,160 225,85 265,155 325,120" fill="none" stroke="#d8b4fe" stroke-width="6"/>
+    `;
+    particles = ['🌿', '💧', '⚡', '🌱', '💜', '⚡', '✨', '💥'];
+  } else if (cls === 'reaction-burgeon') {
+    ringColor = '#fb923c';
+    clashIcons = '🌿 💧 🔥';
+    svgInner = `
+      <circle cx="200" cy="140" r="88" fill="none" stroke="#4ade80" stroke-width="5" stroke-dasharray="12 6"/>
+      <polygon points="200,28 232,106 312,140 232,174 200,252 168,174 88,140 168,106" fill="rgba(249,115,22,0.22)" stroke="#fb923c" stroke-width="5"/>
+    `;
+    particles = ['🌿', '💧', '🔥', '🌱', '💥', '🔥', '✨', '🧨'];
+  } else if (cls === 'reaction-lunar-electrocharged') {
+    ringColor = '#e9d5ff';
+    clashIcons = '🌙 ⚡ 💧';
+    svgInner = `
+      <circle cx="200" cy="140" r="88" fill="none" stroke="#c084fc" stroke-width="5" stroke-dasharray="14 6"/>
+      <circle cx="200" cy="140" r="64" fill="none" stroke="#38bdf8" stroke-width="4.5"/>
+      <polyline points="70,135 140,95 170,160 225,85 265,155 330,115" fill="none" stroke="#fef08a" stroke-width="6"/>
+    `;
+    particles = ['🌙', '⚡', '💧', '✨', '🌙', '⚡', '🌊', '💜'];
+  } else if (cls === 'reaction-lunar-crystallize') {
+    ringColor = '#fde047';
+    clashIcons = '🌙 💎 💧';
+    svgInner = `
+      <polygon points="200,28 282,140 200,252 118,140" fill="rgba(250,204,21,0.2)" stroke="#fde047" stroke-width="5"/>
+      <circle cx="200" cy="140" r="78" fill="none" stroke="#38bdf8" stroke-width="4.5" stroke-dasharray="12 6"/>
+    `;
+    particles = ['🌙', '💎', '💧', '🪨', '✨', '🌙', '💎', '🌊'];
+  } else if (cls === 'reaction-lunar-bloom') {
+    ringColor = '#6ee7b7';
+    clashIcons = '🌙 🌿 💧';
+    svgInner = `
+      <circle cx="200" cy="140" r="88" fill="none" stroke="#34d399" stroke-width="5" stroke-dasharray="12 6"/>
+      <circle cx="200" cy="140" r="64" fill="none" stroke="#38bdf8" stroke-width="4.5"/>
+      <polygon points="200,40 225,115 300,140 225,165 200,240 175,165 100,140 175,115" fill="rgba(52,211,153,0.2)" stroke="#a7f3d0" stroke-width="4"/>
+    `;
+    particles = ['🌙', '🌿', '💧', '🌱', '✨', '🌙', '🌿', '🌊'];
+  } else if (cls === 'reaction-astral-superconduct') {
+    ringColor = '#a5f3fc';
+    clashIcons = '✨ ❄️ ⚡';
+    svgInner = `
+      <polygon points="200,24 226,108 312,140 226,172 200,256 174,172 88,140 174,108" fill="rgba(165,243,252,0.22)" stroke="#67e8f9" stroke-width="5"/>
+      <polyline points="75,140 145,90 175,160 230,85 325,140" fill="none" stroke="#e879f9" stroke-width="5.5"/>
+    `;
+    particles = ['✨', '❄️', '⚡', '🌟', '🧊', '⚡', '✨', '💜'];
+  } else if (cls === 'reaction-astral-swirl') {
+    ringColor = '#99f6e4';
+    clashIcons = '✨ 🍃 ❄️';
+    svgInner = `
+      <circle cx="200" cy="140" r="88" fill="none" stroke="#2dd4bf" stroke-width="5" stroke-dasharray="14 6"/>
+      <circle cx="200" cy="140" r="62" fill="none" stroke="#bae6fd" stroke-width="4.5"/>
+      <path d="M110,165 Q165,65 205,140 T295,100" fill="none" stroke="#f0fdfa" stroke-width="5.5" stroke-linecap="round"/>
+    `;
+    particles = ['✨', '🍃', '❄️', '🌪️', '🌟', '❄️', '🍃', '💎'];
   } else {
     ringColor = '#facc15';
     clashIcons = '💎 ✕ 🌿';
@@ -9275,15 +9338,114 @@ class TienLenGame {
         ? this.players[this.trickOwnerId]
         : null;
     if (!player || !opp) return null;
-    if (this.getPlayerActiveCharId(player) === 'none' || this.getPlayerActiveCharId(opp) === 'none') {
+    const attackerCharId = this.getPlayerActiveCharId(player);
+    const defenderCharId = this.getPlayerActiveCharId(opp);
+    if (attackerCharId === 'none' || defenderCharId === 'none') {
       return null;
     }
     const attackerElem = this.getPlayerElement(player, combo);
     const defenderElem = this.getPlayerElement(opp, this.currentCombo);
+    const prevReaction = this.currentCombo?.reaction || null;
+
+    // 1. Khi nhân vật đánh trước đó vừa kích hoạt phản ứng Sum Suê / Nguyệt Sum Suê (isBloom),
+    // nếu mình phản ứng bằng nguyên tố Lôi (electro) sẽ thành Nở Rộ (Hyperbloom ×10 lần cược),
+    // tương tự với hệ Hỏa (pyro) sẽ thành Bung Tỏa (Burgeon ×10 lần cược)!
+    if (
+      prevReaction &&
+      (prevReaction.isBloom ||
+        prevReaction.cssClass === 'reaction-bloom' ||
+        prevReaction.cssClass === 'reaction-lunar-bloom')
+    ) {
+      if (attackerElem === 'electro') {
+        return {
+          id: 'hyperbloom',
+          shortName: '🌿💧⚡ Nở Rộ (Hyperbloom)',
+          badge: '🌿💧⚡ PHẢN ỨNG NỞ RỘ (HYPERBLOOM)',
+          cssClass: 'reaction-hyperbloom',
+          multiplier: 10,
+        };
+      }
+      if (attackerElem === 'pyro') {
+        return {
+          id: 'burgeon',
+          shortName: '🌿💧🔥 Bung Tỏa (Burgeon)',
+          badge: '🌿💧🔥 PHẢN ỨNG BUNG TỎA (BURGEON)',
+          cssClass: 'reaction-burgeon',
+          multiplier: 10,
+        };
+      }
+    }
+
     // Hai nhân vật trùng nguyên tố hoặc 2 nguyên tố không tương tác thực tế sẽ KHÔNG có Phản Ứng Nguyên Tố!
     if (!checkGenuineGenshinReaction(attackerElem, defenderElem)) {
       return null;
     }
+
+    // 2. Phản Ứng Nguyệt (×10 cược): Khi các nhân vật Linnea, Flins, Lauma, Nefer, Ineffa, Zibai
+    // kích hoạt phản ứng với nguyên tố Thủy (Hydro) -> Nguyệt Điện Cảm / Nguyệt Kết Tinh / Nguyệt Sum Suê!
+    const LUNAR_CHARS = new Set(['linnea', 'flins', 'lauma', 'nefer', 'ineffa', 'zibai']);
+    const isLunarWithHydro =
+      (LUNAR_CHARS.has(attackerCharId) && defenderElem === 'hydro') ||
+      (LUNAR_CHARS.has(defenderCharId) && attackerElem === 'hydro');
+    if (isLunarWithHydro) {
+      const pair = new Set([attackerElem, defenderElem]);
+      if (pair.has('electro') && pair.has('hydro')) {
+        return {
+          id: 'lunar_electrocharged',
+          shortName: '🌙⚡💧 Nguyệt Điện Cảm',
+          badge: '🌙⚡💧 PHẢN ỨNG NGUYỆT ĐIỆN CẢM',
+          cssClass: 'reaction-lunar-electrocharged',
+          multiplier: 10,
+        };
+      }
+      if (attackerElem === 'geo' && defenderElem === 'hydro') {
+        return {
+          id: 'lunar_crystallize',
+          shortName: '🌙💎💧 Nguyệt Kết Tinh',
+          badge: '🌙💎💧 PHẢN ỨNG NGUYỆT KẾT TINH',
+          cssClass: 'reaction-lunar-crystallize',
+          multiplier: 10,
+        };
+      }
+      if (pair.has('dendro') && pair.has('hydro')) {
+        return {
+          id: 'lunar_bloom',
+          isBloom: true,
+          shortName: '🌙🌿💧 Nguyệt Sum Suê',
+          badge: '🌙🌿💧 PHẢN ỨNG NGUYỆT SUM SUÊ',
+          cssClass: 'reaction-lunar-bloom',
+          multiplier: 10,
+        };
+      }
+    }
+
+    // 3. Phản Ứng Tinh (×10 cược):
+    // - Sandrone, Odette kích hoạt phản ứng với nguyên tố Lôi (electro) -> Tinh Siêu Dẫn (×10 cược)
+    // - Vesna kích hoạt phản ứng với nguyên tố Băng (cryo) -> Tinh Khuếch Tán (×10 cược)
+    const ASTRAL_SUPERCONDUCT_CHARS = new Set(['sandrone', 'odette']);
+    const isAstralSuperconduct =
+      (ASTRAL_SUPERCONDUCT_CHARS.has(attackerCharId) && defenderElem === 'electro') ||
+      (ASTRAL_SUPERCONDUCT_CHARS.has(defenderCharId) && attackerElem === 'electro');
+    if (isAstralSuperconduct) {
+      return {
+        id: 'astral_superconduct',
+        shortName: '✨❄️⚡ Tinh Siêu Dẫn',
+        badge: '✨❄️⚡ PHẢN ỨNG TINH SIÊU DẪN',
+        cssClass: 'reaction-astral-superconduct',
+        multiplier: 10,
+      };
+    }
+
+    if (attackerCharId === 'vesna' && defenderElem === 'cryo') {
+      return {
+        id: 'astral_swirl',
+        shortName: '✨🍃❄️ Tinh Khuếch Tán',
+        badge: '✨🍃❄️ PHẢN ỨNG TINH KHUẾCH TÁN',
+        cssClass: 'reaction-astral-swirl',
+        multiplier: 10,
+      };
+    }
+
     return resolveGenshinReaction(attackerElem, defenderElem);
   }
 
@@ -10924,21 +11086,22 @@ class TienLenGame {
 
   applyElementalReactionBonus(attacker, prevPlayer, rx) {
     if (!attacker || !prevPlayer || attacker.id === prevPlayer.id || !rx) return 0;
-    const rxBonus = Math.round((this.betPerCard || 100) * 5);
+    const mult = Number(rx.multiplier) || 5;
+    const rxBonus = Math.round((this.betPerCard || 100) * mult);
     prevPlayer.coins -= rxBonus;
     attacker.coins += rxBonus;
     this.matchChopCoins[prevPlayer.id] -= rxBonus;
     this.matchChopCoins[attacker.id] += rxBonus;
     this.matchChopDetails[prevPlayer.id].push({
-      label: `⚡ Bị ${attacker.name} kích nổ ${rx.shortName} (-${rxBonus.toLocaleString()})`,
+      label: `⚡ Bị ${attacker.name} kích nổ ${rx.shortName} ×${mult} cược (-${rxBonus.toLocaleString()})`,
       isSpecial: true,
     });
     this.matchChopDetails[attacker.id].push({
-      label: `⚡ Kích nổ ${rx.shortName} lên ${prevPlayer.name} (+${rxBonus.toLocaleString()})`,
+      label: `⚡ Kích nổ ${rx.shortName} ×${mult} cược lên ${prevPlayer.name} (+${rxBonus.toLocaleString()})`,
       isGood: true,
     });
     this.addLog(
-      `⚡ <strong>[Thưởng Phản Ứng ×5 Cược]</strong> <strong>${attacker.name}</strong> kích hoạt <strong>${rx.shortName}</strong> lấy <strong>+${rxBonus.toLocaleString()} Xu</strong> (5× cược) từ người đánh trước <strong>${prevPlayer.name}</strong>!`,
+      `⚡ <strong>[Thưởng Phản Ứng ×${mult} Cược]</strong> <strong>${attacker.name}</strong> kích hoạt <strong>${rx.shortName}</strong> lấy <strong>+${rxBonus.toLocaleString()} Xu</strong> (${mult}× cược) từ người đánh trước <strong>${prevPlayer.name}</strong>!`,
       'log-chop'
     );
     return rxBonus;
@@ -16340,7 +16503,14 @@ class TienLenGame {
       'reaction-crystallize',
       'reaction-aggravate',
       'reaction-burning',
-      'reaction-bloom'
+      'reaction-bloom',
+      'reaction-hyperbloom',
+      'reaction-burgeon',
+      'reaction-lunar-electrocharged',
+      'reaction-lunar-crystallize',
+      'reaction-lunar-bloom',
+      'reaction-astral-superconduct',
+      'reaction-astral-swirl'
     );
     if (reactionClass) {
       this.elComboAnnouncement.classList.add(reactionClass);
@@ -17392,17 +17562,9 @@ class TienLenGame {
         isGood: true,
       });
 
-      const hasChopElementalClash =
-        this.getPlayerActiveCharId(player) !== 'none' &&
-        victim &&
-        this.getPlayerActiveCharId(victim) !== 'none' &&
-        checkGenuineGenshinReaction(
-          this.getPlayerElement(player, combo),
-          this.getPlayerElement(victim, this.currentCombo)
-        );
-      const rx = hasChopElementalClash ? this.getSpecialPlayReaction(player, combo, victim) : null;
+      const rx = victim ? this.getSpecialPlayReaction(player, combo, victim) : null;
       combo.reaction = rx;
-      if (hasChopElementalClash && rx) {
+      if (rx) {
         this.applyElementalReactionBonus(player, victim, rx);
       }
       const chopTitleUpper = isStackedChop ? 'CHẶT CHỒNG' : 'CHẶT';
@@ -17453,22 +17615,19 @@ class TienLenGame {
           ? this.players[this.trickOwnerId]
           : null;
 
-      const hasElementalClash =
-        hasEquippedChar &&
-        prevPlayer &&
-        this.getPlayerActiveCharId(prevPlayer) !== 'none' &&
-        checkGenuineGenshinReaction(
-          this.getPlayerElement(player, combo),
-          this.getPlayerElement(prevPlayer, this.currentCombo)
-        );
+      const candidateRx = prevPlayer ? this.getSpecialPlayReaction(player, combo, prevPlayer) : null;
+      const isSpecialChainOrLunarOrAstral = Boolean(
+        candidateRx && (Number(candidateRx.multiplier) === 10 || candidateRx.isBloom)
+      );
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      const rx = isHeavy && hasElementalClash ? this.getSpecialPlayReaction(player, combo, prevPlayer) : null;
+      const rx = isHeavy || isSpecialChainOrLunarOrAstral ? candidateRx : null;
       if (rx) {
         combo.reaction = rx;
         this.triggerArenaReactionFlash(rx);
         const rxBonus = this.applyElementalReactionBonus(player, prevPlayer, rx);
-        const bonusTag = rxBonus > 0 ? ` (+${rxBonus.toLocaleString()} XU ×5)` : '';
+        const rxMult = Number(rx.multiplier) || 5;
+        const bonusTag = rxBonus > 0 ? ` (+${rxBonus.toLocaleString()} XU ×${rxMult})` : '';
         this.showComboBanner(`${rx.badge}${bonusTag} • ${combo.label.toUpperCase()}!`, rx.cssClass);
         this.addLog(
           `<strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> đánh <strong>${combo.label}</strong> (${combo.cards

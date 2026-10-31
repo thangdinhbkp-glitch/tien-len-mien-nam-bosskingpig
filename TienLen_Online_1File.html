@@ -29030,6 +29030,9 @@ class TienLenGame {
 
       // 4. Khi đang ở Bước 5 đầu ván (đợi 0.85s cho Bot Furina đánh Đôi 3 xuống bàn): khóa tạm mọi nút để tránh bấm nhầm
       if (this.tutorialStep === 5 && !this.tutorialMatch2SkillUsed && this.currentTurn !== this.mySeatId) {
+        if (targetNode.closest('#btn-sound, #btn-bgm, #btn-fullscreen')) {
+          return true;
+        }
         return false;
       }
 
@@ -29332,6 +29335,8 @@ class TienLenGame {
 
     this.isMultiplayer = false;
     this.inInitialLobby = false;
+    this.soloPlayerCount = 4;
+    this.savedSoloPlayerCount = 4;
     this.activeCount = 4;
     this.betPerCard = 100;
     this.matchCount = 0;
@@ -29349,6 +29354,8 @@ class TienLenGame {
       if (p) {
         p.active = true;
         p.isBot = true;
+        p.passed = false;
+        p.finishRank = null;
         p.name = cfg.name;
         p.avatar = cfg.burst;
         p.cardSkin = cfg.burst;
@@ -29358,10 +29365,15 @@ class TienLenGame {
       }
     });
     if (this.players[0]) {
+      this.players[0].active = true;
+      this.players[0].isBot = false;
+      this.players[0].passed = false;
+      this.players[0].finishRank = null;
       this.players[0].activeChar = 'none';
       this.players[0].chopBurst = 'none';
       this.players[0].winBurst = 'none';
     }
+    this.renderSoloPlayerCountUI();
 
     this.saveShopProfile();
     this.startNewMatch(true);
@@ -29476,11 +29488,23 @@ class TienLenGame {
 
     this.isMultiplayer = false;
     this.inInitialLobby = false;
+    this.soloPlayerCount = 4;
+    this.savedSoloPlayerCount = 4;
     this.activeCount = 4;
     this.betPerCard = 100;
     this.matchCount = 0;
     this.queuedNextMatchBots = null;
     this._manualBotChangedAfterMatch = true;
+
+    // Bắt buộc kích hoạt đủ 4 ghế (tránh lỗi kẹt ván khi người chơi trước đó đang để Bàn 2 Người / 3 Người khiến Seat 3 Bot Furina bị active: false)
+    this.players.forEach((p, idx) => {
+      if (!p) return;
+      p.active = true;
+      p.isBot = idx !== 0;
+      p.passed = false;
+      p.finishRank = null;
+    });
+    this.renderSoloPlayerCountUI();
 
     // Khởi tạo ván bài chuẩn rồi sắp xếp kịch bản thực hành Kỹ Năng Raiden Shogun + Phản Ứng Nguyên Tố Điện Cảm
     this.startNewMatch(true);
@@ -29492,12 +29516,18 @@ class TienLenGame {
     const p2 = this.players[2];
     const p3 = this.players[3];
     if (p0) {
+      p0.active = true;
+      p0.isBot = false;
+      p0.passed = false;
       p0.activeChar = 'raiden';
       p0.chopBurst = 'raiden';
       p0.winBurst = 'raiden';
       p0.skillUsed = false;
     }
     if (p1) {
+      p1.active = true;
+      p1.isBot = true;
+      p1.passed = false;
       p1.name = 'Bot Nahida 🌿';
       p1.avatar = 'nahida';
       p1.cardSkin = 'nahida';
@@ -29507,6 +29537,9 @@ class TienLenGame {
       p1.skillUsed = true; // Tạm khóa skill bot trong ván hướng dẫn để người mới dễ thực hành
     }
     if (p2) {
+      p2.active = true;
+      p2.isBot = true;
+      p2.passed = false;
       p2.name = 'Bot Arlecchino 🔥';
       p2.avatar = 'arlecchino';
       p2.cardSkin = 'arlecchino';
@@ -29516,6 +29549,9 @@ class TienLenGame {
       p2.skillUsed = true;
     }
     if (p3) {
+      p3.active = true;
+      p3.isBot = true;
+      p3.passed = false;
       p3.name = 'Bot Furina 💧';
       p3.avatar = 'furina';
       p3.cardSkin = 'furina';
@@ -29820,6 +29856,33 @@ class TienLenGame {
       }
       if (!this.tutorialMatch2SkillUsed) {
         stepPill.textContent = 'Bước 5.1/6 • Thực Hành Chiêu Nộ [Q] Cắt Vòng';
+        if (!this.players[3]?.active || !this.players[1]?.active || !this.players[2]?.active) {
+          this.soloPlayerCount = 4;
+          this.activeCount = 4;
+          this.players.forEach((p, idx) => {
+            if (!p) return;
+            p.active = true;
+            p.isBot = idx !== 0;
+          });
+        }
+        if (this.currentTurn === 3 && !this.currentCombo) {
+          clearTimeout(this.botTimer);
+          this.botTimer = setTimeout(() => {
+            if (this.isGameOver || this.currentTurn !== 3 || this.currentCombo) return;
+            const p3 = this.players[3];
+            if (!p3) return;
+            p3.active = true;
+            p3.isBot = true;
+            p3.passed = false;
+            const pair3 = p3.hand.filter((c) => c.rankIndex === 0 && (c.suit === '♠' || c.suit === '♦'));
+            const combo = classifyCombo(pair3);
+            if (combo) {
+              this.playCombo(p3, combo);
+            } else {
+              this.executeBotTurn(p3);
+            }
+          }, 450);
+        }
         const canUseNow = this.currentTurn === this.mySeatId && this.currentCombo && this.trickOwnerId !== this.mySeatId;
         textEl.innerHTML = `
           ⚡ <strong>Bước 5.1 — Thực hành Chiêu Nộ [Q] của Raiden Shogun:</strong><br>
@@ -29854,7 +29917,7 @@ class TienLenGame {
           selCombo.type === COMBO_TYPES.TRIPLE &&
           selCombo.cards[0]?.rank === 'Q' &&
           this.currentCombo &&
-          canBeat(this.currentCombo, selCombo);
+          canBeatCombo(selCombo, this.currentCombo).ok;
         textEl.innerHTML = `
           💥 <strong>Bước 5.3 — Dùng Sám Cô Q-Q-Q đè lên Sám Cô 7 của Bot Furina (+5× cược)!</strong><br>
           <strong>Bot Furina (💧 Thủy)</strong> vừa dùng <strong>Sám Cô 7 (7♣ 7♦ 7♥)</strong> đè lên Sám Cô 4 của bạn! Giờ trên bàn đã có bài của đối thủ — khi bạn lấy <strong>Sám Cô Q-Q-Q</strong> <strong>ĐÈ LÊN Sám Cô 7</strong>, Nguyên Tố <strong>⚡ Lôi</strong> va chạm <strong>💧 Thủy</strong> sẽ nổ <strong>Phản Ứng ⚡💧 Điện Cảm (+500 Xu)</strong>!<br>

@@ -192,7 +192,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'eula', name: 'Eula (Kỵ Sĩ Sóng Nước)', desc: '[Sử Thi] Fanart Đội trưởng Đội Du Kích Kỵ Sĩ Đoàn Tây Phong.', avatarPrice: 35000, skinPrice: 50000, crest: '❄️' },
   { id: 'ganyu', name: 'Ganyu (Tuần Lộc Ánh Trăng)', desc: '[Sử Thi] Fanart tổng thư ký Nguyệt Hải Đình dịu dàng.', avatarPrice: 35000, skinPrice: 50000, crest: '🏹' },
   { id: 'kokomi', name: 'Sangonomiya Kokomi (Thánh Pháp Sư)', desc: '[Sử Thi] Fanart quân sư tối cao đảo Watatsumi.', avatarPrice: 35000, skinPrice: 50000, crest: '🫧' },
-  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Đại tiểu thư Spina di Rosula bắn Đạn Ghém Pha Lê gom ≥ 3 lá cùng chất bất kỳ thành bộ Sảnh hợp lệ.', avatarPrice: 38000, skinPrice: 54000, crest: '☂️' },
+  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Đại tiểu thư Spina di Rosula khai hỏa Pháo Dù Phỏm Pha Lê: Mặc kệ đối thủ đánh gì, chỉ cần tung Sảnh Đồng Chất hoặc Sám Cô là đều chặt đè được tất cả!', avatarPrice: 38000, skinPrice: 54000, crest: '☂️' },
   { id: 'shenhe', name: 'Shenhe (Cô Thần Hàn Sương)', desc: '[Sử Thi] Fanart đệ tử tiên nhân mang khí chất thoát tục.', avatarPrice: 40000, skinPrice: 56000, crest: '❄️' },
   { id: 'ayaka', name: 'Kamisato Ayaka (Bạch Hạc Sương Hoa)', desc: '[Sử Thi] Fanart đại tiểu thư Hiệp Hội Yashiro kiêu sa.', avatarPrice: 42000, skinPrice: 60000, crest: '❄️' },
   { id: 'clorinde', name: 'Clorinde (Đấu Sĩ Đại Diện)', desc: '[Sử Thi] Fanart nữ kiếm sĩ Lôi nguyên tố bất bại của Fontaine.', avatarPrice: 43000, skinPrice: 62000, crest: '⚡' },
@@ -429,7 +429,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'navia',
     name: 'Navia — Pháo Lễ Hoa Hồng Vàng',
-    desc: '[Sử Thi] Hội trưởng Spina di Rosula khai hỏa Đạn Ghém Pha Lê cho phép gom từ 3 lá bài lẻ trở lên CÙNG CHẤT (♠, ♣, ♦, ♥) bất kể số cách xa nhau bắn ra như một bộ Sảnh hợp lệ (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Hội trưởng Spina di Rosula khai hỏa Pháo Dù Phỏm Pha Lê: Khi kích hoạt, mặc kệ đối thủ đánh bài gì trên bàn, chỉ cần Navia đánh ra Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) hoặc Sám Cô (giống bộ Phỏm) là đều chặt đè được tất cả (Video + Giọng lồng tiếng thật).',
     price: 110000,
     mp4Url: 'navia_burst.mp4',
     audioUrl: 'navia_burst.ogg?v=48',
@@ -1501,8 +1501,8 @@ const CHARACTER_SKILLS = {
     id: 'navia',
     charName: 'Navia',
     icon: '☂️',
-    name: 'Đạn Ghém Pha Lê',
-    shortDesc: 'Trong lượt này: Cho phép Navia gom từ 3 lá bài lẻ trở lên có CÙNG CHẤT (♠, ♣, ♦ hoặc ♥) bất kể bậc số cách xa nhau (VD: 3♦-8♦-Q♦-A♦) và bắn ra bàn như một bộ Sảnh hợp lệ!',
+    name: 'Pháo Dù Phỏm Pha Lê',
+    shortDesc: 'Trong lượt này: Mặc kệ đối thủ đang đánh bài gì trên bàn (Cóc lẻ, Đôi, Sảnh, Heo hay Hàng...), chỉ cần Navia đánh ra một bộ Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) hoặc Sám Cô (giống bộ Phỏm) là đều CHẶT ĐÈ được tất cả!',
   },
   shenhe: {
     id: 'shenhe',
@@ -2647,7 +2647,10 @@ function classifyCombo(cards) {
         highCard,
         highValue,
         highRank,
-        label: `Sám cô ${highCard.rank}`,
+        isNaviaPhom: true,
+        label: activeNaviaFlushStraight
+          ? `Phỏm Sám Cô ${highCard.rank} ☂️`
+          : `Sám cô ${highCard.rank}`,
       };
     }
   }
@@ -2707,6 +2710,7 @@ function classifyCombo(cards) {
       }
     }
     if (isStraight) {
+      const isSameSuitStraight = sorted.every((c) => c.suitIndex === sorted[0].suitIndex);
       return {
         type: COMBO_TYPES.STRAIGHT,
         cards: sorted,
@@ -2714,7 +2718,13 @@ function classifyCombo(cards) {
         highCard,
         highValue,
         highRank,
-        label: `Sảnh ${n} lá (${sorted[0].rank}→${highCard.rank}${highCard.suit})`,
+        isSameSuitStraight,
+        isNaviaPhom: isSameSuitStraight,
+        label: isSameSuitStraight
+          ? activeNaviaFlushStraight
+            ? `Phỏm Sảnh Đồng Chất ${n} lá (${sorted[0].rank}${sorted[0].suit}→${highCard.rank}${highCard.suit} ☂️)`
+            : `Sảnh Đồng Chất ${n} lá (${sorted[0].rank}${sorted[0].suit}→${highCard.rank}${highCard.suit})`
+          : `Sảnh ${n} lá (${sorted[0].rank}→${highCard.rank}${highCard.suit})`,
       };
     }
     // Băng Hoa Xuyên Thấu (Ganyu): Cho phép đánh Sảnh Khuyết thiếu đúng 1 mắt xích ở giữa (VD: 4-5-7-8)
@@ -2808,30 +2818,6 @@ function classifyCombo(cards) {
     }
   }
 
-  // Đạn Ghém Pha Lê (Navia): Cho phép gom từ 3 lá bài lẻ khác bậc trở lên có CÙNG CHẤT (♠, ♣, ♦ hoặc ♥) bắn ra như 1 bộ Sảnh hợp lệ
-  if (n >= 3 && activeNaviaFlushStraight) {
-    let sameSuitAndDistinctRank = true;
-    const suit0 = sorted[0].suitIndex;
-    for (let i = 1; i < n; i++) {
-      if (sorted[i].suitIndex !== suit0 || sorted[i].rankIndex === sorted[i - 1].rankIndex) {
-        sameSuitAndDistinctRank = false;
-        break;
-      }
-    }
-    if (sameSuitAndDistinctRank) {
-      return {
-        type: COMBO_TYPES.STRAIGHT,
-        cards: sorted,
-        length: n,
-        highCard,
-        highValue,
-        highRank,
-        isFlushStraight: true,
-        label: `Đạn Ghém Đồng Chất ${n} lá (${sorted.map((c) => `${c.rank}${c.suit}`).join('-')} ☂️)`,
-      };
-    }
-  }
-
   return null;
 }
 
@@ -2851,6 +2837,26 @@ function canBeatCombo(candidate, current) {
       ok: false,
       isChop: false,
       reason: '🔒 Có lá bài đang bị Pháo Kích (Navia) hoặc Thiên Tinh Hóa Đá (Zhongli) khóa cứng trong vòng này!',
+    };
+  }
+
+  // Pháo Dù Phỏm Pha Lê (Navia): Mặc kệ đối thủ đánh gì trên bàn, chỉ cần Navia đánh ra Sảnh Đồng Chất hoặc Sám Cô (bộ Phỏm) là đều CHẶT ĐÈ được tất cả!
+  const isNaviaPhomChop =
+    Boolean(activeNaviaFlushStraight) &&
+    (candidate.type === COMBO_TYPES.TRIPLE ||
+      (candidate.type === COMBO_TYPES.STRAIGHT && Boolean(candidate.isSameSuitStraight)));
+  if (isNaviaPhomChop && current) {
+    if (current.baizhuShielded || activeBaizhuShield) {
+      return {
+        ok: false,
+        isChop: false,
+        reason: '🐍 Khiên Trường Sinh (Baizhu): Bộ bài này đang được Khiên Ngọc bảo hộ — Miễn nhiễm bị chặt!',
+      };
+    }
+    return {
+      ok: true,
+      isChop: true,
+      chopReason: `Phỏm Pha Lê (${candidate.label}) chặt ${current.label}!`,
     };
   }
 
@@ -3329,29 +3335,23 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     }
   }
 
-  // Đạn Ghém Pha Lê (Navia): Sinh thêm các bộ Sảnh Đồng Chất từ 3 lá trở lên
-  if (activeNaviaFlushStraight) {
-    for (let suitIdx = 0; suitIdx < 4; suitIdx++) {
-      const suitCards = [];
-      const seenRanks = new Set();
-      sorted.forEach((c) => {
-        if (c.suitIndex === suitIdx && !seenRanks.has(c.rankIndex)) {
-          seenRanks.add(c.rankIndex);
-          suitCards.push(c);
-        }
-      });
-      if (suitCards.length >= 3) {
-        for (let len = 3; len <= Math.min(8, suitCards.length); len++) {
-          for (let hi = len - 1; hi < suitCards.length; hi++) {
-            const lowSlice = [...suitCards.slice(0, len - 1), suitCards[hi]];
-            const fc1 = classifyCombo(lowSlice);
-            if (fc1) combos.push(fc1);
-            if (hi > len - 1) {
-              const adjSlice = suitCards.slice(hi - len + 1, hi + 1);
-              const fc2 = classifyCombo(adjSlice);
-              if (fc2) combos.push(fc2);
-            }
-          }
+  // Pháo Dù Phỏm Pha Lê (Navia): Sinh đầy đủ mọi bộ Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất ♠, ♣, ♦, ♥)
+  for (let suitIdx = 0; suitIdx < 4; suitIdx++) {
+    const suitByRank = new Array(12).fill(null);
+    sorted.forEach((c) => {
+      if (c.suitIndex === suitIdx && c.rankIndex <= 11) {
+        suitByRank[c.rankIndex] = c;
+      }
+    });
+    for (let start = 0; start <= 9; start++) {
+      if (!suitByRank[start]) continue;
+      const sameSuitRun = [suitByRank[start]];
+      for (let next = start + 1; next <= 11; next++) {
+        if (!suitByRank[next]) break;
+        sameSuitRun.push(suitByRank[next]);
+        if (sameSuitRun.length >= 3) {
+          const fc = classifyCombo([...sameSuitRun]);
+          if (fc) combos.push(fc);
         }
       }
     }
@@ -3628,6 +3628,7 @@ class TienLenGame {
     activeXiaoKarmaMaxRank = null;
     this.kinichBombOwnerId = null;
     this.roundPlayedSeatIds = new Set();
+    this.roundSkillActivatedSeatIds = new Set();
     this.nicoleSuitOnlyRound = false;
     activeNicoleSuitOnlyRound = false;
     this.xianyunStepStraightTurn = false;
@@ -3661,6 +3662,7 @@ class TienLenGame {
     this.ayatoCloneReady = false;
     this.arlecchinoBondOwnerId = null;
     this.flinsLanternOwnerId = null;
+    this.roundSkillActivatedSeatIds = new Set();
     this.turnDirection = 1;
     this.mualaniCrossBeatTurn = false;
 
@@ -10635,7 +10637,7 @@ class TienLenGame {
     }
     if (this.naviaFlushStraightTurn) {
       pills.push(
-        `<span class="round-skill-pill">☂️ Đạn Ghém Pha Lê (Navia): Lượt này được gom ≥ 3 lá lẻ CÙNG CHẤT (♠, ♣, ♦, ♥) bắn thành Sảnh Đồng Chất!</span>`
+        `<span class="round-skill-pill">☂️ Pháo Dù Phỏm Pha Lê (Navia): Lượt này dùng Sảnh Đồng Chất hoặc Sám Cô chặt đè mọi bộ bài trên bàn!</span>`
       );
     }
     if (this.naviaLockedCardIds && this.naviaLockedCardIds.size > 0) {
@@ -11193,18 +11195,24 @@ class TienLenGame {
     }
     if (charId === 'navia') {
       if (this.naviaFlushStraightTurn) {
-        return { ok: false, reason: 'Đạn Ghém Pha Lê đã bật trong lượt này' };
+        return { ok: false, reason: 'Pháo Dù Phỏm Pha Lê đã bật trong lượt này' };
+      }
+      if (!this.currentCombo || this.trickOwnerId === player.id) {
+        return {
+          ok: false,
+          reason: 'Chỉ kích hoạt khi trên bàn đang có bộ bài của đối thủ để dùng Sảnh Đồng Chất hoặc Sám Cô chặt đè!',
+        };
       }
       const prevFlush = activeNaviaFlushStraight;
       activeNaviaFlushStraight = true;
-      const flushMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
-        (m) => m.isNaviaFlushStraight
+      const phomMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.type === COMBO_TYPES.TRIPLE || (m.type === COMBO_TYPES.STRAIGHT && m.isSameSuitStraight)
       );
       activeNaviaFlushStraight = prevFlush;
-      if (flushMoves.length === 0) {
+      if (phomMoves.length === 0) {
         return {
           ok: false,
-          reason: 'Cần ít nhất 3 lá bài lẻ khác số có CÙNG CHẤT (♠, ♣, ♦ hoặc ♥) đủ sức bắn ra như một bộ Sảnh!',
+          reason: 'Cần có ít nhất 1 bộ Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) hoặc Sám Cô (3 lá cùng số) trên tay để chặt đè!',
         };
       }
     }
@@ -11570,6 +11578,8 @@ class TienLenGame {
     try {
       this.recordPlayerSkillBehavior(player, charId);
     } catch (_) {}
+    if (!this.roundSkillActivatedSeatIds) this.roundSkillActivatedSeatIds = new Set();
+    this.roundSkillActivatedSeatIds.add(player.id);
     player.skillUsed = true;
     player._skillForcedComboIds = null;
     player._skillBoostedCardIds = null;
@@ -11748,17 +11758,24 @@ class TienLenGame {
       activeNaviaFlushStraight = true;
       this.syncRoundRuleGlobals(player.id);
       const struct = this.analyzeBotHandStructure(player.hand);
-      const flushMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false)
-        .filter((m) => m.isNaviaFlushStraight && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)))
-        .sort((a, b) => b.length - a.length || b.highValue - a.highValue);
-      const chosenFlush =
-        flushMoves[0] ||
-        getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).find((m) => m.isNaviaFlushStraight);
-      if (chosenFlush) {
-        this.selectedCardIds = new Set(chosenFlush.cards.map((c) => c.id));
+      const allPhomMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.type === COMBO_TYPES.TRIPLE || (m.type === COMBO_TYPES.STRAIGHT && m.isSameSuitStraight)
+      );
+      const safePhomMoves = allPhomMoves
+        .filter((m) => !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)))
+        .sort(
+          (a, b) =>
+            this.evaluateMoveBreakCost(a, struct) - this.evaluateMoveBreakCost(b, struct) ||
+            a.highValue - b.highValue
+        );
+      const chosenPhom = safePhomMoves[0] || allPhomMoves[0];
+      if (chosenPhom) {
+        const phomIds = chosenPhom.cards.map((c) => c.id);
+        this.selectedCardIds = new Set(phomIds);
         this.companionCardIds.clear();
+        player._skillForcedComboIds = phomIds;
       }
-      skillSummary = `☂️ [Đạn Ghém Pha Lê] ${player.name} nạp Đạn Ghém Pháo Dù: Cho phép gom từ 3 lá bài lẻ trở lên CÙNG CHẤT (♠, ♣, ♦, ♥) bất kể khoảng cách số để bắn ra như một bộ Sảnh hợp lệ trong lượt này!`;
+      skillSummary = `☂️ [Pháo Dù Phỏm Pha Lê] ${player.name} khai hỏa Pháo Dù Phỏm: Mặc kệ đối thủ vừa đánh bộ bài gì trên bàn, lượt này ${player.name} được dùng Sảnh Đồng Chất hoặc Sám Cô để chặt đè trực tiếp!`;
     } else if (charId === 'shenhe') {
       this.shenheSingleOnlyRound = true;
       activeShenheSingleOnly = true;
@@ -13023,6 +13040,75 @@ class TienLenGame {
     return true;
   }
 
+  getRoundSkillTacticalAssessment(bot) {
+    const activeOpponents = this.players.filter(
+      (p) => p.active && p.id !== bot.id && p.finishRank === null && p.hand.length > 0
+    );
+    const minOppCards =
+      activeOpponents.length > 0 ? Math.min(...activeOpponents.map((p) => p.hand.length)) : 99;
+    const ownerPlayer = this.trickOwnerId !== null ? this.players[this.trickOwnerId] : null;
+    const ownerCards = ownerPlayer && ownerPlayer.id !== bot.id ? ownerPlayer.hand.length : 99;
+
+    const oppActivatedInSet = Array.from(this.roundSkillActivatedSeatIds || []).some(
+      (sid) => sid !== bot.id
+    );
+    const hasOppRoundEffect =
+      (this.ittoUshiOwnerId !== null && this.ittoUshiOwnerId !== bot.id) ||
+      (this.kinichBombOwnerId !== null && this.kinichBombOwnerId !== bot.id) ||
+      (this.citlaliPillowOwnerId !== null && this.citlaliPillowOwnerId !== bot.id) ||
+      (this.hutaoTaxOwnerId !== null && this.hutaoTaxOwnerId !== bot.id) ||
+      (this.sigewinneCareOwnerId !== null && this.sigewinneCareOwnerId !== bot.id) ||
+      (this.vesnaSpringOwnerId !== null && this.vesnaSpringOwnerId !== bot.id) ||
+      (this.xiaoKarmaOwnerId !== null && this.xiaoKarmaOwnerId !== bot.id) ||
+      (this.emiliePerfumeOwnerId !== null && this.emiliePerfumeOwnerId !== bot.id) ||
+      (this.alhaithamOwnerId !== null && this.alhaithamOwnerId !== bot.id) ||
+      (this.zibaiMinStepOwnerId !== null && this.zibaiMinStepOwnerId !== bot.id) ||
+      (this.yelanParityOwnerId !== null && this.yelanParityOwnerId !== bot.id) ||
+      (this.cynoRoyalBanOwnerId !== null && this.cynoRoyalBanOwnerId !== bot.id) ||
+      (this.wriothesleyNoSingleOwnerId !== null && this.wriothesleyNoSingleOwnerId !== bot.id) ||
+      (this.baizhuShieldOwnerId !== null && this.baizhuShieldOwnerId !== bot.id) ||
+      (this.arlecchinoBondOwnerId !== null && this.arlecchinoBondOwnerId !== bot.id) ||
+      (this.flinsLanternOwnerId !== null && this.flinsLanternOwnerId !== bot.id) ||
+      this.furinaReverseSuitRound ||
+      this.kokomiReverseRankRound ||
+      this.shenheSingleOnlyRound ||
+      this.yaeForcePlayRound ||
+      this.nicoleSuitOnlyRound ||
+      (this.zhongliPetrifiedCardIds && this.zhongliPetrifiedCardIds.size > 0);
+
+    const oppSkillActiveInRound = oppActivatedInSet || hasOppRoundEffect;
+
+    // Kiểm tra nếu đánh bài trong vòng này sẽ gặp bất lợi trực tiếp (dẫm bẫy / nộp phạt / mất cái)
+    const playTriggersHardTrap =
+      (this.ittoUshiOwnerId !== null && this.ittoUshiOwnerId !== bot.id) ||
+      (this.kinichBombOwnerId !== null &&
+        this.kinichBombOwnerId !== bot.id &&
+        this.trickOwnerId === this.kinichBombOwnerId) ||
+      (this.citlaliPillowOwnerId !== null &&
+        this.citlaliPillowTargetId === bot.id &&
+        this.trickOwnerId === this.citlaliPillowOwnerId) ||
+      (this.hutaoTaxOwnerId !== null && this.hutaoTaxOwnerId !== bot.id) ||
+      (this.sigewinneCareOwnerId !== null && this.sigewinneCareOwnerId !== bot.id);
+
+    // Kiểm tra nếu bỏ lượt sẽ chịu phạt nặng
+    const passHasDirectDisadvantage =
+      this.yaeForcePlayRound ||
+      (this.arlecchinoBondOwnerId !== null && this.arlecchinoBondOwnerId !== bot.id) ||
+      (this.flinsLanternOwnerId !== null && this.flinsLanternOwnerId !== bot.id);
+
+    // Đối phương sắp thắng (<= 3 lá): buộc phải đánh hoặc tung kỹ năng chặn!
+    const isOpponentAboutToWin = ownerCards <= 3 || minOppCards <= 3;
+
+    return {
+      oppSkillActiveInRound,
+      playTriggersHardTrap,
+      passHasDirectDisadvantage,
+      isOpponentAboutToWin,
+      ownerCards,
+      minOppCards,
+    };
+  }
+
   maybeBotUseSkill(bot, validMoves) {
     if (!bot || !bot.isBot || bot.skillUsed || this.isGameOver || this.isBurstPlaying) return false;
     const check = this.canUseCharacterSkill(bot);
@@ -13039,6 +13125,7 @@ class TienLenGame {
     const rankCounts = new Array(13).fill(0);
     bot.hand.forEach((c) => rankCounts[c.rankIndex]++);
     const struct = this.analyzeBotHandStructure(bot.hand);
+    const tac = this.getRoundSkillTacticalAssessment(bot);
 
     // Tính trước nước đi dự kiến của Bot để KHÔNG BAO GIỜ tung kỹ năng hỗ trợ vòng rồi lại Bỏ Lượt!
     const plannedMove = !this.currentCombo
@@ -13062,6 +13149,26 @@ class TienLenGame {
     );
     const alreadyHasCheckmate =
       (!this.currentCombo && hasLeadCheckmateNow) || hasResponseCheckmateNow;
+
+    // 0. CHIẾN THUẬT NHỊN NỘ KHI NGƯỜI HOẶC BOT TRƯỚC ĐÃ BẬT KỸ NĂNG TRONG VÒNG NÀY:
+    // Nếu đối thủ trước trong vòng đã kích hoạt kỹ năng mà đối phương chưa sắp thắng (`!tac.isOpponentAboutToWin`)
+    // và Bot không có đòn dứt điểm ván đấu hay chặt Heo/Hàng ăn xu trực tiếp -> BỎ QUA không phung phí Kỹ Năng [Q]!
+    if (tac.oppSkillActiveInRound && !tac.isOpponentAboutToWin && !alreadyHasCheckmate) {
+      if (tac.playTriggersHardTrap) {
+        return false;
+      }
+      const isDirectChopSkillOnTwoOrBomb =
+        this.currentCombo &&
+        (this.currentCombo.highRank === 12 || this.currentCombo.isBomb) &&
+        ['navia', 'vodyanitsa'].includes(charId);
+      const isCheckmateCutSkill =
+        this.currentCombo &&
+        (hasLeadCheckmateNow || (beforeChess.deficitToForcedWin === 0 && beforeChess.plan.totalTurns <= 2)) &&
+        ['raiden', 'wriothesley'].includes(charId);
+      if (!isDirectChopSkillOnTwoOrBomb && !isCheckmateCutSkill && !tac.passHasDirectDisadvantage) {
+        return false;
+      }
+    }
 
     // 1. Nếu tay bài Bot ĐÃ CÓ SẴN THẾ CHIẾU HẾT 100% -> CẤM bật các kỹ năng tráo/đổi bài làm hỏng thế thắng!
     if (
@@ -13254,24 +13361,27 @@ class TienLenGame {
         shouldCast = true;
       }
     } else if (charId === 'navia') {
-      const prevFlush = activeNaviaFlushStraight;
-      activeNaviaFlushStraight = true;
-      const flushMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
-        (m) => m.isNaviaFlushStraight && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
-      );
-      activeNaviaFlushStraight = prevFlush;
-      if (flushMoves.length > 0) {
-        const canInstantWinFlush = flushMoves.some((m) => m.length === bot.hand.length);
-        const needFlushAgainstStraight =
-          this.currentCombo &&
-          this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
-          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 70);
-        const goodFlushLead =
-          !this.currentCombo &&
-          flushMoves.some((m) => this.evaluateMoveBreakCost(m, struct) <= 45) &&
-          (bot.hand.length <= 10 || minOppCards <= 8);
-        if (canInstantWinFlush || needFlushAgainstStraight || goodFlushLead) {
-          shouldCast = true;
+      if (this.currentCombo && this.trickOwnerId !== bot.id) {
+        const prevFlush = activeNaviaFlushStraight;
+        activeNaviaFlushStraight = true;
+        const phomMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+          (m) =>
+            (m.type === COMBO_TYPES.TRIPLE || (m.type === COMBO_TYPES.STRAIGHT && m.isSameSuitStraight)) &&
+            !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+        );
+        activeNaviaFlushStraight = prevFlush;
+        if (phomMoves.length > 0) {
+          const canInstantWinPhom = phomMoves.some((m) => m.length === bot.hand.length);
+          const isChoppingTwoOrBomb = this.currentCombo.highRank === 12 || this.currentCombo.isBomb;
+          const needPhomToDefend =
+            (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 65) &&
+            (this.currentCombo.highRank >= 6 ||
+              this.currentCombo.length >= 2 ||
+              minOppCards <= 6 ||
+              bot.hand.length <= 7);
+          if (canInstantWinPhom || isChoppingTwoOrBomb || needPhomToDefend) {
+            shouldCast = true;
+          }
         }
       }
     } else if (charId === 'shenhe') {
@@ -17027,6 +17137,7 @@ class TienLenGame {
     activeXiaoKarmaMaxRank = null;
     this.kinichBombOwnerId = null;
     this.roundPlayedSeatIds = new Set();
+    this.roundSkillActivatedSeatIds = new Set();
     this.nicoleSuitOnlyRound = false;
     activeNicoleSuitOnlyRound = false;
     this.xianyunStepStraightTurn = false;
@@ -17060,6 +17171,7 @@ class TienLenGame {
     this.ayatoCloneReady = false;
     this.arlecchinoBondOwnerId = null;
     this.flinsLanternOwnerId = null;
+    this.roundSkillActivatedSeatIds = new Set();
     this.turnDirection = 1;
     this.mualaniCrossBeatTurn = false;
     activeMualaniCrossBeat = false;
@@ -18451,6 +18563,7 @@ class TienLenGame {
     activeXiaoKarmaMaxRank = null;
     this.kinichBombOwnerId = null;
     this.roundPlayedSeatIds = new Set();
+    this.roundSkillActivatedSeatIds = new Set();
     this.mualaniCrossBeatTurn = false;
     activeMualaniCrossBeat = false;
     this.nicoleSuitOnlyRound = false;
@@ -20022,7 +20135,35 @@ class TienLenGame {
       return best.move;
     }
 
-    // (B) Khi đối thủ báo động đỏ chỉ còn 1-2 lá (`isCriticalEndgame`):
+    // (B) CHIẾN THUẬT NHỊN ĐÁNH KHI NGƯỜI HOẶC BOT TRƯỚC TRONG VÒNG NÀY ĐÃ KÍCH HOẠT KỸ NĂNG:
+    // Nếu người/bot trước đã bật Kỹ Năng trong vòng này mà Bot đánh ra gặp bất lợi (dẫm bẫy Ushi/Bom/Gối/Thuế/Viện Phí/Đoạt Cái)
+    // hoặc không được lợi rõ ràng -> BỎ QUA (không đánh), CHỈ ĐÁNH khi:
+    // 1. Đối phương sắp thắng buộc phải chặn (`tac.isOpponentAboutToWin`), HOẶC
+    // 2. Xả bài rác nhỏ/vừa thuần túy (`isPureTrashDump`) và không dẫm bẫy!
+    const tac = this.getRoundSkillTacticalAssessment(bot);
+    if (tac.oppSkillActiveInRound && !tac.passHasDirectDisadvantage && !tac.isOpponentAboutToWin) {
+      const triggersVesnaRedSteal =
+        this.vesnaSpringOwnerId !== null &&
+        this.vesnaSpringOwnerId !== bot.id &&
+        best.move.cards.some((c) => c.suitIndex >= 2);
+      if (tac.playTriggersHardTrap || triggersVesnaRedSteal) {
+        return null;
+      }
+      const isChopForCoins = Boolean(canBeatCombo(best.move, this.currentCombo).isChop);
+      const isPureTrashDump =
+        best.breakCost === 0 &&
+        best.turnsAdded <= 0 &&
+        best.trashAdded <= 0 &&
+        !best.touchesBomb &&
+        best.move.highRank <= 7 &&
+        best.deficitDelta <= 0 &&
+        best.afterPlan.totalTurns < beforePlan.totalTurns;
+      if (!isChopForCoins && !isPureTrashDump) {
+        return null;
+      }
+    }
+
+    // (C) Khi đối thủ báo động đỏ chỉ còn 1-2 lá (`isCriticalEndgame`):
     // Chấp nhận xé bộ / tung bài lớn để chặn không cho đối thủ về đích!
     if (sit.isCriticalEndgame) {
       return best.move;

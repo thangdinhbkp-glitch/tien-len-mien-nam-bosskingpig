@@ -7933,6 +7933,34 @@ body.pseudo-fullscreen-mode {
   }
 }
 
+/* ============================================================================
+   GPU ACCELERATION & ZERO-LAG LOCK FOR BURST VIDEO PREVIEW IN INVENTORY / GACHA
+   ============================================================================ */
+.genshin-burst-overlay {
+  background-color: #050714;
+  contain: layout style paint;
+  will-change: opacity;
+}
+
+.genshin-burst-overlay.theme-geo {
+  background: radial-gradient(circle at 50% 45%, rgba(245, 158, 11, 0.88) 0%, rgba(120, 53, 15, 0.96) 55%, rgba(10, 8, 4, 1) 100%);
+}
+
+body.burst-playing-gpu-lock .modal-overlay:not(#genshin-burst-overlay),
+body.burst-playing-gpu-lock .arena,
+body.burst-playing-gpu-lock .traveler-guide-overlay {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.burst-playing-gpu-lock .modal-overlay:not(#genshin-burst-overlay) *,
+body.burst-playing-gpu-lock .arena * {
+  animation-play-state: paused !important;
+}
+
+
 
 
 

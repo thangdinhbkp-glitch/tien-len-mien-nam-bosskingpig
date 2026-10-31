@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=96" />
+  <link rel="stylesheet" href="styles.css?v=98" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -27,8 +27,8 @@
         <div class="rule-badge" id="first-turn-badge" title="Quy định lượt đầu">
           ♠️ Ván đầu: Ai có 3♠ đi trước
         </div>
-        <div class="top-turn-timer-pill" id="top-turn-timer-pill" title="Giới hạn 15 giây mỗi lượt — Quá 15s hệ thống sẽ tự động đánh bài!">
-          ⏱️ <span id="top-turn-timer-sec">15s</span>
+        <div class="top-turn-timer-pill" id="top-turn-timer-pill" title="Giới hạn 30 giây mỗi lượt — Quá 30s hệ thống sẽ tự động đánh bài!">
+          ⏱️ <span id="top-turn-timer-sec">30s</span>
         </div>
         <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
           📊 Bảng tính tiền
@@ -146,10 +146,10 @@
               <div class="turn-banner" id="turn-banner">
                 Nhấn "Ván mới" để bắt đầu ván đấu!
               </div>
-              <div class="turn-timer-hud" id="turn-timer-hud" title="Giới hạn 15 giây mỗi lượt — Không đánh hệ thống sẽ tự động đánh!">
+              <div class="turn-timer-hud" id="turn-timer-hud" title="Giới hạn 30 giây mỗi lượt — Không đánh hệ thống sẽ tự động đánh!">
                 <div class="turn-timer-head">
                   <span class="turn-timer-clock">⏱️</span>
-                  <span class="turn-timer-seconds" id="turn-timer-sec">15s</span>
+                  <span class="turn-timer-seconds" id="turn-timer-sec">30s</span>
                 </div>
                 <div class="turn-timer-track">
                   <div class="turn-timer-fill" id="turn-timer-fill" style="width: 100%;"></div>
@@ -295,7 +295,7 @@
 
           <div class="lobby-brand-title app-center-brand">
             <h2>🃏 TIẾN LÊN MIỀN NAM • GENSHIN IMPACT</h2>
-            <p>Nhất Ăn Tất • Đếm Lá • Thời Gian Lượt 15 Giây</p>
+            <p>Nhất Ăn Tất • Đếm Lá • Thời Gian Lượt 30 Giây</p>
           </div>
 
           <div class="app-topbar-right">
@@ -822,19 +822,50 @@
             </div>
             <div id="summary-bot-status-msg" class="hidden" style="margin-top:8px;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.16);border:1px solid rgba(16,185,129,0.45);color:#6ee7b7;font-size:12.5px;font-weight:700;"></div>
           </div>
+
+          <!-- HỘP CHUẨN BỊ VÁN TIẾP THEO: ĐỔI ĐỒ TRONG KHO ĐỒ & TRẠNG THÁI SẴN SÀNG (ONLINE / SOLO) -->
+          <div id="summary-ready-prep-box" style="margin-top:12px;padding:12px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(6,78,59,0.88),rgba(15,23,42,0.94));border:1.5px solid rgba(52,211,153,0.55);box-shadow:0 6px 20px rgba(0,0,0,0.45);">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+              <div>
+                <div style="font-size:14.5px;font-weight:800;color:#6ee7b7;margin-bottom:3px;">
+                  🎒 Trang bị &amp; Trạng thái Sẵn Sàng cho ván tiếp theo:
+                </div>
+                <div id="summary-my-loadout-line" style="font-size:12.5px;color:#e2e8f0;">
+                  Đang trang bị: <strong>⚡ Raiden Shogun</strong>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="primary-btn" id="btn-summary-open-inventory" onclick="window.tienLenGame.openInventoryFromSummary('bursts')" style="padding:8px 14px;font-size:13px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);">
+                  🎒 Vào Kho Đồ Đổi Nhân Vật / Decor
+                </button>
+                <button type="button" class="tool-btn" onclick="window.tienLenGame.openGachaFromSummary()" style="padding:8px 12px;font-size:12.5px;font-weight:800;border-radius:10px;border:1.5px solid rgba(250,204,21,0.55);color:#fde047;">
+                  🌠 Cầu Nguyện
+                </button>
+              </div>
+            </div>
+            <div id="summary-ready-players-list" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"></div>
+          </div>
         </div>
         <div class="modal-footer summary-footer">
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="icon-btn" id="btn-peek-table">
               👁️ Xem bài trên bàn
             </button>
+            <button class="icon-btn" onclick="window.tienLenGame.openInventoryFromSummary('bursts')">
+              🎒 Kho Đồ Đổi Đồ
+            </button>
             <button class="icon-btn" id="btn-summary-change-bet">
               🏠 Đổi Chế Độ / Đổi Mức Cược
             </button>
           </div>
-          <button class="primary-btn btn-lg" id="btn-next-round">
-            🃏 Chia Ván Tiếp Theo
-          </button>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="primary-btn btn-lg" id="btn-summary-ready" onclick="window.tienLenGame.toggleSummaryReady()" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
+              ✋ Sẵn Sàng
+            </button>
+            <button class="primary-btn btn-lg" id="btn-next-round">
+              🃏 Chia Ván Tiếp Theo
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -854,7 +885,7 @@
             <h3>1. 🃏 Luật Cơ Bản: Nhất Ăn Tất (Đếm Lá) &amp; Quy Định Bàn Chơi</h3>
             <p>
               • Hỗ trợ <strong>2 Chế độ độc lập</strong>: <strong>🤖 Đấu Với Bot (2–4 người)</strong> hoặc <strong>👥 Đấu Với Người Online/WiFi (2–4 người)</strong>. <em>(Lưu ý: Không thể chơi 2 trận với Người và với Bot cùng 1 lúc, và không được rời Sảnh Chờ / Bàn Đấu khi ván bài chưa kết thúc).</em><br/>
-              • <strong>Thời gian mỗi lượt:</strong> Giới hạn <strong>15 giây / lượt</strong>. Hết 15 giây hệ thống sẽ tự động đánh lá/bộ hợp lệ nhỏ nhất hoặc bỏ lượt.<br/>
+              • <strong>Thời gian mỗi lượt:</strong> Giới hạn <strong>30 giây / lượt</strong>. Hết 30 giây hệ thống sẽ tự động đánh lá/bộ hợp lệ nhỏ nhất hoặc bỏ lượt.<br/>
               • <strong>Nhất Ăn Tất (Đếm Lá):</strong> Ngay khi có <strong>1 người đánh hết 13 lá trước tiên (Về Nhất)</strong>, ván bài lập tức kết thúc! Tất cả người chơi còn lại lật ngửa bài trên tay để đếm lá tính phạt:<br/>
               &nbsp;&nbsp;– <strong>Mỗi lá bài còn lại:</strong> Phạt <strong>1× mức cược / lá</strong>.<br/>
               &nbsp;&nbsp;– <strong>Cóng (Còn nguyên 13 lá chưa đánh lá nào):</strong> Phạt gấp đôi = <strong>26× mức cược</strong> (+ tiền thối Heo/Hàng/3♠ nếu có).
@@ -1329,6 +1360,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=96"></script>
+  <script src="game.js?v=98"></script>
 </body>
 </html>

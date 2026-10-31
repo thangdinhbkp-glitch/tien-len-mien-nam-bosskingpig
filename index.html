@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=112" />
+  <link rel="stylesheet" href="styles.css?v=113" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -383,6 +383,12 @@
             <span class="dock-icon">🎵</span>
             <span class="dock-label" id="lobby-bgm-label">Auto 🔄: Inazuma 🌸</span>
           </button>
+          <button class="app-dock-btn" id="btn-lobby-skip-burst" onclick="window.tienLenGame.toggleSkipBurstAnimations()" title="Bật / Tắt tự động bỏ qua 100% hoạt ảnh Nộ của mọi nhân vật">
+            <span class="dock-label" id="lobby-skip-burst-label">🎬 Hoạt Ảnh Nộ: BẬT</span>
+          </button>
+          <button class="app-dock-btn" id="btn-lobby-skip-gacha" onclick="window.tienLenGame.toggleSkipGachaAnimations()" title="Bật / Tắt tự động bỏ qua hoạt ảnh sao băng &amp; chào sân khi quay Gacha">
+            <span class="dock-label" id="lobby-skip-gacha-label">🌠 Hoạt Ảnh Gacha: BẬT</span>
+          </button>
           <button class="app-dock-btn" id="btn-lobby-open-rules" title="Xem luật chơi &amp; bảng tính phạt">
             <span class="dock-icon">📖</span>
             <span class="dock-label">Luật Chơi</span>
@@ -428,6 +434,12 @@
             <div class="shop-balance-pill">
               🪙 <strong id="mode-setup-balance">20,000</strong> Xu
             </div>
+            <button class="top-fullscreen-btn" id="btn-mode-skip-burst" onclick="window.tienLenGame.toggleSkipBurstAnimations()" title="Bật / Tắt tự động bỏ qua 100% hoạt ảnh Nộ của mọi nhân vật">
+              🎬 Hoạt Ảnh Nộ: BẬT
+            </button>
+            <button class="top-fullscreen-btn" id="btn-mode-skip-gacha" onclick="window.tienLenGame.toggleSkipGachaAnimations()" title="Bật / Tắt tự động bỏ qua hoạt ảnh sao băng &amp; chào sân khi quay Gacha">
+              🌠 Hoạt Ảnh Gacha: BẬT
+            </button>
             <button class="top-fullscreen-btn" id="btn-mode-fullscreen" onclick="window.tienLenGame.toggleFullscreen()" title="Bật / Tắt chế độ Toàn màn hình">
               ⛶ Toàn màn hình
             </button>
@@ -1381,6 +1393,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=112"></script>
+  <script src="game.js?v=113"></script>
 </body>
 </html>

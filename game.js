@@ -3836,7 +3836,7 @@ class TienLenGame {
   syncSkipAnimationButtonsUI() {
     const skipBurst = !!this.skipAllBurstAnimations;
     const skipGacha = !!this.skipGachaAnimations;
-    ['btn-top-skip-burst', 'btn-pause-skip-burst'].forEach((id) => {
+    ['btn-top-skip-burst', 'btn-pause-skip-burst', 'btn-mode-skip-burst'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) {
         el.textContent = skipBurst ? '🚫 Hoạt Ảnh Nộ: ĐÃ TẮT' : '🎬 Hoạt Ảnh Nộ: BẬT';
@@ -3844,7 +3844,16 @@ class TienLenGame {
         el.style.color = skipBurst ? '#fca5a5' : '';
       }
     });
-    ['btn-shop-skip-gacha', 'btn-pause-skip-gacha'].forEach((id) => {
+    const lobbyBurstBtn = document.getElementById('btn-lobby-skip-burst');
+    const lobbyBurstLabel = document.getElementById('lobby-skip-burst-label');
+    if (lobbyBurstLabel) {
+      lobbyBurstLabel.textContent = skipBurst ? '🚫 Hoạt Ảnh Nộ: ĐÃ TẮT' : '🎬 Hoạt Ảnh Nộ: BẬT';
+    }
+    if (lobbyBurstBtn) {
+      lobbyBurstBtn.style.borderColor = skipBurst ? '#f87171' : '';
+      lobbyBurstBtn.style.color = skipBurst ? '#fca5a5' : '';
+    }
+    ['btn-shop-skip-gacha', 'btn-pause-skip-gacha', 'btn-mode-skip-gacha'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) {
         el.textContent = skipGacha ? '⏭️ Hoạt Ảnh Gacha: ĐÃ TẮT' : '🌠 Hoạt Ảnh Gacha: BẬT';
@@ -3852,6 +3861,15 @@ class TienLenGame {
         el.style.color = skipGacha ? '#fca5a5' : '';
       }
     });
+    const lobbyGachaBtn = document.getElementById('btn-lobby-skip-gacha');
+    const lobbyGachaLabel = document.getElementById('lobby-skip-gacha-label');
+    if (lobbyGachaLabel) {
+      lobbyGachaLabel.textContent = skipGacha ? '⏭️ Hoạt Ảnh Gacha: ĐÃ TẮT' : '🌠 Hoạt Ảnh Gacha: BẬT';
+    }
+    if (lobbyGachaBtn) {
+      lobbyGachaBtn.style.borderColor = skipGacha ? '#f87171' : '';
+      lobbyGachaBtn.style.color = skipGacha ? '#fca5a5' : '';
+    }
   }
 
   toggleSkipBurstAnimations(forceOn = false) {

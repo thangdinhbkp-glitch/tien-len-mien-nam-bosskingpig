@@ -12210,10 +12210,12 @@ class TienLenGame {
     this.renderAll();
     if (!this.tutorialCompleted && this.tutorialStep === 5 && player.id === this.mySeatId) {
       this.tutorialMatch2SkillUsed = true;
-      // Sau khi dùng [E] Tịnh Thổ Cắt Vòng, tự động gợi ý chọn sẵn bộ Sảnh Lớn 5 lá (5-6-7-8-9) trên tay để người chơi bấm Đánh Bài kích hoạt Phản Ứng Nguyên Tố!
-      const straightCards = player.hand.filter((c) => ['5', '6', '7', '8', '9'].includes(c.rank));
-      if (straightCards.length >= 4) {
-        this.selectedCardIds = new Set(straightCards.map((c) => c.id));
+      this.tutorialMatch2LeadPlayed = false;
+      // Sau khi dùng Chiêu Nộ [Q] Tịnh Thổ Cắt Vòng (bàn đang trống, lúc mở lượt chưa tính Phản Ứng Nguyên Tố),
+      // tự động gợi ý chọn lá lẻ 3♣ để người chơi mở vòng nhử Bot Furina đánh bộ lớn ra bàn!
+      const leadCard = player.hand.filter((c) => c.rank === '3' && c.suit === '♣');
+      if (leadCard.length > 0) {
+        this.selectedCardIds = new Set(leadCard.map((c) => c.id));
         this.renderHumanHand();
         this.updateControls();
       }
@@ -17054,33 +17056,13 @@ class TienLenGame {
         combo.type === COMBO_TYPES.TRIPLE;
 
       const hasEquippedChar = this.getPlayerActiveCharId(player) !== 'none';
-      const cutTargetPlayer =
-        this.lastSkillCutTargetId !== undefined &&
-        this.lastSkillCutTargetId !== null &&
-        this.lastSkillCutTargetId !== player.id
-          ? this.players[this.lastSkillCutTargetId]
-          : null;
       this.lastSkillCutTargetId = null;
 
-      let prevPlayer =
+      // Phản Ứng Nguyên Tố CHỈ tính khi ĐÈ (chặn) bộ bài đang có trên bàn của đối thủ (KHÔNG tính lúc mở vòng mới trên bàn trống!)
+      const prevPlayer =
         this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== player.id
           ? this.players[this.trickOwnerId]
-          : cutTargetPlayer;
-
-      // Khi người chơi ĐÃ TRANG BỊ NHÂN VẬT và đánh Sảnh Lớn (≥ 4 lá) hoặc Sám Cô (3 lá) / Heo / Hàng mở vòng mới,
-      // tự động tìm đối thủ khác hệ trên bàn để kích hoạt Phản Ứng Nguyên Tố!
-      if (isHeavy && hasEquippedChar && !prevPlayer) {
-        const attackerElem = this.getPlayerElement(player, combo);
-        prevPlayer =
-          this.players.find(
-            (p) =>
-              p.active &&
-              p.id !== player.id &&
-              p.finishRank === null &&
-              this.getPlayerActiveCharId(p) !== 'none' &&
-              checkGenuineGenshinReaction(attackerElem, this.getPlayerElement(p))
-          ) || null;
-      }
+          : null;
 
       const hasElementalClash =
         hasEquippedChar &&
@@ -17092,7 +17074,7 @@ class TienLenGame {
         );
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      // Kích hoạt Phản Ứng Nguyên Tố khi đã trang bị nhân vật VÀ đánh bài lớn (Sảnh Lớn ≥ 4 lá, Sám Cô, Heo 2, Hàng)
+      // Kích hoạt Phản Ứng Nguyên Tố khi đã trang bị nhân vật VÀ đánh bài lớn (Sảnh Lớn ≥ 4 lá, Sám Cô, Heo 2, Hàng) ĐÈ LÊN bài của đối thủ trên bàn
       if (isHeavy && hasEquippedChar && prevPlayer) {
         const rx = this.getSpecialPlayReaction(player, combo, prevPlayer);
         combo.reaction = rx;
@@ -18864,22 +18846,113 @@ class TienLenGame {
     if (this.currentTurn !== this.mySeatId && !isFourPairsCutAnytime) return;
 
     if (!this.tutorialCompleted && this.tutorialStep === 5 && this.tutorialMatch2SkillUsed && !this.tutorialMatch2FirstCardPlayed) {
+      const human = this.getLocalPlayer();
+      // Bước 5.2: Đang cầm Cái mở vòng mới trên bàn trống (!this.currentCombo) -> Đánh lá mở vòng (3♣ hoặc Sám Cô 4-4-4) để nhử Bot Furina ra bài!
+      if (!this.tutorialMatch2LeadPlayed && !this.currentCombo) {
+        const isAllowedLead =
+          (combo.type === COMBO_TYPES.SINGLE && combo.highRank <= 7) ||
+          (combo.type === COMBO_TYPES.TRIPLE && combo.highRank === 1);
+        if (!isAllowedLead) {
+          if (human) {
+            const lead3 = human.hand.filter((c) => c.rank === '3' && c.suit === '♣');
+            const fallbackSingle = lead3.length > 0 ? lead3 : human.hand.slice(0, 1);
+            this.selectedCardIds = new Set(fallbackSingle.map((c) => c.id));
+            this.renderHumanHand();
+            this.updateControls();
+          }
+          this.showCenterToast('🌟 Nhà Lữ Hành: Đánh bài to lúc mở vòng (bàn trống) KHÔNG tính là Phản Ứng Nguyên Tố! Hãy đánh 3♣ (hoặc Sám Cô 4-4-4) mở vòng nhử Bot Furina trước nhé!');
+          this.renderTravelerGuide();
+          return;
+        }
+        this.tutorialMatch2LeadPlayed = true;
+        const playedTriple4 = combo.type === COMBO_TYPES.TRIPLE;
+        const cardIdsLead = combo.cards.map((c) => c.id);
+        this.selectedCardIds.clear();
+        this.companionCardIds.clear();
+        if (!isAutoTimeout && human) {
+          human.manualActionsInMatch = (human.manualActionsInMatch || 0) + 1;
+          human.afkAutoTurns = 0;
+        }
+        this.playCombo(human, combo);
+        clearTimeout(this.botTimer);
+
+        // Kịch bản Bước 5.2 ➔ 5.3: Bot Furina (💧 Thủy) lập tức tung Sảnh 4 lá (4-5-6-7) hoặc Sám Cô 7 xuống bàn để người chơi thực hành ĐÈ BÀI nổ Phản Ứng Nguyên Tố!
+        this.botTimer = setTimeout(() => {
+          if (this.isGameOver) return;
+          const p1 = this.players[1];
+          const p2 = this.players[2];
+          const p3 = this.players[3];
+          if (!p3 || !human) return;
+
+          if (playedTriple4) {
+            // Nếu người chơi mở vòng bằng Sám Cô 4 -> Bot Furina đè bằng Sám Cô 7 (7♣ 7♦ 7♥)
+            if (p1) p1.passed = true;
+            if (p2) p2.passed = true;
+            this.currentTurn = 3;
+            const triple7Cards = p3.hand.filter((c) => c.rank === '7').slice(0, 3);
+            const triple7Combo = classifyCombo(triple7Cards);
+            if (triple7Combo) {
+              this.playCombo(p3, triple7Combo);
+              clearTimeout(this.botTimer);
+            }
+            const qTriple = human.hand.filter((c) => c.rank === 'Q');
+            if (qTriple.length === 3) {
+              this.selectedCardIds = new Set(qTriple.map((c) => c.id));
+            }
+          } else {
+            // Người chơi mở vòng bằng lá lẻ 3♣ -> Bot Furina bắt vòng bằng A♦ rồi mở vòng mới bằng Sảnh 4 lá (4♦ 5♦ 6♠ 7♣)
+            const aceidx = p3.hand.findIndex((c) => c.rank === 'A');
+            if (aceidx !== -1) p3.hand.splice(aceidx, 1);
+            this.currentCombo = null;
+            this.previousCombo = null;
+            this.trickOwnerId = 3;
+            this.currentTurn = 3;
+            this.players.forEach((p) => {
+              if (p) p.passed = false;
+            });
+            const sCards = [];
+            ['4♦', '5♦', '6♠', '7♣'].forEach((code) => {
+              const found = p3.hand.find((c) => `${c.rank}${c.suit}` === code);
+              if (found) sCards.push(found);
+            });
+            const sCombo = classifyCombo(sCards);
+            if (sCombo) {
+              this.addLog(
+                '💧 <strong>Bot Furina 💧</strong> đã bắt vòng và mở đợt tấn công mới bằng <strong>Sảnh 4 lá (4♦ 5♦ 6♠ 7♣)</strong>!',
+                'log-play'
+              );
+              this.playCombo(p3, sCombo);
+              clearTimeout(this.botTimer);
+            }
+            const straight6789 = human.hand.filter((c) => ['6', '7', '8', '9'].includes(c.rank));
+            if (straight6789.length === 4) {
+              this.selectedCardIds = new Set(straight6789.map((c) => c.id));
+            }
+          }
+          this.renderAll();
+          this.updateControls();
+          this.renderTravelerGuide();
+        }, 700);
+        return;
+      }
+
+      // Bước 5.3: Trên bàn ĐÃ CÓ bài của Bot Furina (💧 Thủy) -> Người chơi đánh Sảnh Lớn (6-7-8-9) hoặc Sám Cô (Q-Q-Q) ĐÈ BÀI để nổ Phản Ứng Nguyên Tố!
       const isReactionCombo =
         combo.type === COMBO_TYPES.TRIPLE ||
         (combo.type === COMBO_TYPES.STRAIGHT && combo.length >= 4);
-      if (!isReactionCombo) {
-        const human = this.getLocalPlayer();
+      if (!isReactionCombo || !this.currentCombo) {
         if (human) {
-          const straightCards = human.hand.filter((c) => ['5', '6', '7', '8', '9'].includes(c.rank));
-          const tripleCards = human.hand.filter((c) => c.rank === '4');
-          const suggest = straightCards.length >= 4 ? straightCards : tripleCards;
+          const wantTriple = this.currentCombo && this.currentCombo.type === COMBO_TYPES.TRIPLE;
+          const straightCards = human.hand.filter((c) => ['6', '7', '8', '9'].includes(c.rank));
+          const tripleCards = human.hand.filter((c) => c.rank === 'Q');
+          const suggest = wantTriple ? tripleCards : straightCards.length >= 4 ? straightCards : tripleCards;
           if (suggest.length >= 3) {
             this.selectedCardIds = new Set(suggest.map((c) => c.id));
             this.renderHumanHand();
             this.updateControls();
           }
         }
-        this.showCenterToast('🌟 Nhà Lữ Hành: Hãy đánh bộ Sảnh Lớn (5-6-7-8-9) hoặc Sám Cô (4-4-4 / Q-Q-Q) đang có trên tay để kích hoạt Phản Ứng Nguyên Tố nhé!');
+        this.showCenterToast('🌟 Nhà Lữ Hành: Hãy dùng bộ Sảnh Lớn (6-7-8-9) hoặc Sám Cô (Q-Q-Q) ĐÈ LÊN bài của Bot Furina trên bàn để kích nổ Phản Ứng Nguyên Tố nhé!');
         this.renderTravelerGuide();
         return;
       }
@@ -18925,10 +18998,17 @@ class TienLenGame {
 
   onHumanPass(isAutoTimeout = false) {
     if (this.isGameOver || this.isBurstPlaying || this.currentTurn !== this.mySeatId || !this.currentCombo) return;
-    if (!this.tutorialCompleted && this.tutorialStep === 5 && !this.tutorialMatch2SkillUsed) {
-      this.showCenterToast('🌟 Nhà Lữ Hành: Đừng bỏ lượt! Hãy bấm vào nút [🔮 Chiêu Nộ Q] đang có mũi tên chỉ vào để chém đứt Đôi 3 của Bot Furina nhé!');
-      this.renderTravelerGuide();
-      return;
+    if (!this.tutorialCompleted && this.tutorialStep === 5) {
+      if (!this.tutorialMatch2SkillUsed) {
+        this.showCenterToast('🌟 Nhà Lữ Hành: Đừng bỏ lượt! Hãy bấm vào nút [🔮 Chiêu Nộ Q] đang có mũi tên chỉ vào để chém đứt Đôi 3 của Bot Furina nhé!');
+        this.renderTravelerGuide();
+        return;
+      }
+      if (!this.tutorialMatch2FirstCardPlayed) {
+        this.showCenterToast('🌟 Nhà Lữ Hành: Đừng bỏ lượt! Hãy dùng Sảnh Lớn (6-7-8-9) hoặc Sám Cô (Q-Q-Q) ĐÈ LÊN bài của Bot Furina trên bàn để kích nổ Phản Ứng Nguyên Tố nhé!');
+        this.renderTravelerGuide();
+        return;
+      }
     }
     const human = this.getLocalPlayer();
     if (!isAutoTimeout && human) {
@@ -19668,14 +19748,31 @@ class TienLenGame {
       if (this.tutorialStep === 5 && this.tutorialMatch2SkillUsed && !this.tutorialMatch2FirstCardPlayed) {
         const human = this.getLocalPlayer();
         if (human) {
-          const straightCards = human.hand.filter((c) => ['5', '6', '7', '8', '9'].includes(c.rank));
-          const tripleCards = human.hand.filter((c) => c.rank === '4');
-          const suggest = straightCards.length >= 4 ? straightCards : tripleCards;
-          if (suggest.length >= 3) {
-            this.selectedCardIds = new Set(suggest.map((c) => c.id));
-            this.renderHumanHand();
-            this.updateControls();
-            this.renderTravelerGuide();
+          if (!this.tutorialMatch2LeadPlayed) {
+            const c3 = human.hand.filter((c) => `${c.rank}${c.suit}` === '3♣');
+            const triple4 = human.hand.filter((c) => c.rank === '4');
+            const suggest = c3.length ? c3 : triple4;
+            if (suggest.length) {
+              this.selectedCardIds = new Set(suggest.map((c) => c.id));
+              this.renderHumanHand();
+              this.updateControls();
+              this.renderTravelerGuide();
+            }
+          } else {
+            const straightCards = human.hand.filter((c) => ['6', '7', '8', '9'].includes(c.rank));
+            const tripleQ = human.hand.filter((c) => c.rank === 'Q');
+            const suggest =
+              this.currentCombo?.type === COMBO_TYPES.TRIPLE && tripleQ.length >= 3
+                ? tripleQ
+                : straightCards.length >= 4
+                  ? straightCards
+                  : tripleQ;
+            if (suggest.length >= 3) {
+              this.selectedCardIds = new Set(suggest.map((c) => c.id));
+              this.renderHumanHand();
+              this.updateControls();
+              this.renderTravelerGuide();
+            }
           }
         }
       }
@@ -19793,6 +19890,7 @@ class TienLenGame {
     this.tutorialCompleted = false;
     this.tutorialStep = 1;
     this.tutorialMatch2SkillUsed = false;
+    this.tutorialMatch2LeadPlayed = false;
     this.tutorialMatch2FirstCardPlayed = false;
 
     // Trong ván khởi động đầu tiên (Step 1), người chơi mới chưa có kỹ năng 5★ để thấy sự khác biệt với 3 Bot
@@ -19939,6 +20037,7 @@ class TienLenGame {
   startTutorialMatch2WithRaiden() {
     this.tutorialStep = 5;
     this.tutorialMatch2SkillUsed = false;
+    this.tutorialMatch2LeadPlayed = false;
     this.tutorialMatch2FirstCardPlayed = false;
 
     this.unlockedBursts.add('raiden');
@@ -20003,8 +20102,11 @@ class TienLenGame {
     this.preloadActiveBurstVideos();
 
     // Sắp xếp bộ bài 52 lá sao cho:
-    // - Seat 3 (Bot Furina 💧, ngồi ngay trước Seat 0 theo chiều đánh 3 -> 0) cầm Đôi 3 (3♠ 3♦) để mở đầu đánh Đôi 3 mang nguyên tố Thủy (💧)
-    // - Seat 0 (Bạn - Raiden Shogun ⚡) cầm Sám Cô (4-4-4, Q-Q-Q) + Sảnh Lớn 5 lá (5-6-7-8-9) + A♠ + Heo Cơ (2♥) để sau khi bấm [E] sẽ thực hành đánh Sảnh Lớn hoặc Sám Cô kích nổ Phản Ứng Nguyên Tố!
+    // - Seat 3 (Bot Furina 💧, ngồi ngay trước Seat 0 theo chiều đánh 3 -> 0) cầm Đôi 3 (3♠ 3♦) để mở đầu đánh Đôi 3, sau đó có Sảnh 4 lá (4♦ 5♦ 6♠ 7♣) & Sám Cô 7 (7♣ 7♦ 7♥) mang ấn Thủy (💧)
+    // - Seat 0 (Bạn - Raiden Shogun ⚡) cầm 3♣ + Sám Cô (4-4-4, Q-Q-Q) + Sảnh Lớn 4 lá (6♦ 7♠ 8♥ 9♣) + A♠ + Heo Cơ (2♥) để:
+    //   1) Bấm [Q] chém đứt Đôi 3 của Furina và cướp cái mở vòng mới
+    //   2) Đánh 3♣ (hoặc Sám Cô 4-4-4) lúc mở vòng mới (bàn trống không tính Phản Ứng Nguyên Tố)
+    //   3) Khi Bot Furina (💧 Thủy) ra Sảnh 4 lá (4-5-6-7) hoặc Sám Cô 7 trên bàn, dùng Sảnh Lớn (6-7-8-9) hoặc Sám Cô Q ĐÈ LÊN bài của Furina để kích nổ Phản Ứng Nguyên Tố Điện Cảm!
     const fullDeck = createDeck();
     const pickCards = (codes) => {
       const picked = [];
@@ -20018,16 +20120,17 @@ class TienLenGame {
     };
 
     const humanHand = pickCards([
+      '3♣',
       '4♠', '4♣', '4♥',
-      '5♠', '6♦', '7♠', '8♥', '9♣',
+      '6♦', '7♠', '8♥', '9♣',
       'Q♠', 'Q♦', 'Q♥',
       'A♠',
       '2♥',
     ]);
     const furinaHand = pickCards([
       '3♠', '3♦',
-      '3♣', '4♦', '5♦', '6♠', '7♣', '7♥',
-      '8♠', '9♦', '10♠', '10♦', 'J♣',
+      '4♦', '5♦', '6♠', '7♣', '7♦', '7♥',
+      '8♠', '9♦', '10♠', '10♦', 'A♦',
     ]);
     const nahidaHand = fullDeck.splice(0, 13);
     const arlecchinoHand = fullDeck.splice(0, 13);
@@ -20266,14 +20369,14 @@ class TienLenGame {
       return;
     }
 
-    // BƯỚC 5: Ván 2 thực hành Chiêu Nộ [Q] của Raiden Shogun & hướng dẫn đánh Sảnh Lớn / Sám Cô kích hoạt Phản Ứng Nguyên Tố
+    // BƯỚC 5: Ván 2 thực hành Chiêu Nộ [Q] của Raiden Shogun ➔ Mở vòng mới ➔ Đè bài đối thủ bằng Sảnh Lớn / Sám Cô kích hoạt Phản Ứng Nguyên Tố
     if (step === 5) {
       if (this.tutorialMatch2FirstCardPlayed) {
         this.hideTravelerGuide();
         return;
       }
-      stepPill.textContent = 'Bước 5/6 • Thực Hành Chiêu Nộ [Q] & Đánh Sảnh/Sám Nổ Phản Ứng';
       if (!this.tutorialMatch2SkillUsed) {
+        stepPill.textContent = 'Bước 5.1/6 • Thực Hành Chiêu Nộ [Q] Cắt Vòng';
         const canUseNow = this.currentTurn === this.mySeatId && this.currentCombo && this.trickOwnerId !== this.mySeatId;
         textEl.innerHTML = `
           ⚡ <strong>Bước 5.1 — Thực hành Chiêu Nộ [Q] của Raiden Shogun:</strong><br>
@@ -20283,22 +20386,51 @@ class TienLenGame {
         if (canUseNow && this.btnCharSkill) {
           this.pointToScreenElement(this.btnCharSkill, 'BẤM NÚT CHIÊU NỘ [Q] TẠI ĐÂY');
         }
-      } else {
+      } else if (!this.tutorialMatch2LeadPlayed) {
+        stepPill.textContent = 'Bước 5.2/6 • Mở Vòng Mới Nhử Đối Thủ (Bàn Trống Không Nổ Phản Ứng)';
         const selectedCards = this.getSelectedCards();
         const selCombo = classifyCombo(selectedCards);
-        const isReactionReady =
+        const isLeadReady =
           selCombo &&
+          ((selCombo.type === COMBO_TYPES.SINGLE && selCombo.cards[0]?.rank === '3') ||
+            (selCombo.type === COMBO_TYPES.TRIPLE && selCombo.cards[0]?.rank === '4'));
+        textEl.innerHTML = `
+          💡 <strong>Bước 5.2 — Mở vòng mới nhử bài đối thủ:</strong><br>
+          ⚠️ <strong>Quy tắc quan trọng:</strong> Đánh bài to <strong>lúc mở lượt (bàn trống) KHÔNG tính là Phản Ứng Nguyên Tố</strong> — chỉ khi <strong>đè / chặt lên bộ bài đang nằm trên bàn của đối thủ</strong> mới kích nổ phản ứng!<br>
+          👉 Mình đã chọn sẵn lá <strong><code>3♣</code></strong> (hoặc bạn chọn <strong>Sám Cô <code>4-4-4</code></strong>) — hãy bấm <strong>🔥 Đánh bài</strong> để mở vòng nhử <strong>Bot Furina (💧 Thủy)</strong> ra bài trước nhé!
+        `;
+        if (isLeadReady && this.btnPlay && !this.btnPlay.disabled) {
+          this.pointToScreenElement(this.btnPlay, 'BẤM ĐÁNH 3♣ MỞ VÒNG NHỬ BOT FURINA');
+        } else {
+          this.pointToScreenElement(this.elHumanHand, 'CHỌN LÁ 3♣ HOẶC SÁM CÔ 4-4-4 ĐỂ MỞ VÒNG');
+        }
+      } else {
+        stepPill.textContent = 'Bước 5.3/6 • Đè Bài Đối Thủ Kích Nổ Phản Ứng Nguyên Tố';
+        const selectedCards = this.getSelectedCards();
+        const selCombo = classifyCombo(selectedCards);
+        const canBeatTable =
+          selCombo &&
+          this.currentCombo &&
+          canBeat(this.currentCombo, selCombo) &&
           (selCombo.type === COMBO_TYPES.TRIPLE ||
             (selCombo.type === COMBO_TYPES.STRAIGHT && selCombo.length >= 4));
+        const tableDesc =
+          this.currentCombo?.type === COMBO_TYPES.TRIPLE
+            ? 'Sám Cô 7 (7♣ 7♦ 7♥)'
+            : 'Sảnh 4 lá (4♦ 5♦ 6♠ 7♣)';
+        const counterDesc =
+          this.currentCombo?.type === COMBO_TYPES.TRIPLE
+            ? 'Sám Cô <code>Q-Q-Q</code>'
+            : 'Sảnh Lớn <code>6-7-8-9</code>';
         textEl.innerHTML = `
-          💥 <strong>Bước 5.2 — Đánh Sảnh Lớn hoặc Sám Cô để thực hiện Phản Ứng Nguyên Tố (+5× cược)!</strong><br>
-          Khi đã trang bị nhân vật, việc đánh <strong>Sảnh Lớn (≥ 4 lá)</strong> hoặc <strong>Sám Cô (3 lá cùng số)</strong> sẽ kết hợp Nguyên Tố của bạn (<strong>⚡ Lôi</strong>) với đối thủ (<strong>💧 Thủy</strong>) kích nổ <strong>Phản Ứng Nguyên Tố ⚡💧 Điện Cảm (+500 Xu)</strong>!<br>
-          👉 Mình đã gợi ý sẵn <strong>Sảnh Lớn <code>5-6-7-8-9</code></strong> trên tay (hoặc bạn có thể chọn <strong>Sám Cô <code>4-4-4</code> / <code>Q-Q-Q</code></strong>) — hãy bấm nút <strong>🔥 Đánh bài</strong> để nổ phản ứng nhé!
+          💥 <strong>Bước 5.3 — Đè bài đối thủ để kích nổ Phản Ứng Nguyên Tố (+5× cược)!</strong><br>
+          <strong>Bot Furina (💧 Thủy)</strong> vừa ra <strong>${tableDesc}</strong> trên bàn! Khi dùng <strong>Sảnh Lớn (≥ 4 lá)</strong> hoặc <strong>Sám Cô</strong> <strong>ĐÈ LÊN bài của đối thủ</strong>, Nguyên Tố của bạn (<strong>⚡ Lôi</strong>) sẽ va chạm với Nguyên Tố đối thủ (<strong>💧 Thủy</strong>) nổ <strong>Phản Ứng ⚡💧 Điện Cảm (+500 Xu)</strong>!<br>
+          👉 Mình đã chọn sẵn <strong>${counterDesc}</strong> trên tay — hãy bấm nút <strong>🔥 Đánh bài</strong> để đè bài Furina và nổ phản ứng ngay!
         `;
-        if (isReactionReady && this.btnPlay && !this.btnPlay.disabled) {
-          this.pointToScreenElement(this.btnPlay, 'BẤM ĐÁNH SẢNH LỚN / SÁM CÔ NỔ PHẢN ỨNG');
+        if (canBeatTable && this.btnPlay && !this.btnPlay.disabled) {
+          this.pointToScreenElement(this.btnPlay, 'BẤM ĐÈ BÀI ĐỐI THỦ NỔ PHẢN ỨNG ĐIỆN CẢM');
         } else {
-          this.pointToScreenElement(this.elHumanHand, 'CHỌN SẢNH LỚN (5-6-7-8-9) HOẶC SÁM CÔ (4-4-4)');
+          this.pointToScreenElement(this.elHumanHand, 'CHỌN SẢNH LỚN 6-7-8-9 HOẶC SÁM CÔ Q-Q-Q');
         }
       }
       return;

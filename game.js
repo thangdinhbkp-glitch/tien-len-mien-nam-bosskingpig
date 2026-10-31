@@ -4343,11 +4343,28 @@ class TienLenGame {
       const existingCloud = await this.fetchCloudAccount(usernameKey);
       if (existingCloud) {
         cloudMaxRev = Math.max(Number(existingCloud.syncRev) || 0, Number(existingCloud.profile?.syncRev) || 0);
+        const localAccRev = Math.max(
+          Number(acc.syncRev) || 0,
+          Number(acc.profile?.syncRev) || 0,
+          usernameKey === this.currentAccountUsername ? Number(this.profileSyncRev) || 0 : 0
+        );
         if (existingCloud.profile && acc.profile) {
           const cProf = existingCloud.profile;
           acc.profile.unlockedBursts = Array.from(new Set([...(acc.profile.unlockedBursts || []), ...(cProf.unlockedBursts || [])]));
           acc.profile.unlockedSkins = Array.from(new Set([...(acc.profile.unlockedSkins || ['classic']), ...(cProf.unlockedSkins || ['classic'])]));
           acc.profile.unlockedAvatars = Array.from(new Set([...(acc.profile.unlockedAvatars || ['default_player']), ...(cProf.unlockedAvatars || ['default_player'])]));
+          // Nếu trên Đám Mây có bản ghi mới hơn (cloudMaxRev >= localAccRev) với số Vàng cao hơn (do vừa được cấp/đồng bộ từ thiết bị khác), giữ nguyên số Vàng cao hơn đó thay vì ghi đè!
+          if (cloudMaxRev >= localAccRev && typeof cProf.coins === 'number' && cProf.coins > (Number(acc.profile.coins) || 0)) {
+            acc.profile.coins = cProf.coins;
+            if (usernameKey === this.currentAccountUsername) {
+              this.savedCoins = cProf.coins;
+              const me = this.getLocalPlayer();
+              if (me) me.coins = cProf.coins;
+              this.renderAll();
+              this.renderLobbyModal();
+              this.renderShopModal();
+            }
+          }
           if (usernameKey === this.currentAccountUsername) {
             acc.profile.unlockedBursts.forEach((id) => this.unlockedBursts.add(id));
             acc.profile.unlockedSkins.forEach((id) => this.unlockedSkins.add(id));

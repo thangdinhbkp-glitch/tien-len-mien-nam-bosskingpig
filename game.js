@@ -16754,6 +16754,7 @@ class TienLenGame {
     this.lastSummaryData = null;
     this.logsData = [];
     this.resetMatchPlayerMemory();
+    this.syncGlobalAiBrainWithCloud(false);
     this.hintIndex = 0;
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
@@ -16961,6 +16962,7 @@ class TienLenGame {
     }
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
+    this.syncGlobalAiBrainWithCloud(true);
 
     this.renderAll();
     if (this.isMultiplayer && this.isHost) {
@@ -18376,6 +18378,57 @@ class TienLenGame {
     try {
       localStorage.setItem('tlmn_bot_learned_human_v1', JSON.stringify(this.humanLearningProfile));
     } catch (_) {}
+  }
+
+  async syncGlobalAiBrainWithCloud(pushUpdate = false) {
+    if (this._syncingAiBrain) return;
+    this._syncingAiBrain = true;
+    try {
+      const localProf = this.getHumanLearningProfile();
+      const res = await fetch(`https://textdb.dev/api/data/tlmn_bkp_global_ai_brain_v1?_t=${Date.now()}`, {
+        cache: 'no-store',
+      });
+      if (res.ok) {
+        const text = await res.text();
+        const cloudProf = this.decodeCloudPayload(text);
+        if (cloudProf && typeof cloudProf === 'object') {
+          localProf.totalLeads = Math.max(localProf.totalLeads || 0, cloudProf.totalLeads || 0);
+          localProf.earlyLowSinglePlays = Math.max(
+            localProf.earlyLowSinglePlays || 0,
+            cloudProf.earlyLowSinglePlays || 0
+          );
+          localProf.earlyComboPlays = Math.max(localProf.earlyComboPlays || 0, cloudProf.earlyComboPlays || 0);
+          if ((cloudProf.twoPlaysCount || 0) > (localProf.twoPlaysCount || 0)) {
+            localProf.twoPlaysCount = cloudProf.twoPlaysCount;
+            localProf.twoPlaysSumHandLen = cloudProf.twoPlaysSumHandLen || 0;
+          }
+          if ((cloudProf.skillUsesTotal || 0) > (localProf.skillUsesTotal || 0)) {
+            localProf.skillUsesTotal = cloudProf.skillUsesTotal;
+            localProf.skillOnLeadCount = cloudProf.skillOnLeadCount || 0;
+            localProf.skillOnResponseCount = cloudProf.skillOnResponseCount || 0;
+            localProf.skillSumHandLen = cloudProf.skillSumHandLen || 0;
+            localProf.skillSumMinOppLen = cloudProf.skillSumMinOppLen || 0;
+          }
+          if (cloudProf.skillByChar && typeof cloudProf.skillByChar === 'object') {
+            for (const [cid, cStat] of Object.entries(cloudProf.skillByChar)) {
+              const cur = localProf.skillByChar[cid];
+              if (!cur || (cStat && cStat.uses > cur.uses)) {
+                localProf.skillByChar[cid] = { ...cStat };
+              }
+            }
+          }
+          this.saveHumanLearningProfile();
+        }
+      }
+      if (pushUpdate) {
+        await fetch('https://textdb.dev/api/data/tlmn_bkp_global_ai_brain_v1', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: this.encodeCloudPayload(localProf),
+        });
+      }
+    } catch (_) {}
+    this._syncingAiBrain = false;
   }
 
   resetMatchPlayerMemory() {
@@ -20506,6 +20559,7 @@ class TienLenGame {
     }
     this.checkAndTriggerAutoRelief();
     this.saveShopProfile();
+    this.syncGlobalAiBrainWithCloud(true);
 
     this.renderAll();
     if (this.isMultiplayer && this.isHost) {

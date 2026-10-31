@@ -17702,12 +17702,9 @@ class TienLenGame {
           : null;
 
       const candidateRx = prevPlayer ? this.getSpecialPlayReaction(player, combo, prevPlayer) : null;
-      const isSpecialChainOrLunarOrAstral = Boolean(
-        candidateRx && (Number(candidateRx.multiplier) === 10 || candidateRx.isBloom)
-      );
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      const rx = isHeavy || isSpecialChainOrLunarOrAstral ? candidateRx : null;
+      const rx = isHeavy ? candidateRx : null;
       if (rx) {
         combo.reaction = rx;
         this.triggerArenaReactionFlash(rx);

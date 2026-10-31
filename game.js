@@ -1292,19 +1292,44 @@ const CHARACTER_ELEMENTS = {
   flins: 'electro',
 };
 
-function checkGenuineGenshinReaction(elemA, elemB) {
-  if (!elemA || !elemB || elemA === elemB) return false;
-  const pair = new Set([elemA, elemB]);
+// attackerElem: nguyên tố của người ĐANG ĐÁNH (người kích hoạt phản ứng)
+// defenderElem: nguyên tố của người ĐANG GIỮ BÀI TRÊN BÀN (ấn nguyên tố có sẵn)
+// Lưu ý chuẩn Genshin Impact:
+// - Hệ Phong (anemo) và Hệ Nham (geo) KHÔNG để lại ấn nguyên tố trên bàn -> Nhân vật hệ khác đánh đè lên bài của Phong/Nham KHÔNG THỂ kích Khuếch Tán hay Kết Tinh!
+// - Chỉ khi chính nhân vật hệ Phong (anemo) hoặc Nham (geo) đánh đè lên bài của hệ Hỏa/Thủy/Lôi/Băng mới kích hoạt được Khuếch Tán (Swirl) hoặc Kết Tinh (Crystallize)!
+function checkGenuineGenshinReaction(attackerElem, defenderElem) {
+  if (!attackerElem || !defenderElem || attackerElem === defenderElem) return false;
+  if (defenderElem === 'anemo' || defenderElem === 'geo') return false;
+  if (attackerElem === 'anemo') {
+    return defenderElem === 'pyro' || defenderElem === 'hydro' || defenderElem === 'electro' || defenderElem === 'cryo';
+  }
+  if (attackerElem === 'geo') {
+    return defenderElem === 'pyro' || defenderElem === 'hydro' || defenderElem === 'electro' || defenderElem === 'cryo';
+  }
+  const pair = new Set([attackerElem, defenderElem]);
   if (pair.has('pyro') && (pair.has('hydro') || pair.has('cryo') || pair.has('electro') || pair.has('dendro'))) return true;
   if (pair.has('hydro') && (pair.has('electro') || pair.has('cryo') || pair.has('dendro'))) return true;
   if (pair.has('electro') && (pair.has('cryo') || pair.has('dendro'))) return true;
-  if (pair.has('anemo') && (pair.has('pyro') || pair.has('hydro') || pair.has('electro') || pair.has('cryo'))) return true;
-  if (pair.has('geo') && (pair.has('pyro') || pair.has('hydro') || pair.has('electro') || pair.has('cryo'))) return true;
   return false;
 }
 
-function resolveGenshinReaction(elemA, elemB) {
-  const pair = new Set([elemA, elemB]);
+function resolveGenshinReaction(attackerElem, defenderElem) {
+  if (!checkGenuineGenshinReaction(attackerElem, defenderElem)) return null;
+  if (attackerElem === 'anemo') {
+    return {
+      shortName: '🍃🌀 Khuếch Tán (Swirl)',
+      badge: '🍃🌀 PHẢN ỨNG KHUẾCH TÁN (SWIRL)',
+      cssClass: 'reaction-frozen',
+    };
+  }
+  if (attackerElem === 'geo') {
+    return {
+      shortName: '💎🪨 Kết Tinh (Crystallize)',
+      badge: '💎🪨 PHẢN ỨNG KẾT TINH (CRYSTALLIZE)',
+      cssClass: 'reaction-crystallize',
+    };
+  }
+  const pair = new Set([attackerElem, defenderElem]);
   if (pair.has('pyro') && pair.has('hydro')) {
     return {
       shortName: '💧🔥 Bốc Hơi (Vaporize)',
@@ -1368,25 +1393,7 @@ function resolveGenshinReaction(elemA, elemB) {
       cssClass: 'reaction-bloom',
     };
   }
-  if (pair.has('anemo')) {
-    return {
-      shortName: '🍃🌀 Khuếch Tán (Swirl)',
-      badge: '🍃🌀 PHẢN ỨNG KHUẾCH TÁN (SWIRL)',
-      cssClass: 'reaction-frozen',
-    };
-  }
-  if (pair.has('geo')) {
-    return {
-      shortName: '💎🪨 Kết Tinh (Crystallize)',
-      badge: '💎🪨 PHẢN ỨNG KẾT TINH (CRYSTALLIZE)',
-      cssClass: 'reaction-crystallize',
-    };
-  }
-  return {
-    shortName: '⚡🔥 Quá Tải (Overloaded)',
-    badge: '⚡🔥 PHẢN ỨNG QUÁ TẢI (OVERLOADED 💥)',
-    cssClass: 'reaction-overloaded',
-  };
+  return null;
 }
 
 // ============================================================================

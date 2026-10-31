@@ -3554,6 +3554,12 @@ class TienLenGame {
       charIds.forEach((cid) => {
         const meta = getBurstMeta(cid);
         if (meta) {
+          if (meta.posterUrl) {
+            try {
+              const pImg = new Image();
+              pImg.src = meta.posterUrl;
+            } catch (_) {}
+          }
           cacheMediaToBlob(meta.mp4Url);
           cacheMediaToBlob(meta.audioUrl);
         }
@@ -3579,14 +3585,15 @@ class TienLenGame {
     // Tăng mã phiên Nộ để hủy mọi callback cũ nếu có 2 hoạt ảnh Nộ kích hoạt liên tiếp nhau
     this._burstSeqId = (this._burstSeqId || 0) + 1;
     const seqId = this._burstSeqId;
+    const EMPTY_PX = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
     // Luôn tạm khóa botTimer trong lúc đang phát Hoạt Ảnh Nộ để bàn bài không render đè gây giật lag video
     this.isBurstPlaying = true;
     clearTimeout(this.botTimer);
 
-    const videoEl = document.getElementById('burst-video');
+    let videoEl = document.getElementById('burst-video');
     const audioEl = document.getElementById('burst-audio');
-    const charWrapEl = videoEl ? videoEl.parentElement : null;
+    const charWrapEl = videoEl ? videoEl.parentElement : document.querySelector('.burst-character-wrap');
     const chakraEl = document.getElementById('burst-chakra-ring');
     const slashContainer = document.getElementById('burst-slash-container');
     const tagEl = document.getElementById('burst-skill-tag');
@@ -3594,12 +3601,61 @@ class TienLenGame {
     const quoteEl = document.getElementById('burst-skill-quote');
     const detailEl = document.getElementById('burst-skill-detail');
 
-    // Đặt nền của khung video bằng đúng ảnh Fanart của nhân vật đang tung Nộ và ẩn tạm khung hình cũ của thẻ <video>
-    // cho tới khi khung hình đầu tiên của video mới giải mã xong (chống 100% lỗi nhá hình nhân vật trước đó trên điện thoại!)
-    if (charWrapEl && burstMeta.posterUrl) {
-      charWrapEl.style.backgroundImage = `url('${burstMeta.posterUrl}')`;
-      charWrapEl.style.backgroundSize = 'cover';
-      charWrapEl.style.backgroundPosition = 'center 18%';
+    // Khởi tạo lại nút DOM <video id="burst-video"> mới tinh mỗi lần tung Nộ để giải phóng 100% bộ đệm phần cứng GPU của video nhân vật trước trên máy yếu/điện thoại!
+    if (charWrapEl) {
+      if (videoEl) {
+        try {
+          videoEl.onplaying = null;
+          videoEl.onloadeddata = null;
+          videoEl.oncanplay = null;
+          videoEl.ontimeupdate = null;
+          videoEl.pause();
+          videoEl.removeAttribute('src');
+          videoEl.removeAttribute('poster');
+          videoEl.load();
+        } catch (_) {}
+      }
+      const freshVideo = document.createElement('video');
+      freshVideo.id = 'burst-video';
+      freshVideo.className = 'burst-video';
+      freshVideo.autoplay = true;
+      freshVideo.playsInline = true;
+      freshVideo.setAttribute('playsinline', '');
+      freshVideo.preload = 'auto';
+      freshVideo.style.transition = 'none';
+      freshVideo.style.opacity = '0';
+      freshVideo.style.visibility = 'hidden';
+      if (videoEl && videoEl.parentNode === charWrapEl) {
+        charWrapEl.replaceChild(freshVideo, videoEl);
+      } else {
+        charWrapEl.appendChild(freshVideo);
+      }
+      videoEl = freshVideo;
+    }
+
+    // Xóa tuyệt đối backgroundImage cũ trên charWrapEl và dùng thẻ <img> riêng được xóa sạch trước khi nạp ảnh mới
+    // (Chống 100% lỗi máy yếu giữ lại ảnh/khung hình Nộ của nhân vật trước đó trong bộ nhớ GPU!)
+    let posterImgEl = document.getElementById('burst-poster-img');
+    if (charWrapEl) {
+      charWrapEl.style.backgroundImage = 'none';
+      if (!posterImgEl) {
+        posterImgEl = document.createElement('img');
+        posterImgEl.id = 'burst-poster-img';
+        posterImgEl.className = 'burst-character-img';
+        posterImgEl.alt = '';
+        charWrapEl.insertBefore(posterImgEl, videoEl);
+      }
+      posterImgEl.onload = null;
+      posterImgEl.onerror = null;
+      posterImgEl.style.visibility = 'hidden';
+      posterImgEl.src = EMPTY_PX;
+      if (burstMeta.posterUrl) {
+        posterImgEl.onload = () => {
+          if (seqId !== this._burstSeqId) return;
+          posterImgEl.style.visibility = 'visible';
+        };
+        posterImgEl.src = burstMeta.posterUrl;
+      }
     }
 
     overlay.classList.remove(
@@ -3630,13 +3686,28 @@ class TienLenGame {
       if (burstFinished || seqId !== this._burstSeqId) return;
       burstFinished = true;
       clearTimeout(this.burstTimeout);
+      if (posterImgEl) {
+        posterImgEl.onload = null;
+        posterImgEl.style.visibility = 'hidden';
+        posterImgEl.src = EMPTY_PX;
+      }
+      if (charWrapEl) {
+        charWrapEl.style.backgroundImage = 'none';
+      }
       if (videoEl) {
         videoEl.onplaying = null;
         videoEl.onloadeddata = null;
         videoEl.oncanplay = null;
+        videoEl.ontimeupdate = null;
+        videoEl.style.transition = 'none';
         videoEl.style.opacity = '0';
+        videoEl.style.visibility = 'hidden';
         try {
           videoEl.pause();
+          videoEl.removeAttribute('src');
+          videoEl.removeAttribute('poster');
+          videoEl.removeAttribute('data-loaded-src');
+          videoEl.load();
         } catch (_) {}
       }
       if (audioEl) {
@@ -3664,27 +3735,12 @@ class TienLenGame {
 
     if (videoEl && burstMeta.mp4Url) {
       videoEl.style.display = 'block';
-      videoEl.style.transition = 'opacity 0.08s ease';
-      if (burstMeta.posterUrl) {
-        videoEl.setAttribute('poster', burstMeta.posterUrl);
-      }
       const targetVideoSrc = this.burstBlobUrls?.get(burstMeta.mp4Url) || burstMeta.mp4Url;
-      const isSameSrc = videoEl.getAttribute('data-loaded-src') === targetVideoSrc;
-
-      if (!isSameSrc) {
-        // Ẩn ngay lập tức buffer khung hình của nhân vật cũ trước khi đổi src
-        videoEl.style.opacity = '0';
-        try {
-          videoEl.pause();
-        } catch (_) {}
-        videoEl.src = targetVideoSrc;
-        videoEl.setAttribute('data-loaded-src', targetVideoSrc);
-        try {
-          videoEl.load();
-        } catch (_) {}
-      } else {
-        videoEl.style.opacity = videoEl.readyState >= 2 ? '1' : '0';
-      }
+      videoEl.src = targetVideoSrc;
+      videoEl.setAttribute('data-loaded-src', targetVideoSrc);
+      try {
+        videoEl.load();
+      } catch (_) {}
 
       videoEl.muted = !sfx.enabled;
       videoEl.volume = 0.95;
@@ -3692,18 +3748,36 @@ class TienLenGame {
         videoEl.currentTime = 0;
       } catch (_) {}
 
+      let frameRevealed = false;
       const revealVideoFrame = () => {
-        if (seqId !== this._burstSeqId) return;
+        if (frameRevealed || seqId !== this._burstSeqId) return;
+        frameRevealed = true;
+        videoEl.ontimeupdate = null;
+        videoEl.style.visibility = 'visible';
         videoEl.style.opacity = '1';
       };
 
-      videoEl.onloadeddata = revealVideoFrame;
-      videoEl.oncanplay = revealVideoFrame;
+      // Trên máy yếu, chỉ hiển thị thẻ <video> sau khi decoder phần cứng thực sự đã vẽ xong khung hình đầu tiên của video MỚI
+      if (typeof videoEl.requestVideoFrameCallback === 'function') {
+        videoEl.requestVideoFrameCallback(() => {
+          revealVideoFrame();
+        });
+      }
+      videoEl.ontimeupdate = () => {
+        if (seqId !== this._burstSeqId) return;
+        if (videoEl.currentTime > 0.02) {
+          revealVideoFrame();
+        }
+      };
       videoEl.onplaying = () => {
         if (seqId !== this._burstSeqId) return;
         videoEl.onplaying = null;
-        videoEl.style.opacity = '1';
         startDurationCountdown();
+        setTimeout(() => {
+          if (seqId === this._burstSeqId && ! videoEl.paused) {
+            revealVideoFrame();
+          }
+        }, 90);
       };
       this.burstTimeout = setTimeout(finishBurst, 4600);
 

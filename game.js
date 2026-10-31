@@ -6293,194 +6293,141 @@ class TienLenGame {
     }
   }
 
-  showGacha5StarSplashSequence(fiveStarItems, index, onAllDone) {
-    const splashStage = document.getElementById('gacha-splash-stage');
-    const pipVideo = document.getElementById('gacha-splash-burst-video');
+  stopGachaSplashMedia() {
     clearTimeout(this.gachaSplashVoiceTimer);
+    clearTimeout(this.gachaSplashLightTimer);
+    if (this.currentGachaRevealAudio) {
+      try {
+        this.currentGachaRevealAudio.pause();
+      } catch (_) {}
+      this.currentGachaRevealAudio = null;
+    }
+    if (this.currentGachaVoiceAudio) {
+      try {
+        this.currentGachaVoiceAudio.pause();
+      } catch (_) {}
+      this.currentGachaVoiceAudio = null;
+    }
+    const vIn = document.getElementById('gacha-splashlight-in');
+    const vOut = document.getElementById('gacha-splashlight-out');
+    [vIn, vOut].forEach((v) => {
+      if (v) {
+        try {
+          v.pause();
+          v.removeAttribute('src');
+        } catch (_) {}
+      }
+    });
+  }
 
-    if (!splashStage || !Array.isArray(fiveStarItems) || index >= fiveStarItems.length) {
+  showGacha5StarSplashSequence(splashItems, index, onAllDone) {
+    const splashStage = document.getElementById('gacha-splash-stage');
+    this.stopGachaSplashMedia();
+
+    if (!splashStage || !Array.isArray(splashItems) || index >= splashItems.length) {
       if (splashStage) {
         splashStage.classList.add('hidden');
         splashStage.classList.remove('gacha-splash-anim-active');
-      }
-      if (pipVideo) {
-        try {
-          pipVideo.pause();
-          pipVideo.removeAttribute('src');
-        } catch (_) {}
+        splashStage.onclick = null;
       }
       if (typeof onAllDone === 'function') onAllDone();
       return;
     }
 
-    const item = fiveStarItems[index];
+    const item = splashItems[index];
+    const starRarity = item.star === 5 ? 5 : item.star === 4 ? 4 : 3;
     const elemKey = CHARACTER_ELEMENTS[item.id] || 'electro';
-    const ELEMENT_SPLASH_META = {
-      electro: {
-        icon: '⚡',
-        label: 'Nguyên Tố Lôi (Electro)',
-        accent: '#c084fc',
-        glow: 'rgba(192, 132, 252, 0.88)',
-        bg: 'radial-gradient(circle at 60% 45%, #3b0764 0%, #1e1b4b 58%, #020617 100%)',
-      },
-      hydro: {
-        icon: '💧',
-        label: 'Nguyên Tố Thủy (Hydro)',
-        accent: '#38bdf8',
-        glow: 'rgba(56, 189, 248, 0.88)',
-        bg: 'radial-gradient(circle at 60% 45%, #0c4a6e 0%, #0f172a 58%, #020617 100%)',
-      },
-      pyro: {
-        icon: '🔥',
-        label: 'Nguyên Tố Hỏa (Pyro)',
-        accent: '#fb7185',
-        glow: 'rgba(251, 113, 133, 0.88)',
-        bg: 'radial-gradient(circle at 60% 45%, #7f1d1d 0%, #1e1b4b 58%, #020617 100%)',
-      },
-      cryo: {
-        icon: '❄️',
-        label: 'Nguyên Tố Băng (Cryo)',
-        accent: '#67e8f9',
-        glow: 'rgba(103, 232, 249, 0.88)',
-        bg: 'radial-gradient(circle at 60% 45%, #164e63 0%, #0f172a 58%, #020617 100%)',
-      },
-      anemo: {
-        icon: '🌪️',
-        label: 'Nguyên Tố Phong (Anemo)',
-        accent: '#34d399',
-        glow: 'rgba(52, 211, 153, 0.88)',
-        bg: 'radial-gradient(circle at 60% 45%, #065f46 0%, #0f172a 58%, #020617 100%)',
-      },
-      geo: {
-        icon: '🪨',
-        label: 'Nguyên Tố Nham (Geo)',
-        accent: '#fbbf24',
-        glow: 'rgba(251, 191, 36, 0.88)',
-        bg: 'radial-gradient(circle at 60% 45%, #78350f 0%, #1c1917 58%, #020617 100%)',
-      },
-      dendro: {
-        icon: '🌿',
-        label: 'Nguyên Tố Thảo (Dendro)',
-        accent: '#4ade80',
-        glow: 'rgba(74, 222, 128, 0.88)',
-        bg: 'radial-gradient(circle at 60% 45%, #14532d 0%, #0f172a 58%, #020617 100%)',
-      },
-    };
-    const em = ELEMENT_SPLASH_META[elemKey] || ELEMENT_SPLASH_META.electro;
     const rosterItem = GENSHIN_FANART_ROSTER.find((c) => c.id === item.id);
     const burstMeta = getBurstMeta(item.id);
-    const skillMeta = CHARACTER_SKILLS[item.id];
 
-    let charDisplayName = item.name;
-    let charEpithet = em.label;
+    let charDisplayName = item.name || 'Raiden Shogun';
     if (rosterItem && rosterItem.name) {
-      const m = rosterItem.name.match(/^([^(]+)\(([^)]+)\)/);
-      if (m) {
-        charDisplayName = m[1].trim();
-        charEpithet = `${m[2].trim()} • ${em.label}`;
-      } else {
-        charDisplayName = rosterItem.name;
-      }
-    } else if (item.name && item.name.includes('—')) {
-      const parts = item.name.split('—');
-      charDisplayName = parts[0].trim();
-      charEpithet = `${parts[1].trim()} • ${em.label}`;
+      const m = rosterItem.name.match(/^([^(]+)/);
+      charDisplayName = m ? m[1].trim() : rosterItem.name.trim();
+    } else {
+      charDisplayName = charDisplayName
+        .replace(/^Bài Fanart:\s*/i, '')
+        .replace(/^Avatar:\s*/i, '')
+        .split('—')[0]
+        .split('(')[0]
+        .trim();
     }
-
-    splashStage.style.background = em.bg;
-    splashStage.style.setProperty('--splash-accent', em.accent);
-    splashStage.style.setProperty('--splash-glow', em.glow);
 
     const splashImg = document.getElementById('gacha-splash-img');
-    const bgBlur = document.getElementById('gacha-splash-bg-blur');
-    const artUrl = item.thumbUrl || `fanart/${item.id}.jpg?v=66`;
     if (splashImg) {
-      splashImg.src = artUrl;
+      splashImg.onerror = () => {
+        splashImg.onerror = null;
+        splashImg.src = item.thumbUrl || `fanart/${item.id}.jpg?v=66`;
+      };
+      splashImg.src = `splash/${item.id}.png`;
       splashImg.alt = charDisplayName;
     }
-    if (bgBlur) {
-      bgBlur.style.backgroundImage = `url('${artUrl}')`;
+
+    const visionImg = document.getElementById('gacha-splash-vision-img');
+    if (visionImg) {
+      visionImg.src = `assets/icon-${elemKey}.svg`;
+      visionImg.alt = elemKey;
     }
-
-    const elemIconEl = document.getElementById('gacha-splash-element-icon');
-    if (elemIconEl) elemIconEl.textContent = em.icon;
-
-    const bannerPillEl = document.getElementById('gacha-splash-banner-pill');
-    if (bannerPillEl) {
-      bannerPillEl.textContent =
-        fiveStarItems.length > 1
-          ? `🌟 NỔ VÀNG 5 SAO (${index + 1}/${fiveStarItems.length}) • ${item.typeLabel || 'CẦU NGUYỆN NHÂN VẬT'}`
-          : `🌟 NỔ VÀNG 5 SAO • ${item.typeLabel || 'CẦU NGUYỆN NHÂN VẬT'}`;
-    }
-
-    const epithetEl = document.getElementById('gacha-splash-epithet');
-    if (epithetEl) epithetEl.textContent = charEpithet;
 
     const charNameEl = document.getElementById('gacha-splash-char-name');
-    if (charNameEl) charNameEl.textContent = charDisplayName;
+    if (charNameEl) {
+      charNameEl.textContent = charDisplayName;
+    }
 
-    const statusPillEl = document.getElementById('gacha-splash-status-pill');
-    if (statusPillEl) {
-      if (item.isNew) {
-        statusPillEl.textContent = '✨ NHÂN VẬT 5★ MỚI MỞ KHÓA VÀO KHO ĐỒ!';
-        statusPillEl.style.background = 'rgba(6, 78, 59, 0.82)';
-        statusPillEl.style.borderColor = 'rgba(52, 211, 153, 0.7)';
-        statusPillEl.style.color = '#bbf7d0';
-      } else {
-        statusPillEl.textContent = `♻️ ĐÃ SỞ HỮU ➔ HOÀN TRẢ +${(item.refund || 3200).toLocaleString()} XU (+2 ROLL)`;
-        statusPillEl.style.background = 'rgba(120, 53, 15, 0.85)';
-        statusPillEl.style.borderColor = 'rgba(251, 191, 36, 0.75)';
-        statusPillEl.style.color = '#fde68a';
+    const starsEl = document.getElementById('gacha-splash-stars');
+    if (starsEl) {
+      starsEl.innerHTML = Array.from({ length: starRarity }, (_, i) => `<span class="splash-star s${i + 1}">★</span>`).join('');
+    }
+
+    const vIn = document.getElementById('gacha-splashlight-in');
+    const vOut = document.getElementById('gacha-splashlight-out');
+    if (vIn) {
+      vIn.classList.remove('hidden');
+      vIn.src = `assets/${starRarity}star-splashout.webm`;
+      vIn.currentTime = 0;
+      const p1 = vIn.play();
+      if (p1 && typeof p1.catch === 'function') p1.catch(() => {});
+    }
+    if (vOut) {
+      vOut.classList.add('hidden');
+      vOut.src = `assets/${starRarity}star-splashout2.webm`;
+      vOut.currentTime = 0;
+    }
+    this.gachaSplashLightTimer = setTimeout(() => {
+      if (vIn) vIn.classList.add('hidden');
+      if (vOut) {
+        vOut.classList.remove('hidden');
+        const p2 = vOut.play();
+        if (p2 && typeof p2.catch === 'function') p2.catch(() => {});
       }
+    }, 1100);
+
+    this.currentGachaRevealAudio = this.playGachaSfxFile(`assets/reveal_${starRarity}star.ogg`, 0.92);
+    if (starRarity === 5 && burstMeta?.audioUrl) {
+      this.gachaSplashVoiceTimer = setTimeout(() => {
+        this.currentGachaVoiceAudio = this.playGachaSfxFile(burstMeta.audioUrl, 0.85);
+      }, 1100);
     }
 
-    const quoteEl = document.getElementById('gacha-splash-quote');
-    if (quoteEl) {
-      quoteEl.textContent = burstMeta?.quote || '“Ánh sao vàng kim định mệnh đã giáng xuống bàn bài Teyvat!”';
-    }
+    const advanceNext = (e) => {
+      if (e) e.stopPropagation();
+      this.showGacha5StarSplashSequence(splashItems, index + 1, onAllDone);
+    };
 
-    const skillCardEl = document.getElementById('gacha-splash-skill-card');
-    const skillTitleEl = document.getElementById('gacha-splash-skill-title');
-    const skillDescEl = document.getElementById('gacha-splash-skill-desc');
-    if (skillMeta && skillTitleEl && skillDescEl) {
-      skillCardEl?.classList.remove('hidden');
-      skillTitleEl.textContent = `${skillMeta.icon} Chiêu Nộ [Q]: ${skillMeta.name}`;
-      skillDescEl.textContent = skillMeta.shortDesc;
-    } else if (skillCardEl) {
-      skillCardEl.classList.add('hidden');
-    }
-
-    const pipBox = document.getElementById('gacha-splash-burst-pip');
-    if (pipVideo && pipBox && burstMeta?.mp4Url) {
-      pipBox.classList.remove('hidden');
-      pipVideo.src = burstMeta.mp4Url;
-      pipVideo.muted = true;
-      const vp = pipVideo.play();
-      if (vp && typeof vp.catch === 'function') vp.catch(() => {});
-    } else if (pipBox) {
-      pipBox.classList.add('hidden');
+    const skipAllBtn = document.getElementById('btn-skip-gacha-splash');
+    if (skipAllBtn) {
+      skipAllBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        this.showGacha5StarSplashSequence(splashItems, splashItems.length, onAllDone);
+      };
     }
 
     const continueBtn = document.getElementById('btn-close-gacha-splash');
     if (continueBtn) {
-      continueBtn.textContent =
-        index + 1 < fiveStarItems.length
-          ? `🌟 Tiếp Tục (Xem 5★ Tiếp Theo ${index + 2}/${fiveStarItems.length}) ▸`
-          : '🌟 Tiếp Tục (Xem Tổng Kết Cầu Nguyện) ▸';
-      continueBtn.onclick = () => {
-        sfx.click();
-        this.showGacha5StarSplashSequence(fiveStarItems, index + 1, onAllDone);
-      };
+      continueBtn.onclick = advanceNext;
     }
 
-    // Play official Genshin 5-star splash reveal audio + character voice line
-    this.playGachaSfxFile('assets/reveal_5star.ogg', 0.92);
-    sfx.win();
-    if (burstMeta?.audioUrl) {
-      this.gachaSplashVoiceTimer = setTimeout(() => {
-        this.playGachaSfxFile(burstMeta.audioUrl, 0.85);
-      }, 480);
-    }
+    splashStage.onclick = advanceNext;
 
     splashStage.classList.remove('hidden');
     splashStage.classList.remove('gacha-splash-anim-active');
@@ -6498,8 +6445,6 @@ class TienLenGame {
     const splashStage = document.getElementById('gacha-splash-stage');
     const resultsStage = document.getElementById('gacha-results-stage');
     const meteorVideo = document.getElementById('gacha-meteor-video');
-    const meteorTrack = document.getElementById('gacha-meteor-track');
-    const meteorCaption = document.getElementById('gacha-meteor-caption');
     const resultsGrid = document.getElementById('gacha-results-grid');
     const refundSummary = document.getElementById('gacha-refund-summary');
     const resultsTitle = document.getElementById('gacha-results-title');
@@ -6510,6 +6455,7 @@ class TienLenGame {
     const maxStar = Math.max(...results.map((r) => r.star));
     const isTenPull = results.length > 1;
     sfx.duckBGM(true);
+    this.stopGachaSplashMedia();
 
     overlay.classList.remove('hidden');
     meteorStage.classList.remove('hidden');
@@ -6518,22 +6464,6 @@ class TienLenGame {
       splashStage.classList.remove('gacha-splash-anim-active');
     }
     resultsStage.classList.add('hidden');
-
-    if (meteorTrack) {
-      meteorTrack.className = `gacha-meteor-track meteor-${maxStar}`;
-      meteorTrack.style.animation = 'none';
-      void meteorTrack.offsetWidth;
-      meteorTrack.style.animation = '';
-    }
-
-    if (meteorCaption) {
-      meteorCaption.textContent =
-        maxStar === 5
-          ? '🌟 ÁNH SÁNG VÀNG KIM 5 SAO RỰC CHÁY TRÊN BẦU TRỜI TEYVAT!'
-          : maxStar === 4
-          ? '💜 Ánh sao tím 4 Sao lấp lánh xuyên qua màn đêm...'
-          : '🌠 Sao băng Cầu Nguyện đang rơi xuống...';
-    }
 
     // Sắp xếp kết quả: 5★ lên đầu, tiếp theo 4★, rồi 3★ (chuẩn Genshin 10x summary)
     const sorted = [...results].sort((a, b) => b.star - a.star || (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
@@ -6601,20 +6531,14 @@ class TienLenGame {
     }
 
     const openResultsGrid = () => {
+      this.stopGachaSplashMedia();
       meteorStage.classList.add('hidden');
       if (splashStage) {
         splashStage.classList.add('hidden');
         splashStage.classList.remove('gacha-splash-anim-active');
       }
       resultsStage.classList.remove('hidden');
-      this.playGachaSfxFile(
-        results.length > 1
-          ? 'assets/result_list.ogg'
-          : maxStar === 4
-          ? 'assets/reveal_4star.ogg'
-          : 'assets/reveal_3star.ogg',
-        0.85
-      );
+      this.playGachaSfxFile('assets/result_list.ogg', 0.88);
       if (!this.tutorialCompleted) {
         this.renderTravelerGuide();
       }
@@ -6633,14 +6557,14 @@ class TienLenGame {
         } catch (_) {}
       }
       meteorStage.classList.add('hidden');
-      meteorStage.classList.remove('has-video');
 
-      const fiveStarItems = results.filter((r) => r.star === 5);
-      if (fiveStarItems.length > 0) {
-        this.showGacha5StarSplashSequence(fiveStarItems, 0, openResultsGrid);
-      } else {
-        openResultsGrid();
-      }
+      // Trong Bước 3 Hướng Dẫn Tân Thủ: nổ trực tiếp Splash Art 5★ Raiden Shogun rồi sang bảng tổng kết ×10
+      // Trong Cầu Nguyện thường: hiện Splash Art chuẩn Genshin cho các nhân vật quay trúng (ưu tiên 5★ lên đầu)
+      const splashQueue =
+        !this.tutorialCompleted && this.tutorialStep === 3
+          ? sorted.filter((r) => r.star === 5)
+          : sorted;
+      this.showGacha5StarSplashSequence(splashQueue, 0, openResultsGrid);
     };
 
     const skipBtn = document.getElementById('btn-skip-gacha-meteor');
@@ -6662,18 +6586,12 @@ class TienLenGame {
         : 'assets/wish_3star_1.mp4';
 
     if (meteorVideo) {
-      meteorStage.classList.add('has-video');
       meteorVideo.src = wishVideoFile;
       meteorVideo.currentTime = 0;
       meteorVideo.muted = !sfx.enabled;
       meteorVideo.volume = 0.88;
       meteorVideo.onended = finishMeteorStage;
-      meteorVideo.onerror = () => {
-        meteorStage.classList.remove('has-video');
-        sfx.wishMeteor(maxStar);
-        clearTimeout(this.gachaMeteorTimer);
-        this.gachaMeteorTimer = setTimeout(finishMeteorStage, 1650);
-      };
+      meteorVideo.onerror = finishMeteorStage;
       const playPromise = meteorVideo.play();
       if (playPromise && typeof playPromise.then === 'function') {
         playPromise
@@ -6682,9 +6600,7 @@ class TienLenGame {
             this.gachaMeteorTimer = setTimeout(finishMeteorStage, 6800);
           })
           .catch(() => {
-            // Nếu trình duyệt chặn autoplay có tiếng thì phát video chế độ muted kèm sfx.wishMeteor
             meteorVideo.muted = true;
-            sfx.wishMeteor(maxStar);
             const mutedPlay = meteorVideo.play();
             if (mutedPlay && typeof mutedPlay.then === 'function') {
               mutedPlay
@@ -6692,22 +6608,16 @@ class TienLenGame {
                   clearTimeout(this.gachaMeteorTimer);
                   this.gachaMeteorTimer = setTimeout(finishMeteorStage, 6800);
                 })
-                .catch(() => {
-                  meteorStage.classList.remove('has-video');
-                  clearTimeout(this.gachaMeteorTimer);
-                  this.gachaMeteorTimer = setTimeout(finishMeteorStage, 1650);
-                });
+                .catch(finishMeteorStage);
             } else {
-              meteorStage.classList.remove('has-video');
-              this.gachaMeteorTimer = setTimeout(finishMeteorStage, 1650);
+              finishMeteorStage();
             }
           });
       } else {
         this.gachaMeteorTimer = setTimeout(finishMeteorStage, 6500);
       }
     } else {
-      sfx.wishMeteor(maxStar);
-      this.gachaMeteorTimer = setTimeout(finishMeteorStage, 1650);
+      finishMeteorStage();
     }
 
     if (!this.tutorialCompleted) {
@@ -8018,12 +7928,7 @@ class TienLenGame {
 
     document.getElementById('btn-close-gacha-results')?.addEventListener('click', () => {
       document.getElementById('gacha-wish-overlay')?.classList.add('hidden');
-      const pipVideo = document.getElementById('gacha-splash-burst-video');
-      if (pipVideo) {
-        try {
-          pipVideo.pause();
-        } catch (_) {}
-      }
+      this.stopGachaSplashMedia();
       sfx.duckBGM(false);
       sfx.click();
       if (!this.tutorialCompleted && (this.tutorialStep === 3 || this.tutorialStep === 4) && this.beginnerBannerUsed) {
@@ -19934,7 +19839,7 @@ class TienLenGame {
       if (gachaOverlay && !gachaOverlay.classList.contains('hidden')) {
         return Boolean(
           targetNode.closest(
-            '#btn-skip-gacha-meteor, #btn-skip-gacha-splash, #btn-close-gacha-splash, #btn-close-gacha-results'
+            '#btn-skip-gacha-meteor, #btn-skip-gacha-splash, #btn-close-gacha-splash, #btn-close-gacha-results, #gacha-splash-stage'
           )
         );
       }
@@ -20627,10 +20532,10 @@ class TienLenGame {
         } else if (splashVisible) {
           textEl.innerHTML = `
             ⚡🌟 <strong>NỔ VÀNG 5★ LIMITED: RAIDEN SHOGUN (LÔI THẦN)!</strong><br>
-            Splash Art 5★ cùng <strong>🔮 Chiêu Nộ [Q]: Vô Tưởng Nhất Đao</strong> đã xuất hiện! Hãy bấm nút <strong>🌟 Tiếp Tục (Xem Tổng Kết Cầu Nguyện) ▸</strong> bên dưới nhé!
+            Splash Art 5★ chuẩn Genshin Impact đã xuất hiện! Hãy bấm nút <strong>✕ Continue</strong> ở góc phải dưới để xem tổng kết 10 món nhé!
           `;
           const closeSplashBtn = document.getElementById('btn-close-gacha-splash');
-          this.pointToScreenElement(closeSplashBtn, 'BẤM TIẾP TỤC XEM KẾT QUẢ ×10');
+          this.pointToScreenElement(closeSplashBtn, 'BẤM CONTINUE ĐỂ TIẾP TỤC');
         } else if (resultsVisible) {
           textEl.innerHTML = `
             🎉 <strong>Tổng kết 10 lần Cầu Nguyện Tân Thủ!</strong><br>

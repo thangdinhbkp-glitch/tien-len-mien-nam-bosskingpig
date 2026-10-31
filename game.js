@@ -18417,6 +18417,226 @@ class TienLenGame {
     return true;
   }
 
+  // Kiểm tra xem nếu Bot đánh `move` ra bàn, có đối thủ nào đỡ được VÀ hết sạch bài Về Nhất ngay lập tức (Mate in 1 cho đối thủ) không!
+  doesMoveAllowOpponentInstantWin(bot, move, onlyUnpassed = false) {
+    if (!move) return false;
+    const opps = this.players.filter(
+      (p) =>
+        p.active &&
+        p.id !== bot.id &&
+        p.finishRank === null &&
+        p.hand.length > 0 &&
+        (!onlyUnpassed || !p.passed)
+    );
+    for (const opp of opps) {
+      if (opp.hand.length > move.length && opp.hand.length < 6) {
+        // Đối thủ có thể tung Hàng chặt nếu còn đúng 6 hoặc 8 lá, còn bình thường chỉ hết bài khi số lá bằng độ dài bộ đè
+        continue;
+      }
+      const counters = getValidMoves(opp.hand, move, false, false);
+      if (counters.some((c) => c.length === opp.hand.length)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Đếm số đối thủ có khả năng đỡ được `move` (0 = Bất bại hoàn toàn, 1 = Cận Boss chỉ 1 nhà đỡ được)
+  countOpponentsWhoCanBeat(bot, move, onlyUnpassed = false) {
+    if (!move) return 99;
+    const opps = this.players.filter(
+      (p) =>
+        p.active &&
+        p.id !== bot.id &&
+        p.finishRank === null &&
+        p.hand.length > 0 &&
+        (!onlyUnpassed || !p.passed)
+    );
+    let count = 0;
+    for (const opp of opps) {
+      const counters = getValidMoves(opp.hand, move, false, false);
+      if (counters.length > 0) count++;
+    }
+    return count;
+  }
+
+  // ============================================================================
+  // CHESS ENDGAME CHECKMATE SOLVER (DUYỆT CÂY TRÒ CHƠI AND-OR ĐA TẦNG TÌM ĐƯỜNG THẮNG 100%)
+  // Tìm chuỗi nước đi cưỡng bức thắng (Forced Win / Mate in N) từ tới 10 lá bài:
+  // - Kết hợp các cặp "Thí Tốt Dẫn Đường - Boss Cướp Cái" `(lowMove, bossReEntry)` cùng loại
+  // - Cộng các bộ Bất Bại (`unbeatableMove`)
+  // - Kết thúc bằng 1 bộ cuối cùng bất kỳ (`finalCombo`) chạm bàn là hết bài!
+  // ============================================================================
+  findForcedCheckmateMoveFromLead(bot, hand, candidateMoves = null, depth = 0, memo = new Map()) {
+    if (!hand || hand.length === 0) return null;
+    if (depth > 6) return null;
+
+    const singlePlay = classifyCombo(hand);
+    if (singlePlay && (depth > 0 || !this.mustPlay3Spade || singlePlay.cards.some((c) => c.value === 0))) {
+      return singlePlay;
+    }
+
+    const handKey = hand
+      .map((c) => c.id)
+      .sort()
+      .join('|');
+    if (depth > 0 && memo.has(handKey)) {
+      return memo.get(handKey);
+    }
+
+    const moves =
+      candidateMoves ||
+      getValidMoves(hand, null, depth === 0 ? this.mustPlay3Spade : false, false).filter((m) => !m.isBomb);
+
+    // 1. ƯU TIÊN SỐ 1: Tìm cặp Đòn Phối Hợp "(Lá/Bộ Nhỏ Dẫn Đường -> Quân Boss Cùng Loại Cướp Lại Cái)"
+    // Giống hệt Cờ Vua thí Tốt mở đường rồi đưa Hậu vào chiếu hết:
+    // Đánh bộ nhỏ trước (nếu không đút bài cho đối thủ về luôn), đối thủ đỡ cỡ nào mình cũng có Quân Boss Bất Bại cùng loại đè lại lấy Cái!
+    const lowMoves = [...moves]
+      .filter((m) => !this.isMoveUnbeatableByOpponents(bot, m, false))
+      .sort((a, b) => a.highValue - b.highValue || b.length - a.length);
+
+    for (const lowMove of lowMoves) {
+      if (this.doesMoveAllowOpponentInstantWin(bot, lowMove, false)) continue;
+      const lowIds = new Set(lowMove.cards.map((c) => c.id));
+      const remAfterLow = hand.filter((c) => !lowIds.has(c.id));
+      // Tìm trong phần bài còn lại 1 bộ `bossReEntry` cùng loại đè được `lowMove` và BẤT BẠI trước mọi đối thủ!
+      const reEntries = getValidMoves(remAfterLow, lowMove, false, false).filter(
+        (re) => !re.isBomb && re.type === lowMove.type && re.length === lowMove.length && this.isMoveUnbeatableByOpponents(bot, re, false)
+      );
+      if (reEntries.length > 0) {
+        reEntries.sort((a, b) => a.highValue - b.highValue);
+        const bossReEntry = reEntries[0];
+        const bossIds = new Set(bossReEntry.cards.map((c) => c.id));
+        const remAfterBoth = remAfterLow.filter((c) => !bossIds.has(c.id));
+        if (remAfterBoth.length === 0) {
+          if (depth > 0) memo.set(handKey, lowMove);
+          return lowMove;
+        }
+        const nextWin = this.findForcedCheckmateMoveFromLead(bot, remAfterBoth, null, depth + 1, memo);
+        if (nextWin) {
+          if (depth > 0) memo.set(handKey, lowMove);
+          return lowMove;
+        }
+      }
+    }
+
+    // 2. ƯU TIÊN SỐ 2: Đánh bộ BẤT BẠI (`unbeatableMove`) thắng trắng vòng hiện tại rồi tiếp tục chuỗi Chiếu Hết trên phần bài còn lại!
+    const unbeatableMoves = [...moves]
+      .filter((m) => this.isMoveUnbeatableByOpponents(bot, m, false))
+      .sort((a, b) => b.length - a.length || a.highValue - b.highValue);
+
+    for (const ubMove of unbeatableMoves) {
+      const ubIds = new Set(ubMove.cards.map((c) => c.id));
+      const remHand = hand.filter((c) => !ubIds.has(c.id));
+      if (remHand.length === 0) {
+        if (depth > 0) memo.set(handKey, ubMove);
+        return ubMove;
+      }
+      const nextWin = this.findForcedCheckmateMoveFromLead(bot, remHand, null, depth + 1, memo);
+      if (nextWin) {
+        if (depth > 0) memo.set(handKey, ubMove);
+        return ubMove;
+      }
+    }
+
+    if (depth > 0) memo.set(handKey, null);
+    return null;
+  }
+
+  // ============================================================================
+  // HÀM LƯỢNG GIÁ THẾ CỜ KIỂU STOCKFISH (POSITIONAL DEFICIT & ESCORT PAIRING)
+  // Tính chính xác số bộ bài yếu "Chưa Có Quân Chủ Lực Hộ Tống" (`deficitToForcedWin`):
+  // - Mỗi quân Boss/Cận Boss loại T bảo kê được cho 1 quân nhỏ cùng loại T.
+  // - Bộ cuối cùng đánh ra khi hết bài được miễn phí 1 lượt thoát.
+  // - Khi `deficitToForcedWin === 0`: Tay bài đã vào Thế Thắng Cưỡng Bức!
+  // ============================================================================
+  evaluateChessPosition(bot, hand, allowBreakBombs = false) {
+    const plan = this.partitionHandOptimally(hand, allowBreakBombs);
+    const usable = sortCardsAsc(
+      hand.filter(
+        (c) =>
+          !(activeNaviaLockedCardIds && activeNaviaLockedCardIds.has(c.id)) &&
+          !(activeZhongliPetrifiedCardIds && activeZhongliPetrifiedCardIds.has(c.id))
+      )
+    );
+    const usedIds = new Set();
+    const concreteCombos = [];
+
+    // Dựng các bộ bài thực tế từ `plan.plannedCombos` để kiểm tra sức mạnh đối kháng với bài đối thủ
+    for (const cb of plan.plannedCombos) {
+      if (cb.type === COMBO_TYPES.STRAIGHT) {
+        const stCards = [];
+        for (let r = cb.startRank; r <= cb.highRank; r++) {
+          const pick = usable.find((c) => !usedIds.has(c.id) && c.rankIndex === r);
+          if (pick) {
+            usedIds.add(pick.id);
+            stCards.push(pick);
+          }
+        }
+        const comboObj = classifyCombo(stCards);
+        if (comboObj) concreteCombos.push(comboObj);
+      } else {
+        const group = usable.filter((c) => !usedIds.has(c.id) && c.rankIndex === cb.highRank).slice(0, cb.length);
+        group.forEach((c) => usedIds.add(c.id));
+        const comboObj = classifyCombo(group);
+        if (comboObj) concreteCombos.push(comboObj);
+      }
+    }
+    // Thêm nhóm quân 2 (nếu có)
+    const twos = usable.filter((c) => !usedIds.has(c.id) && c.rankIndex === 12);
+    if (twos.length > 0) {
+      const twoCombo = classifyCombo(twos);
+      if (twoCombo) concreteCombos.push(twoCombo);
+    }
+
+    // Phân loại từng bộ theo nhóm (type + length) thành: Boss (bất bại), Strong (chỉ <= 1 đối thủ đỡ được), Low (bị đè dễ)
+    const byBucket = new Map();
+    let totalBoss = 0;
+    let totalStrong = 0;
+
+    for (const m of concreteCombos) {
+      const bucketKey = `${m.type}_${m.length}`;
+      if (!byBucket.has(bucketKey)) {
+        byBucket.set(bucketKey, { boss: 0, strong: 0, low: 0 });
+      }
+      const b = byBucket.get(bucketKey);
+      const beaters = this.countOpponentsWhoCanBeat(bot, m, false);
+      if (beaters === 0) {
+        b.boss++;
+        totalBoss++;
+      } else if (beaters === 1 && m.highRank >= 9) {
+        b.strong++;
+        totalStrong++;
+      } else {
+        b.low++;
+      }
+    }
+
+    // Ghép cặp Hộ Tống: Mỗi Boss/Strong trong cùng loại T dẫn đường được cho 1 bộ Low cùng loại T!
+    let unescortedLow = 0;
+    let excessBoss = 0;
+    for (const b of byBucket.values()) {
+      const escorts = b.boss + b.strong * 0.65;
+      if (b.low > escorts) {
+        unescortedLow += b.low - escorts;
+      } else {
+        excessBoss += escorts - b.low;
+      }
+    }
+    // Các quân Boss dư thừa (như Heo lẻ / Đôi Heo) vẫn có thể cướp cái ở vòng khác để mở đường cho 1 bộ Low bất kỳ
+    const finalUnescorted = Math.max(0, unescortedLow - excessBoss * 0.75);
+    // Bộ cuối cùng thoát tay không cần quân hộ tống (vì đánh xuống là hết bài Về Nhất ngay)
+    const deficitToForcedWin = Math.max(0, finalUnescorted - 1);
+
+    return {
+      plan,
+      deficitToForcedWin,
+      unescortedLow: finalUnescorted,
+      totalBoss,
+      totalStrong,
+    };
+  }
+
   analyzeBotHandStructure(hand) {
     const rankCounts = new Array(13).fill(0);
     hand.forEach((c) => rankCounts[c.rankIndex]++);
@@ -18676,79 +18896,37 @@ class TienLenGame {
     }
 
     // ==========================================================================
-    // 2. TÍNH ĐƯỜNG THẮNG CHỐT HẠ 2 NƯỚC (CHECKMATE IN 2 TURNS):
-    // Kiểm tra mọi nước đi mở vòng giúp tay bài còn lại đúng 1 bộ hợp lệ duy nhất (`remCombo`)!
+    // 2. CHESS ENDGAME CHECKMATE SOLVER (DUYỆT CÂY CHIẾU HẾT ĐA TẦNG):
+    // Nếu tìm thấy chuỗi nước đi Cưỡng Bức Thắng 100% (Mate in N: kết hợp Thí Tốt Dẫn Đường + Boss Cướp Cái + Bộ Cuối):
+    // Thực thi ngay nước đầu tiên trong chuỗi Chiếu Hết!
     // ==========================================================================
-    const twoTurnCandidates = [];
-    for (const move of pool) {
-      const usedIds = new Set(move.cards.map((c) => c.id));
-      const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
-      const remCombo = classifyCombo(remHand);
-      if (remCombo) {
-        const moveUnbeatable = this.isMoveUnbeatableByOpponents(bot, move, false);
-        const remUnbeatable = this.isMoveUnbeatableByOpponents(bot, remCombo, false);
-        twoTurnCandidates.push({ move, remCombo, moveUnbeatable, remUnbeatable });
-      }
+    const forcedCheckmateMove = this.findForcedCheckmateMoveFromLead(bot, bot.hand, pool);
+    if (forcedCheckmateMove) {
+      return forcedCheckmateMove;
     }
 
-    if (twoTurnCandidates.length > 0) {
-      // Trường hợp A: Cả 2 bộ cuối đều là Bài Lẻ (VD: {Lẻ 4♠, Lẻ 2♥}) và đối thủ còn >= 2 lá:
-      // Nếu lá còn lại (`remCombo`) là Boss bất bại (như 2♥ / A♥ lớn nhất bàn), đánh LÁ LẺ NHỎ trước!
-      // Vì đối thủ có đè lá lẻ nhỏ thì vòng đấu vẫn là Bài Lẻ -> Bot đập Boss `remCombo` kết liễu ván ngay lập tức!
-      if (sit.minOpponentCards >= 2) {
-        const baitThenBossSingle = twoTurnCandidates
-          .filter(
-            (c) =>
-              c.move.type === COMBO_TYPES.SINGLE &&
-              c.remCombo.type === COMBO_TYPES.SINGLE &&
-              c.remUnbeatable &&
-              c.move.highValue < c.remCombo.highValue
-          )
-          .sort((a, b) => a.move.highValue - b.move.highValue);
-        if (baitThenBossSingle.length > 0) {
-          return baitThenBossSingle[0].move;
-        }
-      }
-
-      // Trường hợp B: Nước đi `move` là BẤT BẠI (không đối thủ nào trên bàn đỡ nổi):
-      // Đánh `move` thắng trắng vòng này 100%, rồi lượt kế tiếp đập nốt `remCombo` Về Nhất!
-      const guaranteedCheckmate = twoTurnCandidates
-        .filter((c) => c.moveUnbeatable)
-        .sort((a, b) => b.move.length - a.move.length || a.move.highValue - b.move.highValue);
-      if (guaranteedCheckmate.length > 0) {
-        return guaranteedCheckmate[0].move;
-      }
-
-      // Trường hợp C: `move` là Bộ nhiều lá (Sảnh / Đôi / Sám) và lá cuối cùng còn lại (`remCombo`) là Boss Lẻ bất bại (2 / A):
-      // Đánh Bộ nhiều lá trước để báo 1 lá Boss bất bại trên tay!
-      const multiThenBossSingle = twoTurnCandidates
-        .filter((c) => c.move.length >= 2 && c.remUnbeatable)
-        .sort((a, b) => b.move.length - a.move.length || a.move.highValue - b.move.highValue);
-      if (multiThenBossSingle.length > 0) {
-        return multiThenBossSingle[0].move;
-      }
-    }
+    const beforeChess = this.evaluateChessPosition(bot, bot.hand, sit.shouldBreakBombForEndgame);
 
     // ==========================================================================
-    // 3. CHIẾN THUẬT MỞ VÒNG CHUẨN CAO THỦ CON NGƯỜI:
-    // - Tuyệt đối không đánh bài lớn (Q, K, A, 2) ra trước khi còn bài nhỏ.
-    // - Không xé Sảnh / Đôi làm phát sinh thêm rác lẻ (`turnsAdded > 0` hoặc `trashAdded > 0`).
-    // - Chủ động đan xen xả các lá Lẻ Rác nhỏ (3..9) từ sớm khi trên tay vẫn còn quân chủ lực (K, A, 2) để cướp lại Cái,
-    //   không bao giờ để cuối ván còn trơ trọi toàn lá lẻ thấp!
+    // 3. CHIẾN THUẬT MỞ VÒNG CHUẨN ENGINE CỜ VUA (MINIMAX 2-PLY + LƯỢNG GIÁ THẾ CỜ):
+    // - Tránh tuyệt đối nước đi đút bài cho đối thủ Về Nhất ngay (Mate-in-1 Blunder Check).
+    // - Tối ưu hóa giảm `deficitToForcedWin` (xả các bộ yếu chưa có quân hộ tống, giữ nguyên các quân Boss hộ tống).
+    // - Ưu tiên đánh các bộ nhỏ có Quân Boss Cùng Loại đứng sau bảo kê (Escorted Lead) để đối thủ đỡ xong mình cướp lại Cái ngay trong vòng!
     // ==========================================================================
     const scored = pool.map((move) => {
       let score = 0;
       const usedIds = new Set(move.cards.map((c) => c.id));
       const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
-      const afterPlan = this.partitionHandOptimally(remHand, sit.shouldBreakBombForEndgame);
+      const afterChess = this.evaluateChessPosition(bot, remHand, sit.shouldBreakBombForEndgame);
+      const afterPlan = afterChess.plan;
 
       const turnsAdded = afterPlan.totalTurns - (beforePlan.totalTurns - 1);
       const trashAdded = afterPlan.trashSinglesCount - beforePlan.trashSinglesCount;
       const veryLowAdded = afterPlan.veryLowSinglesCount - beforePlan.veryLowSinglesCount;
+      const deficitReduced = beforeChess.deficitToForcedWin - afterChess.deficitToForcedWin;
 
       const touchesBomb = !move.isBomb && move.cards.some((c) => struct.bombRanks.has(c.rankIndex));
       const contains3Spade = move.cards.some((c) => c.value === 0);
-      const twosCount = move.cards.filter((c) => c.rankIndex === 12).length;
       const effHighRank =
         activeKokomiReverseRank && move.highRank < 12 ? 11 - move.highRank : move.highRank;
       const effHighValue =
@@ -18758,6 +18936,11 @@ class TienLenGame {
 
       if (move.isBomb) {
         score -= 5000;
+      }
+
+      // CHỐNG BLUNDER CỜ VUA (MATE IN 1): Nếu đánh nước này mà đối thủ đỡ được và hết bài luôn -> Phạt cực đại!
+      if (this.doesMoveAllowOpponentInstantWin(bot, move, false)) {
+        score -= 6500;
       }
 
       if (touchesBomb) {
@@ -18770,7 +18953,23 @@ class TienLenGame {
         }
       }
 
-      // 1. KỶ LUẬT GIỮ BỘ TỐI ƯU: Phạt cực nặng mọi nước mở vòng tự làm tăng số lượt đánh hoặc đẻ thêm rác lẻ!
+      // 1. LƯỢNG GIÁ THẾ CỜ STOCKFISH (`deficitReduced`):
+      // Thưởng lớn khi nước đi giúp giảm số bộ yếu thiếu quân hộ tống; phạt nặng nếu tự làm mất quân Boss hộ tống sớm!
+      score += deficitReduced * 210;
+      if (afterChess.deficitToForcedWin === 0 && afterPlan.totalTurns <= 3) {
+        score += 240; // Đưa tay bài vào Thế Thắng Cưỡng Bức!
+      }
+
+      // 2. KIỂM TRA ĐÒN DẪN ĐƯỜNG CÓ BẢO KÊ (ESCORTED LEAD 2-PLY LOOKAHEAD):
+      // Nếu đánh bộ nhỏ `move` mà trên tay còn giữ 1 bộ Boss/Strong cùng loại (`reEntry`) đè lại được đối thủ -> Thưởng chiến thuật!
+      const hasSameTypeEscortInRem = getValidMoves(remHand, move, false, false).some(
+        (re) => !re.isBomb && re.type === move.type && re.length === move.length && this.countOpponentsWhoCanBeat(bot, re, false) <= 1
+      );
+      if (hasSameTypeEscortInRem && effHighRank <= 8 && turnsAdded <= 0) {
+        score += 85;
+      }
+
+      // 3. KỶ LUẬT GIỮ BỘ TỐI ƯU: Phạt cực nặng mọi nước mở vòng tự làm tăng số lượt đánh hoặc đẻ thêm rác lẻ!
       if (turnsAdded > 0) {
         score -= turnsAdded * 290;
       } else if (turnsAdded < 0) {
@@ -18779,15 +18978,13 @@ class TienLenGame {
       if (trashAdded > 0) {
         score -= trashAdded * 240;
       } else if (trashAdded < 0) {
-        // Nước đi này giúp GIẢM SỐ LÁ LẺ RÁC trên tay (xả được 1 lá lẻ rác độc lập)!
         score += Math.abs(trashAdded) * 95;
       }
       if (veryLowAdded < 0) {
-        // Giải phóng được lá lẻ cực nhỏ (3..8)
         score += Math.abs(veryLowAdded) * 48;
       }
 
-      // 2. Ưu tiên tuyệt đối nước đi phát huy Chiêu Nộ vừa bật trong lượt này
+      // 4. Ưu tiên tuyệt đối nước đi phát huy Chiêu Nộ vừa bật trong lượt này
       if (this.ganyuGapStraightTurn && move.isGapStraight && !touchesBomb) {
         score += 340;
       }
@@ -18806,8 +19003,7 @@ class TienLenGame {
         score += 180 + move.length * 25;
       }
 
-      // 3. CHIẾN THUẬT PHỐI HỢP XẢ RÁC LẺ & XẢ BỘ (TRÁNH ĐỂ LẺ NHỎ CUỐI VÁN):
-      // - Nếu còn 3 bộ (VD: {Lẻ nhỏ 4♠, Lẻ chủ lực A♥, Bộ Đôi/Sảnh}): đánh Lẻ nhỏ trước để dùng A♥ cướp lại Cái rồi đánh Bộ về đích!
+      // 5. CHIẾN THUẬT PHỐI HỢP XẢ RÁC LẺ & XẢ BỘ (TRÁNH ĐỂ LẺ NHỎ CUỐI VÁN):
       const hasSingleTrapComboSetup =
         beforePlan.totalTurns <= 3 &&
         beforePlan.trashSinglesCount >= 1 &&
@@ -18816,13 +19012,10 @@ class TienLenGame {
 
       if (move.type === COMBO_TYPES.SINGLE) {
         if (turnsAdded <= 0 && trashAdded < 0 && effHighRank <= 8) {
-          // Đây là 1 lá Lẻ Rác thực thụ (3..J) nằm ngoài mọi Sảnh/Đôi:
-          // Càng có nhiều rác lẻ trên tay, hoặc đang có thế bài Dùng Boss Lẻ Cướp Cái, càng ưu tiên đẩy lá lẻ nhỏ nhất đi trước!
           score += 58 + beforePlan.trashSinglesCount * 26 + (8 - effHighRank) * 9;
           if (hasSingleTrapComboSetup && sit.minOpponentCards >= 2) {
             score += 95;
           }
-          // Nếu các bộ Đôi/Sảnh trên tay đều là bộ lớn (>= 10), giữ bộ lớn lại và xả lá lẻ nhỏ trước!
           const allMultiAreHigh = beforePlan.plannedCombos
             .filter((cb) => cb.length >= 2)
             .every((cb) => cb.highRank >= 7);
@@ -18830,7 +19023,6 @@ class TienLenGame {
             score += 65;
           }
         } else {
-          // Đánh lẻ nhưng là quân lớn (Q, K, A, 2) hoặc xé bộ:
           score += 15;
         }
       } else if (move.type === COMBO_TYPES.STRAIGHT) {
@@ -18841,20 +19033,17 @@ class TienLenGame {
         score += 62;
       }
 
-      // 4. NGUYÊN TẮC ĐÁNH TỪ NHỎ ĐẾN LỚN (GIỮ BÀI TO Q, K, A, 2 ĐỂ DÀNH ĐỠ BÀI & KẾT LIỄU):
+      // 6. NGUYÊN TẮC ĐÁNH TỪ NHỎ ĐẾN LỚN (GIỮ BÀI TO Q, K, A, 2 ĐỂ DÀNH ĐỠ BÀI & KẾT LIỄU):
       if (sit.minOpponentCards === 1) {
-        // Ngoại lệ duy nhất: Khi có đối thủ chỉ còn đúng 1 lá bài (Báo 1):
-        // Ưu tiên số 1 là đánh Bộ >= 2 lá; nếu buộc phải đánh Lẻ thì đánh từ LỚN XUỐNG NHỎ để chặn cửa!
         if (move.length >= 2) {
           score += 220 + move.length * 15 - effHighValue * 1.2;
         } else {
           score += effHighValue * 3.2;
         }
       } else {
-        // Bình thường: Luôn ưu tiên ra bài nhỏ trước, giữ chặt Heo (2), Át (A), Già (K), Đầm (Q) lại!
         score -= effHighValue * 2.1;
         if (move.highRank === 12) {
-          score -= 650; // Không bao giờ tự quăng Heo ra bàn trống khi chưa phải nước chốt hạ!
+          score -= 650;
         } else if (effHighRank === 11) {
           score -= move.type === COMBO_TYPES.SINGLE ? 260 : 145;
         } else if (effHighRank === 10) {
@@ -18864,12 +19053,12 @@ class TienLenGame {
         }
       }
 
-      // 5. Mở vòng giải phóng 3♠ sớm (tránh bị phạt Thối 3♠ cuối ván)
+      // 7. Mở vòng giải phóng 3♠ sớm (tránh bị phạt Thối 3♠ cuối ván)
       if (contains3Spade && turnsAdded <= 0 && (!touchesBomb || sit.shouldBreakBombForEndgame)) {
         score += 45;
       }
 
-      // 6. Nếu sau nước đi này chỉ còn đúng 1 bộ bài trên tay (chuẩn bị Về Nhất ở lượt kế):
+      // 8. Nếu sau nước đi này chỉ còn đúng 1 bộ bài trên tay (chuẩn bị Về Nhất ở lượt kế):
       if (afterPlan.totalTurns === 1) {
         score += 160;
       }
@@ -18902,36 +19091,39 @@ class TienLenGame {
 
     const struct = this.analyzeBotHandStructure(bot.hand);
     const sit = this.analyzeBotTableSituation(bot, struct);
-    const beforePlan = struct.optimalPlan || this.partitionHandOptimally(bot.hand, sit.shouldBreakBombForEndgame);
+    const beforeChess = this.evaluateChessPosition(bot, bot.hand, sit.shouldBreakBombForEndgame);
+    const beforePlan = beforeChess.plan;
 
-    // 3. TÍNH ĐƯỜNG THẮNG 2 NƯỚC KHI ĐỠ BÀI (CƯỚP CÁI CHỐT HẠ):
-    // Nếu đánh `move` đè bàn xong mà trên tay chỉ còn đúng 1 bộ hợp lệ (`remCombo`),
-    // và `move` là bất bại (cướp cái chắc chắn 100%) HOẶC `remCombo` là Boss bất bại -> Đánh cướp cái ngay để thắng!
+    // 3. CHESS CHECKMATE TAKEOVER (ĐOẠT CÁI CHIẾU HẾT ĐA TẦNG):
+    // Nếu Bot đánh `move` cướp được Cái trong vòng này (`moveUnbeatable`) VÀ phần bài còn lại `remHand`
+    // có chuỗi Chiếu Hết Cưỡng Bức 100% (`findForcedCheckmateMoveFromLead`) -> Tung đòn đoạt Cái ngay lập tức!
     for (const move of validMoves) {
       if (move.isBomb) continue;
       const touchesBomb = move.cards.some((c) => struct.bombRanks.has(c.rankIndex));
       if (touchesBomb && sit.shouldHoldBombToBaitHeo) continue;
       const usedIds = new Set(move.cards.map((c) => c.id));
       const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
+      const moveUnbeatable = this.isMoveUnbeatableByOpponents(bot, move, true);
+      if (moveUnbeatable && this.findForcedCheckmateMoveFromLead(bot, remHand, null)) {
+        return move;
+      }
       const remCombo = classifyCombo(remHand);
-      if (remCombo) {
-        const moveUnbeatable = this.isMoveUnbeatableByOpponents(bot, move, true);
-        const remUnbeatable = this.isMoveUnbeatableByOpponents(bot, remCombo, false);
-        if (moveUnbeatable || remUnbeatable) {
-          return move;
-        }
+      if (remCombo && this.isMoveUnbeatableByOpponents(bot, remCombo, false) && !this.doesMoveAllowOpponentInstantWin(bot, move, true)) {
+        return move;
       }
     }
 
-    // 4. ĐÁNH GIÁ TỪNG NƯỚC ĐỠ BÀI THEO CẤU TRÚC TỐI ƯU (TRƯỚC & SAU KHI ĐÁNH):
+    // 4. ĐÁNH GIÁ TỪNG NƯỚC ĐỠ BÀI THEO MINIMAX 2-PLY & CẤU TRÚC TỐI ƯU:
     const candidates = validMoves.map((move) => {
       const usedIds = new Set(move.cards.map((c) => c.id));
       const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
-      const afterPlan = this.partitionHandOptimally(remHand, sit.shouldBreakBombForEndgame);
+      const afterChess = this.evaluateChessPosition(bot, remHand, sit.shouldBreakBombForEndgame);
+      const afterPlan = afterChess.plan;
 
       const turnsAdded = afterPlan.totalTurns - (beforePlan.totalTurns - 1);
       const trashAdded = afterPlan.trashSinglesCount - beforePlan.trashSinglesCount;
       const veryLowAdded = afterPlan.veryLowSinglesCount - beforePlan.veryLowSinglesCount;
+      const deficitDelta = afterChess.deficitToForcedWin - beforeChess.deficitToForcedWin;
 
       const touchesBomb = !move.isBomb && move.cards.some((c) => struct.bombRanks.has(c.rankIndex));
       const isTwo = move.highRank === 12;
@@ -18948,6 +19140,9 @@ class TienLenGame {
           ? this.currentCombo.highRank
           : 0;
 
+      // CHỐNG BLUNDER MATE-IN-1: Nếu đánh `move` mà đối thủ còn lượt trong vòng đè được và hết sạch bài luôn -> Phạt cực nặng!
+      const mateIn1BlunderPenalty = this.doesMoveAllowOpponentInstantWin(bot, move, true) ? 5500 : 0;
+
       // Chi phí phá vỡ cấu trúc bộ tối ưu
       let breakCost = 0;
       if (touchesBomb && !sit.shouldBreakBombForEndgame) {
@@ -18962,6 +19157,14 @@ class TienLenGame {
       if (veryLowAdded > 0) {
         breakCost += veryLowAdded * 50;
       }
+      // Chi phí thế cờ nếu làm mất quân Boss hộ tống sớm (`deficitDelta > 0`) hoặc thưởng nếu giảm `deficitToForcedWin`
+      const chessPositionalCost =
+        deficitDelta > 0.25 && !sit.isCriticalEndgame && afterPlan.totalTurns >= 2
+          ? deficitDelta * 185
+          : deficitDelta < 0
+          ? deficitDelta * 140
+          : 0;
+
       // Thưởng nếu nước đỡ này giúp giải phóng luôn 1 lá lẻ rác hoặc rút ngắn số lượt!
       const cleanStructureBonus =
         (turnsAdded < 0 ? Math.abs(turnsAdded) * 90 : 0) +
@@ -18977,26 +19180,25 @@ class TienLenGame {
       }
 
       // Kỷ luật giữ Heo (2) và Át (A) / Già (K):
-      // Không bao giờ vội vã đập Heo (2) hay Át (A) lên những lá bài nhỏ (3..10) khi ván đấu chưa vào hồi kết!
       let wasteHighCardPenalty = 0;
       if (!sit.isCriticalEndgame && afterPlan.totalTurns >= 2) {
         if (isTwo) {
           if (curEffRank <= 8 && sit.minOpponentCards >= 4) {
-            wasteHighCardPenalty += 320; // Cấm đập Heo lên bài 3..J khi đối thủ còn >= 4 lá
+            wasteHighCardPenalty += 320;
           } else if (curEffRank <= 10 && sit.minOpponentCards >= 6) {
-            wasteHighCardPenalty += 190; // Hạn chế đập Heo sớm khi đối thủ còn nhiều bài
+            wasteHighCardPenalty += 190;
           } else {
             wasteHighCardPenalty += 75;
           }
         } else if (effHighRank === 11 && curEffRank <= 6 && sit.minOpponentCards >= 5) {
-          wasteHighCardPenalty += 115; // Không phung phí Át (A) đè bài nhỏ 3..9 từ sớm
+          wasteHighCardPenalty += 115;
         } else if (effHighRank === 10 && curEffRank <= 4 && sit.minOpponentCards >= 6 && beforePlan.bossSinglesCount <= 1) {
           wasteHighCardPenalty += 65;
         }
       }
 
       const nearFinishBonus =
-        afterPlan.totalTurns === 1 ? -145 : afterPlan.totalTurns === 2 ? -45 : 0;
+        afterPlan.totalTurns === 1 ? -145 : afterPlan.totalTurns === 2 && afterChess.deficitToForcedWin === 0 ? -95 : 0;
 
       // Ưu tiên mạnh các bộ bài kích hoạt đúng hiệu ứng Chiêu Nộ vừa bật trong lượt này
       let skillSynergyBonus = 0;
@@ -19046,7 +19248,9 @@ class TienLenGame {
       }
 
       const totalCost =
-        breakCost * breakWeight -
+        mateIn1BlunderPenalty +
+        breakCost * breakWeight +
+        chessPositionalCost -
         cleanStructureBonus +
         cardValueTerm +
         wasteHighCardPenalty +
@@ -19058,8 +19262,10 @@ class TienLenGame {
         breakCost,
         turnsAdded,
         trashAdded,
+        deficitDelta,
         touchesBomb,
         afterPlan,
+        afterChess,
         effHighRank,
         curEffRank,
         totalCost,
@@ -19122,13 +19328,13 @@ class TienLenGame {
       return null;
     }
 
-    // 3. Không phung phí quân Át (A) hoặc Heo (2) duy nhất để đè bài quá nhỏ (3..8) khi ván bài còn dài
+    // 3. Không phung phí quân Chủ Lực Hộ Tống (A / 2) làm hỏng thế cờ (`deficitDelta >= 0.6`) để đè bài nhỏ/trung bình khi ván bài còn dài
     if (
       best.effHighRank >= 11 &&
-      best.curEffRank <= 5 &&
+      best.curEffRank <= 7 &&
       sit.minOpponentCards >= 5 &&
       sit.ownerCards >= 5 &&
-      beforePlan.bossSinglesCount <= 1 &&
+      (beforePlan.bossSinglesCount <= 1 || best.deficitDelta >= 0.6) &&
       best.afterPlan.totalTurns >= 3
     ) {
       return null;

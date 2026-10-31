@@ -2018,10 +2018,10 @@ function getAvatarHtml(avatarIdOrEmoji) {
   const mappedId = LEGACY_ID_MAP[avatarIdOrEmoji] || avatarIdOrEmoji;
   const found = ANIME_AVATARS.find((a) => a.id === mappedId);
   if (found && found.imgUrl) {
-    return `<img class="anime-avatar-img" src="${found.imgUrl}" alt="${found.name}" referrerpolicy="no-referrer" />`;
+    return `<img class="anime-avatar-img" src="${found.imgUrl}" alt="" onerror="this.style.display='none'" referrerpolicy="no-referrer" />`;
   }
   if (typeof mappedId === 'string' && (mappedId.startsWith('http') || mappedId.startsWith('fanart/'))) {
-    return `<img class="anime-avatar-img" src="${mappedId}" alt="Genshin Fanart Avatar" referrerpolicy="no-referrer" />`;
+    return `<img class="anime-avatar-img" src="${mappedId}" alt="" onerror="this.style.display='none'" referrerpolicy="no-referrer" />`;
   }
   return `<span style="font-size:1.35em;line-height:1;">😎</span>`;
 }
@@ -3634,29 +3634,14 @@ class TienLenGame {
       videoEl = freshVideo;
     }
 
-    // Xóa tuyệt đối backgroundImage cũ trên charWrapEl và dùng thẻ <img> riêng được xóa sạch trước khi nạp ảnh mới
-    // (Chống 100% lỗi máy yếu giữ lại ảnh/khung hình Nộ của nhân vật trước đó trong bộ nhớ GPU!)
-    let posterImgEl = document.getElementById('burst-poster-img');
+    // Xóa tuyệt đối backgroundImage và mọi ảnh tĩnh (#burst-poster-img) trên charWrapEl
+    // Chỉ hiển thị duy nhất video Hoạt Ảnh Nộ (.mp4), KHÔNG BAO GIỜ hiện avatar tĩnh của nhân vật trước hoặc trong Kỹ Năng Nộ!
+    const oldPosterImgEl = document.getElementById('burst-poster-img');
+    if (oldPosterImgEl) {
+      oldPosterImgEl.remove();
+    }
     if (charWrapEl) {
       charWrapEl.style.backgroundImage = 'none';
-      if (!posterImgEl) {
-        posterImgEl = document.createElement('img');
-        posterImgEl.id = 'burst-poster-img';
-        posterImgEl.className = 'burst-character-img';
-        posterImgEl.alt = '';
-        charWrapEl.insertBefore(posterImgEl, videoEl);
-      }
-      posterImgEl.onload = null;
-      posterImgEl.onerror = null;
-      posterImgEl.style.visibility = 'hidden';
-      posterImgEl.src = EMPTY_PX;
-      if (burstMeta.posterUrl) {
-        posterImgEl.onload = () => {
-          if (seqId !== this._burstSeqId) return;
-          posterImgEl.style.visibility = 'visible';
-        };
-        posterImgEl.src = burstMeta.posterUrl;
-      }
     }
 
     overlay.classList.remove(
@@ -3687,11 +3672,6 @@ class TienLenGame {
       if (burstFinished || seqId !== this._burstSeqId) return;
       burstFinished = true;
       clearTimeout(this.burstTimeout);
-      if (posterImgEl) {
-        posterImgEl.onload = null;
-        posterImgEl.style.visibility = 'hidden';
-        posterImgEl.src = EMPTY_PX;
-      }
       if (charWrapEl) {
         charWrapEl.style.backgroundImage = 'none';
       }
@@ -3754,16 +3734,21 @@ class TienLenGame {
         if (frameRevealed || seqId !== this._burstSeqId) return;
         frameRevealed = true;
         videoEl.ontimeupdate = null;
+        videoEl.onloadeddata = null;
         videoEl.style.visibility = 'visible';
         videoEl.style.opacity = '1';
       };
 
-      // Trên máy yếu, chỉ hiển thị thẻ <video> sau khi decoder phần cứng thực sự đã vẽ xong khung hình đầu tiên của video MỚI
+      // Chỉ hiển thị thẻ <video> mới tạo sau khi decoder đã có khung hình của video MỚI
       if (typeof videoEl.requestVideoFrameCallback === 'function') {
         videoEl.requestVideoFrameCallback(() => {
           revealVideoFrame();
         });
       }
+      videoEl.onloadeddata = () => {
+        if (seqId !== this._burstSeqId) return;
+        revealVideoFrame();
+      };
       videoEl.ontimeupdate = () => {
         if (seqId !== this._burstSeqId) return;
         if (videoEl.currentTime > 0.02) {
@@ -9276,36 +9261,21 @@ class TienLenGame {
   }
 
   getSpecialPlayReaction(player, combo, targetOpponent = null) {
-    const attackerElem = this.getPlayerElement(player, combo);
-    let defenderElem = null;
-    if (targetOpponent && targetOpponent.id !== player?.id) {
-      defenderElem = this.getPlayerElement(targetOpponent, this.currentCombo);
-    } else if (this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== player.id) {
-      defenderElem = this.getPlayerElement(this.players[this.trickOwnerId], this.currentCombo);
+    const opp =
+      targetOpponent && targetOpponent.id !== player?.id
+        ? targetOpponent
+        : this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== player?.id
+        ? this.players[this.trickOwnerId]
+        : null;
+    if (!player || !opp) return null;
+    if (this.getPlayerActiveCharId(player) === 'none' || this.getPlayerActiveCharId(opp) === 'none') {
+      return null;
     }
-    if (!defenderElem || defenderElem === attackerElem) {
-      const themeMap = {
-        inazuma: 'electro',
-        fontaine: 'hydro',
-        natlan: 'pyro',
-        cryo: 'cryo',
-        abyss: 'hydro',
-      };
-      const fallbackOrder = [
-        themeMap[this.arenaTheme || 'inazuma'] || 'hydro',
-        combo?.highCard?.suit === '♥'
-          ? 'pyro'
-          : combo?.highCard?.suit === '♦'
-          ? 'electro'
-          : combo?.highCard?.suit === '♣'
-          ? 'cryo'
-          : 'hydro',
-        'hydro',
-        'pyro',
-        'cryo',
-        'electro',
-      ];
-      defenderElem = fallbackOrder.find((e) => e !== attackerElem) || 'hydro';
+    const attackerElem = this.getPlayerElement(player, combo);
+    const defenderElem = this.getPlayerElement(opp, this.currentCombo);
+    // Hai nhân vật trùng nguyên tố hoặc 2 nguyên tố không tương tác thực tế sẽ KHÔNG có Phản Ứng Nguyên Tố!
+    if (!checkGenuineGenshinReaction(attackerElem, defenderElem)) {
+      return null;
     }
     return resolveGenshinReaction(attackerElem, defenderElem);
   }
@@ -12592,7 +12562,7 @@ class TienLenGame {
           }
         : null;
     this.triggerGenshinBurst(charId, skillSummary, onBurstDone, true);
-    this.showComboBanner(`🔮 KỸ NĂNG ${sk.charName.toUpperCase()}: ${sk.name.toUpperCase()}!`, rx.cssClass);
+    this.showComboBanner(`🔮 KỸ NĂNG ${sk.charName.toUpperCase()}: ${sk.name.toUpperCase()}!`, rx ? rx.cssClass : 'chop-banner');
     this.addLog(`🔮 <strong>${skillSummary}</strong>`, 'log-win');
 
     this.updateArenaBackdropCharacters();
@@ -17415,29 +17385,43 @@ class TienLenGame {
         isGood: true,
       });
 
-      const rx = this.getSpecialPlayReaction(player, combo);
+      const hasChopElementalClash =
+        this.getPlayerActiveCharId(player) !== 'none' &&
+        victim &&
+        this.getPlayerActiveCharId(victim) !== 'none' &&
+        checkGenuineGenshinReaction(
+          this.getPlayerElement(player, combo),
+          this.getPlayerElement(victim, this.currentCombo)
+        );
+      const rx = hasChopElementalClash ? this.getSpecialPlayReaction(player, combo, victim) : null;
       combo.reaction = rx;
-      const hasChopElementalClash = checkGenuineGenshinReaction(
-        this.getPlayerElement(player, combo),
-        this.getPlayerElement(victim, this.currentCombo)
-      );
-      if (hasChopElementalClash) {
+      if (hasChopElementalClash && rx) {
         this.applyElementalReactionBonus(player, victim, rx);
       }
       const chopTitleUpper = isStackedChop ? 'CHẶT CHỒNG' : 'CHẶT';
-      const chopBurstDetail = `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} ${chopTitleUpper.toLowerCase()} ${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()} xu)!`;
+      const chopBurstDetail = rx
+        ? `⚡ [${rx.shortName}] ${player.name} tung ${combo.label} ${chopTitleUpper.toLowerCase()} ${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()} xu)!`
+        : `💥 ${player.name} tung ${combo.label} ${chopTitleUpper.toLowerCase()} ${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()} xu)!`;
       const chopBurstId = this.getPlayerActiveCharId(player);
       if (player.hand.length > 0) {
         this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
         this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
-      } else {
+      } else if (rx) {
         this.triggerArenaReactionFlash(rx);
       }
-      this.showComboBanner(`${rx.badge} • ${chopTitleUpper} +${totalChopValue.toLocaleString()} XU!`, rx.cssClass);
-      this.addLog(
-        `💥 <strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> tung <strong>${combo.label}</strong> ${chopTitleUpper.toLowerCase()} <strong>${targetDisplayLabel}</strong> của <strong>${victim.name}</strong> (+${totalChopValue.toLocaleString()} xu)!`,
-        'log-chop'
-      );
+      if (rx) {
+        this.showComboBanner(`${rx.badge} • ${chopTitleUpper} +${totalChopValue.toLocaleString()} XU!`, rx.cssClass);
+        this.addLog(
+          `💥 <strong>[${rx.shortName}]</strong> <strong>${player.name}</strong> tung <strong>${combo.label}</strong> ${chopTitleUpper.toLowerCase()} <strong>${targetDisplayLabel}</strong> của <strong>${victim.name}</strong> (+${totalChopValue.toLocaleString()} xu)!`,
+          'log-chop'
+        );
+      } else {
+        this.showComboBanner(`💥 ${chopTitleUpper} +${totalChopValue.toLocaleString()} XU!`, 'chop-banner');
+        this.addLog(
+          `💥 <strong>${player.name}</strong> tung <strong>${combo.label}</strong> ${chopTitleUpper.toLowerCase()} <strong>${targetDisplayLabel}</strong> của <strong>${victim.name}</strong> (+${totalChopValue.toLocaleString()} xu)!`,
+          'log-chop'
+        );
+      }
       setTimeout(() => {
         this.saveShopProfile();
       }, 350);
@@ -17455,7 +17439,8 @@ class TienLenGame {
       const hasEquippedChar = this.getPlayerActiveCharId(player) !== 'none';
       this.lastSkillCutTargetId = null;
 
-      // Phản Ứng Nguyên Tố CHỈ tính khi ĐÈ (chặn) bộ bài đang có trên bàn của đối thủ (KHÔNG tính lúc mở vòng mới trên bàn trống!)
+      // Phản Ứng Nguyên Tố CHỈ tính khi ĐÈ (chặn) bộ bài đang có trên bàn của đối thủ VÀ 2 nhân vật khác hệ có tương tác thực sự
+      // (2 con trùng nguyên tố nhau hoàn toàn KHÔNG có phản ứng nguyên tố!)
       const prevPlayer =
         this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== player.id
           ? this.players[this.trickOwnerId]
@@ -17471,12 +17456,11 @@ class TienLenGame {
         );
 
       sfx.playCard(isUltra ? 'ultra' : isHeavy ? 'heavy' : 'normal');
-      // Kích hoạt Phản Ứng Nguyên Tố khi đã trang bị nhân vật VÀ đánh bài lớn (Sảnh Lớn ≥ 4 lá, Sám Cô, Heo 2, Hàng) ĐÈ LÊN bài của đối thủ trên bàn
-      if (isHeavy && hasEquippedChar && prevPlayer) {
-        const rx = this.getSpecialPlayReaction(player, combo, prevPlayer);
+      const rx = isHeavy && hasElementalClash ? this.getSpecialPlayReaction(player, combo, prevPlayer) : null;
+      if (rx) {
         combo.reaction = rx;
         this.triggerArenaReactionFlash(rx);
-        const rxBonus = hasElementalClash ? this.applyElementalReactionBonus(player, prevPlayer, rx) : 0;
+        const rxBonus = this.applyElementalReactionBonus(player, prevPlayer, rx);
         const bonusTag = rxBonus > 0 ? ` (+${rxBonus.toLocaleString()} XU ×5)` : '';
         this.showComboBanner(`${rx.badge}${bonusTag} • ${combo.label.toUpperCase()}!`, rx.cssClass);
         this.addLog(
@@ -19689,9 +19673,7 @@ class TienLenGame {
       div.style.boxShadow = '0 0 14px rgba(239, 68, 68, 0.7)';
     }
 
-    const crestHtml = activeSkin.crest
-      ? `<span class="card-anime-crest">${activeSkin.crest}</span>`
-      : '';
+    const crestHtml = '';
     const bgArtHtml = activeSkin.imgUrl
       ? `<div class="card-anime-art" style="background-image:url('${activeSkin.imgUrl}')"></div>`
       : '';
@@ -19750,7 +19732,11 @@ class TienLenGame {
 
       if (nameEl) nameEl.textContent = visualSlot === 0 ? `${p.name} (Bạn)` : p.name;
       if (avatarEl) {
-        avatarEl.innerHTML = getAvatarHtml(p.avatar || AVATARS[p.id]);
+        const avatarKey = String(p.avatar || AVATARS[p.id] || '');
+        if (avatarEl.getAttribute('data-avatar-key') !== avatarKey) {
+          avatarEl.setAttribute('data-avatar-key', avatarKey);
+          avatarEl.innerHTML = getAvatarHtml(avatarKey);
+        }
       }
       coinsEl.textContent = p.coins.toLocaleString();
       countEl.textContent = p.hand.length;
@@ -19792,7 +19778,7 @@ class TienLenGame {
           if (charThumbEl.getAttribute('src') !== expectedSrc) {
             charThumbEl.setAttribute('src', expectedSrc);
           }
-          charThumbEl.alt = sk.charName;
+          charThumbEl.alt = '';
           charThumbEl.style.display = '';
         } else {
           charThumbEl.style.display = 'none';

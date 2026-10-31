@@ -751,7 +751,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'kinich',
     name: 'Kinich — Kính Chào Thánh Long Toàn Năng',
-    desc: '[Huyền Thoại] Thợ săn Natlan đặt Bom Hẹn Giờ Pixel Ajaw lên bàn: Đối thủ nào đánh đè lên bài của Kinich vòng này sẽ bị nổ bom nhận thêm 1 lá rác (Video + Giọng lồng tiếng thật).',
+    desc: '[Huyền Thoại] Thợ săn Natlan đặt Bom Hẹn Giờ Pixel Ajaw lên bàn: Tất cả đối thủ tham gia đánh bài trong vòng đang diễn ra đều bị nổ bom nhận thêm 1 lá rác từ tay Kinich (Video + Giọng lồng tiếng thật).',
     price: 155000,
     mp4Url: 'kinich_burst.mp4?v=57',
     audioUrl: 'kinich_burst.ogg?v=62',
@@ -1649,7 +1649,7 @@ const CHARACTER_SKILLS = {
     charName: 'Kinich',
     icon: '🎮',
     name: 'Gài Bom Hẹn Giờ Ajaw',
-    shortDesc: 'Đặt Bom Pixel Ajaw lên bàn bài: Đối thủ nào dám đánh đè lên bài của Kinich trong vòng này sẽ kích nổ bom, bị nhét thẳng 1 lá bài rác nhỏ nhất từ tay Kinich vào tay họ!',
+    shortDesc: 'Đặt Bom Pixel Ajaw lên bàn bài: Tất cả đối thủ tham gia đánh bài trong vòng đang diễn ra đều bị kích nổ bom, mỗi người đánh sẽ bị nhét thẳng 1 lá bài rác nhỏ nhất từ tay Kinich vào tay họ!',
   },
   venti: {
     id: 'venti',
@@ -3397,6 +3397,7 @@ class TienLenGame {
     this.xiaoPlungeSingleTurn = false;
     activeXiaoPlungeSingle = false;
     this.kinichBombOwnerId = null;
+    this.roundPlayedSeatIds = new Set();
     this.nicoleSuitOnlyRound = false;
     activeNicoleSuitOnlyRound = false;
     this.xianyunStepStraightTurn = false;
@@ -10142,7 +10143,7 @@ class TienLenGame {
     if (this.kinichBombOwnerId !== null) {
       const kp = this.players[this.kinichBombOwnerId];
       pills.push(
-        `<span class="round-skill-pill">🎮 Bom Hẹn Giờ Ajaw (${kp ? kp.name : 'Kinich'}): Ai đánh đè lên bài của Kinich vòng này sẽ nổ bom nhận 1 lá rác!</span>`
+        `<span class="round-skill-pill">🎮 Bom Hẹn Giờ Ajaw (${kp ? kp.name : 'Kinich'}): Tất cả đối thủ đánh bài trong vòng đang diễn ra đều bị nổ bom nhận 1 lá rác!</span>`
       );
     }
     if (this.columbinaExtraTurnReady) {
@@ -11710,7 +11711,36 @@ class TienLenGame {
       skillSummary = `🌀 [Cuồng Phong Đảo Mệnh] ${player.name} triệu hồi lốc xoáy thu gom toàn bộ ${allCards.length} lá bài của tất cả người chơi trên bàn, xáo trộn ngẫu nhiên rồi chia lại!`;
     } else if (charId === 'kinich') {
       this.kinichBombOwnerId = player.id;
-      skillSummary = `🎮 [Gài Bom Hẹn Giờ Ajaw] ${player.name} đặt Bom Pixel Ajaw lên bàn bài: Đối thủ nào dám đánh đè lên bài của ${player.name} trong vòng này sẽ kích nổ bom nhận thêm 1 lá bài rác!`;
+      const bombedEarlierNames = [];
+      if (this.currentCombo && this.roundPlayedSeatIds instanceof Set && this.roundPlayedSeatIds.size > 0) {
+        this.roundPlayedSeatIds.forEach((seatId) => {
+          if (seatId === player.id || player.hand.length < 2) return;
+          const opp = this.players[seatId];
+          if (!opp || !opp.active || opp.finishRank !== null || opp.hand.length < 1) return;
+          const kStruct = this.analyzeBotHandStructure(player.hand);
+          const kSorted = sortCardsAsc(player.hand);
+          const bombTrash =
+            kSorted.find(
+              (c) =>
+                c.rankIndex < 12 &&
+                kStruct.rankCounts[c.rankIndex] === 1 &&
+                !kStruct.bombRanks.has(c.rankIndex) &&
+                !kStruct.criticalStraightRanks.has(c.rankIndex)
+            ) ||
+            kSorted.find((c) => c.rankIndex < 12) ||
+            kSorted[0];
+          if (bombTrash) {
+            player.hand = player.hand.filter((c) => c.id !== bombTrash.id);
+            opp.hand.push(bombTrash);
+            opp.hand = sortHandByMode(opp.hand, opp.id === this.mySeatId ? this.sortMode : 'asc');
+            bombedEarlierNames.push(`${opp.name} (${bombTrash.rank}${bombTrash.suit})`);
+          }
+        });
+      }
+      skillSummary =
+        bombedEarlierNames.length > 0
+          ? `🎮 [Gài Bom Hẹn Giờ Ajaw] ${player.name} kích hoạt Bom Pixel Ajaw: Nhét ngay lá rác cho người đã đánh trong vòng (${bombedEarlierNames.join(', ')}) và mọi đối thủ đánh tiếp trong vòng này đều bị nhận thêm 1 lá bài rác!`
+          : `🎮 [Gài Bom Hẹn Giờ Ajaw] ${player.name} đặt Bom Pixel Ajaw lên bàn bài: Tất cả đối thủ tham gia đánh bài trong vòng đang diễn ra đều sẽ kích nổ bom nhận thêm 1 lá bài rác!`;
     } else if (charId === 'venti') {
       const suckedFromOpps = [];
       const oppTargets = [];
@@ -16532,6 +16562,7 @@ class TienLenGame {
     this.xiaoPlungeSingleTurn = false;
     activeXiaoPlungeSingle = false;
     this.kinichBombOwnerId = null;
+    this.roundPlayedSeatIds = new Set();
     this.nicoleSuitOnlyRound = false;
     activeNicoleSuitOnlyRound = false;
     this.xianyunStepStraightTurn = false;
@@ -17082,6 +17113,10 @@ class TienLenGame {
     if (!beatCheck.ok) return false;
 
     clearTimeout(this.botTimer);
+    if (!this.currentCombo || !(this.roundPlayedSeatIds instanceof Set)) {
+      this.roundPlayedSeatIds = new Set();
+    }
+    this.roundPlayedSeatIds.add(player.id);
     const playedIds = new Set(combo.cards.map((c) => c.id));
     player.hand = player.hand.filter((c) => !playedIds.has(c.id));
     if (!Array.isArray(this.matchGraveyardCards)) {
@@ -17155,16 +17190,13 @@ class TienLenGame {
       this.renderRoundSkillStatusBar();
     }
 
-    // Bom Hẹn Giờ Ajaw của Kinich: Nếu đối thủ đánh đè lên bài của Kinich trong vòng này sẽ bị nổ bom nhận 1 lá bài rác nhỏ nhất từ tay Kinich!
+    // Bom Hẹn Giờ Ajaw của Kinich: Tất cả đối thủ tham gia đánh bài trong vòng đang diễn ra đều bị nổ bom nhận 1 lá bài rác nhỏ nhất từ tay Kinich!
     if (
       this.kinichBombOwnerId !== null &&
-      this.currentCombo &&
-      this.trickOwnerId === this.kinichBombOwnerId &&
       player.id !== this.kinichBombOwnerId &&
       player.hand.length >= 1
     ) {
       const kinichOwner = this.players[this.kinichBombOwnerId];
-      this.kinichBombOwnerId = null;
       if (kinichOwner && kinichOwner.active && kinichOwner.finishRank === null && kinichOwner.hand.length >= 2) {
         const kStruct = this.analyzeBotHandStructure(kinichOwner.hand);
         const kSorted = sortCardsAsc(kinichOwner.hand);
@@ -17184,10 +17216,15 @@ class TienLenGame {
           player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
           this.showComboBanner(`🎮💥 BOM AJAW NỔ! ${player.name.toUpperCase()} NHẬN THÊM 1 LÁ RÁC!`, 'reaction-burning');
           this.addLog(
-            `🎮💥 <strong>[Bom Hẹn Giờ Ajaw]</strong> <strong>${player.name}</strong> đánh đè lên bài của <strong>${kinichOwner.name}</strong> nên kích nổ bom, bị nhét thêm lá rác <strong>${bombTrash.rank}${bombTrash.suit}</strong> vào tay!`,
+            `🎮💥 <strong>[Bom Hẹn Giờ Ajaw]</strong> <strong>${player.name}</strong> đánh bài trong vòng gài bom của <strong>${kinichOwner.name}</strong> nên kích nổ bom, bị nhét thêm lá rác <strong>${bombTrash.rank}${bombTrash.suit}</strong> vào tay!`,
             'log-chop'
           );
         }
+        if (kinichOwner.hand.length < 2) {
+          this.kinichBombOwnerId = null;
+        }
+      } else {
+        this.kinichBombOwnerId = null;
       }
       this.renderRoundSkillStatusBar();
     }
@@ -17894,6 +17931,7 @@ class TienLenGame {
     this.xiaoPlungeSingleTurn = false;
     activeXiaoPlungeSingle = false;
     this.kinichBombOwnerId = null;
+    this.roundPlayedSeatIds = new Set();
     this.mualaniCrossBeatTurn = false;
     activeMualaniCrossBeat = false;
     this.nicoleSuitOnlyRound = false;

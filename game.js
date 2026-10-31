@@ -780,7 +780,7 @@ const GENSHIN_BURSTS = [
     id: 'qiqi',
     isStandard: true,
     name: 'Qiqi — Tiên Pháp: Cứu Khổ Độ Ách',
-    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Khi thua ván được giảm 15% tiền phạt đếm lá + Có Hoạt Ảnh Nộ 5★ khi Chặt & Thắng.',
+    desc: '[5★ Thường • Lệch Rate] Không có Chiêu Nộ [Q] • Nội Tại Cược: Khi thua ván được giảm 15% tiền phạt đếm lá + Có Hoạt Ảnh Nộ 5★ khi Chặt & Thắng.',
     price: 90000,
     mp4Url: 'qiqi_burst.mp4?v=61',
     audioUrl: 'qiqi_burst.ogg?v=62',
@@ -795,7 +795,7 @@ const GENSHIN_BURSTS = [
     id: 'keqing',
     isStandard: true,
     name: 'Keqing — Tuần Du Thiên Nhai',
-    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Khi Về Nhất thu thêm +2× Mức cược từ mỗi nhà thua + Có Hoạt Ảnh Nộ 5★ khi Chặt & Thắng.',
+    desc: '[5★ Thường • Lệch Rate] Không có Chiêu Nộ [Q] • Nội Tại Cược: Khi Về Nhất thu thêm +2× Mức cược từ mỗi nhà thua + Có Hoạt Ảnh Nộ 5★ khi Chặt & Thắng.',
     price: 95000,
     mp4Url: 'keqing_burst.mp4?v=61',
     audioUrl: 'keqing_burst.ogg?v=62',
@@ -810,7 +810,7 @@ const GENSHIN_BURSTS = [
     id: 'mona',
     isStandard: true,
     name: 'Mona — Quỹ Đạo Tinh Mệnh',
-    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Về Nhất thu thêm +1.5× cược mỗi nhà thua, khi thua được giảm 1× cược + Có Hoạt Ảnh Nộ 5★.',
+    desc: '[5★ Thường • Lệch Rate] Không có Chiêu Nộ [Q] • Nội Tại Cược: Về Nhất thu thêm +1.5× cược mỗi nhà thua, khi thua được giảm 1× cược + Có Hoạt Ảnh Nộ 5★.',
     price: 95000,
     mp4Url: 'mona_burst.mp4?v=61',
     audioUrl: 'mona_burst.ogg?v=62',
@@ -825,7 +825,7 @@ const GENSHIN_BURSTS = [
     id: 'diluc',
     isStandard: true,
     name: 'Diluc — Lê Minh Phượng Hoàng',
-    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Tăng +20% tiền thưởng khi Chặt Heo/Hàng và khi ăn Thối cuối ván + Có Hoạt Ảnh Nộ 5★.',
+    desc: '[5★ Thường • Lệch Rate] Không có Chiêu Nộ [Q] • Nội Tại Cược: Tăng +20% tiền thưởng khi Chặt Heo/Hàng và khi ăn Thối cuối ván + Có Hoạt Ảnh Nộ 5★.',
     price: 95000,
     mp4Url: 'diluc_burst.mp4?v=61',
     audioUrl: 'diluc_burst.ogg?v=62',
@@ -840,7 +840,7 @@ const GENSHIN_BURSTS = [
     id: 'jean',
     isStandard: true,
     name: 'Jean — Gió Bồ Công Anh',
-    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Giảm 25% tiền phạt khi bị Chặt Heo/Hàng hoặc bị phạt Thối/Cóng cuối ván + Có Hoạt Ảnh Nộ 5★.',
+    desc: '[5★ Thường • Lệch Rate] Không có Chiêu Nộ [Q] • Nội Tại Cược: Giảm 25% tiền phạt khi bị Chặt Heo/Hàng hoặc bị phạt Thối/Cóng cuối ván + Có Hoạt Ảnh Nộ 5★.',
     price: 95000,
     mp4Url: 'jean_burst.mp4?v=61',
     audioUrl: 'jean_burst.ogg?v=62',
@@ -855,7 +855,7 @@ const GENSHIN_BURSTS = [
     id: 'tighnari',
     isStandard: true,
     name: 'Tighnari — Dây Leo Sinh Trưởng',
-    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Mỗi lần đánh Sảnh (≥ 4 lá) hoặc Sám Cô nhận ngay +0.5× cược (tối đa 3 lần/ván) + Có Hoạt Ảnh Nộ 5★.',
+    desc: '[5★ Thường • Lệch Rate] Không có Chiêu Nộ [Q] • Nội Tại Cược: Mỗi lần đánh Sảnh (≥ 4 lá) hoặc Sám Cô nhận ngay +0.5× cược (tối đa 3 lần/ván) + Có Hoạt Ảnh Nộ 5★.',
     price: 90000,
     mp4Url: 'tighnari_burst.mp4?v=61',
     audioUrl: 'tighnari_burst.ogg?v=62',
@@ -870,7 +870,7 @@ const GENSHIN_BURSTS = [
     id: 'dehya',
     isStandard: true,
     name: 'Dehya — Sư Tử Lửa Bờm Đỏ',
-    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Khi thua nặng (≥ 8 lá hoặc Cóng), giảm 25% tiền phạt các lá vượt ngưỡng 7 lá + Có Hoạt Ảnh Nộ 5★.',
+    desc: '[5★ Thường • Lệch Rate] Không có Chiêu Nộ [Q] • Nội Tại Cược: Khi thua nặng (≥ 8 lá hoặc Cóng), giảm 25% tiền phạt các lá vượt ngưỡng 7 lá + Có Hoạt Ảnh Nộ 5★.',
     price: 90000,
     mp4Url: 'dehya_burst.mp4?v=61',
     audioUrl: 'dehya_burst.ogg?v=62',
@@ -885,7 +885,7 @@ const GENSHIN_BURSTS = [
     id: 'mizuki',
     isStandard: true,
     name: 'Yumemizuki Mizuki — Liệu Pháp Mộng Đẹp',
-    desc: '[5★ Thường • Lệch Rate] Không có Kỹ Năng [E] • Nội Tại Cược: Kết thúc mỗi ván (thắng hay thua) đều được Baku hồi cố định +1.5× Mức cược Xu + Có Hoạt Ảnh Nộ 5★.',
+    desc: '[5★ Thường • Lệch Rate] Không có Chiêu Nộ [Q] • Nội Tại Cược: Kết thúc mỗi ván (thắng hay thua) đều được Baku hồi cố định +1.5× Mức cược Xu + Có Hoạt Ảnh Nộ 5★.',
     price: 95000,
     mp4Url: 'mizuki_burst.mp4?v=61',
     audioUrl: 'mizuki_burst.ogg?v=62',
@@ -6367,7 +6367,7 @@ class TienLenGame {
           const mediaThumbHtml = `<img class="gacha-result-thumb" src="${item.thumbUrl}" alt="${item.name}" loading="lazy" referrerpolicy="no-referrer" />`;
           const skillBadgeHtml =
             item.category === 'burst' && CHARACTER_SKILLS[item.id]
-              ? `<div style="font-size:10.5px;color:#fde68a;background:rgba(15,23,42,0.82);border:1px solid rgba(250,204,21,0.4);border-radius:6px;padding:4px 6px;margin-top:3px;line-height:1.3;"><strong>${CHARACTER_SKILLS[item.id].icon} Kỹ Năng [E]: ${CHARACTER_SKILLS[item.id].name}</strong> — ${CHARACTER_SKILLS[item.id].shortDesc}</div>`
+              ? `<div style="font-size:10.5px;color:#fde68a;background:rgba(15,23,42,0.82);border:1px solid rgba(250,204,21,0.4);border-radius:6px;padding:4px 6px;margin-top:3px;line-height:1.3;"><strong>${CHARACTER_SKILLS[item.id].icon} Chiêu Nộ [Q]: ${CHARACTER_SKILLS[item.id].name}</strong> — ${CHARACTER_SKILLS[item.id].shortDesc}</div>`
               : '';
 
           return `
@@ -6513,7 +6513,7 @@ class TienLenGame {
                     ⚡ TẶNG CHẮC CHẮN 100% NHÂN VẬT 5★ LIMITED: RAIDEN SHOGUN (LÔI THẦN)
                   </div>
                   <div style="font-size:12.5px;color:#fde68a;margin-top:3px;line-height:1.4;">
-                    🔮 <strong>Kỹ Năng [Phím E] — Tịnh Thổ Cắt Vòng:</strong> Chém đứt bộ Lẻ/Đôi ≤ J trên bàn để <strong>cướp quyền Cầm Cái mở vòng mới</strong> ngay lập tức • Mang hệ <strong>⚡ Lôi</strong> kích hoạt <strong>Phản Ứng Nguyên Tố (+5× cược)</strong> khi đánh bài đè đối thủ!
+                    🔮 <strong>Chiêu Nộ [Phím Q] — Tịnh Thổ Cắt Vòng:</strong> Chém đứt bộ Lẻ/Đôi ≤ J trên bàn để <strong>cướp quyền Cầm Cái mở vòng mới</strong> ngay lập tức • Mang hệ <strong>⚡ Lôi</strong> kích hoạt <strong>Phản Ứng Nguyên Tố (+5× cược)</strong> khi đánh Sảnh Lớn / Sám Cô!
                   </div>
                 </div>
               </div>
@@ -6541,7 +6541,7 @@ class TienLenGame {
           <div class="gacha-up-Roster" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-height:none;">${upRosterHtml}</div>
           <div style="margin-top:8px;padding-top:6px;border-top:1px dashed rgba(148,163,184,0.28);">
             <div style="font-size:11.5px;font-weight:800;color:#93c5fd;margin-bottom:4px;">
-              ☯️ 8 NHÂN VẬT 5★ THƯỜNG (LỆCH RATE 50/50 • CÓ HOẠT ẢNH NỘ 5★ &amp; NỘI TẠI CƯỢC TỰ ĐỘNG, KHÔNG CÓ KỸ NĂNG E — BẤM ĐỂ XEM NỘ):
+              ☯️ 8 NHÂN VẬT 5★ THƯỜNG (LỆCH RATE 50/50 • CÓ HOẠT ẢNH NỘ 5★ &amp; NỘI TẠI CƯỢC TỰ ĐỘNG, KHÔNG CÓ CHIÊU NỘ Q — BẤM ĐỂ XEM NỘ):
             </div>
             <div class="gacha-up-Roster" style="max-height:76px;">${standardRosterHtml}</div>
           </div>
@@ -6550,7 +6550,7 @@ class TienLenGame {
         <div class="gacha-banner-hero">
           <div class="gacha-hero-left">
             <div>
-              <div class="gacha-banner-tag">🌠 BANNER NHÂN VẬT GIỚI HẠN • MỞ KHÓA NỘ 5★ &amp; KỸ NĂNG CHIẾN THUẬT [E]</div>
+              <div class="gacha-banner-tag">🌠 BANNER NHÂN VẬT GIỚI HẠN • MỞ KHÓA NỘ 5★ &amp; CHIÊU NỘ [Q]</div>
               <div class="gacha-banner-main-title" style="margin-top:6px;">${featuredBurst.name}</div>
               <div class="gacha-banner-sub" style="margin-top:4px;">${featuredBurst.desc}</div>
             </div>
@@ -6558,12 +6558,12 @@ class TienLenGame {
             <div class="gacha-featured-visual">
               <img class="gacha-featured-gif" src="${featuredBurst.posterUrl}" alt="${featuredBurst.name}" loading="lazy" referrerpolicy="no-referrer" />
               <div class="gacha-featured-info">
-                <div class="gacha-featured-stars">⭐⭐⭐⭐⭐ VIDEO KỸ NĂNG NỘ + KỸ NĂNG BÀN BÀI (5 SAO UP)</div>
+                <div class="gacha-featured-stars">⭐⭐⭐⭐⭐ VIDEO KỸ NĂNG NỘ + CHIÊU NỘ BÀN BÀI [Q] (5 SAO UP)</div>
                 <div style="font-size:12px;color:#fde68a;font-weight:700;">${featuredBurst.title}</div>
                 <div style="font-size:11px;color:#cbd5e1;font-style:italic;">${featuredBurst.quote}</div>
                 <div class="gacha-featured-skill-box">
                   <div style="font-weight:900;color:#fde047;margin-bottom:2px;">
-                    🔮 Kỹ Năng Chiến Thuật [Phím E]: ${featuredSkill.icon} ${featuredSkill.name}
+                    🔮 Chiêu Nộ [Phím Q]: ${featuredSkill.icon} ${featuredSkill.name}
                   </div>
                   <div style="color:#e2e8f0;">
                     ${featuredSkill.shortDesc}
@@ -6938,7 +6938,7 @@ class TienLenGame {
                 <div class="shop-item-title">${b.name}</div>
                 <div class="shop-item-desc">${b.desc}</div>
                 <div style="font-size:11.5px;color:#fde68a;background:rgba(15,23,42,0.72);border:1px solid rgba(250,204,21,0.35);border-radius:8px;padding:6px 8px;margin-bottom:6px;line-height:1.35;">
-                  <strong>${sk.icon} Kỹ Năng [Phím E]: ${sk.name}</strong> — ${sk.shortDesc}
+                  <strong>${sk.icon} Chiêu Nộ [Phím Q]: ${sk.name}</strong> — ${sk.shortDesc}
                 </div>
                 ${actionsHtml}
               </div>
@@ -8207,7 +8207,7 @@ class TienLenGame {
         return;
       }
       if (!this.tutorialCompleted && this._tutorialTargetEl) {
-        if ((e.key === 'e' || e.key === 'E') && this._tutorialTargetEl === this.btnCharSkill) {
+        if ((e.key === 'q' || e.key === 'Q' || e.key === 'e' || e.key === 'E') && this._tutorialTargetEl === this.btnCharSkill) {
           if (this.btnCharSkill && !this.btnCharSkill.disabled) {
             e.preventDefault();
             this.onHumanUseSkill();
@@ -8233,7 +8233,7 @@ class TienLenGame {
           e.preventDefault();
           this.onHumanPass();
         }
-      } else if (e.key === 'e' || e.key === 'E') {
+      } else if (e.key === 'q' || e.key === 'Q' || e.key === 'e' || e.key === 'E') {
         if (this.btnCharSkill && !this.btnCharSkill.disabled) {
           e.preventDefault();
           this.onHumanUseSkill();
@@ -9604,14 +9604,14 @@ class TienLenGame {
 
         <div class="char-detail-skill-box">
           <div style="font-size:13.5px;font-weight:900;color:#fef08a;margin-bottom:4px;">
-            ${sk.isPassiveBet ? `💠 Nội Tại Cược [Tự Động — Không Có Kỹ Năng E]: ${sk.name}` : `🔮 Kỹ Năng Chiến Thuật [Phím E]: ${sk.name}`}
+            ${sk.isPassiveBet ? `💠 Nội Tại Cược [Tự Động — Không Có Chiêu Nộ Q]: ${sk.name}` : `🔮 Chiêu Nộ [Phím Q]: ${sk.name}`}
           </div>
           <div style="font-size:12.5px;color:#e2e8f0;line-height:1.5;">
             • <strong>Hiệu ứng chính:</strong> ${sk.shortDesc}<br/>
             • <strong>Quy tắc:</strong> ${
               sk.isPassiveBet
-                ? 'Nhân vật 5★ Thường (Lệch Rate) <strong>không có Kỹ Năng [E] chủ động</strong> trên bàn bài, nhưng <strong>tự động kích hoạt Nội Tại Cược</strong> và vẫn phát <strong>Hoạt Ảnh Kỹ Năng Nộ 5★ khi Chặt Heo &amp; Về Nhất</strong>!'
-                : 'Dùng tối đa <strong>1 lần / ván</strong> khi đang tới lượt của người chơi. Nhân vật đang xài cũng đồng thời là nhân vật phát <strong>Hoạt Ảnh Nộ Chặt Heo &amp; Về Nhất</strong>!'
+                ? 'Nhân vật 5★ Thường (Lệch Rate) <strong>không có Chiêu Nộ [Q] chủ động</strong> trên bàn bài, nhưng <strong>tự động kích hoạt Nội Tại Cược</strong> và vẫn phát <strong>Hoạt Ảnh Kỹ Năng Nộ 5★ khi Chặt Heo &amp; Về Nhất</strong>!'
+                : 'Dùng tối đa <strong>1 lần / ván</strong> khi đang tới lượt của người chơi (bấm nút hoặc nhấn phím Q). Nhân vật đang trang bị cũng đồng thời phát <strong>Hoạt Ảnh Nộ Chặt Heo &amp; Về Nhất</strong>!'
             }
           </div>
         </div>
@@ -10198,7 +10198,7 @@ class TienLenGame {
         ok: false,
         charId,
         isPassiveBet: true,
-        reason: 'Nhân vật 5★ Thường (Lệch Rate): Không có Kỹ Năng [E] chủ động — Tự động kích hoạt Nội Tại Cược & Hoạt Ảnh Nộ 5★!',
+        reason: 'Nhân vật 5★ Thường (Lệch Rate): Không có Chiêu Nộ [Q] chủ động — Tự động kích hoạt Nội Tại Cược & Hoạt Ảnh Nộ 5★!',
       };
     }
     if (player.id === this.mySeatId && !player.isBot && !this.unlockedBursts.has(charId)) {
@@ -12291,11 +12291,11 @@ class TienLenGame {
             shouldCast = true;
           }
         }
-      } else if (!this.currentCombo && plannedMove && !plannedMove.isBomb && plannedMove.highRank >= 3 && plannedMove.highRank <= 9) {
-        // Chế độ 2: Khi Bot mở vòng mới bằng bộ bài tầm trung -> Cường hóa +2 bậc khó đỡ!
+      } else if (!this.currentCombo && plannedMove && !plannedMove.isBomb && plannedMove.highRank >= 4 && plannedMove.highRank <= 9) {
+        // Chế độ 2: Khi Bot mở vòng mới bằng bộ bài tầm trung (>= 2 lá hoặc gần cuối ván) -> Cường hóa +2 bậc khó đỡ!
         if (
-          (plannedMove.type !== COMBO_TYPES.SINGLE && (bot.hand.length <= 9 || minOppCards <= 7)) ||
-          (bot.hand.length <= 6 || minOppCards <= 6)
+          (plannedMove.type !== COMBO_TYPES.SINGLE && (bot.hand.length <= 8 || minOppCards <= 7)) ||
+          (bot.hand.length <= 5 || minOppCards <= 5)
         ) {
           shouldCast = true;
         }
@@ -12326,17 +12326,18 @@ class TienLenGame {
           return false;
         });
       }
-      if (!bestCard && (!this.currentCombo || plannedMove) && (bot.hand.length <= 10 || minOppCards <= 8)) {
+      if (!bestCard && (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 7)) {
         // Ưu tiên rèn lá lẻ cô lập mà bậc kế tiếp đã có sẵn bài -> biến rác lẻ thành Đôi/Sám Cô!
         bestCard = forgeCandidates.find(
           (c) =>
             rankCounts[c.rankIndex] === 1 &&
             !struct.criticalStraightRanks.has(c.rankIndex) &&
-            rankCounts[c.rankIndex + 1] >= 1
+            rankCounts[c.rankIndex + 1] >= 1 &&
+            (!plannedMove || !plannedMove.cards.some((pc) => pc.id === c.id))
         );
       }
-      if (!bestCard && (!this.currentCombo || plannedMove) && (bot.hand.length <= 7 || minOppCards <= 6)) {
-        // Giữa/cuối ván: nâng lá lẻ cao (10..K -> J♥..A♥) hoặc lá rác lẻ nhỏ nhất
+      if (!bestCard && !this.currentCombo && (bot.hand.length <= 6 || minOppCards <= 5)) {
+        // Cuối ván khi cầm cái: nâng lá lẻ cao (10..K -> J♥..A♥) hoặc lá rác lẻ nhỏ nhất
         bestCard =
           forgeCandidates.find((c) => c.rankIndex >= 7 && rankCounts[c.rankIndex] === 1) ||
           forgeCandidates.find((c) => rankCounts[c.rankIndex] === 1);
@@ -12351,9 +12352,9 @@ class TienLenGame {
       const lowCardsCount = bot.hand.filter((c) => c.rankIndex <= 6).length;
       if (!hasBombs && (!hasTwos || minOppCards <= 4) && bot.hand.length >= 2) {
         if (
-          (!plannedMove && this.currentCombo) ||
-          lowCardsCount >= Math.ceil(bot.hand.length * 0.45) ||
-          minOppCards <= 5
+          (!plannedMove && this.currentCombo && minOppCards <= 7) ||
+          (lowCardsCount >= Math.ceil(bot.hand.length * 0.55) && bot.hand.length <= 9) ||
+          minOppCards <= 4
         ) {
           shouldCast = true;
         }
@@ -12375,37 +12376,38 @@ class TienLenGame {
           shouldCast = true;
         }
       }
-      // TH2: Bot chuẩn bị đánh bài Lẻ khá-cao (8..A) -> Bật Furina để CẤM đối thủ đập Heo lẻ!
+      // TH2: Bot chuẩn bị đánh bài Lẻ khá-cao (9..A) -> Bật Furina để CẤM đối thủ đập Heo lẻ!
       if (
         !shouldCast &&
         plannedMove &&
         unpassedOpps.length >= 1 &&
         plannedMove.type === COMBO_TYPES.SINGLE &&
-        plannedMove.highRank >= 5 &&
+        plannedMove.highRank >= 6 &&
         plannedMove.highRank <= 11 &&
-        (minOppCards <= 8 || bot.hand.length <= 8)
+        (minOppCards <= 7 || bot.hand.length <= 7)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'yaemiko') {
+      // Hồ Ly Dụ Hoặc: Ép đối thủ phải đánh bài (rất lợi khi Bot đang ôm Hàng rình chặt Heo, hoặc đánh bộ bài mạnh ép đối thủ xé bộ)
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
-        plannedMove.highRank >= 5 &&
+        plannedMove.highRank >= 6 &&
         plannedMove.highRank <= 11 &&
-        (struct.bombRanks.size > 0 || minOppCards <= 8 || bot.hand.length <= 8)
+        (struct.bombRanks.size > 0 || plannedMove.length >= 2 || minOppCards <= 7 || bot.hand.length <= 7)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'hutao') {
-      // Yểm Bùa Vãng Sinh khi Bot CHẮC CHẮN ĐÁNH BÀI (hỗ trợ cả bàn Solo 1v1 lẫn bàn 3-4 người!)
+      // Yểm Bùa Vãng Sinh: Chỉ bật khi Bot đánh bộ bài có sức ép cao (Bộ >= 2 lá hoặc bài >= 9) khiến đối thủ dễ phải Bỏ Lượt chịu phạt!
       const minRequiredUnpassed = Math.min(2, activeOpponents.length);
       if (
         plannedMove &&
         unpassedOpps.length >= minRequiredUnpassed &&
-        plannedMove.highRank <= 10 &&
         !plannedMove.isBomb &&
-        (bot.hand.length <= 10 || minOppCards <= 9)
+        (plannedMove.length >= 2 || (plannedMove.highRank >= 6 && plannedMove.highRank <= 11)) &&
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
@@ -12413,8 +12415,9 @@ class TienLenGame {
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
+        plannedMove.highRank >= 5 &&
         plannedMove.highRank < 12 &&
-        (minOppCards <= 8 || bot.hand.length <= 8)
+        (minOppCards <= 7 || bot.hand.length <= 7)
       ) {
         shouldCast = true;
       }
@@ -12422,7 +12425,8 @@ class TienLenGame {
       if (
         plannedMove &&
         unpassedOpps.length >= Math.min(2, activeOpponents.length) &&
-        (bot.hand.length <= 8 || minOppCards <= 7 || plannedMove.highRank >= 6)
+        (plannedMove.length >= 2 || plannedMove.highRank >= 7) &&
+        (bot.hand.length <= 8 || minOppCards <= 7)
       ) {
         shouldCast = true;
       }
@@ -12448,7 +12452,13 @@ class TienLenGame {
           }
           return false;
         })();
-      if (canUpgradeHelpBeat || (plannedMove && (minOppCards <= 8 || bot.hand.length <= 9))) {
+      const SafePlannedAfterUpgrade =
+        plannedMove &&
+        lowCand &&
+        !plannedMove.cards.some((c) => c.id === lowCand.id) &&
+        (plannedMove.length >= 2 || plannedMove.highRank >= 5) &&
+        (minOppCards <= 7 || bot.hand.length <= 8);
+      if (canUpgradeHelpBeat || SafePlannedAfterUpgrade) {
         shouldCast = true;
       }
     } else if (charId === 'navia') {
@@ -12456,7 +12466,7 @@ class TienLenGame {
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
-        (minUnpassedCards <= 8 || (bot.hand.length <= 8 && plannedMove.highRank >= 5))
+        (minUnpassedCards <= 7 || (bot.hand.length <= 7 && plannedMove.highRank >= 6))
       ) {
         shouldCast = true;
       }
@@ -12701,12 +12711,24 @@ class TienLenGame {
       }
     } else if (charId === 'escoffier') {
       const pairRunSetup = this.findEscoffierPairRunSetup(bot.hand);
-      if (pairRunSetup && pairRunSetup.trashCard) {
+      if (
+        pairRunSetup &&
+        pairRunSetup.trashCard &&
+        (!this.currentCombo ||
+          plannedMove ||
+          this.currentCombo.highRank === 12 ||
+          this.currentCombo.type === COMBO_TYPES.THREE_PAIRS)
+      ) {
         shouldCast = true;
         preferredIds = [pairRunSetup.trashCard.id];
       }
     } else if (charId === 'zibai') {
-      if (plannedMove && unpassedOpps.length >= 1 && (bot.hand.length <= 9 || minOppCards <= 8)) {
+      if (
+        plannedMove &&
+        unpassedOpps.length >= 1 &&
+        (plannedMove.length >= 2 || plannedMove.highRank >= 6) &&
+        (bot.hand.length <= 8 || minOppCards <= 7)
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'linnea') {
@@ -12729,7 +12751,11 @@ class TienLenGame {
             (c) => c.id !== lowest.id && c.rankIndex > this.currentCombo.highRank
           );
         }
-        if (!bestTarget && (!this.currentCombo || plannedMove) && (bot.hand.length <= 10 || minOppCards <= 8)) {
+        if (
+          !bestTarget &&
+          (!this.currentCombo || (plannedMove && !plannedMove.cards.some((pc) => pc.id === lowest.id))) &&
+          (bot.hand.length <= 9 || minOppCards <= 7)
+        ) {
           bestTarget = [...singleNormals]
             .reverse()
             .find((c) => c.id !== lowest.id && !struct.criticalStraightRanks.has(c.rankIndex));
@@ -12740,19 +12766,32 @@ class TienLenGame {
         }
       }
     } else if (charId === 'nefer') {
-      const hasPairAndTrash =
-        bot.hand.length >= 3 &&
-        struct.rankCounts.slice(0, 12).some((cnt) => cnt === 2) &&
-        bot.hand.some((c) => c.rankIndex <= 9 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex));
-      if (
-        hasPairAndTrash &&
-        (!this.currentCombo ||
-          plannedMove ||
-          (this.currentCombo.type === COMBO_TYPES.TRIPLE &&
-            !plannedMove &&
-            struct.rankCounts.slice(this.currentCombo.highRank + 1, 12).some((cnt) => cnt === 2)))
-      ) {
-        if (bot.hand.length <= 10 || minOppCards <= 8) {
+      const pairRanks = [];
+      for (let r = 0; r <= 11; r++) {
+        if (struct.rankCounts[r] === 2 && !struct.bombRanks.has(r)) pairRanks.push(r);
+      }
+      const lowestPairRank = pairRanks.length > 0 ? pairRanks[0] : -1;
+      const trashSingle = sortCardsAsc(bot.hand).find(
+        (c) =>
+          c.rankIndex <= 9 &&
+          struct.rankCounts[c.rankIndex] === 1 &&
+          !struct.bombRanks.has(c.rankIndex) &&
+          !struct.criticalStraightRanks.has(c.rankIndex)
+      );
+      if (lowestPairRank >= 0 && trashSingle) {
+        const canBeatTableTriple =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.TRIPLE &&
+          !plannedMove &&
+          lowestPairRank > this.currentCombo.highRank;
+        const canUpgradeWhenLeadingOrSafe =
+          (!this.currentCombo ||
+            (plannedMove &&
+              !plannedMove.cards.some(
+                (pc) => pc.id === trashSingle.id || pc.rankIndex === lowestPairRank
+              ))) &&
+          (bot.hand.length <= 9 || minOppCards <= 7);
+        if (canBeatTableTriple || canUpgradeWhenLeadingOrSafe) {
           shouldCast = true;
         }
       }
@@ -12765,34 +12804,51 @@ class TienLenGame {
           !struct.criticalStraightRanks.has(c.rankIndex)
       );
       if (isolatedSingles.length >= 3) {
-        if (
+        const picked3 = isolatedSingles.slice(0, 3);
+        const topRank = Math.max(2, Math.min(11, picked3[2].rankIndex));
+        const forgedHighVal = topRank * 4 + 3;
+        const canBeatTable3Straight =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
+          this.currentCombo.length === 3 &&
+          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75) &&
+          forgedHighVal > this.currentCombo.highValue;
+        const canForgeLeadCombo =
           !this.currentCombo ||
-          plannedMove ||
-          (this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3 && !plannedMove)
-        ) {
+          (plannedMove && !plannedMove.cards.some((pc) => picked3.some((p3) => p3.id === pc.id)));
+        if (canBeatTable3Straight || canForgeLeadCombo) {
           shouldCast = true;
         }
       }
     } else if (charId === 'lauma') {
       if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
         if (
-          (this.currentCombo.length === 1 && this.currentCombo.highRank >= 5 && (!plannedMove || plannedMove.highRank === 12 || minOppCards <= 7)) ||
-          (this.currentCombo.length >= 2 && this.currentCombo.highRank >= 6 && (plannedMove || minOppCards <= 5))
+          this.currentCombo.length === 1 &&
+          this.currentCombo.highRank >= 5 &&
+          (!plannedMove || plannedMove.highRank === 12 || minOppCards <= 7)
         ) {
-          shouldCast = true;
+          const fake3 = classifyCombo([{ id: '3-spade', rank: '3', suit: 'spade', rankIndex: 0, suitIndex: 0, value: 0 }]);
+          const afterMoves = getValidMoves(bot.hand, fake3, this.mustPlay3Spade, false).filter(
+            (m) => m.highRank < 12 && !m.isBomb
+          );
+          if (afterMoves.length > 0) shouldCast = true;
+        } else if (this.currentCombo.length >= 2 && this.currentCombo.highRank >= 4 && !plannedMove) {
+          const loweredRank = Math.max(0, this.currentCombo.highRank - 2);
+          const fakeLower = {
+            ...this.currentCombo,
+            highRank: loweredRank,
+            highValue: loweredRank * 4 + (this.currentCombo.highCard?.suitIndex || 0),
+          };
+          const afterMoves = getValidMoves(bot.hand, fakeLower, this.mustPlay3Spade, false).filter(
+            (m) => m.highRank < 12 && !m.isBomb && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+          );
+          if (afterMoves.length > 0) shouldCast = true;
         }
-      } else if (!this.currentCombo && (bot.hand.length <= 9 || minOppCards <= 8)) {
+      } else if (!this.currentCombo && (bot.hand.length <= 8 || minOppCards <= 7)) {
         shouldCast = true;
       }
     } else if (charId === 'vesna') {
-      const tableHasRed =
-        this.currentCombo &&
-        Array.isArray(this.currentCombo.cards) &&
-        this.currentCombo.cards.some((c) => c.suitIndex >= 2);
-      if (
-        ((!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 8)) ||
-        (tableHasRed && !plannedMove && (bot.hand.length <= 10 || minOppCards <= 8))
-      ) {
+      if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 8 || minOppCards <= 7)) {
         shouldCast = true;
       }
     } else if (charId === 'columbina') {
@@ -12802,7 +12858,7 @@ class TienLenGame {
           const usedIds = new Set(firstMove.cards.map((c) => c.id));
           const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
           const canInstantWinOnExtraTurn = remHand.length > 0 && Boolean(classifyCombo(remHand));
-          if (canInstantWinOnExtraTurn || bot.hand.length <= 9 || minOppCards <= 7) {
+          if (canInstantWinOnExtraTurn || bot.hand.length <= 8 || minOppCards <= 6) {
             shouldCast = true;
           }
         }
@@ -12812,7 +12868,8 @@ class TienLenGame {
         plannedMove &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
-        (bot.hand.length <= 9 || minOppCards <= 8)
+        (plannedMove.length >= 2 || plannedMove.highRank >= 6) &&
+        (bot.hand.length <= 8 || minOppCards <= 7)
       ) {
         shouldCast = true;
       }
@@ -12872,7 +12929,7 @@ class TienLenGame {
           rankCounts[12] >= 1 &&
           (!plannedMove || this.currentCombo.highRank >= 8);
         const goodMidEndgameUpgrade =
-          (!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 7);
+          !this.currentCombo && (bot.hand.length <= 7 || minOppCards <= 6);
         if (canCutSingleWith2Heart || canFormPairOfTwos || goodMidEndgameUpgrade) {
           shouldCast = true;
           preferredIds = [highCand.id];
@@ -12909,26 +12966,44 @@ class TienLenGame {
         }
       }
     } else if (charId === 'kinich') {
+      // Gài bẫy Bom Dây Móc: chỉ gài khi Bot CHẮC CHẮN ĐÁNH một bộ bài mồi vừa phải (<= J) để dụ đối thủ đè và nổ bom!
       const moveLen = plannedMove ? plannedMove.length : 1;
-      const isUnbeatableMove = plannedMove && (plannedMove.highValue === 51 || plannedMove.isBomb);
+      const isBaitableMove =
+        plannedMove &&
+        !plannedMove.isBomb &&
+        plannedMove.highRank >= 2 &&
+        plannedMove.highRank <= 9;
       if (
-        (!this.currentCombo || plannedMove) &&
+        isBaitableMove &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - moveLen >= 2 &&
-        !isUnbeatableMove &&
-        (bot.hand.length <= 10 || minOppCards <= 8)
+        (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'venti') {
       const nonBombCards = sortCardsAsc(bot.hand).filter((c) => !struct.bombRanks.has(c.rankIndex));
       const lowestNonBomb = nonBombCards[0];
-      if (
-        lowestNonBomb &&
-        (lowestNonBomb.rankIndex <= 8 || (minOppCards <= 6 && lowestNonBomb.rankIndex <= 10)) &&
-        (!this.currentCombo || plannedMove || (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank <= 11))
-      ) {
-        shouldCast = true;
+      if (lowestNonBomb && lowestNonBomb.rankIndex <= 8) {
+        const canBeatSingleWithWind =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.SINGLE &&
+          this.currentCombo.highRank <= 10 &&
+          (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 75);
+        const canBeatPairWithWind =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.PAIR &&
+          this.currentCombo.highRank <= 10 &&
+          (!plannedMove || plannedMove.highRank === 12) &&
+          rankCounts[this.currentCombo.highRank + 1] >= 1;
+        const canUpgradeTrashOnLead =
+          !this.currentCombo &&
+          lowestNonBomb.rankIndex <= 5 &&
+          struct.rankCounts[lowestNonBomb.rankIndex] === 1 &&
+          (bot.hand.length <= 8 || minOppCards <= 7);
+        if (canBeatSingleWithWind || canBeatPairWithWind || canUpgradeTrashOnLead) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'wanderer') {
       const canWinNow = plannedMove && plannedMove.length === bot.hand.length;
@@ -12939,25 +13014,35 @@ class TienLenGame {
         const emergencyStopOpponent = minOppCards <= 3 && twosCount <= 1 && bot.hand.length >= minOppCards + 2;
         const terribleHandBailout =
           twosCount === 0 &&
-          lowCardsCount >= Math.ceil(bot.hand.length * 0.5) &&
-          ((!plannedMove && this.currentCombo) || minOppCards <= 7);
+          lowCardsCount >= Math.ceil(bot.hand.length * 0.55) &&
+          ((!plannedMove && this.currentCombo && minOppCards <= 7) || minOppCards <= 5);
         if (emergencyStopOpponent || terribleHandBailout) {
           shouldCast = true;
         }
       }
     } else if (charId === 'klee') {
-      if ((!this.currentCombo || plannedMove) && (minOppCards <= 8 || bot.hand.length <= 9)) {
+      if (plannedMove && unpassedOpps.length >= 1 && (minOppCards <= 7 || bot.hand.length <= 8)) {
         shouldCast = true;
       }
     } else if (charId === 'albedo') {
-      const hasStrongGrave =
-        this.matchGraveyardCards && this.matchGraveyardCards.some((c) => c.rankIndex >= 9);
-      if (
-        (hasStrongGrave || !this.matchGraveyardCards || this.matchGraveyardCards.length === 0) &&
-        (!this.currentCombo || plannedMove || (this.currentCombo.type === COMBO_TYPES.SINGLE && !plannedMove)) &&
-        (bot.hand.length <= 9 || minOppCards <= 8)
-      ) {
-        shouldCast = true;
+      const lowestNonBomb = sortCardsAsc(bot.hand).find(
+        (c) => c.rankIndex <= 7 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
+      );
+      const bestGrave =
+        this.matchGraveyardCards && this.matchGraveyardCards.length > 0
+          ? [...this.matchGraveyardCards].sort((a, b) => b.value - a.value)[0]
+          : { rankIndex: 11, suitIndex: 2, value: 46 };
+      if (lowestNonBomb && bestGrave && bestGrave.rankIndex >= 9) {
+        const canBeatSingleWithClone =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.SINGLE &&
+          !plannedMove &&
+          bestGrave.value > this.currentCombo.highValue;
+        const canUpgradeWhenLeading =
+          !this.currentCombo && (bot.hand.length <= 8 || minOppCards <= 7);
+        if (canBeatSingleWithClone || canUpgradeWhenLeading) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'varka') {
       if (
@@ -12967,10 +13052,16 @@ class TienLenGame {
         bot.hand.length >= 2 &&
         (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 70)
       ) {
-        shouldCast = true;
+        const prevVarka = activeVarkaSumSlash;
+        activeVarkaSumSlash = true;
+        const varkaMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+          (m) => m.isVarkaSumSlash && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+        );
+        activeVarkaSumSlash = prevVarka;
+        if (varkaMoves.length > 0) {
+          shouldCast = true;
+        }
       } else if (!this.currentCombo && bot.hand.length === 2 && bot.hand[0].rankIndex !== bot.hand[1].rankIndex) {
-        shouldCast = true;
-      } else if (!this.currentCombo && bot.hand.length >= 3 && (bot.hand.length <= 8 || minOppCards <= 7)) {
         shouldCast = true;
       }
     } else if (charId === 'nicole') {
@@ -12982,34 +13073,67 @@ class TienLenGame {
         );
         activeNicoleSuitOnlyRound = prevNic;
         if (nicMoves.length > 0) shouldCast = true;
-      } else if ((!this.currentCombo || plannedMove) && plannedMove?.highCard?.suitIndex === 3 && (bot.hand.length <= 9 || minOppCards <= 8)) {
+      } else if (plannedMove && plannedMove.highCard?.suitIndex === 3 && (bot.hand.length <= 8 || minOppCards <= 7)) {
         shouldCast = true;
       }
     } else if (charId === 'zhongli') {
-      if ((!this.currentCombo || plannedMove) && unpassedOpps.length >= 1 && (minOppCards <= 8 || bot.hand.length <= 9)) {
+      if (
+        plannedMove &&
+        unpassedOpps.length >= 1 &&
+        (plannedMove.length >= 2 || plannedMove.highRank >= 6) &&
+        (minOppCards <= 7 || bot.hand.length <= 8)
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'baizhu') {
       if (
         plannedMove &&
-        (plannedMove.highRank === 12 || plannedMove.isBomb || bot.hand.length <= 8 || minOppCards <= 7)
+        (plannedMove.highRank === 12 || plannedMove.isBomb || bot.hand.length <= 7 || minOppCards <= 6)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'xianyun') {
       const needStepStraight =
         !this.currentCombo ||
-        (this.currentCombo.type === COMBO_TYPES.STRAIGHT && (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75));
-      if (needStepStraight && bot.hand.length >= 3 && (bot.hand.length <= 9 || minOppCards <= 8)) {
-        shouldCast = true;
+        (this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
+          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75));
+      if (needStepStraight && bot.hand.length >= 3) {
+        const prevStep = activeXianyunStepStraight;
+        activeXianyunStepStraight = true;
+        const stepMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+          (m) => m.isStepStraight && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+        );
+        activeXianyunStepStraight = prevStep;
+        if (
+          stepMoves.length > 0 &&
+          (this.currentCombo ||
+            stepMoves.some((m) => m.length === bot.hand.length || this.evaluateMoveBreakCost(m, struct) <= 55))
+        ) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'kazuha') {
-      if ((!this.currentCombo || plannedMove) && (bot.hand.length <= 9 || minOppCards <= 8)) {
+      const isolatedCount = bot.hand.filter(
+        (c) =>
+          c.rankIndex <= 9 &&
+          struct.rankCounts[c.rankIndex] === 1 &&
+          !struct.bombRanks.has(c.rankIndex) &&
+          !struct.criticalStraightRanks.has(c.rankIndex)
+      ).length;
+      if (
+        !this.currentCombo &&
+        isolatedCount >= 2 &&
+        (bot.hand.length <= 9 || minOppCards <= 7)
+      ) {
         shouldCast = true;
       }
     } else if (charId === 'itto') {
+      // Gài bẫy Đấu Trường Arataki: chỉ bật khi đánh bài mồi vừa phải (<= J) để dụ đối thủ đè bài và phạt gấp 3!
       if (
         plannedMove &&
+        !plannedMove.isBomb &&
+        plannedMove.highRank >= 2 &&
+        plannedMove.highRank <= 9 &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
         (bot.hand.length <= 9 || minOppCards <= 8)
@@ -13020,8 +13144,9 @@ class TienLenGame {
       if (
         plannedMove &&
         !plannedMove.isBomb &&
-        plannedMove.highRank >= 5 &&
-        plannedMove.highRank <= 11 &&
+        plannedMove.highRank >= 4 &&
+        plannedMove.highRank <= 9 &&
+        unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
         (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
@@ -13029,30 +13154,55 @@ class TienLenGame {
       }
     } else if (charId === 'cyno') {
       // Thiết Quân Luật Mahamatra: Cấm đối thủ đánh J, Q, K, A, 2 (chỉ cho đánh 3..10) & hạ bài lớn trên bàn xuống 9!
-      const canDemoteAndBeat =
+      let canDemoteAndBeat = false;
+      if (
         this.currentCombo &&
         !this.currentCombo.isBomb &&
         this.currentCombo.highRank >= 8 &&
         this.currentCombo.highRank <= 11 &&
-        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 70) &&
-        bot.hand.some((c) => c.rankIndex >= 5 && c.rankIndex <= 7);
+        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 70)
+      ) {
+        const demotedCombo = {
+          ...this.currentCombo,
+          highRank: 6,
+          highValue: 6 * 4 + (this.currentCombo.highCard?.suitIndex || 0),
+        };
+        const prevBan = activeCynoRoyalBan;
+        activeCynoRoyalBan = true;
+        const cynoMoves = getValidMoves(bot.hand, demotedCombo, this.mustPlay3Spade, false).filter(
+          (m) => m.highRank <= 7 && !m.isBomb && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+        );
+        activeCynoRoyalBan = prevBan;
+        if (cynoMoves.length > 0) canDemoteAndBeat = true;
+      }
       const canLockOpponents =
-        (!this.currentCombo || plannedMove) &&
+        plannedMove &&
+        plannedMove.highRank <= 7 &&
         unpassedOpps.length >= 1 &&
-        (minOppCards <= 8 || bot.hand.length <= 9);
+        (minOppCards <= 7 || bot.hand.length <= 8);
       if (canDemoteAndBeat || canLockOpponents) {
         shouldCast = true;
       }
     } else if (charId === 'nilou') {
-      const pairCount = struct.rankCounts.slice(0, 11).filter((cnt) => cnt === 2).length;
-      if (
-        (pairCount >= 1 && (!this.currentCombo || plannedMove || this.currentCombo.type === COMBO_TYPES.PAIR)) ||
-        ((!this.currentCombo || this.currentCombo.type === COMBO_TYPES.PAIR) && (bot.hand.length <= 8 || minOppCards <= 7))
-      ) {
-        shouldCast = true;
+      const upgradablePairRanks = [];
+      for (let r = 0; r <= 10; r++) {
+        if (struct.rankCounts[r] === 2 && !struct.bombRanks.has(r)) upgradablePairRanks.push(r);
+      }
+      if (upgradablePairRanks.length >= 1) {
+        const highestUpgradedPairRank = upgradablePairRanks[upgradablePairRanks.length - 1] + 1;
+        const canBeatTablePairAfterUpgrade =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.PAIR &&
+          !plannedMove &&
+          highestUpgradedPairRank * 4 + 3 > this.currentCombo.highValue;
+        const canUpgradeOnLead =
+          !this.currentCombo && (bot.hand.length <= 9 || minOppCards <= 8);
+        if (canBeatTablePairAfterUpgrade || canUpgradeOnLead) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'nahida') {
-      if ((!this.currentCombo || plannedMove) && (minOppCards <= 8 || bot.hand.length <= 9)) {
+      if (plannedMove && unpassedOpps.length >= 1 && (minOppCards <= 7 || bot.hand.length <= 8)) {
         shouldCast = true;
       }
     } else if (charId === 'alhaitham') {
@@ -13060,16 +13210,33 @@ class TienLenGame {
         plannedMove &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
-        (bot.hand.length <= 9 || minOppCards <= 8)
+        (plannedMove.length >= 2 || plannedMove.highRank >= 6) &&
+        (bot.hand.length <= 8 || minOppCards <= 7)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'neuvillette') {
-      if (
-        bot.hand.length >= 2 &&
-        (!this.currentCombo || plannedMove) &&
-        (bot.hand.length <= 9 || minOppCards <= 8)
-      ) {
+      const canDowngradeTableAndBeat =
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank >= 3 &&
+        this.currentCombo.highRank < 12 &&
+        (!plannedMove || plannedMove.highRank === 12) &&
+        (() => {
+          const newR = Math.max(0, this.currentCombo.highRank - 3);
+          const fakeCombo = {
+            ...this.currentCombo,
+            highRank: newR,
+            highValue: newR * 4 + (this.currentCombo.highCard?.suitIndex || 0),
+          };
+          const afterMoves = getValidMoves(bot.hand, fakeCombo, this.mustPlay3Spade, false).filter(
+            (m) => m.highRank < 12 && !m.isBomb && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+          );
+          return afterMoves.length > 0;
+        })();
+      const canForgePairOnLead =
+        !this.currentCombo && bot.hand.length >= 2 && (bot.hand.length <= 8 || minOppCards <= 7);
+      if (canDowngradeTableAndBeat || canForgePairOnLead) {
         shouldCast = true;
       }
     } else if (charId === 'wriothesley') {
@@ -13080,65 +13247,125 @@ class TienLenGame {
         this.currentCombo.type === COMBO_TYPES.SINGLE &&
         this.currentCombo.highRank < 12 &&
         (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 65 || bot.hand.length <= 8 || minOppCards <= 7);
+      const isolatedSingles = sortCardsAsc(bot.hand).filter(
+        (c) => c.rankIndex <= 11 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
+      );
+      const forgedPairRank = isolatedSingles.length >= 2 ? isolatedSingles[1].rankIndex : -1;
       const canForgePairToBeatTable =
         this.currentCombo &&
         this.currentCombo.type === COMBO_TYPES.PAIR &&
         this.currentCombo.highRank < 11 &&
-        (!plannedMove || plannedMove.highRank === 12);
+        (!plannedMove || plannedMove.highRank === 12) &&
+        forgedPairRank > this.currentCombo.highRank;
       const canLockNoSingleRound =
         (!this.currentCombo || (plannedMove && plannedMove.length >= 2)) &&
         bot.hand.length >= 2 &&
-        (bot.hand.length <= 9 || minOppCards <= 8);
+        (bot.hand.length <= 8 || minOppCards <= 7);
       if (canSmashSingleOnTable || canForgePairToBeatTable || canLockNoSingleRound) {
         shouldCast = true;
       }
     } else if (charId === 'sigewinne') {
-      // Trạm Y Tế Meropide: Nâng +2 bậc cho 3 lá bài nhỏ & gắn viện phí 3x cược lên người thắng vòng!
-      if (minOppCards <= 9 || bot.hand.length <= 10) {
+      // Trạm Y Tế Meropide: Chỉ bật khi Bot đang cầm cái (hoặc có nước đỡ chắc chắn mà không bị hỏng bởi nâng 3 lá thấp nhất)
+      const low3Ids = new Set(
+        sortCardsAsc(bot.hand)
+          .filter((c) => c.rankIndex <= 9 && !struct.bombRanks.has(c.rankIndex))
+          .slice(0, 3)
+          .map((c) => c.id)
+      );
+      const safeToUpgrade3 =
+        !this.currentCombo ||
+        (plannedMove && !plannedMove.cards.some((pc) => low3Ids.has(pc.id)));
+      if (safeToUpgrade3 && low3Ids.size >= 2 && (minOppCards <= 8 || bot.hand.length <= 9)) {
         shouldCast = true;
       }
     } else if (charId === 'emilie') {
+      // Hương Hoa Tinh Chế: Chỉ bật khi Bot đánh bộ bài có sức ép (>= 2 lá hoặc quân >= 9) buộc đối thủ Bỏ Lượt chịu phạt!
       if (
         plannedMove &&
         unpassedOpps.length >= 1 &&
-        plannedMove.highRank <= 9 &&
         !plannedMove.isBomb &&
+        (plannedMove.length >= 2 || (plannedMove.highRank >= 6 && plannedMove.highRank <= 10)) &&
         (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'chasca') {
-      if (
-        (!this.currentCombo && bot.hand.length >= 3 && (bot.hand.length <= 10 || minOppCards <= 8)) ||
-        (this.currentCombo && this.currentCombo.type === COMBO_TYPES.STRAIGHT && (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75))
-      ) {
-        shouldCast = true;
+      const singleCand = sortCardsAsc(bot.hand).filter(
+        (c) =>
+          c.rankIndex <= 11 &&
+          struct.rankCounts[c.rankIndex] === 1 &&
+          !struct.bombRanks.has(c.rankIndex) &&
+          !struct.criticalStraightRanks.has(c.rankIndex)
+      );
+      const fallbackCand = sortCardsAsc(bot.hand).filter(
+        (c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex)
+      );
+      const picked3 = (singleCand.length >= 3 ? singleCand : fallbackCand).slice(0, 3);
+      if (picked3.length === 3) {
+        const anchorRank = Math.max(2, Math.min(11, picked3[2].rankIndex));
+        const forgedHighVal = anchorRank * 4 + 3;
+        const canBeatTable3Straight =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
+          this.currentCombo.length === 3 &&
+          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75) &&
+          forgedHighVal > this.currentCombo.highValue;
+        const canForgeFromIsolatedOnLead =
+          !this.currentCombo &&
+          singleCand.length >= 3 &&
+          (bot.hand.length <= 10 || minOppCards <= 8);
+        if (canBeatTable3Straight || canForgeFromIsolatedOnLead) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'tartaglia') {
-      if (
-        (!this.currentCombo && bot.hand.length >= 3 && (bot.hand.length <= 9 || minOppCards <= 8)) ||
-        (this.currentCombo &&
+      const singleCand = sortCardsAsc(bot.hand).filter(
+        (c) =>
+          c.rankIndex <= 11 &&
+          struct.rankCounts[c.rankIndex] === 1 &&
+          !struct.bombRanks.has(c.rankIndex) &&
+          !struct.criticalStraightRanks.has(c.rankIndex)
+      );
+      const fallbackCand = sortCardsAsc(bot.hand).filter(
+        (c) => c.rankIndex <= 11 && !struct.bombRanks.has(c.rankIndex)
+      );
+      const picked3 = (singleCand.length >= 3 ? singleCand : fallbackCand).slice(0, 3);
+      if (picked3.length === 3) {
+        const targetRank = Math.max(2, Math.min(11, picked3[1].rankIndex));
+        const forgedHighVal = targetRank * 4 + 3;
+        const canBeatTableTripleOr3Straight =
+          this.currentCombo &&
           (this.currentCombo.type === COMBO_TYPES.TRIPLE ||
             (this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3)) &&
-          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75))
-      ) {
-        shouldCast = true;
+          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75) &&
+          forgedHighVal > this.currentCombo.highValue;
+        const canForgeFromIsolatedOnLead =
+          !this.currentCombo &&
+          singleCand.length >= 3 &&
+          (bot.hand.length <= 9 || minOppCards <= 8);
+        if (canBeatTableTripleOr3Straight || canForgeFromIsolatedOnLead) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'arlecchino') {
+      // Gài Khế Ước Sinh Mệnh: chỉ bật khi đánh bài mồi tầm trung (<= J) để dụ đối thủ đè bài và chịu phạt 5x!
       if (
         plannedMove &&
+        !plannedMove.isBomb &&
+        plannedMove.highRank >= 4 &&
+        plannedMove.highRank <= 9 &&
         unpassedOpps.length >= 1 &&
         bot.hand.length - plannedMove.length >= 1 &&
-        plannedMove.highRank >= 5 &&
         (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
       }
     } else if (charId === 'ineffa') {
       if (
-        (!this.currentCombo || plannedMove) &&
+        plannedMove &&
         unpassedOpps.length >= 1 &&
-        (bot.hand.length <= 9 || minOppCards <= 8)
+        (plannedMove.length >= 2 || plannedMove.highRank >= 6) &&
+        (bot.hand.length <= 8 || minOppCards <= 7)
       ) {
         shouldCast = true;
       }
@@ -13147,7 +13374,7 @@ class TienLenGame {
       if (
         plannedMove &&
         unpassedOpps.length >= minRequiredUnpassed &&
-        plannedMove.highRank >= 4 &&
+        (plannedMove.length >= 2 || plannedMove.highRank >= 6) &&
         (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
@@ -17605,7 +17832,7 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // ĐỌC TÌNH HÌNH BÀN BÀI & CHIẾN THUẬT GIỮ HÀNG DỤ HEO CHO BOT AI
+  // ĐỌC TÌNH HÌNH BÀN BÀI & CHIẾN THUẬT GIỮ HÀNG DỤ HEO / GIỮ BÀI CAO ENDGAME CHO BOT AI
   // ============================================================================
   analyzeBotTableSituation(bot, struct) {
     const activeOpponents = this.players.filter(
@@ -17646,21 +17873,45 @@ class TienLenGame {
       if (twos >= 2) opponentHasPairOfTwos = true;
     });
 
-    // CHIẾN THUẬT RÌNH CHẶT HEO (GIỮ HÀNG & ĐÁNH LẺ DỤ HEO):
-    // Nếu Bot đang có Hàng (Tứ Quý / 3-4 Đôi Thông) VÀ đối thủ vẫn còn giữ Heo trên tay:
-    // -> TUYỆT ĐỐI KHÔNG tự đánh Hàng ra bàn trống và KHÔNG xé Hàng! Phải đánh lẻ (hoặc đôi) để dụ đối thủ ra Heo!
-    const shouldHoldBombToBaitHeo = hasBombs && opponentTwosCount > 0;
+    // PHÂN TÍCH ĐỘ MẠNH/THẤP CỦA BÀI TRÊN TAY BOT:
+    // Nếu bài có nhiều quân thấp (3..9, rankIndex <= 6) hoặc rất ít quân kiểm soát cao (Q, K, A, 2 ngoài Hàng):
+    // -> Bot phải giữ bài cao (Q, K, A, 2) lại cho Endgame để cướp Cái, đầu/giữa ván ưu tiên xả bài thấp trước!
+    const lowCardsCount = bot.hand.filter(
+      (c) => c.rankIndex <= 6 && !struct.bombRanks.has(c.rankIndex)
+    ).length;
+    const highControlCount = bot.hand.filter(
+      (c) => c.rankIndex >= 9 && !struct.bombRanks.has(c.rankIndex)
+    ).length;
+    const veryHighControlCount = bot.hand.filter(
+      (c) => c.rankIndex >= 10 && !struct.bombRanks.has(c.rankIndex)
+    ).length;
+    const isWeakLowHand =
+      bot.hand.length >= 5 &&
+      (lowCardsCount >= Math.ceil(bot.hand.length * 0.5) ||
+        veryHighControlCount <= 2 ||
+        highControlCount <= 3);
+
+    // CHIẾN THUẬT KỶ LUẬT ĐÔI THÔNG / TỨ QUÝ:
+    // - Đầu & giữa ván: TUYỆT ĐỐI KHÔNG tự đánh Đôi Thông ra bàn trống khi chưa có Heo để chặt, và KHÔNG xé Đôi Thông!
+    // - Khi ván bài đã GẦN HẾT (đối thủ còn <= 5 lá, hoặc người cầm cái <= 4 lá, hoặc Bot còn <= 6 lá, hoặc đối thủ đã hết sạch Heo khi còn <= 7 lá)
+    //   mà vẫn chưa bắt được Heo nào: Mở khóa cho phép XÉ ĐÔI THÔNG ra thành Sảnh / Đôi / Lẻ để đánh chạy bài tránh Thối Hàng!
+    const shouldBreakBombForEndgame =
+      hasBombs &&
+      (minOpponentCards <= 5 ||
+        ownerCards <= 4 ||
+        bot.hand.length <= 6 ||
+        (opponentTwosCount === 0 && (minOpponentCards <= 7 || bot.hand.length <= 7)));
+    const shouldHoldBombToBaitHeo = hasBombs && !shouldBreakBombForEndgame;
 
     // 1. Nguy cơ bị CÓNG (Còn nguyên 13 lá phạt gấp đôi 26x + thối toàn bộ Heo/Hàng):
     const isCongRisk = bot.hand.length === 13 && minOpponentCards <= 10;
 
-    // 2. Nguy cơ THỐI HEO / THỐI 3♠ khi đối thủ đã xuống <= 7 lá (hoặc Thối Hàng CHỈ KHI đối thủ đã hết sạch Heo):
-    const bombRotDanger = hasBombs && opponentTwosCount === 0 && minOpponentCards <= 5;
+    // 2. Nguy cơ THỐI HEO / THỐI 3♠ khi đối thủ đã xuống <= 7 lá (hoặc nguy cơ Thối Hàng khi gần hết ván):
+    const bombRotDanger = shouldBreakBombForEndgame;
     const hasRotDanger =
       ((hasTwos || has3Spade) && minOpponentCards <= 7) || bombRotDanger;
 
     // 3. Thấy mình SẮP THUA (Đối thủ còn <= 6 lá, hoặc người cầm cái còn <= 7 lá, hoặc mình tụt lại >= 5 lá):
-    // Lúc này phải xé Đôi / Sảnh thường ra đánh, NHƯNG nếu đang có Hàng chờ chặt Heo thì vẫn giữ nguyên Hàng!
     const isLosingSoon =
       isCongRisk ||
       hasRotDanger ||
@@ -17684,6 +17935,11 @@ class TienLenGame {
       hasQuadOrFourPairs,
       opponentTwosCount,
       opponentHasPairOfTwos,
+      lowCardsCount,
+      highControlCount,
+      veryHighControlCount,
+      isWeakLowHand,
+      shouldBreakBombForEndgame,
       shouldHoldBombToBaitHeo,
       isCongRisk,
       hasRotDanger,
@@ -17706,14 +17962,10 @@ class TienLenGame {
     const struct = this.analyzeBotHandStructure(bot.hand);
     const sit = this.analyzeBotTableSituation(bot, struct);
 
-    // 2. NGUYÊN TẮC VÀNG KHI CẦM HÀNG (TỨ QUÝ / 3-4 ĐÔI THÔNG):
-    // - Nếu đối thủ VẪN CÒN HEO (sit.opponentTwosCount > 0): TUYỆT ĐỐI KHÔNG đánh Tứ Quý / Đôi Thông ra bàn trống!
-    //   Và TUYỆT ĐỐI KHÔNG xé lẻ quân trong Tứ Quý / Đôi Thông! Phải giữ nguyên Hàng và đánh LẺ để DỤ HEO đối thủ!
-    // - Chỉ khi toàn bộ 4 quân Heo đã ra hết (sit.opponentTwosCount === 0) và sắp hết ván (minOpponentCards <= 4)
-    //   thì mới xả Hàng ra bàn để chạy lá tránh Thối Hàng!
-    const allowLeadBomb =
-      sit.opponentTwosCount === 0 && (sit.minOpponentCards <= 4 || bot.hand.length <= 5);
-
+    // 2. NGUYÊN TẮC VÀNG KHI CẦM ĐÔI THÔNG / TỨ QUÝ:
+    // - TUYỆT ĐỐI KHÔNG tự đánh nguyên bộ Đôi Thông / Tứ Quý (`m.isBomb`) ra bàn trống khi chưa có Heo để chặt (trừ khi đánh 1 phát hết sạch bài ở bước 1)!
+    // - Khi chưa đến cuối ván (`sit.shouldHoldBombToBaitHeo`): giữ nguyên Đôi Thông rình chặt Heo, đánh bài lẻ/đôi ngoài Hàng để câu Heo.
+    // - Khi gần hết ván mà vẫn chưa có Heo để chặt (`sit.shouldBreakBombForEndgame`): XÉ Đôi Thông ra thành Sảnh / Đôi / Lẻ để chạy bài!
     const safeNonBombMoves = validMoves.filter((m) => {
       if (m.isBomb) return false;
       const touchesBomb = m.cards.some((c) => struct.bombRanks.has(c.rankIndex));
@@ -17722,12 +17974,10 @@ class TienLenGame {
     const nonBombMoves = validMoves.filter((m) => !m.isBomb);
 
     let pool = validMoves;
-    if (!allowLeadBomb) {
-      if (safeNonBombMoves.length > 0) {
-        pool = safeNonBombMoves;
-      } else if (nonBombMoves.length > 0) {
-        pool = nonBombMoves;
-      }
+    if (sit.shouldHoldBombToBaitHeo && safeNonBombMoves.length > 0) {
+      pool = safeNonBombMoves;
+    } else if (nonBombMoves.length > 0) {
+      pool = nonBombMoves;
     }
 
     // Hệ số bảo vệ bộ thường (Đôi / Sảnh) khi cầm cái:
@@ -17735,8 +17985,12 @@ class TienLenGame {
 
     const scored = pool.map((move) => {
       let score = 0;
-      const breakCost = this.evaluateMoveBreakCost(move, struct);
+      const rawBreakCost = this.evaluateMoveBreakCost(move, struct);
       const touchesBomb = !move.isBomb && move.cards.some((c) => struct.bombRanks.has(c.rankIndex));
+      const breakCost =
+        touchesBomb && sit.shouldBreakBombForEndgame
+          ? Math.max(0, rawBreakCost - 480)
+          : rawBreakCost;
       const contains3Spade = move.cards.some((c) => c.value === 0);
       const twosCount = move.cards.filter((c) => c.rankIndex === 12).length;
       const effHighValue =
@@ -17744,14 +17998,25 @@ class TienLenGame {
           ? (11 - move.highRank) * 4 + (move.highCard?.suitIndex || 0)
           : move.highValue;
 
-      // Bảo vệ tuyệt đối Tứ Quý / Đôi Thông không bao giờ bị xé khi mở vòng
+      // Không bao giờ tự đánh nguyên bộ Đôi Thông / Tứ Quý ra bàn trống nếu chưa hết bài
+      if (move.isBomb) {
+        score -= 5000;
+      }
+
+      // Bảo vệ Đôi Thông / Tứ Quý đầu-giữa ván; nhưng khi gần hết ván chưa có Heo thì khuyến khích XÉ Đôi Thông thành Sảnh/Đôi để xả lá!
       if (touchesBomb) {
-        score -= 2500;
+        if (sit.shouldHoldBombToBaitHeo) {
+          score -= 2500;
+        } else if (sit.shouldBreakBombForEndgame) {
+          score += 65 + move.length * 18 - breakCost * 0.25;
+        } else {
+          score -= 1200;
+        }
       } else {
         score -= breakCost * breakWeight;
       }
 
-      // Ưu tiên tuyệt đối nước đi phát huy Kỹ Năng vừa bật trong lượt này (Ganyu Sảnh Khuyết / Xianyun Sảnh Đằng Vân / Yoimiya Pháo Hoa Thiêu Rác / Bộ bài vừa nâng cấp)
+      // Ưu tiên tuyệt đối nước đi phát huy Chiêu Nộ vừa bật trong lượt này
       if (this.ganyuGapStraightTurn && move.isGapStraight && !touchesBomb) {
         score += 340;
       }
@@ -17762,12 +18027,23 @@ class TienLenGame {
         score += 190;
       }
       if (
-        !touchesBomb &&
+        (!touchesBomb || sit.shouldBreakBombForEndgame) &&
         Array.isArray(bot._skillBoostedCardIds) &&
         bot._skillBoostedCardIds.length > 0 &&
         move.cards.some((c) => bot._skillBoostedCardIds.includes(c.id))
       ) {
         score += 180 + move.length * 25;
+      }
+
+      // CHIẾN THUẬT GIỮ BÀI CAO CHO ENDGAME KHI BÀI THẤP (sit.isWeakLowHand):
+      // Nếu bài Bot toàn quân thấp hoặc rất ít quân chủ lực (Q, K, A, 2) và đối thủ còn >= 4 lá:
+      // -> Khi cầm cái mở vòng, ưu tiên đẩy các bộ/lá thấp (3..9) đi trước, giữ chặt Q, K, A, 2 lại cho Endgame!
+      if (sit.isWeakLowHand && bot.hand.length > 3 && sit.minOpponentCards >= 4 && !sit.shouldHoldBombToBaitHeo) {
+        if (move.highRank >= 9) {
+          score -= 95 + (move.highRank - 8) * 38;
+        } else if (move.highRank <= 6) {
+          score += 45 + (6 - move.highRank) * 7;
+        }
       }
 
       // CHIẾN THUẬT ĐÁNH LẺ DỤ HEO KHI ĐANG ÔM TỨ QUÝ / ĐÔI THÔNG:
@@ -17790,9 +18066,7 @@ class TienLenGame {
       }
 
       // Ưu tiên đánh các bộ xả được nhiều lá cùng lúc (khi không bận câu Heo)
-      if (move.isBomb && allowLeadBomb) {
-        score += 95 + move.length * 12; // Chỉ xả Hàng khi đối thủ đã hết sạch Heo!
-      } else if (move.type === COMBO_TYPES.STRAIGHT) {
+      if (move.type === COMBO_TYPES.STRAIGHT) {
         score += (sit.shouldHoldBombToBaitHeo ? 28 : 56) + move.length * 10;
       } else if (move.type === COMBO_TYPES.TRIPLE) {
         score += 46;
@@ -17806,7 +18080,7 @@ class TienLenGame {
       }
 
       // Chạy 3♠ ngay khi có cơ hội kẻo bị phạt Thối 3♠ (5x mức cược)
-      if (contains3Spade && !touchesBomb) {
+      if (contains3Spade && (!touchesBomb || sit.shouldBreakBombForEndgame)) {
         score += sit.minOpponentCards <= 8 ? 95 : 40;
       }
 
@@ -17828,7 +18102,7 @@ class TienLenGame {
       } else if (!sit.shouldHoldBombToBaitHeo) {
         score -= effHighValue * 0.85;
         if (move.highRank === 12 && bot.hand.length > 3) {
-          score -= 75;
+          score -= 85;
         }
       } else {
         // Khi đang câu Heo: không đánh Heo của chính mình ra trước
@@ -17903,8 +18177,12 @@ class TienLenGame {
     const breakWeight = sit.isCriticalEndgame ? 0.05 : sit.isLosingSoon ? 0.18 : 1.0;
 
     const candidates = validMoves.map((move) => {
-      const breakCost = this.evaluateMoveBreakCost(move, struct);
+      const rawBreakCost = this.evaluateMoveBreakCost(move, struct);
       const touchesBomb = !move.isBomb && move.cards.some((c) => struct.bombRanks.has(c.rankIndex));
+      const breakCost =
+        touchesBomb && sit.shouldBreakBombForEndgame
+          ? Math.max(0, rawBreakCost - 480)
+          : rawBreakCost;
       const isTwo = move.highRank === 12;
       const containsTwo = move.cards.some((c) => c.rankIndex === 12);
       const remainingAfter = bot.hand.length - move.length;
@@ -17914,9 +18192,11 @@ class TienLenGame {
           ? (11 - move.highRank) * 4 + (move.highCard?.suitIndex || 0)
           : move.highValue;
 
-      // Bảo vệ Tứ Quý / Đôi Thông: nếu đối thủ còn Heo thì phạt cực nặng nước đi làm gãy Hàng
+      // Bảo vệ Tứ Quý / Đôi Thông đầu-giữa ván; nhưng nếu gần hết ván mà chưa có Heo để chặt (`shouldBreakBombForEndgame`) thì khuyến khích xé Hàng ra đỡ!
       const bombProtectPenalty =
-        touchesBomb && (sit.shouldHoldBombToBaitHeo || sit.minOpponentCards > 1) ? 2000 : 0;
+        touchesBomb && sit.shouldHoldBombToBaitHeo ? 2000 : 0;
+      const rotBombEscapeBonus =
+        touchesBomb && sit.shouldBreakBombForEndgame ? -45 - move.length * 10 : 0;
 
       // Nếu đang có nguy cơ Thối Heo (đối thủ <= 6 lá mà mình ôm Heo), ưu tiên quăng Heo ra cướp cái & chạy Heo!
       const rotEscapeBonus =
@@ -17929,11 +18209,27 @@ class TienLenGame {
       }
 
       const holdTwoPenalty =
-        isTwo && !sit.isLosingSoon && bot.hand.length > 4 ? 48 : 0;
+        isTwo && !sit.isLosingSoon && bot.hand.length > 4 ? 58 : 0;
 
-      // Ưu tiên mạnh các bộ bài kích hoạt đúng hiệu ứng Kỹ Năng vừa bật (Ganyu Sảnh Khuyết, Xianyun Sảnh Đằng Vân, Mualani Đè Khác Loại, Yoimiya Đốt Rác, Xiao Đạp Kích, Varka Song Kiếm, Columbina Hiệp Phụ, hoặc các lá vừa được Kỹ Năng cường hóa)
+      // CHIẾN THUẬT GIỮ BÀI CAO CHO ENDGAME KHI BÀI THẤP:
+      // Nếu bài Bot yếu/nhiều quân thấp (`sit.isWeakLowHand`) và chưa phải cuối ván, phạt nặng việc tung Q, K, A, 2 ra đè bài nhỏ (3..10) trên bàn!
+      let saveHighForEndgamePenalty = 0;
+      if (
+        !sit.isCriticalEndgame &&
+        sit.minOpponentCards >= 5 &&
+        sit.ownerCards >= 5 &&
+        remainingAfter > 2 &&
+        this.currentCombo &&
+        this.currentCombo.highRank <= 7 &&
+        move.highRank >= 9 &&
+        (sit.isWeakLowHand || sit.veryHighControlCount <= 2)
+      ) {
+        saveHighForEndgamePenalty = (move.highRank - 8) * 52;
+      }
+
+      // Ưu tiên mạnh các bộ bài kích hoạt đúng hiệu ứng Chiêu Nộ vừa bật
       let skillSynergyBonus = 0;
-      if (!touchesBomb) {
+      if (!touchesBomb || sit.shouldBreakBombForEndgame) {
         if (this.ganyuGapStraightTurn && move.isGapStraight) {
           skillSynergyBonus -= 340;
         }
@@ -17983,8 +18279,10 @@ class TienLenGame {
       const totalCost =
         breakCost * breakWeight +
         bombProtectPenalty +
+        rotBombEscapeBonus +
         cardValueTerm +
         holdTwoPenalty +
+        saveHighForEndgamePenalty +
         nearFinishBonus +
         rotEscapeBonus +
         skillSynergyBonus;
@@ -17995,15 +18293,15 @@ class TienLenGame {
     candidates.sort((a, b) => a.totalCost - b.totalCost);
     const best = candidates[0];
 
-    // Tuyệt đối không tự xé Tứ Quý / Đôi Thông để đỡ bài thường khi đối thủ vẫn còn Heo!
+    // Tuyệt đối không tự xé Tứ Quý / Đôi Thông để đỡ bài thường khi chưa đến cuối ván!
     if (best.touchesBomb && sit.shouldHoldBombToBaitHeo) {
       return null;
     }
 
-    // Nếu Bot vừa chủ động bật Kỹ Năng phá thế trong lượt/vòng này
-    // thì BẮT BUỘC đánh tiếp nước bài đã mở đường, TUYỆT ĐỐI KHÔNG BỎ LƯỢT lãng phí Kỹ Năng!
+    // Nếu Bot vừa chủ động bật Chiêu Nộ phá thế trong lượt/vòng này
+    // thì BẮT BUỘC đánh tiếp nước bài đã mở đường, TUYỆT ĐỐI KHÔNG BỎ LƯỢT lãng phí Chiêu Nộ!
     const mustFollowUpSkill =
-      !best.touchesBomb &&
+      (!best.touchesBomb || sit.shouldBreakBombForEndgame) &&
       ((this.ganyuGapStraightTurn && activeCharId === 'ganyu') ||
         (this.xianyunStepStraightTurn && activeCharId === 'xianyun') ||
         (this.wriothesleyNoSingleRound && activeCharId === 'wriothesley') ||
@@ -18053,22 +18351,22 @@ class TienLenGame {
 
     // 4. QUYẾT ĐỊNH ĐÁNH HAY BỎ LƯỢT DỰA TRÊN ĐỌC TÌNH HÌNH BÀN BÀI:
     // (A) KHI BÁO ĐỘNG ĐỎ TỬ CHIẾN (Đối thủ <= 4 lá):
-    // Xé mọi Đôi / Sảnh / Sám để chặn đối thủ (và chỉ xé Hàng nếu đối thủ đã hết sạch Heo!)
+    // Xé mọi Đôi / Sảnh / Sám (và xé cả Đôi Thông nếu đã mở khóa shouldBreakBombForEndgame) để chặn đối thủ!
     if (sit.isCriticalEndgame) {
-      if (best.touchesBomb && sit.opponentTwosCount > 0) return null;
+      if (best.touchesBomb && sit.shouldHoldBombToBaitHeo) return null;
       return best.move;
     }
 
     if (sit.isLosingSoon) {
-      // Sắp thua: Xé Đôi, xé Sảnh, xé Sám, đánh Heo thoải mái để cướp cái và xả lá!
-      if (best.touchesBomb) {
+      // Sắp thua: Xé Đôi, xé Sảnh, xé Sám, đánh Heo (hoặc xé Đôi Thông khi gần hết ván chưa có Heo) để cướp cái và xả lá!
+      if (best.touchesBomb && sit.shouldHoldBombToBaitHeo) {
         return null;
       }
       return best.move;
     }
 
-    // (B) KHI BÀN BÀI ĐANG AN TOÀN (Đầu ván, mọi đối thủ còn >= 7 lá, Bot đã thoát Cóng):
-    if (best.touchesBomb || best.breakCost >= 400) {
+    // (B) KHI BÀN BÀI ĐANG AN TOÀN (Đầu/giữa ván, đối thủ còn >= 6-7 lá):
+    if ((best.touchesBomb && sit.shouldHoldBombToBaitHeo) || best.breakCost >= 400) {
       return null;
     }
 
@@ -18076,12 +18374,44 @@ class TienLenGame {
       return null;
     }
 
+    // Không phung phí Heo (2) để đè bài nhỏ-trung (<= J) khi bài còn dài
     if (
       best.move.highRank === 12 &&
       this.currentCombo.highRank <= 8 &&
-      bot.hand.length > 6
+      bot.hand.length > 5
     ) {
       return null;
+    }
+
+    // CHIẾN THUẬT NHỊN BÀI CAO ĐỂ DÀNH CHO ENDGAME KHI BÀI THẤP:
+    // Khi bài Bot yếu/nhiều bài thấp (`sit.isWeakLowHand`) và đối thủ còn nhiều bài (`>= 6 lá`),
+    // nếu muốn đỡ một bộ bài nhỏ trên bàn (`3..9`) mà lại phải tốn quân chủ lực hiếm hoi (`K, A, 2`),
+    // Bot sẽ chủ động BỎ LƯỢT để giữ quân bài cao đó lại cho giai đoạn Endgame!
+    const remainingAfterBest = bot.hand.length - best.move.length;
+    if (
+      sit.isWeakLowHand &&
+      sit.minOpponentCards >= 6 &&
+      sit.ownerCards >= 6 &&
+      remainingAfterBest >= 4 &&
+      this.currentCombo
+    ) {
+      if (best.move.highRank >= 10 && this.currentCombo.highRank <= 6) {
+        return null;
+      }
+      if (
+        best.move.highRank === 11 &&
+        this.currentCombo.highRank <= 7 &&
+        sit.veryHighControlCount <= 2
+      ) {
+        return null;
+      }
+      if (
+        best.move.highRank >= 9 &&
+        this.currentCombo.highRank <= 4 &&
+        sit.highControlCount <= 2
+      ) {
+        return null;
+      }
     }
 
     return best.move;
@@ -18403,41 +18733,41 @@ class TienLenGame {
 
       if (!hasChar) {
         if (this.elCharSkillLabel) {
-          this.elCharSkillLabel.textContent = '🔒 Cần Nộ 5★';
+          this.elCharSkillLabel.textContent = '🔒 Cần Trang Bị 5★';
         }
         this.btnCharSkill.disabled = true;
         this.btnCharSkill.classList.remove('skill-ready', 'skill-used');
         this.btnCharSkill.title =
-          '🔒 Bạn phải sở hữu Hoạt Ảnh Kỹ Năng Nộ 5★ (tại Sảnh Cầu Nguyện) mới được sử dụng Kỹ Năng của nhân vật đó!';
+          '🔒 Bạn phải vào Kho Đồ bấm Trang Bị Nhân Vật 5★ đã sở hữu thì mới sử dụng được Chiêu Nộ [Q] của nhân vật đó!';
       } else {
         if (this.elCharSkillLabel) {
           if (skill.isPassiveBet) {
             this.elCharSkillLabel.textContent = `💠 ${skill.name} (Nội Tại)`;
           } else if (human.skillUsed) {
-            this.elCharSkillLabel.textContent = `${skill.icon} Đã dùng`;
+            this.elCharSkillLabel.textContent = `${skill.icon} Đã dùng Nộ`;
           } else if (charId === 'mavuika' && this.mavuikaSelectingCard) {
-            this.elCharSkillLabel.textContent = '🔥 Bấm 1 lá (3➔K) trên tay (Hủy [E])';
+            this.elCharSkillLabel.textContent = '🔥 Bấm 1 lá (3➔K) trên tay (Hủy [Q])';
           } else if (
             charId === 'mavuika' &&
             selectedCards.length === 1 &&
             selectedCards[0].rankIndex <= 10
           ) {
             const c = selectedCards[0];
-            this.elCharSkillLabel.textContent = `🔥 Rèn ${c.rank}${c.suit} ➔ ${RANKS[c.rankIndex + 1]}♥ [E]`;
+            this.elCharSkillLabel.textContent = `🔥 Rèn ${c.rank}${c.suit} ➔ ${RANKS[c.rankIndex + 1]}♥ [Q]`;
           } else if (charId === 'escoffier' && skillCheck.ok) {
             const esSetup = this.findEscoffierPairRunSetup(human.hand, this.selectedCardIds);
             this.elCharSkillLabel.textContent = esSetup
-              ? `🍰 Ghép ${esSetup.label} (+${RANKS[esSetup.targetRank]}♥) [E]`
-              : `${skill.icon} ${skill.name} [E]`;
+              ? `🍰 Ghép ${esSetup.label} (+${RANKS[esSetup.targetRank]}♥) [Q]`
+              : `${skill.icon} ${skill.name} [Q]`;
           } else {
-            this.elCharSkillLabel.textContent = `${skill.icon} ${skill.name} [E]`;
+            this.elCharSkillLabel.textContent = `${skill.icon} ${skill.name} [Q]`;
           }
         }
         this.btnCharSkill.disabled = !skillCheck.ok;
         this.btnCharSkill.classList.toggle('skill-ready', !!skillCheck.ok);
         this.btnCharSkill.classList.toggle('skill-used', !!human.skillUsed || !!skill.isPassiveBet);
-        this.btnCharSkill.title = `${skill.icon} ${skill.charName} — ${skill.name}: ${skill.shortDesc}${
-          skillCheck.ok ? ' (Nhấn phím E để tung chiêu!)' : ` (${skillCheck.reason})`
+        this.btnCharSkill.title = `${skill.icon} ${skill.charName} — Chiêu Nộ [Q] ${skill.name}: ${skill.shortDesc}${
+          skillCheck.ok ? ' (Nhấn phím Q để tung Chiêu Nộ!)' : ` (${skillCheck.reason})`
         }`;
       }
     }
@@ -18519,7 +18849,7 @@ class TienLenGame {
   onHumanPlay(isAutoTimeout = false) {
     if (this.isGameOver || this.isBurstPlaying) return;
     if (!this.tutorialCompleted && this.tutorialStep === 5 && !this.tutorialMatch2SkillUsed) {
-      this.showCenterToast('🌟 Nhà Lữ Hành: Hãy bấm vào nút [🔮 Kỹ Năng E] đang có mũi tên chỉ vào để thử chiêu của Raiden Shogun trước nhé!');
+      this.showCenterToast('🌟 Nhà Lữ Hành: Hãy bấm vào nút [🔮 Chiêu Nộ Q] đang có mũi tên chỉ vào để thử Chiêu Nộ của Raiden Shogun trước nhé!');
       this.renderTravelerGuide();
       return;
     }
@@ -18596,7 +18926,7 @@ class TienLenGame {
   onHumanPass(isAutoTimeout = false) {
     if (this.isGameOver || this.isBurstPlaying || this.currentTurn !== this.mySeatId || !this.currentCombo) return;
     if (!this.tutorialCompleted && this.tutorialStep === 5 && !this.tutorialMatch2SkillUsed) {
-      this.showCenterToast('🌟 Nhà Lữ Hành: Đừng bỏ lượt! Hãy bấm vào nút [🔮 Kỹ Năng E] đang có mũi tên chỉ vào để chém đứt Đôi 3 của Bot Furina nhé!');
+      this.showCenterToast('🌟 Nhà Lữ Hành: Đừng bỏ lượt! Hãy bấm vào nút [🔮 Chiêu Nộ Q] đang có mũi tên chỉ vào để chém đứt Đôi 3 của Bot Furina nhé!');
       this.renderTravelerGuide();
       return;
     }
@@ -19811,8 +20141,8 @@ class TienLenGame {
           }
           textEl.innerHTML = `
             🎒 <strong>Đây là Kho Đồ Cá Nhân của bạn!</strong><br>
-            ⚠️ <strong>Quy tắc bắt buộc:</strong> Bạn phải bấm <strong>Trang Bị</strong> thì mới sử dụng được Kỹ Năng <code>[E]</code>, Phản Ứng Nguyên Tố &amp; Hoạt Ảnh Nộ của nhân vật trên bàn đấu!<br>
-            Hãy bấm vào nút <strong>⚡ Trang Bị Nhân Vật Này (Kỹ Năng &amp; Nộ)</strong> ở thẻ <strong>Raiden Shogun</strong> đang có mũi tên chỉ vào nhé!
+            ⚠️ <strong>Quy tắc bắt buộc:</strong> Bạn phải bấm <strong>Trang Bị</strong> thì mới sử dụng được Chiêu Nộ <code>[Q]</code>, Phản Ứng Nguyên Tố &amp; Hoạt Ảnh Nộ của nhân vật trên bàn đấu!<br>
+            Hãy bấm vào nút <strong>⚡ Trang Bị Nhân Vật Này (Chiêu Nộ [Q])</strong> ở thẻ <strong>Raiden Shogun</strong> đang có mũi tên chỉ vào nhé!
           `;
           const btnEquipRaiden = document.getElementById('btn-equip-burst-raiden');
           this.pointToScreenElement(btnEquipRaiden, 'BẤM MẶC RAIDEN SHOGUN TẠI ĐÂY');
@@ -19833,7 +20163,7 @@ class TienLenGame {
           }
           textEl.innerHTML = `
             ⚠️ <strong>Bạn vừa nhận 5★ Raiden Shogun nhưng CHƯA TRANG BỊ!</strong><br>
-            Phải vào <strong>🎒 Kho Đồ</strong> mặc nhân vật vào thì khi vào bàn mới dùng được Kỹ Năng <code>[E]</code> và Phản Ứng Nguyên Tố. Hãy bấm vào nút <strong>🎒 Kho Đồ</strong> đang có mũi tên chỉ vào nhé!
+            Phải vào <strong>🎒 Kho Đồ</strong> mặc nhân vật vào thì khi vào bàn mới dùng được Chiêu Nộ <code>[Q]</code> và Phản Ứng Nguyên Tố. Hãy bấm vào nút <strong>🎒 Kho Đồ</strong> đang có mũi tên chỉ vào nhé!
           `;
           const btnLobbyInv = document.getElementById('btn-lobby-inventory');
           this.pointToScreenElement(btnLobbyInv, 'BẤM MỞ KHO ĐỒ ĐỂ MẶC RAIDEN');
@@ -19843,7 +20173,7 @@ class TienLenGame {
         if (invOpen) {
           textEl.innerHTML = `
             ✅ <strong>Tuyệt vời! Bạn đã mặc 5★ Raiden Shogun (⚡ Lôi Thần) thành công!</strong><br>
-            Giờ nhân vật, Kỹ Năng <code>[E]</code> và Nguyên Tố Lôi của bạn đã sẵn sàng chiến đấu. Hãy bấm vào nút <strong>✅ Đóng Kho Đồ</strong> ở góc dưới bên phải để ra Sảnh Chờ tạo phòng thử chiêu nhé!
+            Giờ nhân vật, Chiêu Nộ <code>[Q]</code> và Nguyên Tố Lôi của bạn đã sẵn sàng chiến đấu. Hãy bấm vào nút <strong>✅ Đóng Kho Đồ</strong> ở góc dưới bên phải để ra Sảnh Chờ tạo phòng thử chiêu nhé!
           `;
           const btnOkInv = document.getElementById('btn-ok-inventory') || document.getElementById('btn-close-inventory');
           this.pointToScreenElement(btnOkInv, 'BẤM ĐÓNG KHO ĐỒ');
@@ -19863,7 +20193,7 @@ class TienLenGame {
           this.pointToScreenElement(cardBot, 'BẤM CHỌN CHƠI VỚI BOT');
         } else {
           textEl.innerHTML = `
-            Tuyệt lắm! Bây giờ hãy bấm vào nút <strong>⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY</strong> có sẵn bên dưới để bắt đầu ván thực hành <strong>Kỹ Năng [E]</strong> và <strong>Phản Ứng Nguyên Tố</strong> nhé!
+            Tuyệt lắm! Bây giờ hãy bấm vào nút <strong>⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY</strong> có sẵn bên dưới để bắt đầu ván thực hành <strong>Chiêu Nộ [Q]</strong> và <strong>Phản Ứng Nguyên Tố</strong> nhé!
           `;
           const btnSoloBot = document.getElementById('btn-solo-bot-mode');
           this.pointToScreenElement(btnSoloBot, 'BẤM VÀO BÀN ĐẤU VỚI BOT');
@@ -19872,22 +20202,22 @@ class TienLenGame {
       return;
     }
 
-    // BƯỚC 5: Ván 2 thực hành Kỹ Năng [E] của Raiden Shogun & hướng dẫn đánh Sảnh Lớn / Sám Cô kích hoạt Phản Ứng Nguyên Tố
+    // BƯỚC 5: Ván 2 thực hành Chiêu Nộ [Q] của Raiden Shogun & hướng dẫn đánh Sảnh Lớn / Sám Cô kích hoạt Phản Ứng Nguyên Tố
     if (step === 5) {
       if (this.tutorialMatch2FirstCardPlayed) {
         this.hideTravelerGuide();
         return;
       }
-      stepPill.textContent = 'Bước 5/6 • Thực Hành Kỹ Năng [E] & Đánh Sảnh/Sám Nổ Phản Ứng';
+      stepPill.textContent = 'Bước 5/6 • Thực Hành Chiêu Nộ [Q] & Đánh Sảnh/Sám Nổ Phản Ứng';
       if (!this.tutorialMatch2SkillUsed) {
         const canUseNow = this.currentTurn === this.mySeatId && this.currentCombo && this.trickOwnerId !== this.mySeatId;
         textEl.innerHTML = `
-          ⚡ <strong>Bước 5.1 — Thực hành Kỹ Năng [E] của Raiden Shogun:</strong><br>
-          <strong>Bot Furina (💧 Thủy)</strong> vừa đánh <strong>Đôi 3 (3♠ 3♦)</strong> xuống bàn! Hãy bấm vào nút <strong>🔮 Kỹ Năng [E]</strong> trên thanh điều khiển để tung tuyệt kỹ <strong>Tịnh Thổ Cắt Vòng</strong>:<br>
+          ⚡ <strong>Bước 5.1 — Thực hành Chiêu Nộ [Q] của Raiden Shogun:</strong><br>
+          <strong>Bot Furina (💧 Thủy)</strong> vừa đánh <strong>Đôi 3 (3♠ 3♦)</strong> xuống bàn! Hãy bấm vào nút <strong>🔮 Chiêu Nộ [Q]</strong> trên thanh điều khiển để tung tuyệt kỹ <strong>Tịnh Thổ Cắt Vòng</strong>:<br>
           • Chém đứt bộ bài Lẻ/Đôi ≤ J trên bàn <strong>không tốn lá bài nào</strong> và <strong>cướp quyền Cầm Cái mở vòng mới</strong> ngay lập tức!
         `;
         if (canUseNow && this.btnCharSkill) {
-          this.pointToScreenElement(this.btnCharSkill, 'BẤM NÚT KỸ NĂNG [E] TẠI ĐÂY');
+          this.pointToScreenElement(this.btnCharSkill, 'BẤM NÚT CHIÊU NỘ [Q] TẠI ĐÂY');
         }
       } else {
         const selectedCards = this.getSelectedCards();

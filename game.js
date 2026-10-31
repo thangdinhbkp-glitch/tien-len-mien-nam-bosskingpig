@@ -3444,6 +3444,7 @@ class TienLenGame {
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
     this.roundChoppableStack = [];
+    this.resetMatchPlayerMemory();
 
     // Trạng thái Kỹ Năng Nhân Vật trong vòng hiện tại
     this.raidenElectroMarkOwnerId = null;
@@ -11301,6 +11302,9 @@ class TienLenGame {
       return arr[Math.floor(Math.random() * arr.length)];
     };
 
+    try {
+      this.recordPlayerSkillBehavior(player, charId);
+    } catch (_) {}
     player.skillUsed = true;
     player._skillForcedComboIds = null;
     player._skillBoostedCardIds = null;
@@ -12750,6 +12754,53 @@ class TienLenGame {
       ? this.chooseBotLeadMove(bot, validMoves)
       : this.chooseBotResponseMove(bot, validMoves);
 
+    // ==========================================================================
+    // STOCKFISH SKILL ENGINE: BẢO VỆ THẾ CHIẾU HẾT SẴN CÓ & TÌM ĐÒN NỘ CHIẾU HẾT NGAY LẬP TỨC!
+    // ==========================================================================
+    const beforeChess = this.evaluateChessPosition(bot, bot.hand, false);
+    const hasLeadCheckmateNow = Boolean(this.findForcedCheckmateMoveFromLead(bot, bot.hand));
+    const hasResponseCheckmateNow = Boolean(
+      this.currentCombo &&
+        plannedMove &&
+        this.isMoveUnbeatableByOpponents(bot, plannedMove, true) &&
+        (() => {
+          const usedIds = new Set(plannedMove.cards.map((c) => c.id));
+          const rem = bot.hand.filter((c) => !usedIds.has(c.id));
+          return rem.length === 0 || Boolean(this.findForcedCheckmateMoveFromLead(bot, rem));
+        })()
+    );
+    const alreadyHasCheckmate =
+      (!this.currentCombo && hasLeadCheckmateNow) || hasResponseCheckmateNow;
+
+    // 1. Nếu tay bài Bot ĐÃ CÓ SẴN THẾ CHIẾU HẾT 100% -> CẤM bật các kỹ năng tráo/đổi bài làm hỏng thế thắng!
+    if (
+      alreadyHasCheckmate &&
+      ['skirk', 'wanderer', 'xilonen', 'kazuha', 'sigewinne', 'nilou', 'sandrone', 'chasca', 'tartaglia', 'neuvillette'].includes(charId)
+    ) {
+      return false;
+    }
+
+    // 2. Nếu đang phải đỡ bài mà trên tay đã có sẵn chuỗi Chiếu Hết khi cầm Cái (`hasLeadCheckmateNow` hoặc `deficitToForcedWin === 0`):
+    // Bật ngay kỹ năng Cắt Vòng / Đấm Văng Bài Lẻ (`raiden`, `wriothesley`) để cướp Cái và Chiếu Hết bàn đấu!
+    if (this.currentCombo && !alreadyHasCheckmate && (hasLeadCheckmateNow || (beforeChess.deficitToForcedWin === 0 && beforeChess.plan.totalTurns <= 3))) {
+      if (
+        charId === 'raiden' &&
+        (this.currentCombo.type === COMBO_TYPES.SINGLE || this.currentCombo.type === COMBO_TYPES.PAIR) &&
+        this.currentCombo.highRank <= 8 &&
+        !this.currentCombo.isBomb
+      ) {
+        return this.useCharacterSkill(bot, []);
+      }
+      if (
+        charId === 'wriothesley' &&
+        this.currentCombo.type === COMBO_TYPES.SINGLE &&
+        this.currentCombo.highRank < 12 &&
+        !this.currentCombo.isBomb
+      ) {
+        return this.useCharacterSkill(bot, []);
+      }
+    }
+
     let shouldCast = false;
     let preferredIds = [];
 
@@ -13330,14 +13381,16 @@ class TienLenGame {
       }
     } else if (charId === 'columbina') {
       if (bot.hand.length >= 2 && (!this.currentCombo || plannedMove)) {
-        const firstMove = plannedMove || validMoves[0];
-        if (firstMove) {
-          const usedIds = new Set(firstMove.cards.map((c) => c.id));
+        const canCheckmateOnExtraTurn = validMoves.some((m) => {
+          const usedIds = new Set(m.cards.map((c) => c.id));
           const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
-          const canInstantWinOnExtraTurn = remHand.length > 0 && Boolean(classifyCombo(remHand));
-          if (canInstantWinOnExtraTurn || bot.hand.length <= 8 || minOppCards <= 6) {
-            shouldCast = true;
-          }
+          return (
+            remHand.length > 0 &&
+            (Boolean(classifyCombo(remHand)) || Boolean(this.findForcedCheckmateMoveFromLead(bot, remHand)))
+          );
+        });
+        if (canCheckmateOnExtraTurn || bot.hand.length <= 8 || minOppCards <= 6) {
+          shouldCast = true;
         }
       }
     } else if (charId === 'odette') {
@@ -13854,6 +13907,66 @@ class TienLenGame {
     if (shouldCast) {
       return this.useCharacterSkill(bot, preferredIds);
     }
+
+    // ==========================================================================
+    // HỌC CÁCH NGƯỜI CHƠI DÙNG SKILL & PHÒNG VỆ TRƯỚC NHỊP NỘ CỦA NGƯỜI CHƠI
+    // ==========================================================================
+    const humanProf = this.getHumanLearningProfile();
+    const learnedChar = humanProf.skillByChar ? humanProf.skillByChar[charId] : null;
+    const learnedHandTrigger =
+      learnedChar && learnedChar.uses > 0
+        ? Math.round(learnedChar.sumHandLen / learnedChar.uses)
+        : null;
+    const avgHumanSkillHandLen =
+      humanProf.skillUsesTotal > 0
+        ? Math.round(humanProf.skillSumHandLen / humanProf.skillUsesTotal)
+        : 7;
+    const humanDangerOpp = activeOpponents.find(
+      (p) => !p.isBot && !p.skillUsed && this.getPlayerActiveCharId(p) !== 'none'
+    );
+    const isHumanAboutToBurst =
+      Boolean(humanDangerOpp) &&
+      humanDangerOpp.hand.length <= Math.max(6, Math.min(10, avgHumanSkillHandLen + 1));
+
+    const controlOrTempoChars = [
+      'ayaka',
+      'zhongli',
+      'navia',
+      'cyno',
+      'wriothesley',
+      'hutao',
+      'arlecchino',
+      'alhaitham',
+      'zibai',
+      'yaemiko',
+      'furina',
+      'shenhe',
+      'yelan',
+      'emilie',
+      'flins',
+      'odette',
+      'itto',
+      'vesna',
+      'klee',
+      'nahida',
+      'ineffa',
+    ];
+
+    if (
+      !alreadyHasCheckmate &&
+      controlOrTempoChars.includes(charId) &&
+      plannedMove &&
+      !plannedMove.isBomb &&
+      unpassedOpps.length >= 1 &&
+      (plannedMove.length >= 2 || plannedMove.highRank >= 5)
+    ) {
+      const matchLearnedCharWindow =
+        learnedHandTrigger !== null && bot.hand.length <= learnedHandTrigger;
+      if (isHumanAboutToBurst || matchLearnedCharWindow) {
+        return this.useCharacterSkill(bot, preferredIds);
+      }
+    }
+
     return false;
   }
 
@@ -15048,6 +15161,7 @@ class TienLenGame {
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
     this.roundChoppableStack = [];
+    this.resetMatchPlayerMemory();
     this.lastSummaryData = null;
     this.lastBurstEffect = null;
     this.penaltyCardIdsByPlayer = [new Set(), new Set(), new Set(), new Set()];
@@ -16639,6 +16753,7 @@ class TienLenGame {
     this.matchChopDetails = [[], [], [], []];
     this.lastSummaryData = null;
     this.logsData = [];
+    this.resetMatchPlayerMemory();
     this.hintIndex = 0;
     this.chopPot = 0;
     this.lastChoppedPlayerId = null;
@@ -17230,6 +17345,9 @@ class TienLenGame {
       this.roundPlayedSeatIds = new Set();
     }
     this.roundPlayedSeatIds.add(player.id);
+    try {
+      this.recordPlayerPlayBehavior(player, combo);
+    } catch (_) {}
     const playedIds = new Set(combo.cards.map((c) => c.id));
     player.hand = player.hand.filter((c) => !playedIds.has(c.id));
     if (!Array.isArray(this.matchGraveyardCards)) {
@@ -17819,6 +17937,9 @@ class TienLenGame {
     if (player.passed) {
       player.declinedFourPairsCut = true;
     }
+    try {
+      this.recordPlayerPassBehavior(player, this.currentCombo);
+    } catch (_) {}
     player.passed = true;
     this.turnTimerComboSig = '';
     this.addLog(`<em>${player.name} bỏ lượt.</em>`, 'log-pass');
@@ -18210,6 +18331,178 @@ class TienLenGame {
     } else {
       this.passTurn(bot);
     }
+  }
+
+  // ============================================================================
+  // HỆ THỐNG TỰ HỌC THÓI QUEN ĐÁNH BÀI & DÙNG SKILL CỦA NGƯỜI CHƠI (ADAPTIVE AI MEMORY)
+  // ============================================================================
+  getHumanLearningProfile() {
+    if (this.humanLearningProfile) return this.humanLearningProfile;
+    const defaultProf = {
+      totalLeads: 0,
+      leadByType: { single: 0, pair: 0, triple: 0, straight: 0 },
+      earlyLowSinglePlays: 0,
+      earlyComboPlays: 0,
+      twoPlaysCount: 0,
+      twoPlaysSumHandLen: 0,
+      skillUsesTotal: 0,
+      skillOnLeadCount: 0,
+      skillOnResponseCount: 0,
+      skillSumHandLen: 0,
+      skillSumMinOppLen: 0,
+      skillByChar: {},
+    };
+    try {
+      const raw = localStorage.getItem('tlmn_bot_learned_human_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          this.humanLearningProfile = {
+            ...defaultProf,
+            ...parsed,
+            leadByType: { ...defaultProf.leadByType, ...(parsed.leadByType || {}) },
+            skillByChar: { ...(parsed.skillByChar || {}) },
+          };
+          return this.humanLearningProfile;
+        }
+      }
+    } catch (_) {}
+    this.humanLearningProfile = defaultProf;
+    return this.humanLearningProfile;
+  }
+
+  saveHumanLearningProfile() {
+    if (!this.humanLearningProfile) return;
+    try {
+      localStorage.setItem('tlmn_bot_learned_human_v1', JSON.stringify(this.humanLearningProfile));
+    } catch (_) {}
+  }
+
+  resetMatchPlayerMemory() {
+    this.matchPlayerMemory = [0, 1, 2, 3].map(() => ({
+      passedPairCeiling: 99,
+      pairPassCount: 0,
+      passedTripleCeiling: 99,
+      triplePassCount: 0,
+      passedStraightByLen: {},
+      straightPassCount: 0,
+      passedSingleCeiling: 99,
+      singlePassCount: 0,
+      lowSinglesPlayed: 0,
+      multiCombosPlayed: 0,
+    }));
+  }
+
+  getMatchPlayerMemory(playerId) {
+    if (!Array.isArray(this.matchPlayerMemory) || this.matchPlayerMemory.length < 4) {
+      this.resetMatchPlayerMemory();
+    }
+    return this.matchPlayerMemory[playerId] || this.matchPlayerMemory[0];
+  }
+
+  recordPlayerPlayBehavior(player, combo) {
+    if (!player || !combo) return;
+    const mem = this.getMatchPlayerMemory(player.id);
+    const handLenBefore = player.hand ? player.hand.length : 0;
+
+    if (combo.type === COMBO_TYPES.SINGLE && combo.highRank <= 6) {
+      mem.lowSinglesPlayed++;
+    } else if (combo.length >= 2 && !combo.isBomb) {
+      mem.multiCombosPlayed++;
+    }
+    if (combo.type === COMBO_TYPES.PAIR && combo.highRank >= mem.passedPairCeiling) {
+      mem.passedPairCeiling = 99;
+    }
+
+    if (!player.isBot) {
+      const prof = this.getHumanLearningProfile();
+      if (!this.currentCombo) {
+        prof.totalLeads = (prof.totalLeads || 0) + 1;
+        if (prof.leadByType[combo.type] !== undefined) {
+          prof.leadByType[combo.type]++;
+        }
+      }
+      if (handLenBefore >= 8) {
+        if (combo.type === COMBO_TYPES.SINGLE && combo.highRank <= 6) {
+          prof.earlyLowSinglePlays = (prof.earlyLowSinglePlays || 0) + 1;
+        } else if (combo.length >= 2 && !combo.isBomb) {
+          prof.earlyComboPlays = (prof.earlyComboPlays || 0) + 1;
+        }
+      }
+      if (combo.highRank === 12) {
+        prof.twoPlaysCount = (prof.twoPlaysCount || 0) + 1;
+        prof.twoPlaysSumHandLen = (prof.twoPlaysSumHandLen || 0) + handLenBefore;
+      }
+      this.saveHumanLearningProfile();
+    }
+  }
+
+  recordPlayerPassBehavior(player, tableCombo) {
+    if (!player || !tableCombo || tableCombo.isBomb) return;
+    const mem = this.getMatchPlayerMemory(player.id);
+    const effRank =
+      activeKokomiReverseRank && tableCombo.highRank < 12
+        ? 11 - tableCombo.highRank
+        : tableCombo.highRank;
+
+    if (tableCombo.type === COMBO_TYPES.PAIR) {
+      mem.pairPassCount++;
+      if (effRank < mem.passedPairCeiling) mem.passedPairCeiling = effRank;
+    } else if (tableCombo.type === COMBO_TYPES.TRIPLE) {
+      mem.triplePassCount++;
+      if (effRank < mem.passedTripleCeiling) mem.passedTripleCeiling = effRank;
+    } else if (tableCombo.type === COMBO_TYPES.STRAIGHT) {
+      mem.straightPassCount++;
+      const len = tableCombo.length;
+      const prev = mem.passedStraightByLen[len] ?? 99;
+      if (effRank < prev) mem.passedStraightByLen[len] = effRank;
+    } else if (tableCombo.type === COMBO_TYPES.SINGLE && player.hand.length <= 6) {
+      mem.singlePassCount++;
+      if (effRank < mem.passedSingleCeiling) mem.passedSingleCeiling = effRank;
+    }
+  }
+
+  recordPlayerSkillBehavior(player, charId) {
+    if (!player || player.isBot || !charId || charId === 'none') return;
+    const prof = this.getHumanLearningProfile();
+    const opps = this.players.filter(
+      (p) => p.active && p.id !== player.id && p.finishRank === null && p.hand.length > 0
+    );
+    const minOppLen = opps.length > 0 ? Math.min(...opps.map((p) => p.hand.length)) : 13;
+    const isLead = !this.currentCombo;
+    const myHandLen = player.hand ? player.hand.length : 0;
+
+    prof.skillUsesTotal = (prof.skillUsesTotal || 0) + 1;
+    if (isLead) {
+      prof.skillOnLeadCount = (prof.skillOnLeadCount || 0) + 1;
+    } else {
+      prof.skillOnResponseCount = (prof.skillOnResponseCount || 0) + 1;
+    }
+    prof.skillSumHandLen = (prof.skillSumHandLen || 0) + myHandLen;
+    prof.skillSumMinOppLen = (prof.skillSumMinOppLen || 0) + minOppLen;
+
+    if (!prof.skillByChar[charId]) {
+      prof.skillByChar[charId] = { uses: 0, onLead: 0, sumHandLen: 0, sumMinOppLen: 0 };
+    }
+    const cs = prof.skillByChar[charId];
+    cs.uses++;
+    if (isLead) cs.onLead++;
+    cs.sumHandLen += myHandLen;
+    cs.sumMinOppLen += minOppLen;
+
+    this.saveHumanLearningProfile();
+  }
+
+  getNextActiveOpponent(bot) {
+    const dir = this.turnDirection === -1 ? -1 : 1;
+    for (let step = 1; step < 4; step++) {
+      const nextId = (bot.id + step * dir + 16) % 4;
+      const p = this.players[nextId];
+      if (p && p.active && p.id !== bot.id && p.finishRank === null && p.hand.length > 0) {
+        return p;
+      }
+    }
+    return null;
   }
 
   // ============================================================================
@@ -18906,6 +19199,22 @@ class TienLenGame {
     }
 
     const beforeChess = this.evaluateChessPosition(bot, bot.hand, sit.shouldBreakBombForEndgame);
+    const humanProf = this.getHumanLearningProfile();
+    const nextOpp = this.getNextActiveOpponent(bot);
+    const activeOpps = this.players.filter(
+      (p) => p.active && p.id !== bot.id && p.finishRank === null && p.hand.length > 0
+    );
+    const humanOpp = activeOpps.find((p) => !p.isBot) || null;
+    const targetOpp =
+      humanOpp && humanOpp.hand.length <= sit.minOpponentCards + 2
+        ? humanOpp
+        : [...activeOpps].sort((a, b) => a.hand.length - b.hand.length)[0] || null;
+    const targetMem = targetOpp ? this.getMatchPlayerMemory(targetOpp.id) : null;
+    const avgHumanTwoHandLen =
+      humanProf.twoPlaysCount > 0 ? humanProf.twoPlaysSumHandLen / humanProf.twoPlaysCount : 5.0;
+    const earlyTotal = (humanProf.earlyLowSinglePlays || 0) + (humanProf.earlyComboPlays || 0);
+    const humanEarlySingleRate =
+      earlyTotal >= 4 ? humanProf.earlyLowSinglePlays / earlyTotal : 0.5;
 
     // ==========================================================================
     // 3. CHIẾN THUẬT MỞ VÒNG CHUẨN ENGINE CỜ VUA (MINIMAX 2-PLY + LƯỢNG GIÁ THẾ CỜ):
@@ -19063,6 +19372,63 @@ class TienLenGame {
         score += 160;
       }
 
+      // 9. BẮT BÀI NGƯỜI CHƠI TỪ LỊCH SỬ BỎ LƯỢT & THÓI QUEN ĐÃ HỌC:
+      if (targetMem && turnsAdded <= 0 && !touchesBomb) {
+        if (move.type === COMBO_TYPES.PAIR && targetMem.pairPassCount > 0) {
+          score += 75 + Math.min(3, targetMem.pairPassCount) * 22;
+          if (effHighRank >= targetMem.passedPairCeiling - 1) score += 35;
+        } else if (move.type === COMBO_TYPES.TRIPLE && targetMem.triplePassCount > 0) {
+          score += 85;
+        } else if (
+          move.type === COMBO_TYPES.STRAIGHT &&
+          targetMem.passedStraightByLen &&
+          targetMem.passedStraightByLen[move.length] !== undefined
+        ) {
+          score += 95;
+        }
+
+        if (targetOpp && targetOpp.hand.length >= 2 && targetOpp.hand.length <= 3) {
+          const likelyHoldingCombo =
+            (targetMem.lowSinglesPlayed >= 3 && targetMem.multiCombosPlayed <= 1) ||
+            (!targetOpp.isBot && humanEarlySingleRate >= 0.62 && targetMem.lowSinglesPlayed >= 2);
+          const likelyHoldingSingles =
+            (targetMem.lowSinglesPlayed === 0 && targetMem.multiCombosPlayed >= 2) ||
+            (!targetOpp.isBot && humanEarlySingleRate <= 0.38 && targetMem.lowSinglesPlayed === 0);
+
+          if (likelyHoldingCombo) {
+            if (move.length === targetOpp.hand.length) {
+              score -= 175;
+            } else if (move.type === COMBO_TYPES.SINGLE) {
+              score += 80;
+            }
+          } else if (likelyHoldingSingles && move.length >= 2) {
+            score += 90;
+          }
+        }
+      }
+
+      if (
+        nextOpp &&
+        nextOpp.hand.length >= 2 &&
+        nextOpp.hand.length <= 3 &&
+        move.length === nextOpp.hand.length &&
+        effHighRank <= 7 &&
+        !hasSameTypeEscortInRem
+      ) {
+        score -= 125;
+      }
+
+      if (
+        sit.shouldHoldBombToBaitHeo &&
+        sit.opponentTwosCount > 0 &&
+        move.type === COMBO_TYPES.SINGLE &&
+        effHighRank >= 6 &&
+        effHighRank <= 10 &&
+        turnsAdded <= 0
+      ) {
+        score += avgHumanTwoHandLen <= 5.5 ? 95 : 55;
+      }
+
       return { move, score };
     });
 
@@ -19092,6 +19458,22 @@ class TienLenGame {
     const struct = this.analyzeBotHandStructure(bot.hand);
     const sit = this.analyzeBotTableSituation(bot, struct);
     const beforeChess = this.evaluateChessPosition(bot, bot.hand, sit.shouldBreakBombForEndgame);
+    const humanProf = this.getHumanLearningProfile();
+    const nextOpp = this.getNextActiveOpponent(bot);
+    const activeOpps = this.players.filter(
+      (p) => p.active && p.id !== bot.id && p.finishRank === null && p.hand.length > 0
+    );
+    const humanOpp = activeOpps.find((p) => !p.isBot) || null;
+    const targetOpp =
+      humanOpp && humanOpp.hand.length <= sit.minOpponentCards + 2
+        ? humanOpp
+        : [...activeOpps].sort((a, b) => a.hand.length - b.hand.length)[0] || null;
+    const targetMem = targetOpp ? this.getMatchPlayerMemory(targetOpp.id) : null;
+    const avgHumanTwoHandLen =
+      humanProf.twoPlaysCount > 0 ? humanProf.twoPlaysSumHandLen / humanProf.twoPlaysCount : 5.0;
+    const earlyTotal = (humanProf.earlyLowSinglePlays || 0) + (humanProf.earlyComboPlays || 0);
+    const humanEarlySingleRate =
+      earlyTotal >= 4 ? humanProf.earlyLowSinglePlays / earlyTotal : 0.5;
     const beforePlan = beforeChess.plan;
 
     // 3. CHESS CHECKMATE TAKEOVER (ĐOẠT CÁI CHIẾU HẾT ĐA TẦNG):

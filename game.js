@@ -4458,15 +4458,21 @@ class TienLenGame {
     if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
     if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
     if (typeof data.tutorialCompleted === 'boolean') {
-      this.tutorialCompleted = isNewerOrEqual ? data.tutorialCompleted : (this.tutorialCompleted || data.tutorialCompleted);
+      this.tutorialCompleted = Boolean(this.tutorialCompleted || data.tutorialCompleted);
     }
     if (typeof data.beginnerBannerUsed === 'boolean') {
-      this.beginnerBannerUsed = isNewerOrEqual ? data.beginnerBannerUsed : (this.beginnerBannerUsed || data.beginnerBannerUsed);
+      this.beginnerBannerUsed = Boolean(this.beginnerBannerUsed || data.beginnerBannerUsed);
     }
     if (typeof data.tutorialStep === 'number' && isNewerOrEqual) {
       this.tutorialStep = data.tutorialStep;
     }
-    if (this.unlockedBursts.size > 0 && (this.totalWishes || 0) > 0 && data.tutorialCompleted === undefined && this.tutorialStep === 0) {
+    // Bất kỳ người chơi nào đã từng hoàn thành hướng dẫn hoặc đã sở hữu Nhân Vật 5★ / đã quay Gacha đều được đánh dấu hoàn thành vĩnh viễn!
+    if (
+      this.tutorialCompleted ||
+      this.unlockedBursts.size > 1 ||
+      (this.totalWishes || 0) > 0 ||
+      (this.unlockedBursts.size >= 1 && (this.beginnerBannerUsed || this.tutorialStep >= 6 || this.tutorialStep === 0))
+    ) {
       this.tutorialCompleted = true;
       this.beginnerBannerUsed = true;
     }
@@ -5104,14 +5110,19 @@ class TienLenGame {
       equippedChopBurst: resolvedActiveChar,
       equippedWinBurst: resolvedActiveChar,
       gachaHistory: mergedHistory,
-      tutorialCompleted:
-        typeof newer.tutorialCompleted === 'boolean'
-          ? newer.tutorialCompleted
-          : Boolean(older.tutorialCompleted || (mergedBursts.length > 0 && !newer.tutorialStep)),
-      beginnerBannerUsed:
-        typeof newer.beginnerBannerUsed === 'boolean'
-          ? newer.beginnerBannerUsed
-          : Boolean(older.beginnerBannerUsed || (mergedBursts.length > 0 && !newer.tutorialStep)),
+      tutorialCompleted: Boolean(
+        older.tutorialCompleted ||
+          newer.tutorialCompleted ||
+          mergedBursts.length > 1 ||
+          maxTotalWishes > 0 ||
+          (mergedBursts.length > 0 && (older.beginnerBannerUsed || newer.beginnerBannerUsed || !newer.tutorialStep))
+      ),
+      beginnerBannerUsed: Boolean(
+        older.beginnerBannerUsed ||
+          newer.beginnerBannerUsed ||
+          mergedBursts.length > 0 ||
+          maxTotalWishes > 0
+      ),
       tutorialStep:
         typeof newer.tutorialStep === 'number' && newer.tutorialStep > 0
           ? newer.tutorialStep
@@ -9010,16 +9021,16 @@ class TienLenGame {
     });
 
     this.btnShowSummary.addEventListener('click', () => {
-      this.renderSummaryReadyStateUI();
-      this.modalSummary.classList.remove('hidden');
-      sfx.click();
-      if (!this.tutorialCompleted) {
-        this.renderTravelerGuide();
-      }
+      this.reopenSummaryFromPeek();
     });
 
     document.getElementById('btn-close-summary').addEventListener('click', () => {
       this.modalSummary.classList.add('hidden');
+      this.btnShowSummary.classList.remove('hidden');
+      document.getElementById('peek-return-summary-bar')?.classList.remove('hidden');
+      if (this.isGameOver && this.elTurnBanner) {
+        this.elTurnBanner.textContent = '👁️ Đang xem bàn bài • Bấm nút "📋 QUAY LẠI BẢNG TỔNG KẾT & CHUẨN BỊ" để về lại tab chuẩn bị!';
+      }
       sfx.click();
       if (!this.tutorialCompleted) {
         this.renderTravelerGuide();
@@ -9028,6 +9039,11 @@ class TienLenGame {
 
     document.getElementById('btn-peek-table').addEventListener('click', () => {
       this.modalSummary.classList.add('hidden');
+      this.btnShowSummary.classList.remove('hidden');
+      document.getElementById('peek-return-summary-bar')?.classList.remove('hidden');
+      if (this.isGameOver && this.elTurnBanner) {
+        this.elTurnBanner.textContent = '👁️ Đang xem bàn bài • Bấm nút "📋 QUAY LẠI BẢNG TỔNG KẾT & CHUẨN BỊ" để về lại tab chuẩn bị!';
+      }
       sfx.click();
       if (!this.tutorialCompleted) {
         this.renderTravelerGuide();
@@ -11783,6 +11799,27 @@ class TienLenGame {
       activeYelanSameParity = false;
       this.xiaoKarmaOwnerId = null;
       activeXiaoKarmaMaxRank = null;
+      this.kinichBombOwnerId = null;
+      this.citlaliPillowOwnerId = null;
+      this.citlaliPillowTargetId = null;
+      this.hutaoTaxOwnerId = null;
+      this.arlecchinoBondOwnerId = null;
+      this.flinsLanternOwnerId = null;
+      this.ittoUshiOwnerId = null;
+      this.baizhuShieldOwnerId = null;
+      activeBaizhuShield = false;
+      this.alhaithamOwnerId = null;
+      this.alhaithamAllowedRanks = null;
+      activeAlhaithamAllowedRanks = null;
+      this.emiliePerfumeOwnerId = null;
+      this.emilieRequiredSuit = null;
+      activeEmilieRequiredSuit = null;
+      this.zibaiMinStepOwnerId = null;
+      this.zibaiRedirectTargetId = null;
+      activeZibaiMinStep = false;
+      this.nicoleSuitOnlyRound = false;
+      activeNicoleSuitOnlyRound = false;
+      this.roundPlayedSeatIds = new Set();
       this.emiliePerfumeOwnerId = null;
       this.emilieRequiredSuit = null;
       activeEmilieRequiredSuit = null;
@@ -12862,6 +12899,15 @@ class TienLenGame {
         this.chopPot = 0;
         this.lastChoppedPlayerId = null;
         this.roundChoppableStack = [];
+        this.kinichBombOwnerId = null;
+        this.citlaliPillowOwnerId = null;
+        this.citlaliPillowTargetId = null;
+        this.hutaoTaxOwnerId = null;
+        this.arlecchinoBondOwnerId = null;
+        this.flinsLanternOwnerId = null;
+        this.ittoUshiOwnerId = null;
+        this.baizhuShieldOwnerId = null;
+        activeBaizhuShield = false;
         this.players.forEach((p) => {
           p.passed = false;
           p.declinedFourPairsCut = false;
@@ -16904,6 +16950,7 @@ class TienLenGame {
       clearTimeout(this.endMatchDelayTimer);
       this.modalSummary.classList.add('hidden');
       this.btnShowSummary.classList.add('hidden');
+      document.getElementById('peek-return-summary-bar')?.classList.add('hidden');
     }
 
     const me = this.players[this.mySeatId];
@@ -17194,6 +17241,7 @@ class TienLenGame {
     clearTimeout(this.afkAutoLeaveTimer);
     this.modalSummary.classList.add('hidden');
     this.btnShowSummary.classList.add('hidden');
+    document.getElementById('peek-return-summary-bar')?.classList.add('hidden');
 
     if (this.isMultiplayer && this.isHost && !resetHistory) {
       this.kickFullMatchAfkPlayersBeforeNextMatch();
@@ -17892,6 +17940,9 @@ class TienLenGame {
     this.lastBurstEffect = null;
     if (!this.currentCombo || !(this.roundPlayedSeatIds instanceof Set)) {
       this.roundPlayedSeatIds = new Set();
+      if (this.kinichBombOwnerId !== null && player.id !== this.kinichBombOwnerId) {
+        this.kinichBombOwnerId = null;
+      }
     }
     this.roundPlayedSeatIds.add(player.id);
     try {
@@ -17973,14 +18024,21 @@ class TienLenGame {
       this.renderRoundSkillStatusBar();
     }
 
-    // Bom Hẹn Giờ Ajaw của Kinich: Tất cả đối thủ tham gia đánh bài trong vòng đang diễn ra đều bị nổ bom nhận 1 lá bài rác nhỏ nhất từ tay Kinich!
+    // Bom Hẹn Giờ Ajaw của Kinich: Tất cả đối thủ tham gia đánh bài đỡ trong vòng đang diễn ra (chỉ trong 1 vòng khi trên bàn đã có bài) đều bị nổ bom nhận 1 lá bài rác nhỏ nhất từ tay Kinich!
     if (
       this.kinichBombOwnerId !== null &&
+      this.currentCombo !== null &&
       player.id !== this.kinichBombOwnerId &&
       player.hand.length >= 1
     ) {
       const kinichOwner = this.players[this.kinichBombOwnerId];
-      if (kinichOwner && kinichOwner.active && kinichOwner.finishRank === null && kinichOwner.hand.length >= 2) {
+      if (
+        kinichOwner &&
+        kinichOwner.active &&
+        !kinichOwner.passed &&
+        kinichOwner.finishRank === null &&
+        kinichOwner.hand.length >= 2
+      ) {
         const kStruct = this.analyzeBotHandStructure(kinichOwner.hand);
         const kSorted = sortCardsAsc(kinichOwner.hand);
         const bombTrash =
@@ -18417,6 +18475,7 @@ class TienLenGame {
       this.trickOwnerId = player.id;
       this.currentTurn = player.id;
       this.turnTimerComboSig = '';
+      this.kinichBombOwnerId = null;
       this.players.forEach((p) => {
         if (p.active && p.finishRank === null) {
           p.passed = false;
@@ -18446,6 +18505,7 @@ class TienLenGame {
         this.trickOwnerId = ittoOwner.id;
         this.currentTurn = ittoOwner.id;
         this.turnTimerComboSig = '';
+        this.kinichBombOwnerId = null;
         this.players.forEach((p) => {
           if (p.active && p.finishRank === null) {
             p.passed = false;
@@ -18532,6 +18592,10 @@ class TienLenGame {
       this.recordPlayerPassBehavior(player, this.currentCombo);
     } catch (_) {}
     player.passed = true;
+    if (this.kinichBombOwnerId === player.id) {
+      this.kinichBombOwnerId = null;
+      this.renderRoundSkillStatusBar();
+    }
     this.turnTimerComboSig = '';
     this.addLog(`<em>${player.name} bỏ lượt.</em>`, 'log-pass');
 
@@ -18652,6 +18716,11 @@ class TienLenGame {
           }
         }
         this.currentTurn = nextId;
+        // Bom Hẹn Giờ Ajaw của Kinich chỉ có hiệu lực đúng 1 chu kỳ vòng bàn đấu: khi lượt quay trở lại chính Kinich thì bom tự hết hạn!
+        if (this.kinichBombOwnerId !== null && nextId === this.kinichBombOwnerId) {
+          this.kinichBombOwnerId = null;
+          this.renderRoundSkillStatusBar();
+        }
         this.promptCurrentTurn();
         return;
       }
@@ -21345,7 +21414,19 @@ class TienLenGame {
     }, 1350);
   }
 
+  reopenSummaryFromPeek() {
+    document.getElementById('peek-return-summary-bar')?.classList.add('hidden');
+    this.renderSummaryReadyStateUI();
+    this.modalSummary.classList.remove('hidden');
+    sfx.click();
+    if (!this.tutorialCompleted) {
+      this.renderTravelerGuide();
+    }
+  }
+
   showSummaryModal(coinChanges, detailsByPlayer, bannerText) {
+    document.getElementById('peek-return-summary-bar')?.classList.add('hidden');
+    this.btnShowSummary.classList.remove('hidden');
     const tbody = document.getElementById('summary-tbody');
     const banner = document.getElementById('toi-trang-banner');
     this.updateBetBadges();
@@ -22076,6 +22157,18 @@ class TienLenGame {
   }
 
   startNewbieTutorial(forceReset = false) {
+    // Nếu người chơi đã hoàn thành hướng dẫn cơ bản hoặc đã sở hữu Nhân Vật 5★ / đã quay Gacha thì tuyệt đối không chạy lại hướng dẫn nữa!
+    if (
+      this.tutorialCompleted ||
+      this.unlockedBursts.size > 0 ||
+      (this.totalWishes || 0) > 0 ||
+      this.beginnerBannerUsed
+    ) {
+      this.tutorialCompleted = true;
+      this.beginnerBannerUsed = true;
+      this.hideTravelerGuide();
+      return;
+    }
     if (this.isMultiplayer && this.roomId) {
       this.showCenterToast('⚠️ Vui lòng rời phòng Online trước khi mở Hướng Dẫn Tân Thủ!');
       return;
@@ -22414,11 +22507,8 @@ class TienLenGame {
   }
 
   replayNewbieTutorialFromRules() {
-    if (this.isMultiplayer && this.roomId) {
-      this.showCenterToast('⚠️ Vui lòng rời phòng Online trước khi chạy lại Hướng Dẫn Tân Thủ!');
-      return;
-    }
-    this.startNewbieTutorial(true);
+    this.tutorialCompleted = true;
+    this.hideTravelerGuide();
   }
 
   renderTravelerGuide() {

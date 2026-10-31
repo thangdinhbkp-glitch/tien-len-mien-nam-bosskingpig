@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=114" />
+  <link rel="stylesheet" href="styles.css?v=115" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -30,8 +30,8 @@
         <div class="top-turn-timer-pill" id="top-turn-timer-pill" title="Giới hạn 30 giây mỗi lượt — Quá 30s hệ thống sẽ tự động đánh bài!">
           ⏱️ <span id="top-turn-timer-sec">30s</span>
         </div>
-        <button class="icon-btn hidden" id="btn-show-summary" title="Mở lại bảng tính tiền">
-          📊 Bảng tính tiền
+        <button class="icon-btn hidden" id="btn-show-summary" title="Quay lại Bảng Tổng Kết &amp; Chuẩn Bị Ván Tiếp" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;color:#ffffff;font-weight:900;">
+          📋 Về Tab Chuẩn Bị / Tổng Kết
         </button>
         <button class="top-fullscreen-btn" id="btn-top-skip-burst" onclick="window.tienLenGame.toggleSkipBurstAnimations()" title="Bấm để Tắt / Bật hoàn toàn hoạt ảnh Nộ của mọi nhân vật">
           🎬 Hoạt Ảnh Nộ: BẬT
@@ -181,6 +181,11 @@
             </div>
 
             <div class="trick-owner-label" id="trick-owner-label"></div>
+            <div class="peek-return-summary-bar hidden" id="peek-return-summary-bar" style="margin-top:8px;z-index:25;display:flex;justify-content:center;">
+              <button type="button" class="primary-btn btn-lg" onclick="window.tienLenGame.reopenSummaryFromPeek()" style="background:linear-gradient(135deg,#059669,#10b981);border:2px solid #fde047;color:#ffffff;font-weight:900;font-size:14px;padding:10px 22px;border-radius:999px;box-shadow:0 6px 20px rgba(16,185,129,0.55);cursor:pointer;">
+                📋 QUAY LẠI BẢNG TỔNG KẾT &amp; CHUẨN BỊ VÁN TIẾP ▸
+              </button>
+            </div>
           </div>
 
           <!-- RIGHT SEAT (Visual Slot 3) -->
@@ -401,10 +406,6 @@
           <button class="app-dock-btn" id="btn-lobby-open-rules" title="Xem luật chơi &amp; bảng tính phạt">
             <span class="dock-icon">📖</span>
             <span class="dock-label">Luật Chơi</span>
-          </button>
-          <button class="app-dock-btn dock-tutorial" id="btn-lobby-tutorial" onclick="window.tienLenGame.replayNewbieTutorialFromRules()" title="Mở Hướng Dẫn Tân Thủ cùng Nhà Lữ Hành Aether">
-            <span class="dock-icon"><img src="fanart/aether.png" alt="Aether" style="width:22px;height:22px;border-radius:50%;border:1.5px solid #fde047;object-fit:cover;display:block;" /></span>
-            <span class="dock-label">Hướng Dẫn</span>
           </button>
           <button class="app-dock-btn" id="btn-lobby-fullscreen" onclick="window.tienLenGame.toggleFullscreen()" title="Bật / Tắt chế độ Toàn màn hình trên điện thoại &amp; máy tính">
             <span class="dock-icon">⛶</span>
@@ -769,9 +770,6 @@
             <button class="pause-tool-btn icon-btn" id="btn-rules">
               📖 Luật chơi
             </button>
-            <button class="pause-tool-btn icon-btn" id="btn-pause-tutorial" onclick="window.tienLenGame.closePauseModal(); window.tienLenGame.replayNewbieTutorialFromRules();">
-              <img src="fanart/aether.png" alt="Aether" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #fde047;vertical-align:middle;margin-right:4px;object-fit:cover;" /> Hướng Dẫn (Aether)
-            </button>
             <button class="pause-tool-btn account-top-btn" id="btn-top-account" onclick="window.tienLenGame.closePauseModal(); window.tienLenGame.openAccountModal();">
               🔐 <span id="top-account-label">Tạo TK (Lưu Dữ Liệu)</span>
             </button>
@@ -966,10 +964,7 @@
             </p>
           </div>
         </div>
-        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <button type="button" class="tool-btn" id="btn-replay-newbie-tutorial" onclick="window.tienLenGame.replayNewbieTutorialFromRules()" title="Xem lại hướng dẫn của Nhà Lữ Hành Aether về cách dùng Chiêu Nộ [Q] và Phản Ứng Nguyên Tố">
-            <img src="fanart/aether.png" alt="Aether" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:5px;border:1.5px solid #fde047;object-fit:cover;" /> Chơi Lại Hướng Dẫn Nhà Lữ Hành (Aether)
-          </button>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:10px;">
           <button class="primary-btn" id="btn-ok-rules">✅ Đã Hiểu Luật Chơi!</button>
         </div>
       </div>
@@ -1402,6 +1397,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=114"></script>
+  <script src="game.js?v=115"></script>
 </body>
 </html>

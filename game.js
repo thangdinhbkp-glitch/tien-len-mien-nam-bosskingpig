@@ -9555,12 +9555,10 @@ class TienLenGame {
       return null;
     }
 
-    // 2. Phản Ứng Nguyệt (×10 cược): Khi các nhân vật Linnea, Flins, Lauma, Nefer, Ineffa, Zibai
-    // kích hoạt phản ứng với nguyên tố Thủy (Hydro) -> Nguyệt Điện Cảm / Nguyệt Kết Tinh / Nguyệt Sum Suê!
+    // 2. Phản Ứng Nguyệt (×10 cược): CHỈ khi người đánh đè (attackerCharId) là Linnea, Flins, Lauma, Nefer, Ineffa, Zibai
+    // kích hoạt phản ứng lên bài hệ Thủy (Hydro) trên bàn -> Nguyệt Điện Cảm / Nguyệt Kết Tinh / Nguyệt Sum Suê!
     const LUNAR_CHARS = new Set(['linnea', 'flins', 'lauma', 'nefer', 'ineffa', 'zibai']);
-    const isLunarWithHydro =
-      (LUNAR_CHARS.has(attackerCharId) && defenderElem === 'hydro') ||
-      (LUNAR_CHARS.has(defenderCharId) && attackerElem === 'hydro');
+    const isLunarWithHydro = LUNAR_CHARS.has(attackerCharId) && defenderElem === 'hydro';
     if (isLunarWithHydro) {
       const pair = new Set([attackerElem, defenderElem]);
       if (pair.has('electro') && pair.has('hydro')) {
@@ -9593,13 +9591,12 @@ class TienLenGame {
       }
     }
 
-    // 3. Phản Ứng Tinh (×10 cược):
-    // - Sandrone, Odette kích hoạt phản ứng với nguyên tố Lôi (electro) -> Tinh Siêu Dẫn (×10 cược)
-    // - Vesna kích hoạt phản ứng với nguyên tố Băng (cryo) -> Tinh Khuếch Tán (×10 cược)
+    // 3. Phản Ứng Tinh (×10 cược): CHỈ khi người đánh đè (attackerCharId) là:
+    // - Sandrone, Odette kích hoạt phản ứng lên bài hệ Lôi (electro) -> Tinh Siêu Dẫn (×10 cược)
+    // - Vesna kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Khuếch Tán (×10 cược)
     const ASTRAL_SUPERCONDUCT_CHARS = new Set(['sandrone', 'odette']);
     const isAstralSuperconduct =
-      (ASTRAL_SUPERCONDUCT_CHARS.has(attackerCharId) && defenderElem === 'electro') ||
-      (ASTRAL_SUPERCONDUCT_CHARS.has(defenderCharId) && attackerElem === 'electro');
+      ASTRAL_SUPERCONDUCT_CHARS.has(attackerCharId) && defenderElem === 'electro';
     if (isAstralSuperconduct) {
       return {
         id: 'astral_superconduct',

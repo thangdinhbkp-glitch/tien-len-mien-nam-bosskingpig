@@ -6558,12 +6558,8 @@ class TienLenGame {
       }
       meteorStage.classList.add('hidden');
 
-      // Trong Bước 3 Hướng Dẫn Tân Thủ: nổ trực tiếp Splash Art 5★ Raiden Shogun rồi sang bảng tổng kết ×10
-      // Trong Cầu Nguyện thường: hiện Splash Art chuẩn Genshin cho các nhân vật quay trúng (ưu tiên 5★ lên đầu)
-      const splashQueue =
-        !this.tutorialCompleted && this.tutorialStep === 3
-          ? sorted.filter((r) => r.star === 5)
-          : sorted;
+      // Chỉ hiện hoạt ảnh nổ Splash Art cho vật phẩm 5★ (3★ và 4★ bỏ qua hoạt ảnh Splash Art, vào thẳng bảng kết quả)
+      const splashQueue = sorted.filter((r) => r.star === 5);
       this.showGacha5StarSplashSequence(splashQueue, 0, openResultsGrid);
     };
 

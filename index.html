@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=82" />
+  <link rel="stylesheet" href="styles.css?v=86" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -1085,9 +1085,10 @@
 
     <!-- GENSHIN IMPACT WISH METEOR CUTSCENE & GACHA RESULTS OVERLAY -->
     <div class="gacha-wish-overlay hidden" id="gacha-wish-overlay">
-      <!-- Stage 1: Shooting Meteor Cutscene -->
+      <!-- Stage 1: Shooting Meteor Cutscene (Official Genshin Video + CSS Fallback) -->
       <div class="gacha-meteor-stage" id="gacha-meteor-stage">
         <div class="gacha-starfield"></div>
+        <video class="gacha-meteor-video" id="gacha-meteor-video" playsinline preload="auto"></video>
         <button class="gacha-skip-btn" id="btn-skip-gacha-meteor">⏭️ Bỏ qua ▸</button>
         <div class="gacha-meteor-track" id="gacha-meteor-track">
           <div class="gacha-meteor-tail"></div>
@@ -1097,7 +1098,73 @@
         <div class="gacha-meteor-caption" id="gacha-meteor-caption">🌠 Sao băng đang bay qua bầu trời Teyvat...</div>
       </div>
 
-      <!-- Stage 2: Wish Pull Results Showcase (1x or 10x) -->
+      <!-- Stage 2: Genshin Impact 5-Star Golden Splash Art Reveal Stage -->
+      <div class="gacha-splash-stage hidden" id="gacha-splash-stage">
+        <div class="gacha-splash-bg-blur" id="gacha-splash-bg-blur"></div>
+        <div class="gacha-splash-rays"></div>
+        <div class="gacha-splash-magic-circle"></div>
+        <div class="gacha-splash-shockwave" id="gacha-splash-shockwave"></div>
+        <div class="gacha-splash-particles" id="gacha-splash-particles">
+          <span>✦</span><span>★</span><span>✧</span><span>✦</span><span>★</span><span>✧</span><span>✦</span><span>★</span>
+        </div>
+
+        <button class="gacha-skip-btn" id="btn-skip-gacha-splash" onclick="document.getElementById('btn-close-gacha-splash')?.click()">⏭️ Bỏ qua ▸</button>
+
+        <div class="gacha-splash-center">
+          <!-- Center/Right Character Full Splash Art + Live Burst Video PIP -->
+          <div class="gacha-splash-art-wrap" id="gacha-splash-art-wrap">
+            <div class="gacha-splash-art-frame">
+              <img class="gacha-splash-img" id="gacha-splash-img" src="fanart/raiden.jpg?v=66" alt="5-Star Splash Art" referrerpolicy="no-referrer" />
+              <div class="gacha-splash-golden-frame-border"></div>
+            </div>
+            <div class="gacha-splash-burst-pip" id="gacha-splash-burst-pip">
+              <video class="gacha-splash-burst-video" id="gacha-splash-burst-video" autoplay loop muted playsinline></video>
+              <div class="gacha-splash-pip-tag">🎬 Hoạt Ảnh Nộ 5★</div>
+            </div>
+          </div>
+
+          <!-- Left-Side Authentic Genshin Impact 5-Star Nameplate & Stars HUD -->
+          <div class="gacha-splash-info-left" id="gacha-splash-info-left">
+            <div class="gacha-splash-banner-pill" id="gacha-splash-banner-pill">🌟 NỔ VÀNG 5 SAO • CẦU NGUYỆN NHÂN VẬT</div>
+            <div class="gacha-splash-header-row">
+              <div class="gacha-splash-element-emblem" id="gacha-splash-element-emblem">
+                <span class="gacha-splash-element-icon" id="gacha-splash-element-icon">⚡</span>
+              </div>
+              <div class="gacha-splash-title-group">
+                <div class="gacha-splash-epithet" id="gacha-splash-epithet">Lôi Thần Vĩnh Hằng • Nguyên Tố Lôi</div>
+                <div class="gacha-splash-char-name" id="gacha-splash-char-name">Raiden Shogun</div>
+              </div>
+            </div>
+
+            <div class="gacha-splash-stars" id="gacha-splash-stars">
+              <span class="splash-star s1">★</span>
+              <span class="splash-star s2">★</span>
+              <span class="splash-star s3">★</span>
+              <span class="splash-star s4">★</span>
+              <span class="splash-star s5">★</span>
+            </div>
+
+            <div class="gacha-splash-status-pill" id="gacha-splash-status-pill">✨ NHÂN VẬT 5★ MỚI MỞ KHÓA VÀO KHO ĐỒ!</div>
+
+            <div class="gacha-splash-quote" id="gacha-splash-quote">“Khoảnh Khắc Này — Vĩnh Hằng Sẽ Phán Quyết!”</div>
+
+            <div class="gacha-splash-skill-card" id="gacha-splash-skill-card">
+              <div class="gacha-splash-skill-title" id="gacha-splash-skill-title">🔮 Chiêu Nộ [Q]: Vô Tưởng Nhất Đao</div>
+              <div class="gacha-splash-skill-desc" id="gacha-splash-skill-desc">Chém đứt vòng đấu hiện tại và cướp ngay quyền Mở Vòng Mới!</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gacha-splash-footer">
+          <button class="primary-btn gacha-splash-continue-btn" id="btn-close-gacha-splash">
+            🌟 Tiếp Tục (Xem Tổng Kết Cầu Nguyện) ▸
+          </button>
+        </div>
+
+        <div class="gacha-splash-flash" id="gacha-splash-flash"></div>
+      </div>
+
+      <!-- Stage 3: Wish Pull Results Showcase (1x or 10x) -->
       <div class="gacha-results-stage hidden" id="gacha-results-stage">
         <div class="gacha-results-header">
           <div>
@@ -1290,6 +1357,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=85"></script>
+  <script src="game.js?v=86"></script>
 </body>
 </html>

@@ -7960,6 +7960,74 @@ body.burst-playing-gpu-lock .arena * {
   animation-play-state: paused !important;
 }
 
+/* ============================================================================
+   ON-SCREEN BURST EFFECT BANNER (DISPLAYS FULL SKILL EFFECT WHEN BURST VIDEO IS SKIPPED)
+   ============================================================================ */
+.burst-effect-screen-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 92%;
+  margin: 4px auto;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(49, 16, 82, 0.92));
+  border: 2px solid #facc15;
+  box-shadow: 0 0 22px rgba(250, 204, 21, 0.45), 0 6px 18px rgba(0, 0, 0, 0.65);
+  z-index: 45;
+  pointer-events: none;
+  animation: burstEffectBannerPop 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.burst-effect-screen-banner.hidden {
+  display: none !important;
+}
+
+.burst-effect-banner-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fde047;
+  box-shadow: 0 0 10px rgba(253, 224, 71, 0.6);
+  flex-shrink: 0;
+}
+
+.burst-effect-banner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.burst-effect-banner-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: #fde047;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.burst-effect-banner-detail {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.32;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+}
+
+@keyframes burstEffectBannerPop {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
 
 
 

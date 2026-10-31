@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=113" />
+  <link rel="stylesheet" href="styles.css?v=114" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -161,6 +161,15 @@
             </div>
 
             <div class="round-skill-status-bar hidden" id="round-skill-status-bar"></div>
+
+            <!-- Hộp Hiển Thị Tác Dụng Chiêu Nộ Trên Màn Hình (Hiện rõ cả khi Bỏ Qua / Tắt Hoạt Ảnh Video Nộ) -->
+            <div class="burst-effect-screen-banner hidden" id="burst-effect-screen-banner">
+              <img class="burst-effect-banner-avatar" id="burst-effect-banner-avatar" src="fanart/raiden.jpg" alt="" />
+              <div class="burst-effect-banner-body">
+                <div class="burst-effect-banner-title" id="burst-effect-banner-title">⚡ KỸ NĂNG NỘ • RAIDEN SHOGUN</div>
+                <div class="burst-effect-banner-detail" id="burst-effect-banner-detail">💥 Tác dụng chiêu nộ hiển thị tại đây!</div>
+              </div>
+            </div>
 
             <div class="combo-announcement hidden" id="combo-announcement"></div>
 
@@ -1393,6 +1402,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=113"></script>
+  <script src="game.js?v=114"></script>
 </body>
 </html>

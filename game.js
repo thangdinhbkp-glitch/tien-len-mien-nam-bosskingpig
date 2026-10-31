@@ -3907,8 +3907,61 @@ class TienLenGame {
     }
   }
 
+  showBurstEffectBanner(burstId, detailText, durationMs = 5200) {
+    if (!burstId || burstId === 'none' || !detailText) return;
+    const bannerEl = document.getElementById('burst-effect-screen-banner');
+    const avatarEl = document.getElementById('burst-effect-banner-avatar');
+    const titleEl = document.getElementById('burst-effect-banner-title');
+    const detailEl = document.getElementById('burst-effect-banner-detail');
+    if (!bannerEl || !titleEl || !detailEl) return;
+
+    const burstMeta = getBurstMeta(burstId);
+    const sk = CHARACTER_SKILLS[burstId];
+    if (avatarEl) {
+      avatarEl.src = `fanart/${burstId}.jpg?v=66`;
+      avatarEl.alt = sk ? sk.charName : burstId;
+    }
+    titleEl.textContent = sk
+      ? `${sk.icon} KỸ NĂNG ${sk.charName.toUpperCase()} • ${sk.name.toUpperCase()}`
+      : burstMeta?.title || '💥 TUYỆT KỸ NỘ 5★';
+    detailEl.textContent = detailText;
+    bannerEl.classList.remove('hidden');
+
+    clearTimeout(this.burstEffectBannerTimer);
+    this.burstEffectBannerTimer = setTimeout(() => {
+      bannerEl.classList.add('hidden');
+    }, durationMs);
+  }
+
   triggerGenshinBurst(burstId, detailText, onDoneCallback = null, lockGameplay = false) {
     if (!burstId || burstId === 'none' || this.skipAllBurstAnimations) {
+      if (burstId && burstId !== 'none') {
+        const burstMeta = getBurstMeta(burstId);
+        if (burstMeta?.sfxType === 'skirk') {
+          sfx.skirkBurst();
+        } else {
+          sfx.raidenBurst();
+        }
+        this.showBurstEffectBanner(burstId, detailText, 5500);
+        if (detailText) {
+          this.showComboBanner(detailText, 'chop-banner');
+        }
+      }
+      if (lockGameplay && burstId && burstId !== 'none') {
+        this.isBurstPlaying = true;
+        clearTimeout(this.botTimer);
+        clearTimeout(this.burstTimeout);
+        this.burstTimeout = setTimeout(() => {
+          this.isBurstPlaying = false;
+          this.updateHumanActionButtons();
+          if (onDoneCallback) {
+            onDoneCallback();
+          } else if (!this.isGameOver && !this.inInitialLobby && this.modalWifi?.classList.contains('hidden')) {
+            this.promptCurrentTurn();
+          }
+        }, 900);
+        return;
+      }
       this.isBurstPlaying = false;
       this.updateHumanActionButtons();
       if (onDoneCallback) {
@@ -4051,6 +4104,7 @@ class TienLenGame {
       overlay.onclick = null;
       this._activeFinishBurstFn = null;
       this.isBurstPlaying = false;
+      this.showBurstEffectBanner(burstId, detailText, 4800);
       this.updateHumanActionButtons();
       if (onDoneCallback) {
         onDoneCallback();
@@ -13122,13 +13176,14 @@ class TienLenGame {
             }
           }
         : null;
-    this.triggerGenshinBurst(charId, skillSummary, onBurstDone, true);
-    this.showComboBanner(`🔮 KỸ NĂNG ${sk.charName.toUpperCase()}: ${sk.name.toUpperCase()}!`, rx ? rx.cssClass : 'chop-banner');
+    this.showBurstEffectBanner(charId, skillSummary, 5500);
+    this.showComboBanner(`🔮 ${skillSummary}`, rx ? rx.cssClass : 'chop-banner');
     this.addLog(`🔮 <strong>${skillSummary}</strong>`, 'log-win');
 
     this.updateArenaBackdropCharacters();
     this.renderRoundSkillStatusBar();
     this.renderAll();
+    this.triggerGenshinBurst(charId, skillSummary, onBurstDone, true);
     if (!this.tutorialCompleted && this.tutorialStep === 5 && player.id === this.mySeatId) {
       this.tutorialMatch2SkillUsed = true;
       this.tutorialMatch2LeadPlayed = false;

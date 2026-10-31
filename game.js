@@ -681,7 +681,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'vodyanitsa',
     name: 'Vodyanitsa — Khúc Hát Kết: Cùng Người Chìm Đắm',
-    desc: '[Thần Thoại] Mỹ nhân ngư Hệ Thủy dùng Gương Nước Phản Chiếu đổi ngẫu nhiên các lá bài trên tay thành bộ bài VỪA ĐỦ lớn hơn (nhỉnh hơn đúng 1 nấc chất/số hoặc Tứ Quý nhỏ nhất) để chặt/đè ngay bộ bài của đối thủ (Video + Giọng lồng tiếng thật).',
+    desc: '[Thần Thoại] Mỹ nhân ngư Hệ Thủy dùng Gương Nước Phản Chiếu đổi ngẫu nhiên đúng số lá bài thường trên tay thành bộ bài VỪA ĐỦ lớn hơn (nhỉnh hơn đúng 1 nấc chất/số) để đè ngay bộ bài thường của đối thủ — không dùng trên Heo/Hàng (Video + Giọng lồng tiếng thật).',
     price: 185000,
     mp4Url: 'vodyanitsa_burst.mp4',
     audioUrl: 'vodyanitsa_burst.ogg?v=55',
@@ -1628,7 +1628,7 @@ const CHARACTER_SKILLS = {
     charName: 'Vodyanitsa',
     icon: '🌊',
     name: 'Gương Nước Phản Chiếu',
-    shortDesc: 'Đổi ngẫu nhiên lá bài trên tay thành bộ bài VỪA ĐỦ (lớn hơn đúng 1 nấc chất/số hoặc ghép Hàng nhỏ nhất) để chặt/đè ngay bộ bài của đối thủ trên bàn!',
+    shortDesc: 'Đổi ngẫu nhiên đúng bằng số lá của bộ bài trên bàn thành bộ bài VỪA ĐỦ (lớn hơn đúng 1 nấc chất/số) để đè ngay bộ bài thường (Lẻ, Đôi, Sám, Sảnh dưới Heo) của đối thủ! (Không kích hoạt khi trên bàn là Heo hoặc Hàng).',
   },
   lohen: {
     id: 'lohen',
@@ -10963,9 +10963,20 @@ class TienLenGame {
 
   findVodyanitsaMinimalBeatSpec(hand, currentCombo, playerId = null) {
     if (!currentCombo || !Array.isArray(hand) || hand.length === 0) return null;
+    // Nếu trên bàn là Heo (2) hoặc Hàng (Tứ Quý / Đôi Thông) thì KHÔNG kích hoạt được!
+    if (currentCombo.highRank === 12 || currentCombo.isBomb) return null;
+
     if (playerId !== null) {
       this.syncRoundRuleGlobals(playerId);
     }
+
+    const normalHand = hand.filter(
+      (c) =>
+        c.rankIndex < 12 &&
+        !(activeNaviaLockedCardIds && activeNaviaLockedCardIds.has(c.id)) &&
+        !(activeZhongliPetrifiedCardIds && activeZhongliPetrifiedCardIds.has(c.id))
+    );
+    if (normalHand.length < currentCombo.length) return null;
 
     const makeSpecCard = (r, s, idx = 0) => ({
       rankIndex: r,
@@ -10977,18 +10988,23 @@ class TienLenGame {
       id: `vody_spec_${r}_${s}_${idx}`,
     });
     const testSpecs = (specs) => {
-      if (!specs || specs.length === 0 || hand.length < specs.length) return false;
+      if (!specs || specs.length === 0 || normalHand.length < specs.length) return false;
       const cards = specs.map((sp, i) => makeSpecCard(sp.rankIndex, sp.suitIndex, i));
       const combo = classifyCombo(cards);
       return Boolean(combo && canBeatCombo(combo, currentCombo).ok);
     };
 
+    // Chỉ xét các bậc bài thường từ 3 đến A (0..11), tuyệt đối không biến ra Heo (2)
     const rankOrder = activeKokomiReverseRank
-      ? [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 12]
-      : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+      ? [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+      : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
     const suitOrder = activeFurinaReverseSuit ? [3, 2, 1, 0] : [0, 1, 2, 3];
+    const reqSuit =
+      activeEmilieRequiredSuit !== null && activeEmilieRequiredSuit !== undefined
+        ? activeEmilieRequiredSuit
+        : null;
 
-    // 1. Khi trên bàn là Bài Lẻ (SINGLE): tìm lá lẻ nhỏ nhất VỪA ĐỦ đè (nhỉnh hơn đúng 1 chất hoặc 1 bậc)
+    // 1. Khi trên bàn là Bài Lẻ (SINGLE): tìm lá lẻ thường nhỏ nhất VỪA ĐỦ đè (nhỉnh hơn đúng 1 chất hoặc 1 bậc)
     if (currentCombo.type === COMBO_TYPES.SINGLE) {
       for (const r of rankOrder) {
         for (const s of suitOrder) {
@@ -10998,67 +11014,41 @@ class TienLenGame {
           }
         }
       }
-      // Nếu lá lẻ trên bàn là 2♥ (hoặc bị khóa đánh lẻ 2) và tay còn >= 4 lá -> Ghép Tứ Quý nhỏ nhất VỪA ĐỦ chặt Heo!
-      if (hand.length >= 4 && !currentCombo.baizhuShielded) {
-        for (let r = 0; r <= 11; r++) {
-          const quadSpecs = [0, 1, 2, 3].map((s) => ({ rankIndex: r, suitIndex: s }));
-          if (testSpecs(quadSpecs)) {
-            return { specs: quadSpecs };
-          }
-        }
-      }
       return null;
     }
 
-    // 2. Khi trên bàn là Đôi (PAIR): tìm Đôi nhỏ nhất VỪA ĐỦ đè (ưu tiên giữ lại 1 lá cùng số trên tay nếu có)
-    if (currentCombo.type === COMBO_TYPES.PAIR) {
-      if (hand.length >= 2) {
-        for (const r of rankOrder) {
-          const existingSameRank = hand.find((c) => c.rankIndex === r);
-          const suitPairs = [];
-          for (let i = 0; i < 4; i++) {
-            for (let j = i + 1; j < 4; j++) {
-              const sLow = suitOrder[i];
-              const sHigh = suitOrder[j];
-              const matchesExisting =
-                existingSameRank &&
-                (existingSameRank.suitIndex === sLow || existingSameRank.suitIndex === sHigh)
-                  ? 0
-                  : 1;
-              suitPairs.push({ sLow, sHigh, highIdx: j, lowIdx: i, matchesExisting });
-            }
-          }
-          suitPairs.sort(
-            (a, b) => a.highIdx - b.highIdx || a.matchesExisting - b.matchesExisting || a.lowIdx - b.lowIdx
-          );
-          for (const sp of suitPairs) {
-            const specs = [
-              { rankIndex: r, suitIndex: sp.sLow },
-              { rankIndex: r, suitIndex: sp.sHigh },
-            ];
-            if (testSpecs(specs)) {
-              return { specs };
-            }
-          }
-        }
-      }
-      // Nếu trên bàn là Đôi 2 có 2♥ và tay còn >= 4 lá -> Ghép Tứ Quý nhỏ nhất VỪA ĐỦ chặt Đôi 2!
-      if (hand.length >= 4 && !currentCombo.baizhuShielded) {
-        for (let r = 0; r <= 11; r++) {
-          const quadSpecs = [0, 1, 2, 3].map((s) => ({ rankIndex: r, suitIndex: s }));
-          if (testSpecs(quadSpecs)) {
-            return { specs: quadSpecs };
-          }
-        }
-      }
-      return null;
-    }
-
-    // 3. Khi trên bàn là Sám Cô (TRIPLE): tìm Sám Cô nhỏ nhất VỪA ĐỦ đè
-    if (currentCombo.type === COMBO_TYPES.TRIPLE && hand.length >= 3) {
+    // 2. Khi trên bàn là Đôi (PAIR): tìm Đôi thường nhỏ nhất VỪA ĐỦ đè
+    if (currentCombo.type === COMBO_TYPES.PAIR && normalHand.length >= 2) {
       for (const r of rankOrder) {
-        const existingSuits = hand.filter((c) => c.rankIndex === r).map((c) => c.suitIndex);
-        const chosenSuits = [...new Set([...existingSuits, ...suitOrder])].slice(0, 3);
+        const suitPairs = [];
+        for (let i = 0; i < 4; i++) {
+          for (let j = i + 1; j < 4; j++) {
+            const sLow = suitOrder[i];
+            const sHigh = suitOrder[j];
+            suitPairs.push({ sLow, sHigh, highIdx: j, lowIdx: i });
+          }
+        }
+        suitPairs.sort((a, b) => a.highIdx - b.highIdx || a.lowIdx - b.lowIdx);
+        for (const sp of suitPairs) {
+          const specs = [
+            { rankIndex: r, suitIndex: sp.sLow },
+            { rankIndex: r, suitIndex: sp.sHigh },
+          ];
+          if (testSpecs(specs)) {
+            return { specs };
+          }
+        }
+      }
+      return null;
+    }
+
+    // 3. Khi trên bàn là Sám Cô (TRIPLE): tìm Sám Cô thường nhỏ nhất VỪA ĐỦ đè
+    if (currentCombo.type === COMBO_TYPES.TRIPLE && normalHand.length >= 3) {
+      for (const r of rankOrder) {
+        const chosenSuits =
+          reqSuit !== null && !suitOrder.slice(0, 3).includes(reqSuit)
+            ? [suitOrder[0], suitOrder[1], reqSuit]
+            : suitOrder.slice(0, 3);
         const specs = chosenSuits.map((s) => ({ rankIndex: r, suitIndex: s }));
         if (testSpecs(specs)) {
           return { specs };
@@ -11067,8 +11057,8 @@ class TienLenGame {
       return null;
     }
 
-    // 4. Khi trên bàn là Sảnh (STRAIGHT): tìm Sảnh cùng độ dài nhỏ nhất VỪA ĐỦ đè (nhỉnh hơn đúng 1 chất ở lá đầu tàu hoặc +1 bậc chất nhỏ nhất)
-    if (currentCombo.type === COMBO_TYPES.STRAIGHT && hand.length >= currentCombo.length) {
+    // 4. Khi trên bàn là Sảnh (STRAIGHT): tìm Sảnh cùng độ dài nhỏ nhất VỪA ĐỦ đè (đổi trọn bộ Sảnh đủ số lá!)
+    if (currentCombo.type === COMBO_TYPES.STRAIGHT && normalHand.length >= currentCombo.length) {
       const len = currentCombo.length;
       const validTopRanks = rankOrder.filter((r) => r >= len - 1 && r <= 11);
       for (const topRank of validTopRanks) {
@@ -11079,11 +11069,12 @@ class TienLenGame {
             const r = startRank + idx;
             if (idx === len - 1) {
               specs.push({ rankIndex: r, suitIndex: topSuit });
+            } else if (idx === 0 && reqSuit !== null && topSuit !== reqSuit) {
+              specs.push({ rankIndex: r, suitIndex: reqSuit });
             } else {
-              const existingInHand = hand.find((c) => c.rankIndex === r);
               specs.push({
                 rankIndex: r,
-                suitIndex: existingInHand ? existingInHand.suitIndex : suitOrder[0],
+                suitIndex: suitOrder[0],
               });
             }
           }
@@ -11093,16 +11084,6 @@ class TienLenGame {
         }
       }
       return null;
-    }
-
-    // 5. Khi trên bàn là Hàng (3 Đôi Thông / Tứ Quý) và tay còn >= 4 lá: tìm Tứ Quý nhỏ nhất VỪA ĐỦ chặt!
-    if (currentCombo.isBomb && hand.length >= 4 && !currentCombo.baizhuShielded) {
-      for (let r = 0; r <= 11; r++) {
-        const quadSpecs = [0, 1, 2, 3].map((s) => ({ rankIndex: r, suitIndex: s }));
-        if (testSpecs(quadSpecs)) {
-          return { specs: quadSpecs };
-        }
-      }
     }
 
     return null;
@@ -11220,8 +11201,8 @@ class TienLenGame {
       if (this.shenheSingleOnlyRound) {
         return { ok: false, reason: 'Lục Đạo Độc Tôn đã bật trong vòng này' };
       }
-      if (this.currentCombo && this.currentCombo.isBomb) {
-        return { ok: false, reason: 'Không thể phong ấn khi trên bàn đang là Hàng (Tứ Quý / Đôi Thông)' };
+      if (this.currentCombo && (this.currentCombo.isBomb || this.currentCombo.highRank === 12)) {
+        return { ok: false, reason: 'Không thể phong ấn khi trên bàn đang là Heo (2) hoặc Hàng (Tứ Quý / Đôi Thông)' };
       }
     }
     if (charId === 'ganyu') {
@@ -11260,7 +11241,7 @@ class TienLenGame {
       }
     }
     if (charId === 'varesa') {
-      if (!this.currentCombo || this.currentCombo.isBomb || (this.currentCombo.length === 1 && this.currentCombo.highRank === 12)) {
+      if (!this.currentCombo || this.currentCombo.isBomb || this.currentCombo.highRank === 12) {
         return { ok: false, reason: 'Chỉ dùng khi trên bàn đang có Đôi, Sám Cô, Sảnh hoặc Bài Lẻ thường (dưới Heo) để dậm vỡ!' };
       }
     }
@@ -11323,13 +11304,19 @@ class TienLenGame {
     }
     if (charId === 'vodyanitsa') {
       if (!this.currentCombo) {
-        return { ok: false, reason: 'Chỉ dùng khi đối thủ vừa đánh bài trên bàn để Gương Nước đổi lá ngẫu nhiên vừa đủ chặt/đè đối thủ!' };
+        return { ok: false, reason: 'Chỉ dùng khi đối thủ vừa đánh bài trên bàn để Gương Nước đổi lá ngẫu nhiên vừa đủ đè đối thủ!' };
+      }
+      if (this.currentCombo.highRank === 12 || this.currentCombo.isBomb) {
+        return {
+          ok: false,
+          reason: 'Gương Nước Phản Chiếu không thể kích hoạt khi trên bàn đang là Heo (2) hoặc Hàng (Tứ Quý / Đôi Thông)!',
+        };
       }
       const plan = this.findVodyanitsaMinimalBeatSpec(player.hand, this.currentCombo, player.id);
       if (!plan) {
         return {
           ok: false,
-          reason: `Số lá trên tay (${player.hand.length} lá) hoặc luật vòng hiện tại không đủ để ghép bộ vừa đủ chặt ${this.currentCombo.label}!`,
+          reason: `Số lá bài thường (dưới Heo) trên tay hoặc luật vòng hiện tại không đủ để ghép bộ vừa đủ đè ${this.currentCombo.label}!`,
         };
       }
     }
@@ -12165,41 +12152,38 @@ class TienLenGame {
         const needLen = specs.length;
         const struct = this.analyzeBotHandStructure(player.hand);
 
-        // Giữ lại tối đa (needLen - 1) lá trên tay nếu đã trùng khớp sẵn với một phần bộ mục tiêu,
-        // và ĐỔI NGẪU NHIÊN các lá còn lại trên tay thành các mảnh ghép còn thiếu để VỪA ĐỦ chặt/đè đối thủ!
-        const keptCards = [];
-        const remainingSpecs = [];
-        const usedHandIds = new Set();
-
-        for (let i = 0; i < specs.length; i++) {
-          const sp = specs[i];
-          // Luôn để dành ít nhất 1 vị trí (lá chủ lực cuối cùng) để đổi ngẫu nhiên từ tay bài
-          if (keptCards.length < needLen - 1) {
-            const exactMatch = player.hand.find(
-              (c) => !usedHandIds.has(c.id) && c.rankIndex === sp.rankIndex && c.suitIndex === sp.suitIndex
-            );
-            if (exactMatch) {
-              keptCards.push(exactMatch);
-              usedHandIds.add(exactMatch.id);
-              continue;
-            }
-          }
-          remainingSpecs.push(sp);
-        }
-
-        const availableHand = player.hand.filter((c) => !usedHandIds.has(c.id));
+        // Đổi ngẫu nhiên đúng ĐỦ `needLen` lá bài thường (dưới Heo) trên tay thành trọn vẹn bộ bài mục tiêu (VD: Sảnh 3 lá đổi đủ 3 lá, Sảnh 4 lá đổi đủ 4 lá)!
+        const unlockedNormals = player.hand.filter(
+          (c) =>
+            c.rankIndex < 12 &&
+            !(activeNaviaLockedCardIds && activeNaviaLockedCardIds.has(c.id)) &&
+            !(activeZhongliPetrifiedCardIds && activeZhongliPetrifiedCardIds.has(c.id)) &&
+            !(this.mustPlay3Spade && c.value === 0)
+        );
+        // Ưu tiên chọn từ các lá rác lẻ không nằm trong Bộ/Hàng trước, sau đó mới lấy ngẫu nhiên các lá thường còn lại
+        const trashSinglesPool = shuffleDeck(
+          unlockedNormals.filter((c) => !struct.comboCardIds.has(c.id) && !struct.bombRanks.has(c.rankIndex))
+        );
         const nonBombPool = shuffleDeck(
-          availableHand.filter((c) => !struct.bombRanks.has(c.rankIndex) && !(this.mustPlay3Spade && c.value === 0))
+          unlockedNormals.filter(
+            (c) =>
+              !trashSinglesPool.some((tc) => tc.id === c.id) &&
+              !struct.bombRanks.has(c.rankIndex)
+          )
         );
         const fallbackPool = shuffleDeck(
-          availableHand.filter((c) => !nonBombPool.some((nb) => nb.id === c.id))
+          unlockedNormals.filter(
+            (c) =>
+              !trashSinglesPool.some((tc) => tc.id === c.id) &&
+              !nonBombPool.some((nb) => nb.id === c.id)
+          )
         );
-        const randomCandidates = [...nonBombPool, ...fallbackPool].slice(0, remainingSpecs.length);
+        const randomCandidates = [...trashSinglesPool, ...nonBombPool, ...fallbackPool].slice(0, needLen);
 
         const swappedOldLabels = [];
         const swappedNewLabels = [];
         randomCandidates.forEach((c, idx) => {
-          const sp = remainingSpecs[idx];
+          const sp = specs[idx];
           if (!sp) return;
           swappedOldLabels.push(`${c.rank}${c.suit}`);
           c.rankIndex = sp.rankIndex;
@@ -12212,17 +12196,15 @@ class TienLenGame {
           swappedNewLabels.push(`${c.rank}${c.suit}`);
         });
 
-        const finalComboCards = sortCardsAsc([...keptCards, ...randomCandidates]);
+        const finalComboCards = sortCardsAsc(randomCandidates);
         const finalIds = finalComboCards.map((c) => c.id);
         player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
         player._skillForcedComboIds = finalIds;
-        if (player.id === this.mySeatId) {
-          this.selectedCardIds = new Set(finalIds);
-          this.companionCardIds.clear();
-        }
+        this.selectedCardIds = new Set(finalIds);
+        this.companionCardIds.clear();
         const mirroredCombo = classifyCombo(finalComboCards);
         const newLabel = mirroredCombo ? mirroredCombo.label : finalComboCards.map((c) => `${c.rank}${c.suit}`).join(' ');
-        skillSummary = `🌊 [Gương Nước Phản Chiếu] ${player.name} đổi ngẫu nhiên (${swappedOldLabels.join(', ')}) ➔ (${swappedNewLabels.join(', ')}) tạo thành ${newLabel} VỪA ĐỦ chặt/đè ${this.currentCombo.label} của đối thủ!`;
+        skillSummary = `🌊 [Gương Nước Phản Chiếu] ${player.name} đổi ngẫu nhiên ${finalIds.length} lá (${swappedOldLabels.join(', ')}) ➔ (${swappedNewLabels.join(', ')}) tạo thành ${newLabel} VỪA ĐỦ đè ${this.currentCombo.label} của đối thủ!`;
       }
     } else if (charId === 'lohen') {
       if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12 && prevTrickOwner) {

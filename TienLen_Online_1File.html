@@ -28560,17 +28560,25 @@ class TienLenGame {
       if (this._lastTutorialWarnAt && now - this._lastTutorialWarnAt < 650) return;
       this._lastTutorialWarnAt = now;
       sfx.pass();
+      if (this._tutorialTargetEl) {
+        this.scrollTutorialTargetIntoView(this._tutorialTargetEl, true);
+      }
       const pill = document.getElementById('tutorial-pointer-label');
       if (pill) {
         pill.classList.add('pointer-attention-flash');
         setTimeout(() => pill.classList.remove('pointer-attention-flash'), 500);
       }
-      this.showCenterToast('🌟 Nhà Lữ Hành (Aether): Chỉ bấm được vào nút đang có mũi tên vàng chỉ vào thôi nhé!');
+      this.showCenterToast('🌟 Nhà Lữ Hành (Aether): Mình đã cuộn tới nút có mũi tên vàng chỉ vào — hãy bấm vào đó nhé!');
     };
 
     const isAllowedTutorialElement = (targetNode) => {
       if (!targetNode || !(targetNode instanceof Element)) return true;
       if (this.tutorialCompleted || !this.tutorialStep || this.tutorialStep < 1 || this.tutorialStep > 6) {
+        return true;
+      }
+
+      // 0. Luôn cho phép bấm vào nhãn mũi tên chỉ dẫn hoặc nút Thu gọn / Mở rộng khung thoại Nhà Lữ Hành
+      if (targetNode.closest('#tutorial-screen-pointer, #btn-toggle-traveler-compact')) {
         return true;
       }
 
@@ -28724,6 +28732,54 @@ class TienLenGame {
     } catch (_) {}
   }
 
+  scrollTutorialTargetIntoView(targetEl, smooth = true) {
+    if (!targetEl || typeof targetEl.getBoundingClientRect !== 'function') return;
+    const behavior = smooth ? 'smooth' : 'auto';
+
+    // 1. Tự động cuộn mọi khung cha có thanh cuộn (.modal-card, .modal-body, .gacha-results-stage, v.v.) tới đúng nút mục tiêu
+    let parent = targetEl.parentElement;
+    while (parent && parent !== document.body && parent !== document.documentElement) {
+      const style = window.getComputedStyle(parent);
+      const overflowY = style ? style.overflowY : '';
+      const canScrollY =
+        (overflowY === 'auto' ||
+          overflowY === 'scroll' ||
+          overflowY === 'overlay' ||
+          parent.classList?.contains('modal-card') ||
+          parent.classList?.contains('modal-body') ||
+          parent.classList?.contains('gacha-results-stage')) &&
+        parent.scrollHeight > parent.clientHeight + 2;
+
+      if (canScrollY) {
+        const parentRect = parent.getBoundingClientRect();
+        const targetRect = targetEl.getBoundingClientRect();
+        const currentOffsetInParent = targetRect.top - parentRect.top + parent.scrollTop;
+        const desiredTop = Math.max(
+          0,
+          Math.min(
+            parent.scrollHeight - parent.clientHeight,
+            currentOffsetInParent - parent.clientHeight * 0.55 + targetRect.height * 0.5
+          )
+        );
+        try {
+          parent.scrollTo({ top: Math.round(desiredTop), behavior });
+        } catch (_) {
+          parent.scrollTop = Math.round(desiredTop);
+        }
+      }
+      parent = parent.parentElement;
+    }
+
+    // 2. Cuộn khung nhìn trình duyệt nếu nút nằm ngoài màn hình
+    try {
+      targetEl.scrollIntoView({ behavior, block: 'center', inline: 'nearest' });
+    } catch (_) {
+      try {
+        targetEl.scrollIntoView(false);
+      } catch (_2) {}
+    }
+  }
+
   pointToScreenElement(targetEl, labelText = 'BẤM VÀO NÚT NÀY') {
     this.clearTutorialHighlights();
     if (!targetEl) return;
@@ -28731,13 +28787,23 @@ class TienLenGame {
     targetEl.classList.add('tutorial-highlight-pulse');
     this._tutorialTargetEl = targetEl;
 
-    if (this._lastScrolledTutorialEl !== targetEl) {
-      this._lastScrolledTutorialEl = targetEl;
-      if (targetEl.closest && targetEl.closest('.modal-overlay, .gacha-wish-overlay')) {
-        try {
-          targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-        } catch (_) {}
-      }
+    const targetSig = `${this.tutorialStep}:${targetEl.id || targetEl.className || ''}:${labelText}`;
+    if (this._lastScrolledTutorialSig !== targetSig) {
+      this._lastScrolledTutorialSig = targetSig;
+      this._lastTutorialAutoScrollMs = Date.now();
+      this.scrollTutorialTargetIntoView(targetEl, false);
+      clearTimeout(this._tutorialScrollTimer1);
+      clearTimeout(this._tutorialScrollTimer2);
+      this._tutorialScrollTimer1 = setTimeout(() => {
+        if (this._tutorialTargetEl === targetEl && !this.tutorialCompleted) {
+          this.scrollTutorialTargetIntoView(targetEl, true);
+        }
+      }, 90);
+      this._tutorialScrollTimer2 = setTimeout(() => {
+        if (this._tutorialTargetEl === targetEl && !this.tutorialCompleted) {
+          this.scrollTutorialTargetIntoView(targetEl, true);
+        }
+      }, 280);
     }
 
     const pointer = document.getElementById('tutorial-screen-pointer');
@@ -28762,6 +28828,27 @@ class TienLenGame {
         pointer.classList.remove('hidden');
         const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
         const vh = window.innerHeight || document.documentElement.clientHeight || 768;
+
+        // Tự động cuộn xuống/lên tìm nút hộ người chơi nếu nút đang bị khuất ngoài vùng nhìn thấy của Modal hoặc màn hình
+        let isClippedOutOfView = rect.top < 10 || rect.bottom > vh - 10;
+        const scrollContainer =
+          this._tutorialTargetEl.closest &&
+          this._tutorialTargetEl.closest('.modal-card, .gacha-results-stage');
+        if (scrollContainer) {
+          const scRect = scrollContainer.getBoundingClientRect();
+          if (scRect.height > 0 && (rect.top < scRect.top + 6 || rect.bottom > scRect.bottom - 6)) {
+            isClippedOutOfView = true;
+          }
+        }
+        const nowMs = Date.now();
+        if (
+          isClippedOutOfView &&
+          (!this._lastTutorialAutoScrollMs || nowMs - this._lastTutorialAutoScrollMs > 800)
+        ) {
+          this._lastTutorialAutoScrollMs = nowMs;
+          this.scrollTutorialTargetIntoView(this._tutorialTargetEl, true);
+        }
+
         const spaceAbove = rect.top;
         const spaceBelow = vh - rect.bottom;
 
@@ -28800,9 +28887,9 @@ class TienLenGame {
         pointer.classList.toggle('point-up', !placeAbove);
         pointer.style.left = `${Math.round(cx)}px`;
         if (placeAbove) {
-          pointer.style.top = `${Math.max(6, Math.round(rect.top - 6))}px`;
+          pointer.style.top = `${Math.max(38, Math.min(vh - 12, Math.round(rect.top - 6)))}px`;
         } else {
-          pointer.style.top = `${Math.min(vh - 6, Math.round(rect.bottom + 6))}px`;
+          pointer.style.top = `${Math.max(12, Math.min(vh - 38, Math.round(rect.bottom + 6)))}px`;
         }
       }
       this._tutorialPointerRaf = requestAnimationFrame(updatePosition);

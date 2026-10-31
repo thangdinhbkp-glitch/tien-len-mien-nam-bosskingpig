@@ -8938,7 +8938,7 @@ body.pseudo-fullscreen-mode {
           <img
             class="gacha-splash-img"
             id="gacha-splash-img"
-            src="splash/raiden.png"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             alt="Genshin Character Splash Art"
             referrerpolicy="no-referrer"
           />
@@ -15459,8 +15459,10 @@ class TienLenGame {
   }
 
   stopGachaSplashMedia() {
+    this.gachaSplashLoadToken = (this.gachaSplashLoadToken || 0) + 1;
     clearTimeout(this.gachaSplashVoiceTimer);
     clearTimeout(this.gachaSplashLightTimer);
+    clearTimeout(this.gachaSplashImgFallbackTimer);
     if (this.currentGachaRevealAudio) {
       try {
         this.currentGachaRevealAudio.pause();
@@ -15472,6 +15474,13 @@ class TienLenGame {
         this.currentGachaVoiceAudio.pause();
       } catch (_) {}
       this.currentGachaVoiceAudio = null;
+    }
+    const splashImg = document.getElementById('gacha-splash-img');
+    if (splashImg) {
+      splashImg.onload = null;
+      splashImg.onerror = null;
+      splashImg.style.visibility = 'hidden';
+      splashImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
     }
     const vIn = document.getElementById('gacha-splashlight-in');
     const vOut = document.getElementById('gacha-splashlight-out');
@@ -15488,6 +15497,7 @@ class TienLenGame {
   showGacha5StarSplashSequence(splashItems, index, onAllDone) {
     const splashStage = document.getElementById('gacha-splash-stage');
     this.stopGachaSplashMedia();
+    const myToken = this.gachaSplashLoadToken;
 
     if (!splashStage || !Array.isArray(splashItems) || index >= splashItems.length) {
       if (splashStage) {
@@ -15518,16 +15528,6 @@ class TienLenGame {
         .trim();
     }
 
-    const splashImg = document.getElementById('gacha-splash-img');
-    if (splashImg) {
-      splashImg.onerror = () => {
-        splashImg.onerror = null;
-        splashImg.src = item.thumbUrl || `fanart/${item.id}.jpg?v=66`;
-      };
-      splashImg.src = `splash/${item.id}.png`;
-      splashImg.alt = charDisplayName;
-    }
-
     const visionImg = document.getElementById('gacha-splash-vision-img');
     if (visionImg) {
       visionImg.src = `assets/icon-${elemKey}.svg`;
@@ -15542,36 +15542,6 @@ class TienLenGame {
     const starsEl = document.getElementById('gacha-splash-stars');
     if (starsEl) {
       starsEl.innerHTML = Array.from({ length: starRarity }, (_, i) => `<span class="splash-star s${i + 1}">★</span>`).join('');
-    }
-
-    const vIn = document.getElementById('gacha-splashlight-in');
-    const vOut = document.getElementById('gacha-splashlight-out');
-    if (vIn) {
-      vIn.classList.remove('hidden');
-      vIn.src = `assets/${starRarity}star-splashout.webm`;
-      vIn.currentTime = 0;
-      const p1 = vIn.play();
-      if (p1 && typeof p1.catch === 'function') p1.catch(() => {});
-    }
-    if (vOut) {
-      vOut.classList.add('hidden');
-      vOut.src = `assets/${starRarity}star-splashout2.webm`;
-      vOut.currentTime = 0;
-    }
-    this.gachaSplashLightTimer = setTimeout(() => {
-      if (vIn) vIn.classList.add('hidden');
-      if (vOut) {
-        vOut.classList.remove('hidden');
-        const p2 = vOut.play();
-        if (p2 && typeof p2.catch === 'function') p2.catch(() => {});
-      }
-    }, 1100);
-
-    this.currentGachaRevealAudio = this.playGachaSfxFile(`assets/reveal_${starRarity}star.ogg`, 0.92);
-    if (starRarity === 5 && burstMeta?.audioUrl) {
-      this.gachaSplashVoiceTimer = setTimeout(() => {
-        this.currentGachaVoiceAudio = this.playGachaSfxFile(burstMeta.audioUrl, 0.85);
-      }, 1100);
     }
 
     const advanceNext = (e) => {
@@ -15593,14 +15563,84 @@ class TienLenGame {
     }
 
     splashStage.onclick = advanceNext;
-
     splashStage.classList.remove('hidden');
     splashStage.classList.remove('gacha-splash-anim-active');
-    void splashStage.offsetWidth;
-    splashStage.classList.add('gacha-splash-anim-active');
 
-    if (!this.tutorialCompleted) {
-      this.renderTravelerGuide();
+    const splashImg = document.getElementById('gacha-splash-img');
+    let revealStarted = false;
+    const startRevealNow = () => {
+      if (revealStarted || this.gachaSplashLoadToken !== myToken) return;
+      revealStarted = true;
+      clearTimeout(this.gachaSplashImgFallbackTimer);
+
+      if (splashImg) {
+        splashImg.style.visibility = 'visible';
+      }
+
+      const vIn = document.getElementById('gacha-splashlight-in');
+      const vOut = document.getElementById('gacha-splashlight-out');
+      if (vIn) {
+        vIn.classList.remove('hidden');
+        vIn.src = `assets/${starRarity}star-splashout.webm`;
+        vIn.currentTime = 0;
+        const p1 = vIn.play();
+        if (p1 && typeof p1.catch === 'function') p1.catch(() => {});
+      }
+      if (vOut) {
+        vOut.classList.add('hidden');
+        vOut.src = `assets/${starRarity}star-splashout2.webm`;
+        vOut.currentTime = 0;
+      }
+      this.gachaSplashLightTimer = setTimeout(() => {
+        if (this.gachaSplashLoadToken !== myToken) return;
+        if (vIn) vIn.classList.add('hidden');
+        if (vOut) {
+          vOut.classList.remove('hidden');
+          const p2 = vOut.play();
+          if (p2 && typeof p2.catch === 'function') p2.catch(() => {});
+        }
+      }, 1100);
+
+      this.currentGachaRevealAudio = this.playGachaSfxFile(`assets/reveal_${starRarity}star.ogg`, 0.92);
+      if (starRarity === 5 && burstMeta?.audioUrl) {
+        this.gachaSplashVoiceTimer = setTimeout(() => {
+          if (this.gachaSplashLoadToken !== myToken) return;
+          this.currentGachaVoiceAudio = this.playGachaSfxFile(burstMeta.audioUrl, 0.85);
+        }, 1100);
+      }
+
+      splashStage.classList.remove('gacha-splash-anim-active');
+      void splashStage.offsetWidth;
+      splashStage.classList.add('gacha-splash-anim-active');
+
+      if (!this.tutorialCompleted) {
+        this.renderTravelerGuide();
+      }
+    };
+
+    if (splashImg) {
+      splashImg.style.visibility = 'hidden';
+      splashImg.alt = charDisplayName;
+      splashImg.onload = () => {
+        splashImg.onload = null;
+        if (typeof splashImg.decode === 'function') {
+          splashImg.decode().then(startRevealNow).catch(startRevealNow);
+        } else {
+          startRevealNow();
+        }
+      };
+      splashImg.onerror = () => {
+        splashImg.onerror = null;
+        splashImg.onload = () => {
+          splashImg.onload = null;
+          startRevealNow();
+        };
+        splashImg.src = item.thumbUrl || `fanart/${item.id}.jpg?v=66`;
+      };
+      splashImg.src = `splash/${item.id}.png`;
+      this.gachaSplashImgFallbackTimer = setTimeout(startRevealNow, 900);
+    } else {
+      startRevealNow();
     }
   }
 
@@ -15621,6 +15661,19 @@ class TienLenGame {
     const isTenPull = results.length > 1;
     sfx.duckBGM(true);
     this.stopGachaSplashMedia();
+
+    // Tải trước (Preload) ngay lập tức ảnh Splash Art 5★ trong lúc video sao băng (6 giây) đang rơi
+    results
+      .filter((r) => r && r.star === 5)
+      .forEach((r) => {
+        try {
+          const preImg = new Image();
+          preImg.src = `splash/${r.id}.png`;
+          const ek = CHARACTER_ELEMENTS[r.id] || 'electro';
+          const preVis = new Image();
+          preVis.src = `assets/icon-${ek}.svg`;
+        } catch (_) {}
+      });
 
     overlay.classList.remove('hidden');
     meteorStage.classList.remove('hidden');

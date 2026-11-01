@@ -2,9 +2,17 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Tiến Lên 5★" />
+  <link rel="manifest" href="manifest.json?v=122" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=121" />
+  <link rel="stylesheet" href="styles.css?v=122" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -32,6 +40,9 @@
         </div>
         <button class="icon-btn hidden" id="btn-show-summary" title="Quay lại Bảng Tổng Kết &amp; Chuẩn Bị Ván Tiếp" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;color:#ffffff;font-weight:900;">
           📋 Về Tab Chuẩn Bị / Tổng Kết
+        </button>
+        <button class="top-fullscreen-btn" id="btn-top-install-app" onclick="window.tienLenGame.openInstallAppModal()" title="Cài đặt App Tiến Lên 5★ ra màn hình chính &amp; tải gói Video chống lag" style="background:linear-gradient(135deg,#0284c7,#2563eb);border-color:#7dd3fc;color:#ffffff;font-weight:900;">
+          📲 Tải App
         </button>
         <button class="top-fullscreen-btn" id="btn-top-skip-burst" onclick="window.tienLenGame.toggleSkipBurstAnimations()" title="Bấm để Tắt / Bật hoàn toàn hoạt ảnh Nộ của mọi nhân vật">
           🎬 Hoạt Ảnh Nộ: BẬT
@@ -368,6 +379,10 @@
 
         <!-- THANH DOCK CHỨC NĂNG GAME APP BÊN DƯỚI (CÁC NÚT NHỎ HƠN XẾP GỌN GÀNG) -->
         <div class="app-lobby-dock">
+          <button class="app-dock-btn dock-install-app" id="btn-lobby-install-app" onclick="window.tienLenGame.openInstallAppModal()" title="Tải &amp; Cài đặt App Tiến Lên 5★ Full Màn Hình + Tải sẵn Gói Video Chống Lag vào máy">
+            <span class="dock-icon">📲</span>
+            <span class="dock-label" id="lobby-install-app-label">Tải App (Mượt)</span>
+          </button>
           <button class="app-dock-btn dock-inventory" id="btn-lobby-inventory" onclick="window.tienLenGame.openInventoryModal()" title="Mở Kho Đồ cá nhân để trang bị Nhân Vật 5★, Decor Bài 4★ &amp; Avatar 3★">
             <span class="dock-icon">🎒</span>
             <span class="dock-label">Kho Đồ</span>
@@ -1405,6 +1420,26 @@
       </div>
     </div>
 
+    <!-- MODAL TẢI & CÀI ĐẶT APP TIẾN LÊN 5★ + TẢI GÓI VIDEO OFFLINE CHỐNG LAG -->
+    <div class="modal-backdrop hidden" id="install-app-modal" style="z-index: 9900;">
+      <div class="modal-card" style="max-width: 680px; width: 95vw;">
+        <div class="modal-header">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <img src="icon-192.png" alt="Tiến Lên 5★ App" style="width:46px;height:46px;border-radius:12px;border:2px solid #facc15;box-shadow:0 0 12px rgba(250,204,21,0.5);" />
+            <div>
+              <h2>📲 CÀI ĐẶT APP TIẾN LÊN 5★ (CHỐNG LAG)</h2>
+              <p style="font-size:12px;color:#cbd5e1;margin:2px 0 0;">Chạy Full Màn Hình độc lập • Lưu sẵn toàn bộ Video Nộ &amp; Gacha vào bộ nhớ máy phát mượt 0ms</p>
+            </div>
+          </div>
+          <button type="button" class="close-modal-btn" onclick="window.tienLenGame.closeInstallAppModal()">✕</button>
+        </div>
+        <div class="modal-body" id="install-app-modal-body" style="display:flex;flex-direction:column;gap:12px;"></div>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;">
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.closeInstallAppModal()">✅ Đóng</button>
+        </div>
+      </div>
+    </div>
+
     <!-- CON TRỎ MŨI TÊN CHỈ VÀO NÚT CÓ SẴN TRÊN MÀN HÌNH KHI HƯỚNG DẪN TÂN THỦ -->
     <div class="tutorial-screen-pointer hidden" id="tutorial-screen-pointer" onclick="window.tienLenGame?.onClickTutorialPointer(event)">
       <div class="tutorial-pointer-arrow tutorial-pointer-arrow-up">👆</div>
@@ -1413,6 +1448,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=121"></script>
+  <script src="game.js?v=122"></script>
 </body>
 </html>

@@ -8198,6 +8198,19 @@ body.gacha-playing-gpu-lock .table-area * {
   }
 }
 
+.app-dock-btn.dock-install-app {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.92), rgba(37, 99, 235, 0.92));
+  border-color: #7dd3fc;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45);
+}
+
+.app-dock-btn.dock-install-app:hover {
+  background: linear-gradient(135deg, #0284c7, #1d4ed8);
+  border-color: #bae6fd;
+  transform: translateY(-2px);
+}
+
 
 
 

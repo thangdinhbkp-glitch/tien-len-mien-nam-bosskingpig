@@ -1,0 +1,27 @@
+{
+  "name": "Tiến Lên Miền Nam (Genshin Impact 5★ Edition)",
+  "short_name": "Tiến Lên 5★",
+  "description": "Game Bài Tiến Lên Miền Nam phiên bản Genshin Impact 5★ — Cầu Nguyện Gacha, Chiêu Nộ 5★, Phản Ứng Nguyên Tố & Phòng Chơi Chung Online",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#070b19",
+  "theme_color": "#0f172a",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

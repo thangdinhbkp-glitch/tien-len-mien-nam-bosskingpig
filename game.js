@@ -8124,10 +8124,11 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // REWARDED VIDEO AD (NHẠC HEY IT'S ME IT'S VERITY + RICK ROLL NHẬN 1 ROLL = +1,600 XU)
+  // REWARDED VIDEO AD (VIDEO GỐC HEY IT'S ME IT'S VERITY + RICK ROLL NHẬN 1 ROLL = +1,600 XU)
   // ============================================================================
   applyAdMusicTrack() {
     const mode = this.adMusicTrack || 'verity';
+    const verityVideoEl = document.getElementById('verity-video');
     const videoEl = document.getElementById('rickroll-video');
     const gifFallback = document.getElementById('rickroll-gif-fallback');
     const rickAudioEl = document.getElementById('rickroll-audio');
@@ -8139,7 +8140,7 @@ class TienLenGame {
 
     if (switchBtn) {
       switchBtn.textContent =
-        mode === 'verity' ? "🎵 Nhạc: Hey It's Me, It's Verity (Đổi ⇄)" : '🎵 Nhạc: Rick Roll (Đổi ⇄)';
+        mode === 'verity' ? "🎬 Video: Hey It's Me, It's Verity (Đổi ⇄)" : '🎬 Video: Rick Roll (Đổi ⇄)';
     }
     if (sponsorEl) {
       sponsorEl.innerHTML =
@@ -8150,42 +8151,109 @@ class TienLenGame {
     if (bannerEl) {
       bannerEl.innerHTML =
         mode === 'verity'
-          ? '🙂 <strong>HEY, IT\'S ME, IT\'S VERITY!</strong> Thưởng thức giai điệu <em>“Hey, It\'s Me, It\'s Verity”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎶'
+          ? '🙂 <strong>HEY, IT\'S ME, IT\'S VERITY!</strong> Thưởng thức video gốc <em>“Hey, It\'s Me, It\'s Verity”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎶'
           : '🕺 <strong>BẠN ĐÃ BỊ RICK ROLL!</strong> Hãy thưởng thức giai điệu bất hủ <em>“Never Gonna Give You Up”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎤';
     }
-    verityStage?.classList.toggle('hidden', mode !== 'verity');
 
     if (mode === 'verity') {
+      // Dừng toàn bộ video/nhạc Rick Roll
+      if (videoEl) {
+        try {
+          videoEl.pause();
+        } catch (_) {}
+        videoEl.classList.add('hidden');
+      }
+      gifFallback?.classList.add('hidden');
       if (rickAudioEl) {
         try {
           rickAudioEl.pause();
         } catch (_) {}
       }
-      if (videoEl) {
-        videoEl.muted = true; // Tắt tiếng gốc của video để phát chuẩn nhạc "Hey It's Me, It's Verity"
-      }
-      if (verityAudioEl) {
-        try {
-          verityAudioEl.currentTime = 0;
-          verityAudioEl.volume = 0.9;
-          verityAudioEl.play().catch(() => {});
-        } catch (_) {}
-      }
-    } else {
       if (verityAudioEl) {
         try {
           verityAudioEl.pause();
         } catch (_) {}
       }
-      if (videoEl && !videoEl.classList.contains('hidden')) {
+
+      // Phát Video + Âm thanh gốc của "Hey, It's Me, It's Verity!" (verity.mp4)
+      if (verityVideoEl) {
+        verityVideoEl.classList.remove('hidden');
+        verityStage?.classList.add('hidden');
+        verityVideoEl.muted = false;
+        verityVideoEl.volume = 0.9;
+        try {
+          verityVideoEl.currentTime = 1.0;
+        } catch (_) {}
+        const p = verityVideoEl.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            // Dự phòng nếu trình duyệt chặn phát video có tiếng hoặc lỗi tải video
+            verityVideoEl.muted = true;
+            verityVideoEl.play().catch(() => {
+              verityVideoEl.classList.add('hidden');
+              verityStage?.classList.remove('hidden');
+            });
+            if (verityAudioEl) {
+              try {
+                verityAudioEl.currentTime = 0;
+                verityAudioEl.volume = 0.9;
+                verityAudioEl.play().catch(() => {});
+              } catch (_) {}
+            }
+          });
+        }
+        verityVideoEl.onerror = () => {
+          verityVideoEl.classList.add('hidden');
+          verityStage?.classList.remove('hidden');
+          if (verityAudioEl) {
+            try {
+              verityAudioEl.currentTime = 0;
+              verityAudioEl.volume = 0.9;
+              verityAudioEl.play().catch(() => {});
+            } catch (_) {}
+          }
+        };
+      } else {
+        verityStage?.classList.remove('hidden');
+      }
+    } else {
+      // Dừng toàn bộ video/nhạc Verity
+      if (verityVideoEl) {
+        try {
+          verityVideoEl.pause();
+        } catch (_) {}
+        verityVideoEl.classList.add('hidden');
+      }
+      if (verityAudioEl) {
+        try {
+          verityAudioEl.pause();
+        } catch (_) {}
+      }
+      verityStage?.classList.add('hidden');
+
+      // Phát Video + Âm thanh Rick Roll (rickroll.mp4)
+      if (videoEl) {
+        videoEl.classList.remove('hidden');
+        gifFallback?.classList.add('hidden');
         videoEl.muted = false;
         videoEl.volume = 0.85;
-      } else if (rickAudioEl) {
         try {
-          rickAudioEl.currentTime = 42;
-          rickAudioEl.volume = 0.85;
-          rickAudioEl.play().catch(() => {});
+          videoEl.currentTime = 42;
         } catch (_) {}
+        const p = videoEl.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            videoEl.classList.add('hidden');
+            gifFallback?.classList.remove('hidden');
+            if (rickAudioEl) {
+              try {
+                rickAudioEl.currentTime = 42;
+                rickAudioEl.volume = 0.85;
+                rickAudioEl.play().catch(() => {});
+              } catch (_) {}
+            }
+          });
+        }
       }
     }
   }
@@ -8197,10 +8265,6 @@ class TienLenGame {
 
   startRickRollAd() {
     const overlay = document.getElementById('rickroll-ad-overlay');
-    const videoEl = document.getElementById('rickroll-video');
-    const gifFallback = document.getElementById('rickroll-gif-fallback');
-    const audioEl = document.getElementById('rickroll-audio');
-    const verityAudioEl = document.getElementById('verity-audio');
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');
     const progressFill = document.getElementById('ad-progress-fill');
@@ -8239,9 +8303,8 @@ class TienLenGame {
 
     const verityLyricsTimeline = [
       { at: 0, text: "🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵" },
-      { at: 4, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
-      { at: 8, text: "💛🎤 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🔥" },
-      { at: 12, text: "🌟🎶 “I know about a million things ~ I'll do EVERYTHING!” 👑" },
+      { at: 7, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
+      { at: 12, text: "🗼🥖 “What's the capital of France? ~ Oh, oui oui oui, it is Paris!” 🎵" },
     ];
     const rickLyricsTimeline = [
       { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
@@ -8254,29 +8317,7 @@ class TienLenGame {
         this.adMusicTrack === 'verity' ? verityLyricsTimeline[0].text : rickLyricsTimeline[0].text;
     }
 
-    // Bật hình ảnh Video + phát nhạc "Hey It's Me, It's Verity" (hoặc Rick Roll tùy chọn)
-    if (videoEl) {
-      videoEl.classList.remove('hidden');
-      gifFallback?.classList.add('hidden');
-      videoEl.muted = this.adMusicTrack === 'verity';
-      videoEl.volume = 0.85;
-      try {
-        videoEl.currentTime = 42;
-      } catch (_) {}
-
-      const playPromise = videoEl.play();
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(() => {
-          videoEl.classList.add('hidden');
-          gifFallback?.classList.remove('hidden');
-        });
-      }
-      videoEl.onerror = () => {
-        videoEl.classList.add('hidden');
-        gifFallback?.classList.remove('hidden');
-      };
-    }
-
+    // Bật hình ảnh Video gốc + phát nhạc "Hey It's Me, It's Verity" (hoặc Rick Roll tùy chọn)
     this.applyAdMusicTrack();
 
     let elapsed = 0;
@@ -8336,9 +8377,15 @@ class TienLenGame {
   stopRickRollAd() {
     clearInterval(this.adIntervalTimer);
     const overlay = document.getElementById('rickroll-ad-overlay');
+    const verityVideoEl = document.getElementById('verity-video');
     const videoEl = document.getElementById('rickroll-video');
     const audioEl = document.getElementById('rickroll-audio');
     const verityAudioEl = document.getElementById('verity-audio');
+    if (verityVideoEl) {
+      try {
+        verityVideoEl.pause();
+      } catch (_) {}
+    }
     if (videoEl) {
       try {
         videoEl.pause();
@@ -23181,7 +23228,7 @@ if ('serviceWorker' in navigator) {
   });
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('sw.js?v=127', { updateViaCache: 'none' })
+      .register('sw.js?v=128', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update().catch(() => {});
       })

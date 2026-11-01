@@ -36,8 +36,8 @@ jobs:
 
           cp icon-192.png /tmp/apkbuild/res/drawable/icon.png
 
-          # Copy all Burst videos, audio, BGM, Gacha videos, fanart, splash art, and fallback code into APK assets
-          cp *_burst.mp4 *_burst.ogg bgm_*.ogg verity.mp3 result_list.ogg reveal_*.ogg /tmp/apkbuild/assets/ 2>/dev/null || true
+          # Copy all Burst videos, audio, BGM, Gacha videos, Verity/RickRoll ad videos, fanart, splash art, and fallback code into APK assets
+          cp *_burst.mp4 *_burst.ogg bgm_*.ogg verity.mp4 verity.mp3 rickroll.mp4 rickroll.mp3 rickroll.gif result_list.ogg reveal_*.ogg /tmp/apkbuild/assets/ 2>/dev/null || true
           cp index.html styles.css game.js manifest.json icon-192.png icon-512.png /tmp/apkbuild/assets/ 2>/dev/null || true
           cp -r assets/* /tmp/apkbuild/assets/assets/ 2>/dev/null || true
           cp -r fanart/* /tmp/apkbuild/assets/fanart/ 2>/dev/null || true

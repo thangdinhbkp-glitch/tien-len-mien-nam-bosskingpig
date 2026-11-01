@@ -8,11 +8,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Tiến Lên 5★" />
-  <link rel="manifest" href="manifest.json?v=122" />
+  <link rel="manifest" href="manifest.json?v=123" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=122" />
+  <link rel="stylesheet" href="styles.css?v=123" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -40,9 +40,6 @@
         </div>
         <button class="icon-btn hidden" id="btn-show-summary" title="Quay lại Bảng Tổng Kết &amp; Chuẩn Bị Ván Tiếp" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;color:#ffffff;font-weight:900;">
           📋 Về Tab Chuẩn Bị / Tổng Kết
-        </button>
-        <button class="top-fullscreen-btn" id="btn-top-install-app" onclick="window.tienLenGame.openInstallAppModal()" title="Cài đặt App Tiến Lên 5★ ra màn hình chính &amp; tải gói Video chống lag" style="background:linear-gradient(135deg,#0284c7,#2563eb);border-color:#7dd3fc;color:#ffffff;font-weight:900;">
-          📲 Tải App
         </button>
         <button class="top-fullscreen-btn" id="btn-top-skip-burst" onclick="window.tienLenGame.toggleSkipBurstAnimations()" title="Bấm để Tắt / Bật hoàn toàn hoạt ảnh Nộ của mọi nhân vật">
           🎬 Hoạt Ảnh Nộ: BẬT
@@ -379,9 +376,9 @@
 
         <!-- THANH DOCK CHỨC NĂNG GAME APP BÊN DƯỚI (CÁC NÚT NHỎ HƠN XẾP GỌN GÀNG) -->
         <div class="app-lobby-dock">
-          <button class="app-dock-btn dock-install-app" id="btn-lobby-install-app" onclick="window.tienLenGame.openInstallAppModal()" title="Tải &amp; Cài đặt App Tiến Lên 5★ Full Màn Hình + Tải sẵn Gói Video Chống Lag vào máy">
+          <button class="app-dock-btn dock-install-app" id="btn-lobby-install-app" onclick="window.tienLenGame.openInstallAppModal()" title="Bấm 1 chạm để Cài đặt App Tiến Lên 5★ &amp; tự động tải toàn bộ Hoạt ảnh Nộ + Gacha vào máy">
             <span class="dock-icon">📲</span>
-            <span class="dock-label" id="lobby-install-app-label">Tải App (Mượt)</span>
+            <span class="dock-label" id="lobby-install-app-label">Tải App</span>
           </button>
           <button class="app-dock-btn dock-inventory" id="btn-lobby-inventory" onclick="window.tienLenGame.openInventoryModal()" title="Mở Kho Đồ cá nhân để trang bị Nhân Vật 5★, Decor Bài 4★ &amp; Avatar 3★">
             <span class="dock-icon">🎒</span>
@@ -1448,6 +1445,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=122"></script>
+  <script src="game.js?v=123"></script>
 </body>
 </html>

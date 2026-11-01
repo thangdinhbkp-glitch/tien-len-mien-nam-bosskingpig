@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Full Android APK & Windows EXE (With All Videos Bundled)
 
 on:
   push:
@@ -10,37 +10,45 @@ permissions:
   contents: write
 
 jobs:
-  build-apk:
+  build-full-packages:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - name: Set up JDK 17 & Mono C# Compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mono-mcs zip
 
-      - name: Build Signed TienLenGenshin.apk
+      - name: Build Full Signed TienLenGenshin.apk (~115 MB with all Burst & Gacha videos)
         run: |
           set -e
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
           PLATFORM=$(ls -d $ANDROID_HOME/platforms/android-* | sort -V | tail -n 1)
-          echo "Using BUILD_TOOLS=$BUILD_TOOLS"
-          echo "Using PLATFORM=$PLATFORM"
 
           mkdir -p /tmp/apkbuild/src/com/bosskingpig/tienlengenshin
           mkdir -p /tmp/apkbuild/res/drawable
+          mkdir -p /tmp/apkbuild/assets/assets
+          mkdir -p /tmp/apkbuild/assets/fanart
+          mkdir -p /tmp/apkbuild/assets/splash
           mkdir -p /tmp/apkbuild/obj
+
           cp icon-192.png /tmp/apkbuild/res/drawable/icon.png
+
+          # Copy all Burst videos, audio, BGM, Gacha videos, fanart, splash art, and fallback code into APK assets
+          cp *_burst.mp4 *_burst.ogg bgm_*.ogg verity.mp3 result_list.ogg reveal_*.ogg /tmp/apkbuild/assets/ 2>/dev/null || true
+          cp index.html styles.css game.js manifest.json icon-192.png icon-512.png /tmp/apkbuild/assets/ 2>/dev/null || true
+          cp -r assets/* /tmp/apkbuild/assets/assets/ 2>/dev/null || true
+          cp -r fanart/* /tmp/apkbuild/assets/fanart/ 2>/dev/null || true
+          cp -r splash/* /tmp/apkbuild/assets/splash/ 2>/dev/null || true
 
           cat << 'EOF' > /tmp/apkbuild/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               package="com.bosskingpig.tienlengenshin"
-              android:versionCode="126"
-              android:versionName="1.2.6">
+              android:versionCode="127"
+              android:versionName="1.2.7">
               <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -69,18 +77,72 @@ jobs:
           package com.bosskingpig.tienlengenshin;
 
           import android.app.Activity;
+          import android.content.res.AssetFileDescriptor;
           import android.graphics.Color;
+          import android.net.Uri;
           import android.os.Bundle;
           import android.view.View;
           import android.view.Window;
           import android.view.WindowManager;
           import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebResourceResponse;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
+          import java.io.FilterInputStream;
+          import java.io.IOException;
+          import java.io.InputStream;
+          import java.util.HashMap;
+          import java.util.Map;
 
           public class MainActivity extends Activity {
               private WebView webView;
+              private static final String REMOTE_BASE = "https://thangdinhbkp-glitch.github.io/tien-len-mien-nam-bosskingpig/";
+
+              private static class BoundedInputStream extends FilterInputStream {
+                  private long remaining;
+                  protected BoundedInputStream(InputStream in, long maxBytes) {
+                      super(in);
+                      this.remaining = maxBytes;
+                  }
+                  @Override
+                  public int read() throws IOException {
+                      if (remaining <= 0) return -1;
+                      int b = super.read();
+                      if (b != -1) remaining--;
+                      return b;
+                  }
+                  @Override
+                  public int read(byte[] b, int off, int len) throws IOException {
+                      if (remaining <= 0) return -1;
+                      int toRead = (int) Math.min(len, remaining);
+                      int count = super.read(b, off, toRead);
+                      if (count > 0) remaining -= count;
+                      return count;
+                  }
+              }
+
+              private String guessMime(String path) {
+                  String p = path.toLowerCase();
+                  if (p.endsWith(".mp4")) return "video/mp4";
+                  if (p.endsWith(".webm")) return "video/webm";
+                  if (p.endsWith(".ogg")) return "audio/ogg";
+                  if (p.endsWith(".mp3")) return "audio/mpeg";
+                  if (p.endsWith(".png")) return "image/png";
+                  if (p.endsWith(".jpg") || p.endsWith(".jpeg")) return "image/jpeg";
+                  if (p.endsWith(".webp")) return "image/webp";
+                  if (p.endsWith(".svg")) return "image/svg+xml";
+                  if (p.endsWith(".gif")) return "image/gif";
+                  return "application/octet-stream";
+              }
+
+              private boolean isBundledMedia(String path) {
+                  String p = path.toLowerCase();
+                  return p.endsWith(".mp4") || p.endsWith(".webm") || p.endsWith(".ogg") ||
+                         p.endsWith(".mp3") || p.endsWith(".png") || p.endsWith(".jpg") ||
+                         p.endsWith(".jpeg") || p.endsWith(".webp") || p.endsWith(".svg") || p.endsWith(".gif");
+              }
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +164,7 @@ jobs:
                   settings.setDatabaseEnabled(true);
                   settings.setMediaPlaybackRequiresUserGesture(false);
                   settings.setAllowFileAccess(true);
+                  settings.setAllowContentAccess(true);
                   settings.setLoadWithOverviewMode(true);
                   settings.setUseWideViewPort(true);
                   settings.setCacheMode(WebSettings.LOAD_DEFAULT);
@@ -109,13 +172,84 @@ jobs:
                   webView.setWebChromeClient(new WebChromeClient());
                   webView.setWebViewClient(new WebViewClient() {
                       @Override
+                      public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                          Uri uri = request.getUrl();
+                          if (uri == null) return null;
+                          String urlStr = uri.toString();
+                          if (!urlStr.startsWith(REMOTE_BASE)) return null;
+
+                          String relPath = uri.getPath();
+                          if (relPath == null) return null;
+                          String prefix = "/tien-len-mien-nam-bosskingpig/";
+                          if (relPath.startsWith(prefix)) {
+                              relPath = relPath.substring(prefix.length());
+                          }
+                          while (relPath.startsWith("/")) {
+                              relPath = relPath.substring(1);
+                          }
+
+                          // Always let HTML/JS/CSS load from live server so game updates apply automatically!
+                          if (!isBundledMedia(relPath)) {
+                              return null;
+                          }
+
+                          try {
+                              long totalLen = -1;
+                              try {
+                                  AssetFileDescriptor afd = getAssets().openFd(relPath);
+                                  totalLen = afd.getLength();
+                                  afd.close();
+                              } catch (Exception ignored) {}
+
+                              InputStream rawIn = getAssets().open(relPath);
+                              String mime = guessMime(relPath);
+                              Map<String, String> headers = new HashMap<String, String>();
+                              headers.put("Access-Control-Allow-Origin", "*");
+                              headers.put("Accept-Ranges", "bytes");
+                              headers.put("Cache-Control", "public, max-age=31536000");
+
+                              String rangeHeader = request.getRequestHeaders() != null ? request.getRequestHeaders().get("Range") : null;
+                              if (rangeHeader == null && request.getRequestHeaders() != null) {
+                                  rangeHeader = request.getRequestHeaders().get("range");
+                              }
+
+                              if (rangeHeader != null && rangeHeader.startsWith("bytes=") && totalLen > 0) {
+                                  String spec = rangeHeader.substring(6).trim();
+                                  int dash = spec.indexOf('-');
+                                  if (dash >= 0) {
+                                      long start = Long.parseLong(spec.substring(0, dash));
+                                      long end = (dash < spec.length() - 1) ? Long.parseLong(spec.substring(dash + 1)) : (totalLen - 1);
+                                      if (end >= totalLen) end = totalLen - 1;
+                                      long contentLen = (end - start) + 1;
+                                      long skipped = 0;
+                                      while (skipped < start) {
+                                          long s = rawIn.skip(start - skipped);
+                                          if (s <= 0) break;
+                                          skipped += s;
+                                      }
+                                      headers.put("Content-Range", "bytes " + start + "-" + end + "/" + totalLen);
+                                      headers.put("Content-Length", String.valueOf(contentLen));
+                                      return new WebResourceResponse(mime, null, 206, "Partial Content", headers, new BoundedInputStream(rawIn, contentLen));
+                                  }
+                              }
+
+                              if (totalLen > 0) {
+                                  headers.put("Content-Length", String.valueOf(totalLen));
+                              }
+                              return new WebResourceResponse(mime, null, 200, "OK", headers, rawIn);
+                          } catch (Exception e) {
+                              return null;
+                          }
+                      }
+
+                      @Override
                       public boolean shouldOverrideUrlLoading(WebView view, String url) {
                           view.loadUrl(url);
                           return true;
                       }
                   });
 
-                  webView.loadUrl("https://thangdinhbkp-glitch.github.io/tien-len-mien-nam-bosskingpig/?source=apk");
+                  webView.loadUrl(REMOTE_BASE + "?source=apk");
               }
 
               private void hideSystemUI() {
@@ -133,9 +267,7 @@ jobs:
               @Override
               public void onWindowFocusChanged(boolean hasFocus) {
                   super.onWindowFocusChanged(hasFocus);
-                  if (hasFocus) {
-                      hideSystemUI();
-                  }
+                  if (hasFocus) hideSystemUI();
               }
 
               @Override
@@ -150,19 +282,241 @@ jobs:
           "$BUILD_TOOLS/aapt" package -f -m -J /tmp/apkbuild/src -M /tmp/apkbuild/AndroidManifest.xml -S /tmp/apkbuild/res -I "$PLATFORM/android.jar"
           javac -source 1.8 -target 1.8 -bootclasspath "$PLATFORM/android.jar" -classpath "$PLATFORM/android.jar" -d /tmp/apkbuild/obj /tmp/apkbuild/src/com/bosskingpig/tienlengenshin/*.java
           "$BUILD_TOOLS/d8" --lib "$PLATFORM/android.jar" --output /tmp/apkbuild /tmp/apkbuild/obj/com/bosskingpig/tienlengenshin/*.class
-          "$BUILD_TOOLS/aapt" package -f -M /tmp/apkbuild/AndroidManifest.xml -S /tmp/apkbuild/res -I "$PLATFORM/android.jar" -F /tmp/apkbuild/unsigned.apk
+          "$BUILD_TOOLS/aapt" package -f -M /tmp/apkbuild/AndroidManifest.xml -S /tmp/apkbuild/res -A /tmp/apkbuild/assets -I "$PLATFORM/android.jar" -0 mp4 -0 webm -0 ogg -0 mp3 -0 png -0 jpg -F /tmp/apkbuild/unsigned.apk
           (cd /tmp/apkbuild && "$BUILD_TOOLS/aapt" add unsigned.apk classes.dex)
           "$BUILD_TOOLS/zipalign" -f 4 /tmp/apkbuild/unsigned.apk /tmp/apkbuild/aligned.apk
 
           keytool -genkeypair -v -keystore /tmp/apkbuild/release.keystore -alias tienlen -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=BossKingPig, OU=Game, O=BossKingPig, L=HCMC, S=VN, C=VN"
-          "$BUILD_TOOLS/apksigner" sign --ks /tmp/apkbuild/release.keystore --ks-pass pass:123456 --key-pass pass:123456 --v1-signing-enabled true --v2-signing-enabled true --out TienLenGenshin.apk /tmp/apkbuild/aligned.apk
-          ls -lh TienLenGenshin.apk
+          "$BUILD_TOOLS/apksigner" sign --ks /tmp/apkbuild/release.keystore --ks-pass pass:123456 --key-pass pass:123456 --v1-signing-enabled true --v2-signing-enabled true --out /tmp/TienLenGenshin.apk /tmp/apkbuild/aligned.apk
+          ls -lh /tmp/TienLenGenshin.apk
 
-      - name: Commit and Push APK to main
+      - name: Build Full Standalone TienLenGenshin.exe (~115 MB with all Burst & Gacha videos)
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
-          git add TienLenGenshin.apk
-          git commit -m "Build and publish signed TienLenGenshin.apk for Android" || exit 0
-          git push origin main
+          set -e
+          mkdir -p /tmp/exebuild
+          (cd /tmp/apkbuild/assets && zip -0 -r /tmp/exebuild/game_media.zip .)
+          ls -lh /tmp/exebuild/game_media.zip
+
+          python3 - << 'PYEOF'
+          with open("icon-192.png", "rb") as f:
+              png = f.read()
+          import struct
+          header = struct.pack("<HHHBBBBHHII", 0, 1, 1, 192, 192, 0, 0, 1, 32, len(png), 22)
+          with open("/tmp/exebuild/app.ico", "wb") as f:
+              f.write(header + png)
+          PYEOF
+
+          cat << 'EOF' > /tmp/exebuild/Launcher.cs
+          using System;
+          using System.Diagnostics;
+          using System.IO;
+          using System.IO.Compression;
+          using System.Net;
+          using System.Net.Sockets;
+          using System.Reflection;
+          using System.Text;
+          using System.Threading;
+          using System.Windows.Forms;
+
+          namespace TienLenGenshinFullApp
+          {
+              static class Program
+              {
+                  static string dataDir;
+                  static int serverPort;
+                  static readonly string remoteBase = "https://thangdinhbkp-glitch.github.io/tien-len-mien-nam-bosskingpig/";
+
+                  [STAThread]
+                  static void Main()
+                  {
+                      try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; } catch { }
+                      dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TienLenGenshin5Sao_v127");
+                      EnsureExtracted();
+                      serverPort = StartHybridLocalServer();
+                      string url = "http://127.0.0.1:" + serverPort + "/index.html?source=exe";
+                      LaunchAppWindow(url);
+                  }
+
+                  static void EnsureExtracted()
+                  {
+                      string marker = Path.Combine(dataDir, ".extracted_ok");
+                      if (File.Exists(marker)) return;
+                      Directory.CreateDirectory(dataDir);
+                      string zipPath = Path.Combine(dataDir, "payload.zip");
+                      using (Stream res = Assembly.GetExecutingAssembly().GetManifestResourceStream("game_media.zip"))
+                      {
+                          if (res == null) return;
+                          using (FileStream fs = new FileStream(zipPath, FileMode.Create, FileAccess.Write))
+                          {
+                              res.CopyTo(fs);
+                          }
+                      }
+                      using (ZipArchive archive = ZipFile.OpenRead(zipPath))
+                      {
+                          foreach (ZipArchiveEntry entry in archive.Entries)
+                          {
+                              string fullPath = Path.Combine(dataDir, entry.FullName.Replace('/', Path.DirectorySeparatorChar));
+                              if (string.IsNullOrEmpty(entry.Name))
+                              {
+                                  Directory.CreateDirectory(fullPath);
+                                  continue;
+                              }
+                              Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                              entry.ExtractToFile(fullPath, true);
+                          }
+                      }
+                      try { File.Delete(zipPath); } catch { }
+                      File.WriteAllText(marker, "1");
+                  }
+
+                  static bool IsCodeFile(string relPath)
+                  {
+                      string p = relPath.ToLowerInvariant();
+                      return p == "" || p.EndsWith(".html") || p.EndsWith(".js") || p.EndsWith(".css") || p.EndsWith(".json");
+                  }
+
+                  static string GuessMime(string p)
+                  {
+                      p = p.ToLowerInvariant();
+                      if (p.EndsWith(".html")) return "text/html; charset=utf-8";
+                      if (p.EndsWith(".js")) return "application/javascript; charset=utf-8";
+                      if (p.EndsWith(".css")) return "text/css; charset=utf-8";
+                      if (p.EndsWith(".json")) return "application/json; charset=utf-8";
+                      if (p.EndsWith(".mp4")) return "video/mp4";
+                      if (p.EndsWith(".webm")) return "video/webm";
+                      if (p.EndsWith(".ogg")) return "audio/ogg";
+                      if (p.EndsWith(".mp3")) return "audio/mpeg";
+                      if (p.EndsWith(".png")) return "image/png";
+                      if (p.EndsWith(".jpg") || p.EndsWith(".jpeg")) return "image/jpeg";
+                      if (p.EndsWith(".webp")) return "image/webp";
+                      if (p.EndsWith(".svg")) return "image/svg+xml";
+                      return "application/octet-stream";
+                  }
+
+                  static int StartHybridLocalServer()
+                  {
+                      TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
+                      listener.Start();
+                      int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+                      Thread serverThread = new Thread(() =>
+                      {
+                          while (true)
+                          {
+                              try
+                              {
+                                  TcpClient client = listener.AcceptTcpClient();
+                                  ThreadPool.QueueUserWorkItem(_ => HandleClient(client));
+                              }
+                              catch { break; }
+                          }
+                      });
+                      serverThread.IsBackground = true;
+                      serverThread.Start();
+                      return port;
+                  }
+
+                  static void HandleClient(TcpClient client)
+                  {
+                      using (client)
+                      using (NetworkStream ns = client.GetStream())
+                      {
+                          try
+                          {
+                              StreamReader reader = new StreamReader(ns, Encoding.ASCII, false, 1024, true);
+                              string reqLine = reader.ReadLine();
+                              if (string.IsNullOrEmpty(reqLine)) return;
+                              string[] parts = reqLine.Split(' ');
+                              if (parts.Length < 2) return;
+                              string rawTarget = parts[1];
+                              int qIdx = rawTarget.IndexOf('?');
+                              string pathPart = Uri.UnescapeDataString(qIdx >= 0 ? rawTarget.Substring(0, qIdx) : rawTarget).TrimStart('/');
+                              if (string.IsNullOrEmpty(pathPart)) pathPart = "index.html";
+
+                              string localFile = Path.Combine(dataDir, pathPart.Replace('/', Path.DirectorySeparatorChar));
+
+                              // Always fetch latest HTML/JS/CSS from GitHub Pages so game updates apply automatically!
+                              if (IsCodeFile(pathPart))
+                              {
+                                  try
+                                  {
+                                      using (WebClient wc = new WebClient())
+                                      {
+                                          wc.Headers["Cache-Control"] = "no-cache";
+                                          byte[] liveBytes = wc.DownloadData(remoteBase + pathPart + "?t=" + DateTime.UtcNow.Ticks);
+                                          if (liveBytes != null && liveBytes.Length > 0)
+                                          {
+                                              try { File.WriteAllBytes(localFile, liveBytes); } catch { }
+                                              WriteResponse(ns, "200 OK", GuessMime(pathPart), liveBytes);
+                                              return;
+                                          }
+                                      }
+                                  }
+                                  catch { }
+                              }
+
+                              if (File.Exists(localFile))
+                              {
+                                  byte[] bytes = File.ReadAllBytes(localFile);
+                                  WriteResponse(ns, "200 OK", GuessMime(pathPart), bytes);
+                              }
+                              else
+                              {
+                                  WriteResponse(ns, "404 Not Found", "text/plain", Encoding.UTF8.GetBytes("Not Found"));
+                              }
+                          }
+                          catch { }
+                      }
+                  }
+
+                  static void WriteResponse(NetworkStream ns, string status, string mime, byte[] body)
+                  {
+                      string header = "HTTP/1.1 " + status + "\r\n" +
+                                      "Content-Type: " + mime + "\r\n" +
+                                      "Content-Length: " + body.Length + "\r\n" +
+                                      "Access-Control-Allow-Origin: *\r\n" +
+                                      "Connection: close\r\n\r\n";
+                      byte[] hBytes = Encoding.ASCII.GetBytes(header);
+                      ns.Write(hBytes, 0, hBytes.Length);
+                      ns.Write(body, 0, body.Length);
+                  }
+
+                  static void LaunchAppWindow(string url)
+                  {
+                      string args = "--app=\"" + url + "\" --start-maximized --autoplay-policy=no-user-gesture-required";
+                      string[] candidates = new string[]
+                      {
+                          Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\Edge\Application\msedge.exe"),
+                          Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Microsoft\Edge\Application\msedge.exe"),
+                          Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Google\Chrome\Application\chrome.exe"),
+                          Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Google\Chrome\Application\chrome.exe"),
+                          Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\Application\chrome.exe")
+                      };
+                      foreach (string c in candidates)
+                      {
+                          if (File.Exists(c))
+                          {
+                              try
+                              {
+                                  Process p = Process.Start(c, args);
+                                  Application.Run();
+                                  return;
+                              }
+                              catch { }
+                          }
+                      }
+                      Process.Start(url);
+                      Application.Run();
+                  }
+              }
+          }
+          EOF
+
+          mcs -target:winexe -optimize+ -win32icon:/tmp/exebuild/app.ico -r:System.Windows.Forms.dll -r:System.IO.Compression.dll -r:System.IO.Compression.FileSystem.dll -resource:/tmp/exebuild/game_media.zip,game_media.zip -out:/tmp/TienLenGenshin.exe /tmp/exebuild/Launcher.cs
+          ls -lh /tmp/TienLenGenshin.exe
+
+      - name: Upload Full APK & EXE to GitHub Release (latest)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest /tmp/TienLenGenshin.apk /tmp/TienLenGenshin.exe --title "Tiến Lên Miền Nam 5★ (Bản Full APK Android & EXE Windows kèm 100% Hoạt Ảnh Nộ + Gacha)" --notes "Bản cài đặt đầy đủ cho Android (.APK) và Windows (.EXE) đã nhúng sẵn 100% 58 video Nộ + 5 video Gacha bên trong file và tự động nhận bản cập nhật mới."

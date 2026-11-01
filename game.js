@@ -9934,10 +9934,13 @@ class TienLenGame {
       return null;
     }
 
-    // 2. Phản Ứng Nguyệt (×10 cược): CHỈ khi người đánh đè (attackerCharId) là Linnea, Flins, Lauma, Nefer, Ineffa, Zibai
-    // kích hoạt phản ứng lên bài hệ Thủy (Hydro) trên bàn -> Nguyệt Điện Cảm / Nguyệt Kết Tinh / Nguyệt Sum Suê!
+    // 2. Phản Ứng Nguyệt (×10 cược): Khi người đánh đè (attackerCharId) là Linnea, Flins, Lauma, Nefer, Ineffa, Zibai
+    // kích hoạt phản ứng lên bài hệ Thủy (Hydro) trên bàn, HOẶC khi Columbina kích hoạt phản ứng lên bài hệ Lôi (Electro) / Thảo (Dendro)
+    // -> Nguyệt Điện Cảm / Nguyệt Kết Tinh / Nguyệt Sum Suê!
     const LUNAR_CHARS = new Set(['linnea', 'flins', 'lauma', 'nefer', 'ineffa', 'zibai']);
-    const isLunarWithHydro = LUNAR_CHARS.has(attackerCharId) && defenderElem === 'hydro';
+    const isLunarWithHydro =
+      (LUNAR_CHARS.has(attackerCharId) && defenderElem === 'hydro') ||
+      (attackerCharId === 'columbina' && (defenderElem === 'electro' || defenderElem === 'dendro'));
     if (isLunarWithHydro) {
       const pair = new Set([attackerElem, defenderElem]);
       if (pair.has('electro') && pair.has('hydro')) {

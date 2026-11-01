@@ -22946,33 +22946,35 @@ class TienLenGame {
     );
   }
 
-  openInstallAppModal() {
+  async openInstallAppModal() {
     sfx.click();
-    // 1 nút duy nhất: Bấm "📲 Tải App" là tự động kích hoạt cả hộp thoại Cài App lẫn tải toàn bộ Hoạt ảnh Nộ + Gacha vào máy!
-    if (window.deferredPwaPrompt) {
-      const promptEvent = window.deferredPwaPrompt;
-      try {
-        promptEvent.prompt();
-        promptEvent.userChoice
-          .then((choice) => {
-            if (choice && choice.outcome === 'accepted') {
-              window.deferredPwaPrompt = null;
-              this.addLog('📲 <strong>Tải App:</strong> Đã cài đặt thành công App Tiến Lên 5★ ra màn hình chính!', 'log-win');
-            }
-            this.renderInstallAppModal();
-          })
-          .catch(() => {});
-      } catch (_) {}
-    }
-
-    if (!this.isDownloadingMediaPack) {
-      this.downloadOfflineMediaPack();
-    }
-
     const modal = document.getElementById('install-app-modal');
     if (modal) {
       this.renderInstallAppModal();
       modal.classList.remove('hidden');
+    }
+
+    // Bước 1: Tải toàn bộ gói dữ liệu App + 58 Hoạt ảnh Nộ + 5 Video Gacha về máy đủ 100% TRƯỚC
+    const isAlreadyCached = this.mediaPackDownloaded || localStorage.getItem('tlmn_offline_media_cached_v1') === '1';
+    if (!isAlreadyCached && !this.isDownloadingMediaPack) {
+      await this.downloadOfflineMediaPack();
+    } else if (!this.isDownloadingMediaPack) {
+      this.mediaPackProgressPct = 100;
+      this.renderInstallAppModal();
+    }
+
+    // Bước 2: Ngay khi đã tải xong 100% toàn bộ hoạt ảnh vào máy, lập tức bung hộp thoại xuất App ra màn hình chính!
+    if (window.deferredPwaPrompt) {
+      const promptEvent = window.deferredPwaPrompt;
+      try {
+        promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          window.deferredPwaPrompt = null;
+          this.addLog('📲 <strong>Tải App:</strong> Đã tải xong 100% dữ liệu và cài đặt App Tiến Lên 5★ ra màn hình chính!', 'log-win');
+        }
+      } catch (_) {}
+      this.renderInstallAppModal();
     }
   }
 
@@ -23004,7 +23006,7 @@ class TienLenGame {
 
     this.isDownloadingMediaPack = true;
     this.mediaPackProgressPct = 0;
-    this.mediaPackStatusText = 'Đang tải App + Hoạt ảnh Nộ & Gacha vào máy...';
+    this.mediaPackStatusText = '⏳ Đang đóng gói App + Hoạt ảnh Nộ & Gacha vào máy (0%)...';
     const dockLbl = document.getElementById('lobby-install-app-label');
     if (dockLbl) dockLbl.textContent = 'Đang tải 0%...';
     this.renderInstallAppModal();
@@ -23035,7 +23037,7 @@ class TienLenGame {
 
     try {
       const cache = await caches.open('tienlen-genshin-media-v1');
-      const batchSize = 4;
+      const batchSize = 6;
       for (let i = 0; i < uniqueUrls.length; i += batchSize) {
         const batch = uniqueUrls.slice(i, i + batchSize);
         await Promise.allSettled(
@@ -23050,7 +23052,7 @@ class TienLenGame {
             }
             done++;
             this.mediaPackProgressPct = Math.min(100, Math.round((done / total) * 100));
-            this.mediaPackStatusText = `Đang tải App + Hoạt ảnh Nộ & Gacha vào máy: ${done}/${total} (${this.mediaPackProgressPct}%)...`;
+            this.mediaPackStatusText = `⏳ Đang tải gói cài đặt App & Hoạt ảnh (${done}/${total} • ${this.mediaPackProgressPct}%) — Tải đủ 100% sẽ xuất App ngay...`;
             const barEl = document.getElementById('offline-media-pack-bar');
             const txtEl = document.getElementById('offline-media-pack-status');
             const dLbl = document.getElementById('lobby-install-app-label');
@@ -23063,7 +23065,7 @@ class TienLenGame {
       this.mediaPackDownloaded = true;
       localStorage.setItem('tlmn_offline_media_cached_v1', '1');
       this.mediaPackProgressPct = 100;
-      this.mediaPackStatusText = `✅ Hoàn tất 100%! Đã tải xong App kèm toàn bộ ${total} tệp Hoạt ảnh Nộ 5★ & Gacha vào máy!`;
+      this.mediaPackStatusText = `✅ Đã tải xong 100% (${total}/${total} tệp)! App Tiến Lên 5★ đã sẵn sàng kèm toàn bộ Hoạt ảnh Nộ & Gacha!`;
       const dLbl = document.getElementById('lobby-install-app-label');
       if (dLbl) dLbl.textContent = 'Đã Tải App ✅';
       sfx.win();
@@ -23085,11 +23087,12 @@ class TienLenGame {
     const isInAppBrowser = /Zalo|FBAN|FBAV|Messenger|Instagram|TikTok/i.test(ua);
     const isStandalone = this.isRunningStandaloneApp();
     const isMediaCached = this.mediaPackDownloaded || localStorage.getItem('tlmn_offline_media_cached_v1') === '1';
+    const pct = this.mediaPackProgressPct ?? (isMediaCached ? 100 : 0);
 
     const inAppWarningHtml = isInAppBrowser
       ? `
         <div style="background:rgba(220,38,38,0.22);border:1.5px solid #f87171;border-radius:12px;padding:10px 12px;color:#fecaca;font-size:12.5px;line-height:1.45;">
-          ⚠️ <strong>Bạn đang mở trong trình duyệt phụ của Zalo / Messenger!</strong> Hãy mở bằng <strong>${isIOS ? 'Safari' : 'Chrome'}</strong> để cài App ra màn hình chính:
+          ⚠️ <strong>Bạn đang mở trong trình duyệt phụ của Zalo / Messenger!</strong> Hãy mở bằng <strong>${isIOS ? 'Safari' : 'Chrome'}</strong> để tải App:
           <div style="margin-top:8px;">
             <button type="button" class="primary-btn" onclick="window.tienLenGame.copyAppUrlForExternalBrowser()" style="width:100%;background:linear-gradient(135deg,#ef4444,#dc2626);border-color:#fca5a5;">
               📋 Copy Link Mở Bằng ${isIOS ? 'Safari' : 'Chrome'}
@@ -23099,45 +23102,59 @@ class TienLenGame {
       `
       : '';
 
-    const guideHtml = isStandalone
-      ? `
-        <div style="background:rgba(16,185,129,0.18);border:1.5px solid #34d399;border-radius:12px;padding:10px 12px;color:#a7f3d0;font-size:12.5px;font-weight:800;text-align:center;">
-          ✅ Đang chạy trực tiếp trên <strong>App Tiến Lên 5★ (Full Màn Hình)</strong>!
-        </div>
-      `
-      : isIOS
-      ? `
-        <div style="background:rgba(15,23,42,0.85);border:1.5px solid rgba(56,189,248,0.55);border-radius:12px;padding:10px 12px;font-size:12px;color:#e2e8f0;line-height:1.45;">
-          🍏 <strong>Trên iPhone/iPad:</strong> Sau khi thanh bên dưới tải 100%, bấm nút <strong>Chia sẻ (⬆️)</strong> trên Safari ➔ Chọn <strong>“Thêm vào MH chính”</strong> để đặt Icon App ra ngoài màn hình!
-        </div>
-      `
-      : `
-        <div style="background:rgba(15,23,42,0.85);border:1.5px solid rgba(56,189,248,0.55);border-radius:12px;padding:10px 12px;font-size:12px;color:#e2e8f0;line-height:1.45;">
-          🤖 <strong>Trên ${isAndroid ? 'Android' : 'Máy tính / Điện thoại'}:</strong> Bấm xác nhận <strong>“Cài đặt”</strong> trên hộp thoại vừa hiện ra (hoặc bấm menu <strong>⋮ ➔ Cài đặt ứng dụng</strong>) để đặt Icon App ra màn hình chính!
-        </div>
-      `;
+    const afterDoneGuideHtml =
+      pct >= 100
+        ? isStandalone
+          ? `
+            <div style="background:rgba(16,185,129,0.18);border:1.5px solid #34d399;border-radius:12px;padding:12px;color:#a7f3d0;font-size:13px;font-weight:800;text-align:center;">
+              🎉 <strong>HOÀN TẤT 100%!</strong> App và toàn bộ Hoạt ảnh Nộ + Gacha đã nằm sẵn trong máy của bạn!
+            </div>
+          `
+          : window.deferredPwaPrompt
+          ? `
+            <button type="button" class="primary-btn" onclick="window.tienLenGame.openInstallAppModal()" style="width:100%;padding:12px 18px;font-size:15px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);border:2px solid #fde047;">
+              ✅ ĐÃ TẢI ĐỦ 100% — BẤM ĐẶT ICON APP RA MÀN HÌNH CHÍNH NGAY
+            </button>
+          `
+          : isIOS
+          ? `
+            <div style="background:rgba(16,185,129,0.18);border:1.5px solid #34d399;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#e2e8f0;line-height:1.45;">
+              🎉 <strong>Đã tải xong 100% gói App &amp; Hoạt ảnh vào máy!</strong><br/>
+              🍏 Giờ bạn chỉ cần bấm nút <strong>Chia sẻ (⬆️)</strong> trên Safari ➔ Chọn <strong>“Thêm vào MH chính”</strong> là có ngay App ngoài màn hình!
+            </div>
+          `
+          : `
+            <div style="background:rgba(16,185,129,0.18);border:1.5px solid #34d399;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#e2e8f0;line-height:1.45;">
+              🎉 <strong>Đã tải xong 100% gói App &amp; Hoạt ảnh vào máy!</strong><br/>
+              🤖 Bấm xác nhận <strong>“Cài đặt”</strong> trên thông báo trình duyệt (hoặc menu <strong>⋮ ➔ Cài đặt ứng dụng</strong>) để mở App ngoài màn hình chính!
+            </div>
+          `
+        : `
+          <div style="background:rgba(15,23,42,0.85);border:1.5px solid rgba(56,189,248,0.45);border-radius:12px;padding:10px 12px;font-size:12px;color:#cbd5e1;text-align:center;">
+            ⏳ Vui lòng đợi thanh tiến trình tải đủ <strong>100%</strong> toàn bộ Hoạt ảnh Nộ &amp; Gacha để hoàn tất cài đặt App...
+          </div>
+        `;
 
-    const pct = this.mediaPackProgressPct || (isMediaCached ? 100 : 0);
     const statusText =
       this.mediaPackStatusText ||
       (isMediaCached
         ? '✅ Đã tải xong 100% App + Hoạt ảnh Nộ 5★ & Gacha vào bộ nhớ máy!'
-        : '⏳ Đang tự động tải App + Hoạt ảnh Nộ & Gacha vào bộ nhớ máy...');
+        : '⏳ Đang tải gói cài đặt App + Hoạt ảnh Nộ & Gacha vào bộ nhớ máy...');
 
     body.innerHTML = `
       ${inAppWarningHtml}
       <div style="background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(49,16,82,0.88));border:2px solid #facc15;border-radius:14px;padding:14px;">
         <div style="font-size:14px;font-weight:900;color:#fde047;margin-bottom:6px;">
-          📲 ĐANG TẢI APP &amp; LƯU TOÀN BỘ HOẠT ẢNH NỘ + GACHA VÀO MÁY
+          📲 ${pct >= 100 ? 'ĐÃ TẢI XONG 100% APP & HOẠT ẢNH NỘ + GACHA' : `ĐANG TẢI APP & HOẠT ẢNH NỘ + GACHA (${pct}%)`}
         </div>
-        <div style="width:100%;height:12px;background:rgba(15,23,42,0.9);border-radius:999px;overflow:hidden;border:1px solid rgba(250,204,21,0.45);margin-bottom:8px;">
+        <div style="width:100%;height:14px;background:rgba(15,23,42,0.9);border-radius:999px;overflow:hidden;border:1px solid rgba(250,204,21,0.45);margin-bottom:8px;">
           <div id="offline-media-pack-bar" style="width:${pct}%;height:100%;background:linear-gradient(90deg,#10b981,#facc15);transition:width 0.2s ease;"></div>
         </div>
         <div id="offline-media-pack-status" style="font-size:12.5px;color:#fef08a;font-weight:800;">
           ${statusText}
         </div>
       </div>
-      ${guideHtml}
+      ${afterDoneGuideHtml}
     `;
   }
 }
@@ -23164,7 +23181,7 @@ if ('serviceWorker' in navigator) {
   });
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('sw.js?v=124', { updateViaCache: 'none' })
+      .register('sw.js?v=125', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update().catch(() => {});
       })

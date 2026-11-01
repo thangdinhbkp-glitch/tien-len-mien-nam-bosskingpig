@@ -243,7 +243,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'chasca', name: 'Chasca (Người Hòa Giải Tlalocan)', desc: '[Huyền Thoại] Nạp 2 lá bài rác lẻ vào ổ súng Linh Hồn bắn nối dài bộ Sảnh trên tay thêm +2 lá liên tiếp.', avatarPrice: 82000, skinPrice: 125000, crest: '🔫' },
   { id: 'tartaglia', name: 'Tartaglia (Childe Fatui #11)', desc: '[Huyền Thoại] Quan Chấp Hành thứ 11 chuyển đổi Cung Tên ⇄ Song Đao hoán đổi linh hoạt giữa Sảnh 3 lá và Sám Cô.', avatarPrice: 85000, skinPrice: 130000, crest: '🐳' },
   { id: 'arlecchino', name: 'Arlecchino (The Knave Fatui #4)', desc: '[Thần Thoại] Quan Chấp Hành thứ 4 khắc Khế Ước Sinh Mệnh: Đối thủ nào Bỏ Lượt bị nhét 1 lá rác và phạt 2× cược.', avatarPrice: 95000, skinPrice: 145000, crest: '🩸' },
-  { id: 'ineffa', name: 'Ineffa (Cơ Khí Đồng Bộ Lôi)', desc: '[Huyền Thoại] Phát xung nhịp điện từ đồng bộ hóa các lá bài lẻ rời rạc thành 2 Đôi liên tiếp (Đôi Thông).', avatarPrice: 82000, skinPrice: 125000, crest: '🤖' },
+  { id: 'ineffa', name: 'Ineffa (Cơ Khí Đồng Bộ Lôi)', desc: '[Huyền Thoại] Phát xung nhịp điện từ làm đoản mạch 1 lá bài trùng bậc số chủ lực trên tay đối thủ tụt thẳng về 3♠.', avatarPrice: 82000, skinPrice: 125000, crest: '🤖' },
   { id: 'flins', name: 'Flins (Người Giữ Đèn Ratniki)', desc: '[Huyền Thoại] Treo Ngọn Đèn Dẫn Hồn: Ngay khi có bất kỳ đối thủ nào Bỏ Lượt sẽ lập tức kết thúc vòng và cướp Cái.', avatarPrice: 88000, skinPrice: 135000, crest: '🏮' },
 ];
 
@@ -1193,7 +1193,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'ineffa',
     name: 'Ineffa — Mệnh Lệnh Tối Thượng: Quét Sạch Toàn Diện',
-    desc: '[Huyền Thoại] Cơ khí Lôi nguyên tố phát Xung Điện Cộng Hưởng: Quét toàn bộ tay đối thủ, làm đoản mạch các lá bài TRÙNG BẬC SỐ với chủ lực của Ineffa tụt thẳng về 3♠/4♠!',
+    desc: '[Huyền Thoại] Cơ khí Lôi nguyên tố phát Xung Điện Cộng Hưởng: Quét tay đối thủ, làm đoản mạch 1 lá bài TRÙNG BẬC SỐ với chủ lực của Ineffa tụt thẳng về 3♠!',
     price: 155000,
     mp4Url: 'ineffa_burst.mp4?v=64',
     audioUrl: 'ineffa_burst.ogg?v=64',
@@ -1888,7 +1888,7 @@ const CHARACTER_SKILLS = {
     charName: 'Ineffa',
     icon: '🤖',
     name: 'Xung Điện Cộng Hưởng',
-    shortDesc: 'Phát xung điện từ theo bậc số chủ lực của Ineffa: Quét toàn bộ tay đối thủ, làm đoản mạch các lá bài TRÙNG BẬC SỐ tụt thẳng xuống phế liệu 3♠/4♠!',
+    shortDesc: 'Phát xung điện từ theo bậc số chủ lực của Ineffa: Quét tay đối thủ, làm đoản mạch 1 lá bài TRÙNG BẬC SỐ tụt thẳng xuống phế liệu 3♠!',
   },
   flins: {
     id: 'flins',
@@ -13298,24 +13298,24 @@ class TienLenGame {
         for (const c of mySortedDesc) {
           if (c.rankIndex <= 11) {
             resonanceRanks.add(c.rankIndex);
-            if (resonanceRanks.size >= 3) break;
+            if (resonanceRanks.size >= 2) break;
           }
         }
       }
       const shockedLogs = [];
       activeOpponents.forEach((opp) => {
         if (opp.hand.length === 0) return;
-        let matchedCards = opp.hand.filter((c) => resonanceRanks.has(c.rankIndex));
+        let matchedCards = sortCardsAsc(opp.hand.filter((c) => resonanceRanks.has(c.rankIndex)));
         if (matchedCards.length === 0) {
           const oppNormals = sortCardsAsc(opp.hand).filter((c) => c.rankIndex <= 11);
           const fallback = oppNormals.length > 0 ? oppNormals[oppNormals.length - 1] : sortCardsAsc(opp.hand)[opp.hand.length - 1];
           if (fallback) matchedCards = [fallback];
         }
-        const zapped = matchedCards.slice(0, 2);
+        const zapped = matchedCards.slice(-1);
         const oppZapStr = [];
         zapped.forEach((c, idx) => {
           const oldStr = `${c.rank}${c.suit}`;
-          const newR = idx % 2; // 3 hoặc 4
+          const newR = 0; // 3♠
           c.rankIndex = newR;
           c.rank = RANKS[newR];
           c.suitIndex = 0;
@@ -13330,7 +13330,7 @@ class TienLenGame {
           shockedLogs.push(`${opp.name} (${oppZapStr.join(', ')})`);
         }
       });
-      skillSummary = `🤖 [Xung Điện Cộng Hưởng] ${player.name} phát xung điện cao thế xuyên qua bàn bài, làm chập mạch các lá trùng số của đối thủ biến thành phế liệu 3♠/4♠ (${shockedLogs.join(' • ')})!`;
+      skillSummary = `🤖 [Xung Điện Cộng Hưởng] ${player.name} phát xung điện cao thế xuyên qua bàn bài, làm chập mạch 1 lá bài trùng số của đối thủ biến thành phế liệu 3♠ (${shockedLogs.join(' • ')})!`;
     } else if (charId === 'flins') {
       this.flinsLanternOwnerId = player.id;
       skillSummary = `🏮 [Ngọn Đèn Đêm Cướp Cái] ${player.name} thắp sáng Ngọn Đèn Ratniki: Trong vòng này, ngay khoảnh khắc có BẤT KỲ đối thủ nào bấm BỎ LƯỢT, vòng đấu lập tức kết thúc và ${player.name} CƯỚP QUYỀN CẦM CÁI mở vòng mới ngay!`;

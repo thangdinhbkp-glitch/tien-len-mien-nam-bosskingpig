@@ -3627,6 +3627,7 @@ class TienLenGame {
     this.xiaoKarmaOwnerId = null;
     activeXiaoKarmaMaxRank = null;
     this.kinichBombOwnerId = null;
+    document.getElementById('burst-effect-screen-banner')?.classList.add('hidden');
     this.roundPlayedSeatIds = new Set();
     this.roundSkillActivatedSeatIds = new Set();
     this.nicoleSuitOnlyRound = false;
@@ -3907,7 +3908,7 @@ class TienLenGame {
     }
   }
 
-  showBurstEffectBanner(burstId, detailText, durationMs = 3000) {
+  showBurstEffectBanner(burstId, detailText) {
     if (!burstId || burstId === 'none' || !detailText) return;
     const bannerEl = document.getElementById('burst-effect-screen-banner');
     const avatarEl = document.getElementById('burst-effect-banner-avatar');
@@ -3928,12 +3929,12 @@ class TienLenGame {
     bannerEl.classList.remove('hidden');
 
     clearTimeout(this.burstEffectBannerTimer);
-    this.burstEffectBannerTimer = setTimeout(() => {
-      bannerEl.classList.add('hidden');
-    }, durationMs);
   }
 
   triggerGenshinBurst(burstId, detailText, onDoneCallback = null, lockGameplay = false) {
+    if (burstId && burstId !== 'none' && detailText && !String(detailText).startsWith('🎬')) {
+      this.showBurstEffectBanner(burstId, detailText);
+    }
     if (!burstId || burstId === 'none' || this.skipAllBurstAnimations) {
       if (burstId && burstId !== 'none') {
         const burstMeta = getBurstMeta(burstId);
@@ -3942,7 +3943,6 @@ class TienLenGame {
         } else {
           sfx.raidenBurst();
         }
-        this.showBurstEffectBanner(burstId, detailText, 3000);
       }
       if (lockGameplay && burstId && burstId !== 'none') {
         this.isBurstPlaying = true;
@@ -4101,7 +4101,7 @@ class TienLenGame {
       overlay.onclick = null;
       this._activeFinishBurstFn = null;
       this.isBurstPlaying = false;
-      this.showBurstEffectBanner(burstId, detailText, 4800);
+      this.showBurstEffectBanner(burstId, detailText);
       this.updateHumanActionButtons();
       if (onDoneCallback) {
         onDoneCallback();
@@ -13208,7 +13208,7 @@ class TienLenGame {
             }
           }
         : null;
-    this.showBurstEffectBanner(charId, skillSummary, 3000);
+    this.showBurstEffectBanner(charId, skillSummary);
     this.addLog(`🔮 <strong>${skillSummary}</strong>`, 'log-win');
 
     this.updateArenaBackdropCharacters();
@@ -17367,6 +17367,7 @@ class TienLenGame {
     this.xiaoKarmaOwnerId = null;
     activeXiaoKarmaMaxRank = null;
     this.kinichBombOwnerId = null;
+    document.getElementById('burst-effect-screen-banner')?.classList.add('hidden');
     this.roundPlayedSeatIds = new Set();
     this.roundSkillActivatedSeatIds = new Set();
     this.nicoleSuitOnlyRound = false;
@@ -18420,7 +18421,6 @@ class TienLenGame {
     this.hintIndex = 0;
     this.turnTimerComboSig = '';
     player.passed = false;
-    document.getElementById('burst-effect-screen-banner')?.classList.add('hidden');
     this.players.forEach((p) => {
       p.declinedFourPairsCut = false;
     });

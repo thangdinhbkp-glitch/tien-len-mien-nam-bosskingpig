@@ -328,6 +328,7 @@ jobs:
           cat << 'EOF' > /tmp/exebuild/Launcher.cs
           using System;
           using System.Diagnostics;
+          using System.Drawing;
           using System.IO;
           using System.IO.Compression;
           using System.Net;
@@ -348,44 +349,100 @@ jobs:
                   [STAThread]
                   static void Main()
                   {
+                      Application.EnableVisualStyles();
+                      Application.SetCompatibleTextRenderingDefault(false);
                       try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; } catch { }
-                      dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TienLenGenshin5Sao_v129");
-                      EnsureExtracted();
+                      dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TienLenGenshin5Sao_v130");
+                      EnsureExtractedWithSplash();
                       serverPort = StartHybridLocalServer();
                       string url = "http://127.0.0.1:" + serverPort + "/index.html?source=exe";
                       LaunchAppWindow(url);
                   }
 
-                  static void EnsureExtracted()
+                  static void EnsureExtractedWithSplash()
                   {
                       string marker = Path.Combine(dataDir, ".extracted_ok");
-                      if (File.Exists(marker)) return;
-                      Directory.CreateDirectory(dataDir);
-                      string zipPath = Path.Combine(dataDir, "payload.zip");
-                      using (Stream res = Assembly.GetExecutingAssembly().GetManifestResourceStream("game_media.zip"))
+                      string verityCheck = Path.Combine(dataDir, "verity.mp4");
+                      if (File.Exists(marker) && File.Exists(verityCheck)) return;
+
+                      Form splash = new Form();
+                      splash.Text = "Tiến Lên Miền Nam • Genshin Impact 5★";
+                      splash.Size = new Size(480, 170);
+                      splash.StartPosition = FormStartPosition.CenterScreen;
+                      splash.FormBorderStyle = FormBorderStyle.None;
+                      splash.BackColor = Color.FromArgb(15, 23, 42);
+                      splash.TopMost = true;
+
+                      Label title = new Label();
+                      title.Text = "🃏 TIẾN LÊN MIỀN NAM • GENSHIN IMPACT 5★";
+                      title.ForeColor = Color.FromArgb(250, 204, 21);
+                      title.Font = new Font("Segoe UI", 12f, FontStyle.Bold);
+                      title.AutoSize = false;
+                      title.TextAlign = ContentAlignment.MiddleCenter;
+                      title.Dock = DockStyle.Top;
+                      title.Height = 65;
+
+                      Label sub = new Label();
+                      sub.Text = "Đang nạp sẵn 100% Hoạt Ảnh Kỹ Năng Nộ & Gacha (chỉ 1 lần đầu)...";
+                      sub.ForeColor = Color.FromArgb(226, 232, 240);
+                      sub.Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
+                      sub.AutoSize = false;
+                      sub.TextAlign = ContentAlignment.MiddleCenter;
+                      sub.Dock = DockStyle.Fill;
+
+                      splash.Controls.Add(sub);
+                      splash.Controls.Add(title);
+                      splash.Show();
+                      Application.DoEvents();
+
+                      try
                       {
-                          if (res == null) return;
-                          using (FileStream fs = new FileStream(zipPath, FileMode.Create, FileAccess.Write))
+                          Directory.CreateDirectory(dataDir);
+                          string zipPath = Path.Combine(dataDir, "payload.zip");
+                          using (Stream res = Assembly.GetExecutingAssembly().GetManifestResourceStream("game_media.zip"))
                           {
-                              res.CopyTo(fs);
-                          }
-                      }
-                      using (ZipArchive archive = ZipFile.OpenRead(zipPath))
-                      {
-                          foreach (ZipArchiveEntry entry in archive.Entries)
-                          {
-                              string fullPath = Path.Combine(dataDir, entry.FullName.Replace('/', Path.DirectorySeparatorChar));
-                              if (string.IsNullOrEmpty(entry.Name))
+                              if (res != null)
                               {
-                                  Directory.CreateDirectory(fullPath);
-                                  continue;
+                                  using (FileStream fs = new FileStream(zipPath, FileMode.Create, FileAccess.Write))
+                                  {
+                                      byte[] buffer = new byte[1024 * 1024];
+                                      int read;
+                                      while ((read = res.Read(buffer, 0, buffer.Length)) > 0)
+                                      {
+                                          fs.Write(buffer, 0, read);
+                                          Application.DoEvents();
+                                      }
+                                  }
                               }
-                              Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-                              entry.ExtractToFile(fullPath, true);
+                          }
+                          if (File.Exists(zipPath))
+                          {
+                              using (ZipArchive archive = ZipFile.OpenRead(zipPath))
+                              {
+                                  foreach (ZipArchiveEntry entry in archive.Entries)
+                                  {
+                                      string rel = entry.FullName.Replace('/', Path.DirectorySeparatorChar);
+                                      string fullPath = Path.Combine(dataDir, rel);
+                                      if (string.IsNullOrEmpty(entry.Name))
+                                      {
+                                          Directory.CreateDirectory(fullPath);
+                                          continue;
+                                      }
+                                      string parent = Path.GetDirectoryName(fullPath);
+                                      if (!string.IsNullOrEmpty(parent)) Directory.CreateDirectory(parent);
+                                      entry.ExtractToFile(fullPath, true);
+                                      Application.DoEvents();
+                                  }
+                              }
+                              try { File.Delete(zipPath); } catch { }
+                              File.WriteAllText(marker, "1");
                           }
                       }
-                      try { File.Delete(zipPath); } catch { }
-                      File.WriteAllText(marker, "1");
+                      catch { }
+                      finally
+                      {
+                          try { splash.Close(); splash.Dispose(); } catch { }
+                      }
                   }
 
                   static bool IsCodeFile(string relPath)
@@ -409,6 +466,7 @@ jobs:
                       if (p.EndsWith(".jpg") || p.EndsWith(".jpeg")) return "image/jpeg";
                       if (p.EndsWith(".webp")) return "image/webp";
                       if (p.EndsWith(".svg")) return "image/svg+xml";
+                      if (p.EndsWith(".gif")) return "image/gif";
                       return "application/octet-stream";
                   }
 
@@ -436,12 +494,11 @@ jobs:
 
                   static void HandleClient(TcpClient client)
                   {
-                      using (client)
-                      using (NetworkStream ns = client.GetStream())
+                      try
                       {
-                          try
+                          using (NetworkStream ns = client.GetStream())
                           {
-                              StreamReader reader = new StreamReader(ns, Encoding.ASCII, false, 1024, true);
+                              StreamReader reader = new StreamReader(ns, Encoding.ASCII);
                               string reqLine = reader.ReadLine();
                               if (string.IsNullOrEmpty(reqLine)) return;
                               string rangeHeader = null;
@@ -457,8 +514,12 @@ jobs:
                               if (parts.Length < 2) return;
                               string rawTarget = parts[1];
                               int qIdx = rawTarget.IndexOf('?');
-                              string pathPart = Uri.UnescapeDataString(qIdx >= 0 ? rawTarget.Substring(0, qIdx) : rawTarget).TrimStart('/');
-                              if (string.IsNullOrEmpty(pathPart)) pathPart = "index.html";
+                              string unescaped = Uri.UnescapeDataString(qIdx >= 0 ? rawTarget.Substring(0, qIdx) : rawTarget);
+                              while (unescaped.StartsWith("/"))
+                              {
+                                  unescaped = unescaped.Substring(1);
+                              }
+                              string pathPart = string.IsNullOrEmpty(unescaped) ? "index.html" : unescaped;
 
                               string localFile = Path.Combine(dataDir, pathPart.Replace('/', Path.DirectorySeparatorChar));
 
@@ -541,7 +602,11 @@ jobs:
                                   WriteResponse(ns, "404 Not Found", "text/plain", Encoding.UTF8.GetBytes("Not Found"));
                               }
                           }
-                          catch { }
+                      }
+                      catch { }
+                      finally
+                      {
+                          try { client.Close(); } catch { }
                       }
                   }
 
@@ -559,7 +624,9 @@ jobs:
 
                   static void LaunchAppWindow(string url)
                   {
-                      string args = "--app=\"" + url + "\" --start-maximized --autoplay-policy=no-user-gesture-required";
+                      string profileDir = Path.Combine(dataDir, "BrowserProfile");
+                      Directory.CreateDirectory(profileDir);
+                      string args = "--user-data-dir=\"" + profileDir + "\" --app=\"" + url + "\" --start-maximized --autoplay-policy=no-user-gesture-required --no-first-run --no-default-browser-check";
                       string[] candidates = new string[]
                       {
                           Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\Edge\Application\msedge.exe"),
@@ -575,20 +642,23 @@ jobs:
                               try
                               {
                                   Process p = Process.Start(c, args);
-                                  Application.Run();
+                                  if (p != null)
+                                  {
+                                      p.WaitForExit();
+                                  }
                                   return;
                               }
                               catch { }
                           }
                       }
                       Process.Start(url);
-                      Application.Run();
+                      Thread.Sleep(600000);
                   }
               }
           }
           EOF
 
-          mcs -target:winexe -optimize+ -win32icon:/tmp/exebuild/app.ico -r:System.Windows.Forms.dll -r:System.IO.Compression.dll -r:System.IO.Compression.FileSystem.dll -resource:/tmp/exebuild/game_media.zip,game_media.zip -out:/tmp/TienLenGenshin.exe /tmp/exebuild/Launcher.cs
+          mcs -sdk:4.5 -target:winexe -optimize+ -win32icon:/tmp/exebuild/app.ico -r:System.Drawing.dll -r:System.Windows.Forms.dll -r:System.IO.Compression.dll -r:System.IO.Compression.FileSystem.dll -resource:/tmp/exebuild/game_media.zip,game_media.zip -out:/tmp/TienLenGenshin.exe /tmp/exebuild/Launcher.cs
           ls -lh /tmp/TienLenGenshin.exe
 
       - name: Upload Full APK & EXE to GitHub Release (latest)

@@ -8079,13 +8079,83 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // RICK ROLL REWARDED VIDEO AD (XEM VIDEO RICK ROLL NHẬN 1 ROLL = +1,600 XU)
+  // REWARDED VIDEO AD (NHẠC HEY IT'S ME IT'S VERITY + RICK ROLL NHẬN 1 ROLL = +1,600 XU)
   // ============================================================================
+  applyAdMusicTrack() {
+    const mode = this.adMusicTrack || 'verity';
+    const videoEl = document.getElementById('rickroll-video');
+    const gifFallback = document.getElementById('rickroll-gif-fallback');
+    const rickAudioEl = document.getElementById('rickroll-audio');
+    const verityAudioEl = document.getElementById('verity-audio');
+    const verityStage = document.getElementById('verity-ad-stage');
+    const bannerEl = document.getElementById('ad-rickroll-banner');
+    const switchBtn = document.getElementById('btn-ad-switch-music');
+    const sponsorEl = document.getElementById('ad-sponsor-badge');
+
+    if (switchBtn) {
+      switchBtn.textContent =
+        mode === 'verity' ? "🎵 Nhạc: Hey It's Me, It's Verity (Đổi ⇄)" : '🎵 Nhạc: Rick Roll (Đổi ⇄)';
+    }
+    if (sponsorEl) {
+      sponsorEl.innerHTML =
+        mode === 'verity'
+          ? '📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI VERITY AI &amp; FONTAINE TV'
+          : '📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI RICK ASTLEY (FONTAINE TV)';
+    }
+    if (bannerEl) {
+      bannerEl.innerHTML =
+        mode === 'verity'
+          ? '🙂 <strong>HEY, IT\'S ME, IT\'S VERITY!</strong> Thưởng thức giai điệu <em>“Hey, It\'s Me, It\'s Verity”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎶'
+          : '🕺 <strong>BẠN ĐÃ BỊ RICK ROLL!</strong> Hãy thưởng thức giai điệu bất hủ <em>“Never Gonna Give You Up”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎤';
+    }
+    verityStage?.classList.toggle('hidden', mode !== 'verity');
+
+    if (mode === 'verity') {
+      if (rickAudioEl) {
+        try {
+          rickAudioEl.pause();
+        } catch (_) {}
+      }
+      if (videoEl) {
+        videoEl.muted = true; // Tắt tiếng gốc của video để phát chuẩn nhạc "Hey It's Me, It's Verity"
+      }
+      if (verityAudioEl) {
+        try {
+          verityAudioEl.currentTime = 0;
+          verityAudioEl.volume = 0.9;
+          verityAudioEl.play().catch(() => {});
+        } catch (_) {}
+      }
+    } else {
+      if (verityAudioEl) {
+        try {
+          verityAudioEl.pause();
+        } catch (_) {}
+      }
+      if (videoEl && !videoEl.classList.contains('hidden')) {
+        videoEl.muted = false;
+        videoEl.volume = 0.85;
+      } else if (rickAudioEl) {
+        try {
+          rickAudioEl.currentTime = 42;
+          rickAudioEl.volume = 0.85;
+          rickAudioEl.play().catch(() => {});
+        } catch (_) {}
+      }
+    }
+  }
+
+  toggleAdMusicTrack() {
+    this.adMusicTrack = (this.adMusicTrack || 'verity') === 'verity' ? 'rickroll' : 'verity';
+    this.applyAdMusicTrack();
+  }
+
   startRickRollAd() {
     const overlay = document.getElementById('rickroll-ad-overlay');
     const videoEl = document.getElementById('rickroll-video');
     const gifFallback = document.getElementById('rickroll-gif-fallback');
     const audioEl = document.getElementById('rickroll-audio');
+    const verityAudioEl = document.getElementById('verity-audio');
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');
     const progressFill = document.getElementById('ad-progress-fill');
@@ -8093,6 +8163,10 @@ class TienLenGame {
     const toastMsg = document.getElementById('ad-toast-msg');
 
     if (!overlay) return;
+
+    if (!this.adMusicTrack) {
+      this.adMusicTrack = 'verity';
+    }
 
     const AD_DURATION = 15;
     const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
@@ -8115,54 +8189,50 @@ class TienLenGame {
       progressFill.style.width = '0%';
     }
     if (toastMsg) {
-      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> quảng cáo Rick Roll sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
+      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> quảng cáo sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
     }
 
-    const lyricsTimeline = [
+    const verityLyricsTimeline = [
+      { at: 0, text: "🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵" },
+      { at: 4, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
+      { at: 8, text: "💛🎤 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🔥" },
+      { at: 12, text: "🌟🎶 “I know about a million things ~ I'll do EVERYTHING!” 👑" },
+    ];
+    const rickLyricsTimeline = [
       { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
       { at: 3, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
       { at: 7, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
       { at: 11, text: '🔥 “Never gonna make you cry ~ Never gonna say goodbye!” 👑' },
     ];
-    if (lyricsSub) lyricsSub.textContent = lyricsTimeline[0].text;
+    if (lyricsSub) {
+      lyricsSub.textContent =
+        this.adMusicTrack === 'verity' ? verityLyricsTimeline[0].text : rickLyricsTimeline[0].text;
+    }
 
-    // Bật Video Rick Roll (kèm Fallback GIF + MP3 nếu trình duyệt chặn MP4 local)
+    // Bật hình ảnh Video + phát nhạc "Hey It's Me, It's Verity" (hoặc Rick Roll tùy chọn)
     if (videoEl) {
       videoEl.classList.remove('hidden');
       gifFallback?.classList.add('hidden');
-      videoEl.muted = false;
+      videoEl.muted = this.adMusicTrack === 'verity';
       videoEl.volume = 0.85;
       try {
-        videoEl.currentTime = 42; // Vào thẳng đoạn điệp khúc "Never gonna give you up!"
+        videoEl.currentTime = 42;
       } catch (_) {}
 
       const playPromise = videoEl.play();
       if (playPromise && typeof playPromise.catch === 'function') {
         playPromise.catch(() => {
-          // Fallback sang GIF + Audio hoặc WebAudio
           videoEl.classList.add('hidden');
           gifFallback?.classList.remove('hidden');
-          if (audioEl) {
-            try {
-              audioEl.currentTime = 42;
-              audioEl.volume = 0.85;
-              audioEl.play().catch(() => {});
-            } catch (_) {}
-          }
         });
       }
       videoEl.onerror = () => {
         videoEl.classList.add('hidden');
         gifFallback?.classList.remove('hidden');
-        if (audioEl) {
-          try {
-            audioEl.currentTime = 42;
-            audioEl.volume = 0.85;
-            audioEl.play().catch(() => {});
-          } catch (_) {}
-        }
       };
     }
+
+    this.applyAdMusicTrack();
 
     let elapsed = 0;
     this.adIntervalTimer = setInterval(() => {
@@ -8171,7 +8241,8 @@ class TienLenGame {
       const pct = Math.min(100, Math.round((elapsed / AD_DURATION) * 100));
       if (progressFill) progressFill.style.width = `${pct}%`;
 
-      const curLyric = [...lyricsTimeline].reverse().find((l) => elapsed >= l.at);
+      const activeTimeline = this.adMusicTrack === 'verity' ? verityLyricsTimeline : rickLyricsTimeline;
+      const curLyric = [...activeTimeline].reverse().find((l) => elapsed >= l.at);
       if (curLyric && lyricsSub) {
         lyricsSub.textContent = curLyric.text;
       }
@@ -8198,7 +8269,7 @@ class TienLenGame {
           const resBal = document.getElementById('gacha-results-balance');
           if (resBal && me) resBal.textContent = me.coins.toLocaleString();
           this.addLog(
-            `🕺 <strong>Quảng Cáo Rick Roll:</strong> Bạn đã nghe Rick Astley hát đủ 15 giây và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
+            `🙂 <strong>Quảng Cáo Verity / Rick Roll:</strong> Bạn đã nghe nhạc quảng cáo đủ 15 giây và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
             'log-win'
           );
           this.syncCosmeticsInRoom();
@@ -8222,6 +8293,7 @@ class TienLenGame {
     const overlay = document.getElementById('rickroll-ad-overlay');
     const videoEl = document.getElementById('rickroll-video');
     const audioEl = document.getElementById('rickroll-audio');
+    const verityAudioEl = document.getElementById('verity-audio');
     if (videoEl) {
       try {
         videoEl.pause();
@@ -8230,6 +8302,11 @@ class TienLenGame {
     if (audioEl) {
       try {
         audioEl.pause();
+      } catch (_) {}
+    }
+    if (verityAudioEl) {
+      try {
+        verityAudioEl.pause();
       } catch (_) {}
     }
     overlay?.classList.add('hidden');

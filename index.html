@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=119" />
+  <link rel="stylesheet" href="styles.css?v=120" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -1224,10 +1224,13 @@
       <div class="rickroll-ad-card">
         <!-- Top Ad HUD Bar -->
         <div class="ad-top-bar">
-          <div class="ad-sponsor-badge">
-            📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI RICK ASTLEY (FONTAINE TV)
+          <div class="ad-sponsor-badge" id="ad-sponsor-badge">
+            📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI VERITY AI &amp; FONTAINE TV
           </div>
-          <div class="ad-top-right">
+          <div class="ad-top-right" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="ad-skip-btn" id="btn-ad-switch-music" onclick="window.tienLenGame.toggleAdMusicTrack()" style="background:rgba(250,204,21,0.18);border-color:#fde047;color:#fef08a;cursor:pointer;" title="Đổi nhạc quảng cáo giữa Verity và Rick Roll">
+              🎵 Nhạc: Hey It's Me, It's Verity
+            </button>
             <div class="ad-countdown-pill" id="ad-countdown-pill">
               ⏳ Nhận +1 Roll (1,600 Xu) sau: <strong>15s</strong>
             </div>
@@ -1241,14 +1244,27 @@
         <div class="ad-video-stage">
           <video class="rickroll-video" id="rickroll-video" src="rickroll.mp4" playsinline></video>
           <img class="rickroll-gif-fallback hidden" id="rickroll-gif-fallback" src="rickroll.gif" alt="Rick Astley Dancing" />
+          <div class="verity-ad-stage" id="verity-ad-stage">
+            <div class="verity-smiley-orb">
+              <div class="verity-eyes">
+                <span></span>
+                <span></span>
+              </div>
+              <div class="verity-mouth"></div>
+            </div>
+            <div class="verity-eq-bars">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
           <audio id="rickroll-audio" src="rickroll.mp3" preload="auto"></audio>
+          <audio id="verity-audio" src="verity.mp3" loop preload="auto"></audio>
 
           <div class="ad-rickroll-banner" id="ad-rickroll-banner">
-            🕺 <strong>BẠN ĐÃ BỊ RICK ROLL!</strong> Hãy thưởng thức giai điệu bất hủ <em>“Never Gonna Give You Up”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎤
+            🙂 <strong>HEY, IT'S ME, IT'S VERITY!</strong> Thưởng thức giai điệu quảng cáo <em>“It's Me, It's Verity”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎶
           </div>
 
           <div class="ad-lyrics-sub" id="ad-lyrics-sub">
-            🎵 “We're no strangers to love ~ You know the rules and so do I...” 🎵
+            🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵
           </div>
         </div>
 
@@ -1397,6 +1413,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=119"></script>
+  <script src="game.js?v=120"></script>
 </body>
 </html>

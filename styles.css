@@ -3440,13 +3440,14 @@ body {
   width: auto;
   object-fit: contain;
   transform: scale(1) translate(2%, 0);
-  filter: drop-shadow(0.55rem 0.55rem 0.16rem rgba(0, 0, 0, 0.75));
+  will-change: transform, filter, opacity;
   pointer-events: none;
 }
 
 .gacha-splash-stage.gacha-splash-anim-active .gacha-splash-img {
-  filter: brightness(0) opacity(0);
-  animation: genshinOfficialSplashArt 1.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  filter: brightness(0);
+  opacity: 0;
+  animation: genshinOfficialSplashArt 1.45s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
 .gacha-genshin-info {
@@ -3591,24 +3592,29 @@ body {
 
 @keyframes genshinOfficialSplashArt {
   0% {
-    transform: scale(4.8) translate(0, -10%);
-    filter: opacity(0) brightness(0);
+    transform: scale(3.6) translate3d(0, -8%, 0);
+    opacity: 0;
+    filter: brightness(0);
   }
   20% {
-    transform: scale(1);
-    filter: opacity(1) brightness(0) drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+    transform: scale(1) translate3d(0, 0, 0);
+    opacity: 1;
+    filter: brightness(0);
   }
   74% {
-    transform: scale(1);
-    filter: opacity(1) brightness(0) drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+    transform: scale(1) translate3d(0, 0, 0);
+    opacity: 1;
+    filter: brightness(0);
   }
   92% {
-    transform: scale(1) translate(2%, 0);
-    filter: opacity(1) brightness(1.12) drop-shadow(0.55rem 0.55rem 0.16rem rgba(0, 0, 0, 0.75));
+    transform: scale(1) translate3d(2%, 0, 0);
+    opacity: 1;
+    filter: brightness(1.1);
   }
   100% {
-    transform: scale(1) translate(2%, 0);
-    filter: opacity(1) brightness(1) drop-shadow(0.55rem 0.55rem 0.16rem rgba(0, 0, 0, 0.75));
+    transform: scale(1) translate3d(2%, 0, 0);
+    opacity: 1;
+    filter: brightness(1);
   }
 }
 
@@ -7946,17 +7952,28 @@ body.pseudo-fullscreen-mode {
   background: radial-gradient(circle at 50% 45%, rgba(245, 158, 11, 0.88) 0%, rgba(120, 53, 15, 0.96) 55%, rgba(10, 8, 4, 1) 100%);
 }
 
+body.burst-playing-gpu-lock .modal-backdrop,
 body.burst-playing-gpu-lock .modal-overlay:not(#genshin-burst-overlay),
+body.burst-playing-gpu-lock .table-area,
+body.burst-playing-gpu-lock .top-bar,
 body.burst-playing-gpu-lock .arena,
-body.burst-playing-gpu-lock .traveler-guide-overlay {
+body.burst-playing-gpu-lock .traveler-guide-overlay,
+body.gacha-playing-gpu-lock .modal-backdrop,
+body.gacha-playing-gpu-lock .table-area,
+body.gacha-playing-gpu-lock .top-bar,
+body.gacha-playing-gpu-lock .traveler-guide-overlay {
   visibility: hidden !important;
   pointer-events: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
+body.burst-playing-gpu-lock .modal-backdrop *,
 body.burst-playing-gpu-lock .modal-overlay:not(#genshin-burst-overlay) *,
-body.burst-playing-gpu-lock .arena * {
+body.burst-playing-gpu-lock .table-area *,
+body.burst-playing-gpu-lock .arena *,
+body.gacha-playing-gpu-lock .modal-backdrop *,
+body.gacha-playing-gpu-lock .table-area * {
   animation-play-state: paused !important;
 }
 

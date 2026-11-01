@@ -6831,6 +6831,7 @@ class TienLenGame {
       this.savedCoins = me.coins;
     }
 
+    this.saveShopProfile();
     this.showGachaMeteorAndResults(results, totalRefund);
 
     setTimeout(() => {
@@ -6838,9 +6839,6 @@ class TienLenGame {
         `🎁🌟 <strong>Banner Tân Thủ ×10:</strong> Chúc mừng bạn đã nổ vàng nhận <strong>Nhân Vật 5★ Limited: ⚡ Raiden Shogun (Lôi Thần)</strong> và tự động trang bị vào bàn đấu! (Banner Tân Thủ đã biến mất sau 10 lần roll duy nhất).`,
         'log-win'
       );
-      this.saveShopProfile();
-      this.renderShopModal();
-      this.renderAll();
       this.syncCosmeticsInRoom();
     }, 60);
   }
@@ -6881,10 +6879,10 @@ class TienLenGame {
     const maxStar = Math.max(...results.map((r) => r.star));
     const newUnlocks = results.filter((r) => r.isNew).length;
 
-    // Hiển thị sao băng ngay lập tức trên frame đầu tiên để không bị khựng / lag
+    // Lưu dữ liệu ngay và hiển thị sao băng tức thì (hoãn render lại DOM nặng của Sảnh Cầu Nguyện cho tới khi kết thúc video sao băng để đạt 60fps tuyệt đối!)
+    this.saveShopProfile();
     this.showGachaMeteorAndResults(results, totalRefund);
 
-    // Đẩy tác vụ lưu trữ và cập nhật UI nền sang frame sau khi sao băng đã bay
     setTimeout(() => {
       this.addLog(
         `🌠 <strong>Cầu Nguyện ×${pullCount}:</strong> Nổ cao nhất <strong>${maxStar}★</strong> (${newUnlocks} món mới${
@@ -6892,11 +6890,48 @@ class TienLenGame {
         })!`,
         maxStar === 5 ? 'log-win' : 'log-play'
       );
-      this.saveShopProfile();
-      this.renderShopModal();
-      this.renderAll();
       this.syncCosmeticsInRoom();
     }, 60);
+  }
+
+  preloadGachaMedia() {
+    if (!this.gachaBlobCache) {
+      this.gachaBlobCache = new Map();
+    }
+    if (!this.gachaPreloadingSet) {
+      this.gachaPreloadingSet = new Set();
+    }
+    const files = [
+      'assets/wish_5star_10.mp4',
+      'assets/wish_4star_10.mp4',
+      'assets/wish_5star_1.mp4',
+      'assets/wish_4star_1.mp4',
+      'assets/wish_3star_1.mp4',
+      'assets/5star-splashout.webm',
+      'assets/5star-splashout2.webm',
+    ];
+    files.forEach((url) => {
+      if (this.gachaBlobCache.has(url) || this.gachaPreloadingSet.has(url)) return;
+      this.gachaPreloadingSet.add(url);
+      fetch(url)
+        .then((r) => (r.ok ? r.blob() : null))
+        .then((blob) => {
+          if (blob) {
+            this.gachaBlobCache.set(url, URL.createObjectURL(blob));
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          this.gachaPreloadingSet.delete(url);
+        });
+    });
+  }
+
+  getGachaCachedMediaUrl(url) {
+    if (this.gachaBlobCache && this.gachaBlobCache.has(url)) {
+      return this.gachaBlobCache.get(url);
+    }
+    return url;
   }
 
   playGachaSfxFile(url, volume = 0.85) {
@@ -7035,14 +7070,14 @@ class TienLenGame {
       const vOut = document.getElementById('gacha-splashlight-out');
       if (vIn) {
         vIn.classList.remove('hidden');
-        vIn.src = `assets/${starRarity}star-splashout.webm`;
+        vIn.src = this.getGachaCachedMediaUrl(`assets/${starRarity}star-splashout.webm`);
         vIn.currentTime = 0;
         const p1 = vIn.play();
         if (p1 && typeof p1.catch === 'function') p1.catch(() => {});
       }
       if (vOut) {
         vOut.classList.add('hidden');
-        vOut.src = `assets/${starRarity}star-splashout2.webm`;
+        vOut.src = this.getGachaCachedMediaUrl(`assets/${starRarity}star-splashout2.webm`);
         vOut.currentTime = 0;
       }
       this.gachaSplashLightTimer = setTimeout(() => {
@@ -7204,6 +7239,8 @@ class TienLenGame {
 
     const openResultsGrid = () => {
       this._activeOpenGachaResultsFn = null;
+      this.isGachaAnimPlaying = false;
+      document.body.classList.remove('gacha-playing-gpu-lock');
       clearTimeout(this.gachaMeteorTimer);
       if (meteorVideo) {
         meteorVideo.onended = null;
@@ -7220,6 +7257,8 @@ class TienLenGame {
       }
       resultsStage.classList.remove('hidden');
       this.playGachaSfxFile('assets/result_list.ogg', 0.88);
+      this.renderShopModal();
+      this.renderAll();
       if (!this.tutorialCompleted) {
         this.renderTravelerGuide();
       }
@@ -7230,6 +7269,9 @@ class TienLenGame {
       openResultsGrid();
       return;
     }
+
+    this.isGachaAnimPlaying = true;
+    document.body.classList.add('gacha-playing-gpu-lock');
 
     let meteorFinished = false;
     const finishMeteorStage = () => {
@@ -7269,7 +7311,7 @@ class TienLenGame {
         : 'assets/wish_3star_1.mp4';
 
     if (meteorVideo) {
-      meteorVideo.src = wishVideoFile;
+      meteorVideo.src = this.getGachaCachedMediaUrl(wishVideoFile);
       meteorVideo.currentTime = 0;
       meteorVideo.muted = !sfx.enabled;
       meteorVideo.volume = 0.88;
@@ -7347,9 +7389,12 @@ class TienLenGame {
 
       const featuredId = this.selectedBannerBurstId || dailyInfo.todayBannerIds[0] || 'raiden';
       const featuredBurst = getBurstMeta(featuredId) || dailyInfo.todayBanners[0] || GENSHIN_BURSTS[0];
-      this.preloadBurstById(featuredBurst.id);
-      if (Array.isArray(dailyInfo.todayBannerIds)) {
-        dailyInfo.todayBannerIds.forEach((bid) => this.preloadBurstById(bid));
+      this.preloadGachaMedia();
+      if (!this.isGachaAnimPlaying) {
+        this.preloadBurstById(featuredBurst.id);
+        if (Array.isArray(dailyInfo.todayBannerIds)) {
+          dailyInfo.todayBannerIds.forEach((bid) => this.preloadBurstById(bid));
+        }
       }
       const rateUp4Ids = BANNER_4STAR_RATEUPS[featuredBurst.id] || ['raiden', 'furina', 'skirk'];
       const nextPull5 = (this.gachaPity5 || 0) + 1;
@@ -8698,6 +8743,8 @@ class TienLenGame {
     });
 
     document.getElementById('btn-close-gacha-results')?.addEventListener('click', () => {
+      this.isGachaAnimPlaying = false;
+      document.body.classList.remove('gacha-playing-gpu-lock');
       document.getElementById('gacha-wish-overlay')?.classList.add('hidden');
       this.stopGachaSplashMedia();
       sfx.duckBGM(false);

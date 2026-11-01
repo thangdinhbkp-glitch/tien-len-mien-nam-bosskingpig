@@ -23156,8 +23156,19 @@ window.addEventListener('appinstalled', () => {
 });
 
 if ('serviceWorker' in navigator) {
+  let refreshingSw = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshingSw) return;
+    refreshingSw = true;
+    window.location.reload();
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=123').catch(() => {});
+    navigator.serviceWorker
+      .register('sw.js?v=124', { updateViaCache: 'none' })
+      .then((reg) => {
+        reg.update().catch(() => {});
+      })
+      .catch(() => {});
   });
 }
 

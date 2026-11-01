@@ -1,4 +1,4 @@
-const CORE_CACHE = 'tienlen-genshin-core-v122';
+const CORE_CACHE = 'tienlen-genshin-core-v124';
 const MEDIA_CACHE = 'tienlen-genshin-media-v1';
 
 const CORE_ASSETS = [
@@ -6,18 +6,7 @@ const CORE_ASSETS = [
   './index.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png',
-  './assets/wish_5star_10.mp4',
-  './assets/wish_4star_10.mp4',
-  './assets/wish_5star_1.mp4',
-  './assets/wish_4star_1.mp4',
-  './assets/wish_3star_1.mp4',
-  './assets/5star-splashout.webm',
-  './assets/5star-splashout2.webm',
-  './assets/reveal_3star.ogg',
-  './assets/reveal_4star.ogg',
-  './assets/reveal_5star.ogg',
-  './assets/result_list.ogg'
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -26,7 +15,7 @@ self.addEventListener('install', (event) => {
     caches.open(CORE_CACHE).then((cache) => {
       return Promise.allSettled(
         CORE_ASSETS.map((url) =>
-          fetch(url, { cache: 'no-cache' }).then((res) => {
+          fetch(url, { cache: 'no-store' }).then((res) => {
             if (res && res.ok && res.status === 200) {
               return cache.put(url.replace(/\?.*$/, ''), res);
             }
@@ -125,11 +114,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. HTML / JS / CSS / JSON: Network-First so updates from GitHub Pages always apply immediately
+  // 2. HTML / JS / CSS / JSON: Always bypass browser HTTP cache (no-store) so new updates apply immediately on mobile!
   event.respondWith(
-    fetch(req)
+    fetch(req, { cache: 'no-store' })
       .then((netRes) => {
-        if (netRes && netRes.ok && netRes.status === 200) {
+        if (netRes && netRes.ok && resIsCachable(netRes)) {
           const copy = netRes.clone();
           caches.open(CORE_CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
         }
@@ -141,3 +130,7 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+function resIsCachable(res) {
+  return res && res.status === 200 && res.type === 'basic';
+}

@@ -3907,7 +3907,7 @@ class TienLenGame {
     }
   }
 
-  showBurstEffectBanner(burstId, detailText, durationMs = 5200) {
+  showBurstEffectBanner(burstId, detailText, durationMs = 3000) {
     if (!burstId || burstId === 'none' || !detailText) return;
     const bannerEl = document.getElementById('burst-effect-screen-banner');
     const avatarEl = document.getElementById('burst-effect-banner-avatar');
@@ -3942,10 +3942,7 @@ class TienLenGame {
         } else {
           sfx.raidenBurst();
         }
-        this.showBurstEffectBanner(burstId, detailText, 5500);
-        if (detailText) {
-          this.showComboBanner(detailText, 'chop-banner');
-        }
+        this.showBurstEffectBanner(burstId, detailText, 3000);
       }
       if (lockGameplay && burstId && burstId !== 'none') {
         this.isBurstPlaying = true;
@@ -6328,18 +6325,6 @@ class TienLenGame {
       this.selectedBannerBurstId = charId;
     } else {
       this.ensureValidDailyBannerSelection();
-      if (charId) {
-        const targetBurst = GENSHIN_BURSTS.find((b) => b.id === charId);
-        const targetName = targetBurst ? targetBurst.name.split('—')[0].trim() : charId;
-        const idxInCycle = info.cycleOrder.findIndex((b) => b.id === charId);
-        if (idxInCycle >= 0) {
-          const scheduledDay = Math.floor(idxInCycle / 2) + 1;
-          const todayNames = info.todayBanners.map((b) => b.name.split('—')[0].trim()).join(' & ');
-          this.showComboBanner(
-            `⏳ Banner hôm nay toàn Server là [${todayNames}] • ${targetName} thuộc Ngày ${scheduledDay}/${info.daysPerCycle} của chu kỳ!`
-          );
-        }
-      }
     }
     this.saveShopProfile();
     document.getElementById('inventory-modal')?.classList.add('hidden');
@@ -7455,7 +7440,7 @@ class TienLenGame {
         ${beginnerBannerHtml}
         <div class="gacha-epitomized-bar">
           <div class="gacha-epitomized-title" style="flex-wrap:wrap;gap:6px;">
-            <span>🌐 2 BANNER 5★ GIỚI HẠN HÔM NAY (ĐỒNG BỘ TOÀN SERVER • CHU KỲ #${dailyInfo.cycleIndex} — NGÀY ${dailyInfo.dayInCycle}/${dailyInfo.daysPerCycle} • KHÔNG TRÙNG NHÂN VẬT TRONG CHU KỲ):</span>
+            <span>🌐 2 BANNER 5★ GIỚI HẠN HÔM NAY (ĐỒNG BỘ TOÀN SERVER):</span>
             <span style="font-size:11.5px;color:#fde047;font-weight:800;">⏰ Reset 00:00 mỗi ngày (còn ${dailyInfo.hoursLeft}h ${dailyInfo.minsLeft}p) • Đã Roll: <strong>${(this.totalWishes || 0).toLocaleString()}</strong> lượt</span>
           </div>
           <div class="gacha-up-Roster" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-height:none;">${upRosterHtml}</div>
@@ -7827,13 +7812,11 @@ class TienLenGame {
             let actionsHtml = '';
             if (!owned) {
               const isUpToday = dailyInfo.todayBannerIds.includes(b.id);
-              const cycIdx = dailyInfo.cycleOrder.findIndex((x) => x.id === b.id);
-              const schedDay = cycIdx >= 0 ? Math.floor(cycIdx / 2) + 1 : null;
               const btnLabel = isUpToday
                 ? '🔥 Đang UP Hôm Nay ➔ Tới Banner Cầu Nguyện Ngay'
                 : b.isStandard
                 ? '☯️ Nhân Vật 5★ Thường (Lệch Rate) ➔ Tới Sảnh Cầu Nguyện'
-                : `⏳ Lịch UP: Ngày ${schedDay || '?'}/${dailyInfo.daysPerCycle} Chu Kỳ ➔ Tới Sảnh Cầu Nguyện`;
+                : '🌠 Chưa Mở Khóa ➔ Tới Sảnh Cầu Nguyện';
               actionsHtml = `
                 <button class="shop-buy-btn buy-btn" onclick="window.tienLenGame.openGachaForCharacter('${b.id}')">
                   ${btnLabel}
@@ -13222,8 +13205,7 @@ class TienLenGame {
             }
           }
         : null;
-    this.showBurstEffectBanner(charId, skillSummary, 5500);
-    this.showComboBanner(`🔮 ${skillSummary}`, rx ? rx.cssClass : 'chop-banner');
+    this.showBurstEffectBanner(charId, skillSummary, 3000);
     this.addLog(`🔮 <strong>${skillSummary}</strong>`, 'log-win');
 
     this.updateArenaBackdropCharacters();
@@ -18435,6 +18417,7 @@ class TienLenGame {
     this.hintIndex = 0;
     this.turnTimerComboSig = '';
     player.passed = false;
+    document.getElementById('burst-effect-screen-banner')?.classList.add('hidden');
     this.players.forEach((p) => {
       p.declinedFourPairsCut = false;
     });

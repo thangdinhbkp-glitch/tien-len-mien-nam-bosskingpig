@@ -7964,19 +7964,24 @@ body.burst-playing-gpu-lock .arena * {
    ON-SCREEN BURST EFFECT BANNER (DISPLAYS FULL SKILL EFFECT WHEN BURST VIDEO IS SKIPPED)
    ============================================================================ */
 .burst-effect-screen-banner {
+  position: fixed;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  max-width: 92%;
-  margin: 4px auto;
-  padding: 8px 14px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(49, 16, 82, 0.92));
-  border: 2px solid #facc15;
-  box-shadow: 0 0 22px rgba(250, 204, 21, 0.45), 0 6px 18px rgba(0, 0, 0, 0.65);
-  z-index: 45;
-  pointer-events: none;
-  animation: burstEffectBannerPop 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+  gap: 8px;
+  width: max-content;
+  max-width: min(620px, 94vw);
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(49, 16, 82, 0.92));
+  border: 1.5px solid #facc15;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.4), 0 4px 12px rgba(0, 0, 0, 0.65);
+  z-index: 9500;
+  pointer-events: auto;
+  cursor: pointer;
+  animation: burstEffectBannerPop 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
 .burst-effect-screen-banner.hidden {
@@ -7984,46 +7989,84 @@ body.burst-playing-gpu-lock .arena * {
 }
 
 .burst-effect-banner-avatar {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #fde047;
-  box-shadow: 0 0 10px rgba(253, 224, 71, 0.6);
+  border: 1.5px solid #fde047;
+  box-shadow: 0 0 8px rgba(253, 224, 71, 0.55);
   flex-shrink: 0;
 }
 
 .burst-effect-banner-body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   text-align: left;
+  min-width: 0;
 }
 
 .burst-effect-banner-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   color: #fde047;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .burst-effect-banner-detail {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #ffffff;
-  line-height: 1.32;
+  line-height: 1.25;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 @keyframes burstEffectBannerPop {
   0% {
     opacity: 0;
-    transform: translateY(-8px) scale(0.94);
+    transform: translate(-50%, -8px) scale(0.95);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@media (max-width: 768px), (max-height: 500px) {
+  .burst-effect-screen-banner {
+    top: 2px;
+    padding: 3px 10px;
+    gap: 6px;
+    max-width: 94vw;
+    border-radius: 12px;
+  }
+  .burst-effect-banner-avatar {
+    width: 24px;
+    height: 24px;
+  }
+  .burst-effect-banner-title {
+    font-size: 9.5px;
+  }
+  .burst-effect-banner-detail {
+    font-size: 10px;
+    line-height: 1.2;
+    -webkit-line-clamp: 2;
+  }
+  .combo-announcement {
+    max-width: 88vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px !important;
+    padding: 2px 10px !important;
   }
 }
 

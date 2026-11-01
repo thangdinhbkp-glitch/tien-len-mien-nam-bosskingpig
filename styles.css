@@ -7775,7 +7775,6 @@ body.pseudo-fullscreen-mode {
 }
 
 .tutorial-highlight-pulse {
-  position: relative;
   z-index: 255000 !important;
   outline: 3px solid #fde047 !important;
   outline-offset: 2px !important;
@@ -7784,6 +7783,11 @@ body.pseudo-fullscreen-mode {
     0 0 32px rgba(250, 204, 21, 1),
     0 0 54px rgba(245, 158, 11, 0.85) !important;
   animation: tutorialPulseGlow 0.85s infinite alternate ease-in-out !important;
+}
+
+.gacha-skip-btn.tutorial-highlight-pulse,
+.gacha-genshin-continue-btn.tutorial-highlight-pulse {
+  position: fixed !important;
 }
 
 @keyframes tutorialPulseGlow {

@@ -1,0 +1,168 @@
+name: Build Android APK
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Signed TienLenGenshin.apk
+        run: |
+          set -e
+          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          PLATFORM=$(ls -d $ANDROID_HOME/platforms/android-* | sort -V | tail -n 1)
+          echo "Using BUILD_TOOLS=$BUILD_TOOLS"
+          echo "Using PLATFORM=$PLATFORM"
+
+          mkdir -p /tmp/apkbuild/src/com/bosskingpig/tienlengenshin
+          mkdir -p /tmp/apkbuild/res/drawable
+          mkdir -p /tmp/apkbuild/obj
+          cp icon-192.png /tmp/apkbuild/res/drawable/icon.png
+
+          cat << 'EOF' > /tmp/apkbuild/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.bosskingpig.tienlengenshin"
+              android:versionCode="126"
+              android:versionName="1.2.6">
+              <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+              <application
+                  android:label="Tiến Lên 5★"
+                  android:icon="@drawable/icon"
+                  android:hardwareAccelerated="true"
+                  android:usesCleartextTraffic="true"
+                  android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+                  <activity
+                      android:name=".MainActivity"
+                      android:label="Tiến Lên 5★"
+                      android:screenOrientation="sensorLandscape"
+                      android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > /tmp/apkbuild/src/com/bosskingpig/tienlengenshin/MainActivity.java
+          package com.bosskingpig.tienlengenshin;
+
+          import android.app.Activity;
+          import android.graphics.Color;
+          import android.os.Bundle;
+          import android.view.View;
+          import android.view.Window;
+          import android.view.WindowManager;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+
+          public class MainActivity extends Activity {
+              private WebView webView;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  requestWindowFeature(Window.FEATURE_NO_TITLE);
+                  getWindow().setFlags(
+                      WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+                      WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                  );
+                  hideSystemUI();
+
+                  webView = new WebView(this);
+                  webView.setBackgroundColor(Color.parseColor("#070b19"));
+                  setContentView(webView);
+
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setDatabaseEnabled(true);
+                  settings.setMediaPlaybackRequiresUserGesture(false);
+                  settings.setAllowFileAccess(true);
+                  settings.setLoadWithOverviewMode(true);
+                  settings.setUseWideViewPort(true);
+                  settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+
+                  webView.setWebChromeClient(new WebChromeClient());
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                          view.loadUrl(url);
+                          return true;
+                      }
+                  });
+
+                  webView.loadUrl("https://thangdinhbkp-glitch.github.io/tien-len-mien-nam-bosskingpig/?source=apk");
+              }
+
+              private void hideSystemUI() {
+                  View decorView = getWindow().getDecorView();
+                  decorView.setSystemUiVisibility(
+                      View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                      | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                      | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                      | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                      | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                      | View.SYSTEM_UI_FLAG_FULLSCREEN
+                  );
+              }
+
+              @Override
+              public void onWindowFocusChanged(boolean hasFocus) {
+                  super.onWindowFocusChanged(hasFocus);
+                  if (hasFocus) {
+                      hideSystemUI();
+                  }
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView != null && webView.canGoBack()) {
+                      webView.goBack();
+                  }
+              }
+          }
+          EOF
+
+          "$BUILD_TOOLS/aapt" package -f -m -J /tmp/apkbuild/src -M /tmp/apkbuild/AndroidManifest.xml -S /tmp/apkbuild/res -I "$PLATFORM/android.jar"
+          javac -source 1.8 -target 1.8 -bootclasspath "$PLATFORM/android.jar" -classpath "$PLATFORM/android.jar" -d /tmp/apkbuild/obj /tmp/apkbuild/src/com/bosskingpig/tienlengenshin/*.java
+          "$BUILD_TOOLS/d8" --lib "$PLATFORM/android.jar" --output /tmp/apkbuild /tmp/apkbuild/obj/com/bosskingpig/tienlengenshin/*.class
+          "$BUILD_TOOLS/aapt" package -f -M /tmp/apkbuild/AndroidManifest.xml -S /tmp/apkbuild/res -I "$PLATFORM/android.jar" -F /tmp/apkbuild/unsigned.apk
+          (cd /tmp/apkbuild && "$BUILD_TOOLS/aapt" add unsigned.apk classes.dex)
+          "$BUILD_TOOLS/zipalign" -f 4 /tmp/apkbuild/unsigned.apk /tmp/apkbuild/aligned.apk
+
+          keytool -genkeypair -v -keystore /tmp/apkbuild/release.keystore -alias tienlen -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=BossKingPig, OU=Game, O=BossKingPig, L=HCMC, S=VN, C=VN"
+          "$BUILD_TOOLS/apksigner" sign --ks /tmp/apkbuild/release.keystore --ks-pass pass:123456 --key-pass pass:123456 --v1-signing-enabled true --v2-signing-enabled true --out TienLenGenshin.apk /tmp/apkbuild/aligned.apk
+          ls -lh TienLenGenshin.apk
+
+      - name: Commit and Push APK to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+          git add TienLenGenshin.apk
+          git commit -m "Build and publish signed TienLenGenshin.apk for Android" || exit 0
+          git push origin main

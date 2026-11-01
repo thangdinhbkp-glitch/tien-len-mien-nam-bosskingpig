@@ -8,11 +8,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Tiến Lên 5★" />
-  <link rel="manifest" href="manifest.json?v=125" />
+  <link rel="manifest" href="manifest.json?v=126" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <title>Tiến Lên Miền Nam (Genshin Impact Edition • WiFi 2-4 Người)</title>
-  <link rel="stylesheet" href="styles.css?v=125" />
+  <link rel="stylesheet" href="styles.css?v=126" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -376,10 +376,14 @@
 
         <!-- THANH DOCK CHỨC NĂNG GAME APP BÊN DƯỚI (CÁC NÚT NHỎ HƠN XẾP GỌN GÀNG) -->
         <div class="app-lobby-dock">
-          <button class="app-dock-btn dock-install-app" id="btn-lobby-install-app" onclick="window.tienLenGame.openInstallAppModal()" title="Bấm 1 chạm để Cài đặt App Tiến Lên 5★ &amp; tự động tải toàn bộ Hoạt ảnh Nộ + Gacha vào máy">
-            <span class="dock-icon">📲</span>
-            <span class="dock-label" id="lobby-install-app-label">Tải App</span>
-          </button>
+          <a class="app-dock-btn dock-install-apk" id="btn-lobby-download-apk" href="TienLenGenshin.apk" download="TienLenGenshin.apk" title="Tải file cài đặt TienLenGenshin.apk cho điện thoại Android" style="text-decoration:none;">
+            <span class="dock-icon">🤖</span>
+            <span class="dock-label">Tải APK (Android)</span>
+          </a>
+          <a class="app-dock-btn dock-install-exe" id="btn-lobby-download-exe" href="TienLenGenshin.exe" download="TienLenGenshin.exe" title="Tải file chạy TienLenGenshin.exe cho máy tính Windows" style="text-decoration:none;">
+            <span class="dock-icon">💻</span>
+            <span class="dock-label">Tải EXE (Windows)</span>
+          </a>
           <button class="app-dock-btn dock-inventory" id="btn-lobby-inventory" onclick="window.tienLenGame.openInventoryModal()" title="Mở Kho Đồ cá nhân để trang bị Nhân Vật 5★, Decor Bài 4★ &amp; Avatar 3★">
             <span class="dock-icon">🎒</span>
             <span class="dock-label">Kho Đồ</span>
@@ -1445,6 +1449,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=125"></script>
+  <script src="game.js?v=126"></script>
 </body>
 </html>

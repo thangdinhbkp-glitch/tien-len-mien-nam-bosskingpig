@@ -80,10 +80,13 @@ jobs:
           import android.content.res.AssetFileDescriptor;
           import android.graphics.Color;
           import android.net.Uri;
+          import android.os.Build;
           import android.os.Bundle;
           import android.view.View;
           import android.view.Window;
           import android.view.WindowManager;
+          import android.webkit.ServiceWorkerClient;
+          import android.webkit.ServiceWorkerController;
           import android.webkit.WebChromeClient;
           import android.webkit.WebResourceRequest;
           import android.webkit.WebResourceResponse;
@@ -144,6 +147,77 @@ jobs:
                          p.endsWith(".jpeg") || p.endsWith(".webp") || p.endsWith(".svg") || p.endsWith(".gif");
               }
 
+              private WebResourceResponse interceptBundledMedia(WebResourceRequest request) {
+                  if (request == null) return null;
+                  Uri uri = request.getUrl();
+                  if (uri == null) return null;
+                  String urlStr = uri.toString();
+                  if (!urlStr.startsWith(REMOTE_BASE)) return null;
+
+                  String relPath = uri.getPath();
+                  if (relPath == null) return null;
+                  String prefix = "/tien-len-mien-nam-bosskingpig/";
+                  if (relPath.startsWith(prefix)) {
+                      relPath = relPath.substring(prefix.length());
+                  }
+                  while (relPath.startsWith("/")) {
+                      relPath = relPath.substring(1);
+                  }
+
+                  // Always let HTML/JS/CSS load from live server so game updates apply automatically!
+                  if (!isBundledMedia(relPath)) {
+                      return null;
+                  }
+
+                  try {
+                      long totalLen = -1;
+                      try {
+                          AssetFileDescriptor afd = getAssets().openFd(relPath);
+                          totalLen = afd.getLength();
+                          afd.close();
+                      } catch (Exception ignored) {}
+
+                      InputStream rawIn = getAssets().open(relPath);
+                      String mime = guessMime(relPath);
+                      Map<String, String> headers = new HashMap<String, String>();
+                      headers.put("Access-Control-Allow-Origin", "*");
+                      headers.put("Accept-Ranges", "bytes");
+                      headers.put("Cache-Control", "public, max-age=31536000");
+
+                      String rangeHeader = request.getRequestHeaders() != null ? request.getRequestHeaders().get("Range") : null;
+                      if (rangeHeader == null && request.getRequestHeaders() != null) {
+                          rangeHeader = request.getRequestHeaders().get("range");
+                      }
+
+                      if (rangeHeader != null && rangeHeader.startsWith("bytes=") && totalLen > 0) {
+                          String spec = rangeHeader.substring(6).trim();
+                          int dash = spec.indexOf('-');
+                          if (dash >= 0) {
+                              long start = Long.parseLong(spec.substring(0, dash));
+                              long end = (dash < spec.length() - 1) ? Long.parseLong(spec.substring(dash + 1)) : (totalLen - 1);
+                              if (end >= totalLen) end = totalLen - 1;
+                              long contentLen = (end - start) + 1;
+                              long skipped = 0;
+                              while (skipped < start) {
+                                  long s = rawIn.skip(start - skipped);
+                                  if (s <= 0) break;
+                                  skipped += s;
+                              }
+                              headers.put("Content-Range", "bytes " + start + "-" + end + "/" + totalLen);
+                              headers.put("Content-Length", String.valueOf(contentLen));
+                              return new WebResourceResponse(mime, null, 206, "Partial Content", headers, new BoundedInputStream(rawIn, contentLen));
+                          }
+                      }
+
+                      if (totalLen > 0) {
+                          headers.put("Content-Length", String.valueOf(totalLen));
+                      }
+                      return new WebResourceResponse(mime, null, 200, "OK", headers, rawIn);
+                  } catch (Exception e) {
+                      return null;
+                  }
+              }
+
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
@@ -169,77 +243,22 @@ jobs:
                   settings.setUseWideViewPort(true);
                   settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
+                  if (Build.VERSION.SDK_INT >= 24) {
+                      try {
+                          ServiceWorkerController.getInstance().setServiceWorkerClient(new ServiceWorkerClient() {
+                              @Override
+                              public WebResourceResponse shouldInterceptRequest(WebResourceRequest request) {
+                                  return interceptBundledMedia(request);
+                              }
+                          });
+                      } catch (Exception ignored) {}
+                  }
+
                   webView.setWebChromeClient(new WebChromeClient());
                   webView.setWebViewClient(new WebViewClient() {
                       @Override
                       public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                          Uri uri = request.getUrl();
-                          if (uri == null) return null;
-                          String urlStr = uri.toString();
-                          if (!urlStr.startsWith(REMOTE_BASE)) return null;
-
-                          String relPath = uri.getPath();
-                          if (relPath == null) return null;
-                          String prefix = "/tien-len-mien-nam-bosskingpig/";
-                          if (relPath.startsWith(prefix)) {
-                              relPath = relPath.substring(prefix.length());
-                          }
-                          while (relPath.startsWith("/")) {
-                              relPath = relPath.substring(1);
-                          }
-
-                          // Always let HTML/JS/CSS load from live server so game updates apply automatically!
-                          if (!isBundledMedia(relPath)) {
-                              return null;
-                          }
-
-                          try {
-                              long totalLen = -1;
-                              try {
-                                  AssetFileDescriptor afd = getAssets().openFd(relPath);
-                                  totalLen = afd.getLength();
-                                  afd.close();
-                              } catch (Exception ignored) {}
-
-                              InputStream rawIn = getAssets().open(relPath);
-                              String mime = guessMime(relPath);
-                              Map<String, String> headers = new HashMap<String, String>();
-                              headers.put("Access-Control-Allow-Origin", "*");
-                              headers.put("Accept-Ranges", "bytes");
-                              headers.put("Cache-Control", "public, max-age=31536000");
-
-                              String rangeHeader = request.getRequestHeaders() != null ? request.getRequestHeaders().get("Range") : null;
-                              if (rangeHeader == null && request.getRequestHeaders() != null) {
-                                  rangeHeader = request.getRequestHeaders().get("range");
-                              }
-
-                              if (rangeHeader != null && rangeHeader.startsWith("bytes=") && totalLen > 0) {
-                                  String spec = rangeHeader.substring(6).trim();
-                                  int dash = spec.indexOf('-');
-                                  if (dash >= 0) {
-                                      long start = Long.parseLong(spec.substring(0, dash));
-                                      long end = (dash < spec.length() - 1) ? Long.parseLong(spec.substring(dash + 1)) : (totalLen - 1);
-                                      if (end >= totalLen) end = totalLen - 1;
-                                      long contentLen = (end - start) + 1;
-                                      long skipped = 0;
-                                      while (skipped < start) {
-                                          long s = rawIn.skip(start - skipped);
-                                          if (s <= 0) break;
-                                          skipped += s;
-                                      }
-                                      headers.put("Content-Range", "bytes " + start + "-" + end + "/" + totalLen);
-                                      headers.put("Content-Length", String.valueOf(contentLen));
-                                      return new WebResourceResponse(mime, null, 206, "Partial Content", headers, new BoundedInputStream(rawIn, contentLen));
-                                  }
-                              }
-
-                              if (totalLen > 0) {
-                                  headers.put("Content-Length", String.valueOf(totalLen));
-                              }
-                              return new WebResourceResponse(mime, null, 200, "OK", headers, rawIn);
-                          } catch (Exception e) {
-                              return null;
-                          }
+                          return interceptBundledMedia(request);
                       }
 
                       @Override
@@ -330,7 +349,7 @@ jobs:
                   static void Main()
                   {
                       try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; } catch { }
-                      dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TienLenGenshin5Sao_v127");
+                      dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TienLenGenshin5Sao_v129");
                       EnsureExtracted();
                       serverPort = StartHybridLocalServer();
                       string url = "http://127.0.0.1:" + serverPort + "/index.html?source=exe";
@@ -425,6 +444,15 @@ jobs:
                               StreamReader reader = new StreamReader(ns, Encoding.ASCII, false, 1024, true);
                               string reqLine = reader.ReadLine();
                               if (string.IsNullOrEmpty(reqLine)) return;
+                              string rangeHeader = null;
+                              string hLine;
+                              while (!string.IsNullOrEmpty(hLine = reader.ReadLine()))
+                              {
+                                  if (hLine.StartsWith("Range:", StringComparison.OrdinalIgnoreCase))
+                                  {
+                                      rangeHeader = hLine.Substring(6).Trim();
+                                  }
+                              }
                               string[] parts = reqLine.Split(' ');
                               if (parts.Length < 2) return;
                               string rawTarget = parts[1];
@@ -456,8 +484,57 @@ jobs:
 
                               if (File.Exists(localFile))
                               {
-                                  byte[] bytes = File.ReadAllBytes(localFile);
-                                  WriteResponse(ns, "200 OK", GuessMime(pathPart), bytes);
+                                  using (FileStream fs = new FileStream(localFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                  {
+                                      long totalLen = fs.Length;
+                                      string mime = GuessMime(pathPart);
+                                      if (!string.IsNullOrEmpty(rangeHeader) && rangeHeader.StartsWith("bytes=", StringComparison.OrdinalIgnoreCase) && totalLen > 0)
+                                      {
+                                          string spec = rangeHeader.Substring(6).Trim();
+                                          int dash = spec.IndexOf('-');
+                                          if (dash >= 0)
+                                          {
+                                              long start = 0;
+                                              long.TryParse(spec.Substring(0, dash), out start);
+                                              long end = totalLen - 1;
+                                              if (dash < spec.Length - 1)
+                                              {
+                                                  long.TryParse(spec.Substring(dash + 1), out end);
+                                              }
+                                              if (end >= totalLen) end = totalLen - 1;
+                                              long contentLen = (end - start) + 1;
+                                              string hdr = "HTTP/1.1 206 Partial Content\r\n" +
+                                                           "Content-Type: " + mime + "\r\n" +
+                                                           "Content-Length: " + contentLen + "\r\n" +
+                                                           "Content-Range: bytes " + start + "-" + end + "/" + totalLen + "\r\n" +
+                                                           "Accept-Ranges: bytes\r\n" +
+                                                           "Access-Control-Allow-Origin: *\r\n" +
+                                                           "Connection: close\r\n\r\n";
+                                              byte[] hBytes = Encoding.ASCII.GetBytes(hdr);
+                                              ns.Write(hBytes, 0, hBytes.Length);
+                                              fs.Seek(start, SeekOrigin.Begin);
+                                              byte[] buf = new byte[65536];
+                                              long rem = contentLen;
+                                              while (rem > 0)
+                                              {
+                                                  int r = fs.Read(buf, 0, (int)Math.Min(buf.Length, rem));
+                                                  if (r <= 0) break;
+                                                  ns.Write(buf, 0, r);
+                                                  rem -= r;
+                                              }
+                                              return;
+                                          }
+                                      }
+                                      string okHdr = "HTTP/1.1 200 OK\r\n" +
+                                                     "Content-Type: " + mime + "\r\n" +
+                                                     "Content-Length: " + totalLen + "\r\n" +
+                                                     "Accept-Ranges: bytes\r\n" +
+                                                     "Access-Control-Allow-Origin: *\r\n" +
+                                                     "Connection: close\r\n\r\n";
+                                      byte[] okBytes = Encoding.ASCII.GetBytes(okHdr);
+                                      ns.Write(okBytes, 0, okBytes.Length);
+                                      fs.CopyTo(ns);
+                                  }
                               }
                               else
                               {

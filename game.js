@@ -23219,23 +23219,39 @@ window.addEventListener('appinstalled', () => {
   }
 });
 
+const IS_NATIVE_BUNDLED_APP =
+  window.location.search.includes('source=apk') ||
+  window.location.search.includes('source=exe') ||
+  window.location.hostname === '127.0.0.1';
+
 if ('serviceWorker' in navigator) {
-  let refreshingSw = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshingSw) return;
-    refreshingSw = true;
-    window.location.reload();
-  });
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('sw.js?v=128', { updateViaCache: 'none' })
-      .then((reg) => {
-        reg.update().catch(() => {});
-      })
-      .catch(() => {});
-  });
+  if (IS_NATIVE_BUNDLED_APP) {
+    // Trong App APK / EXE đã nhúng sẵn 100% video trong máy: tắt ServiceWorker để phát trực tiếp từ bộ nhớ máy 0ms
+    navigator.serviceWorker.getRegistrations().then((regs) => {
+      regs.forEach((r) => r.unregister().catch(() => {}));
+    }).catch(() => {});
+  } else {
+    let refreshingSw = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshingSw) return;
+      refreshingSw = true;
+      window.location.reload();
+    });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('sw.js?v=129', { updateViaCache: 'none' })
+        .then((reg) => {
+          reg.update().catch(() => {});
+        })
+        .catch(() => {});
+    });
+  }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  if (IS_NATIVE_BUNDLED_APP) {
+    document.getElementById('btn-lobby-download-apk')?.classList.add('hidden');
+    document.getElementById('btn-lobby-download-exe')?.classList.add('hidden');
+  }
   window.tienLenGame = new TienLenGame();
 });

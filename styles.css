@@ -8035,6 +8035,24 @@ body.burst-playing-gpu-lock .arena * {
   }
 }
 
+.peek-return-summary-bar {
+  margin-top: 8px;
+  z-index: 9000;
+  display: flex;
+  justify-content: center;
+  pointer-events: auto !important;
+  position: relative;
+}
+
+.peek-return-summary-bar.hidden {
+  display: none !important;
+}
+
+.peek-return-summary-bar button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
 @media (max-width: 768px), (max-height: 500px) {
   .burst-effect-screen-banner {
     top: 2px;

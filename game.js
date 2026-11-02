@@ -9584,14 +9584,16 @@ class TienLenGame {
     if (sponsorBox) {
       sponsorBox.classList.remove('hidden');
       if (networkSlot) {
-        const showcaseBurst =
-          GENSHIN_BURSTS[Math.floor(Math.random() * GENSHIN_BURSTS.length)] || GENSHIN_BURSTS[0];
         networkSlot.innerHTML =
           adCfg.bannerHtml ||
           `
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px;text-align:center;width:100%;">
-              <video src="${showcaseBurst.mp4Url}" poster="${showcaseBurst.posterUrl || 'icon-192.png'}" autoplay muted loop playsinline webkit-playsinline="true" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" style="width:100%;max-width:460px;height:210px;object-fit:cover;border-radius:10px;border:1.5px solid rgba(250,204,21,0.5);background:#0f172a;"></video>
-              <div style="font-size:13px;font-weight:900;color:#fef08a;">🌟 ${showcaseBurst.name} • Đợi hết 15 giây để nhận tự động <span style="color:#4ade80;">+1 Roll (1,600 Xu)</span> ngay trong game!</div>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;text-align:center;width:100%;">
+              <div style="font-size:42px;line-height:1;font-weight:900;color:#facc15;text-shadow:0 2px 12px rgba(250,204,21,0.45);" id="ad-center-sec-num">${AD_DURATION}s</div>
+              <div style="font-size:15px;font-weight:900;color:#fef08a;">📢 ĐANG HIỂN THỊ BANNER QUẢNG CÁO MONETAG (GÓC TRÊN BÊN PHẢI)</div>
+              <div style="font-size:12.5px;color:#cbd5e1;max-width:500px;line-height:1.5;">
+                Quảng cáo chính thức của đối tác <strong>Monetag (nhãn Ad góc phải màn hình)</strong> đang hiển thị.<br/>
+                Hệ thống sẽ tự động cộng <strong style="color:#4ade80;">+1 Roll (+1,600 Xu)</strong> ngay khi đếm ngược về 0s!
+              </div>
             </div>
           `;
       }
@@ -9620,7 +9622,9 @@ class TienLenGame {
       const pct = Math.min(100, Math.round((elapsed / AD_DURATION) * 100));
       if (progressFill) progressFill.style.width = `${pct}%`;
 
+      const centerSecEl = document.getElementById('ad-center-sec-num');
       if (this.adRemainingSec > 0) {
+        if (centerSecEl) centerSecEl.textContent = `${this.adRemainingSec}s`;
         if (countdownPill) {
           countdownPill.innerHTML = `⏳ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) sau: <strong>${this.adRemainingSec}s</strong>`;
         }
@@ -9628,6 +9632,7 @@ class TienLenGame {
           skipBtn.textContent = `🔒 Chờ ${this.adRemainingSec}s...`;
         }
       } else {
+        if (centerSecEl) centerSecEl.textContent = `✅ +1 ROLL!`;
         clearInterval(this.adIntervalTimer);
         if (!this.adRewardClaimed) {
           this.adRewardClaimed = true;

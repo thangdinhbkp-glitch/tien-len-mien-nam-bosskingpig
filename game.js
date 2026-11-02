@@ -14308,7 +14308,12 @@ class TienLenGame {
         .join(', ');
       skillSummary = `🪞 [Ma Trận Phổ Quang] ${player.name} dựng Ma Trận Gương Ánh Sáng: CẤM đối thủ đánh bộ bài có lá cao nhất nằm ngoài tập số [${allowedLabels}] đang có trên tay Alhaitham trong vòng này!`;
     } else if (charId === 'neuvillette') {
-      const target = [...activeOpponents].sort((a, b) => a.hand.length - b.hand.length)[0];
+      const target = [...activeOpponents].sort(
+        (a, b) =>
+          a.hand.length - b.hand.length ||
+          (b.id === this.trickOwnerId ? 1 : 0) - (a.id === this.trickOwnerId ? 1 : 0) ||
+          (a.passed ? 1 : 0) - (b.passed ? 1 : 0)
+      )[0];
       if (target && player.hand.length > target.hand.length) {
         const diff = player.hand.length - target.hand.length;
         // Chuyển thẳng các lá bài rác nhỏ nhất từ tay Neuvillette sang tay đối thủ cho đến khi số bài 2 bên bằng nhau (tối đa chuyển 3 lá)
@@ -15840,10 +15845,12 @@ class TienLenGame {
         shouldCast = true;
       }
     } else if (charId === 'neuvillette') {
+      // Cán Cân Tuyệt Đối: CHỈ kích hoạt khi có đối thủ đã xuống ÍT BÀI (<= 5 lá) để chuyển bài rác sang tay kẻ ít bài nhất!
       if (
+        minOppCards <= 5 &&
         bot.hand.length > minOppCards &&
-        (bot.hand.length - minOppCards >= 2 || minOppCards <= 5) &&
-        (!this.currentCombo || plannedMove || minOppCards <= 4)
+        (bot.hand.length - minOppCards >= 2 || minOppCards <= 3) &&
+        (!this.currentCombo || plannedMove || minOppCards <= 3)
       ) {
         shouldCast = true;
       }

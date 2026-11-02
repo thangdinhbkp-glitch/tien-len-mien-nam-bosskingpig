@@ -1130,7 +1130,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'sigewinne',
     name: 'Sigewinne — Ống Tiêm Siêu Đặc Biệt',
-    desc: '[Huyền Thoại] Y Tá Trưởng Melusine mở Trạm Y Tế Meropide: Tiêm thuốc bổ chữa lành tối đa 3 lá bài nhỏ (3→7) trên tay tăng đồng loạt +2 bậc Đỏ (♥/♦) & thu 3× cược Xu viện phí từ đối thủ thắng vòng này!',
+    desc: '[Huyền Thoại] Y Tá Trưởng Melusine mở Trạm Y Tế Meropide: Tiêm thuốc bổ chữa lành tối đa 3 lá bài nhỏ (3→7) trên tay tăng đồng loạt +2 bậc Đỏ (♥/♦)!',
     price: 145000,
     mp4Url: 'sigewinne_burst.mp4?v=64',
     audioUrl: 'sigewinne_burst.ogg?v=64',
@@ -1139,7 +1139,7 @@ const GENSHIN_BURSTS = [
     sfxType: 'skirk',
     tag: '💉 KỸ NĂNG NỘ • SIGEWINNE (SUPER SATURATED SYRINGING)',
     title: 'Y TÁ TRƯỞNG MELUSINE: TRẠM Y TẾ MEROPIDE',
-    quote: '“Tiêm Thuốc Bổ Nào — Nhớ Đóng Đủ Viện Phí Đấy Nhé~!”',
+    quote: '“Tiêm Thuốc Bổ Nào — Chữa Lành Bài Nhỏ Ngay Thôi~!”',
   },
   {
     id: 'emilie',
@@ -1860,7 +1860,7 @@ const CHARACTER_SKILLS = {
     charName: 'Sigewinne',
     icon: '💉',
     name: 'Trạm Y Tế Meropide',
-    shortDesc: 'Bắn Mũi Tiêm Dinh Dưỡng chữa lành tối đa 3 lá bài nhỏ (3→7) trên tay Sigewinne tăng đồng loạt +2 bậc Đỏ (♥/♦) & gắn Tim Thuốc: Nếu đối thủ thắng vòng này phải trả 3× cược Xu viện phí cho Sigewinne!',
+    shortDesc: 'Bắn Mũi Tiêm Dinh Dưỡng chữa lành tối đa 3 lá bài nhỏ (3→7) trên tay Sigewinne tăng đồng loạt +2 bậc Đỏ (♥/♦)!',
   },
   emilie: {
     id: 'emilie',
@@ -9117,14 +9117,138 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // REWARDED SPONSOR AD (100% QUẢNG CÁO MONETAG • ĐÃ XÓA QUẢNG CÁO VERITY / RICK ROLL)
+  // REWARDED VIDEO AD (RICK ROLL & HEY IT'S ME IT'S VERITY NHẬN 1 ROLL = +1,600 XU)
   // ============================================================================
   applyAdMusicTrack() {
-    // Đã xóa hoàn toàn video/nhạc Verity & Rick Roll
+    const mode = this.adMusicTrack || 'rickroll';
+    const verityVideoEl = document.getElementById('verity-video');
+    const videoEl = document.getElementById('rickroll-video');
+    const gifFallback = document.getElementById('rickroll-gif-fallback');
+    const rickAudioEl = document.getElementById('rickroll-audio');
+    const verityAudioEl = document.getElementById('verity-audio');
+    const verityStage = document.getElementById('verity-ad-stage');
+    const bannerEl = document.getElementById('ad-rickroll-banner');
+    const switchBtn = document.getElementById('btn-ad-switch-music');
+    const sponsorEl = document.getElementById('ad-sponsor-badge');
+
+    if (switchBtn) {
+      switchBtn.textContent =
+        mode === 'verity' ? "🎬 Video: Hey It's Me, It's Verity (Đổi ⇄)" : '🎬 Video: Rick Roll (Đổi ⇄)';
+    }
+    if (sponsorEl) {
+      sponsorEl.innerHTML =
+        mode === 'verity'
+          ? '📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI VERITY AI &amp; FONTAINE TV'
+          : '📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI RICK ASTLEY (FONTAINE TV)';
+    }
+    if (bannerEl) {
+      bannerEl.innerHTML =
+        mode === 'verity'
+          ? '🙂 <strong>HEY, IT\'S ME, IT\'S VERITY!</strong> Thưởng thức video gốc <em>“Hey, It\'s Me, It\'s Verity”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎶'
+          : '🕺 <strong>BẠN ĐÃ BỊ RICK ROLL!</strong> Hãy thưởng thức giai điệu bất hủ <em>“Never Gonna Give You Up”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎤';
+    }
+
+    if (mode === 'verity') {
+      if (videoEl) {
+        try {
+          videoEl.pause();
+        } catch (_) {}
+        videoEl.classList.add('hidden');
+      }
+      gifFallback?.classList.add('hidden');
+      if (rickAudioEl) {
+        try {
+          rickAudioEl.pause();
+        } catch (_) {}
+      }
+      if (verityAudioEl) {
+        try {
+          verityAudioEl.pause();
+        } catch (_) {}
+      }
+
+      if (verityVideoEl) {
+        verityVideoEl.classList.remove('hidden');
+        verityStage?.classList.add('hidden');
+        verityVideoEl.muted = false;
+        verityVideoEl.volume = 0.9;
+        try {
+          verityVideoEl.currentTime = 1.0;
+        } catch (_) {}
+        const p = verityVideoEl.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            verityVideoEl.muted = true;
+            verityVideoEl.play().catch(() => {
+              verityVideoEl.classList.add('hidden');
+              verityStage?.classList.remove('hidden');
+            });
+            if (verityAudioEl) {
+              try {
+                verityAudioEl.currentTime = 0;
+                verityAudioEl.volume = 0.9;
+                verityAudioEl.play().catch(() => {});
+              } catch (_) {}
+            }
+          });
+        }
+        verityVideoEl.onerror = () => {
+          verityVideoEl.classList.add('hidden');
+          verityStage?.classList.remove('hidden');
+          if (verityAudioEl) {
+            try {
+              verityAudioEl.currentTime = 0;
+              verityAudioEl.volume = 0.9;
+              verityAudioEl.play().catch(() => {});
+            } catch (_) {}
+          }
+        };
+      } else {
+        verityStage?.classList.remove('hidden');
+      }
+    } else {
+      if (verityVideoEl) {
+        try {
+          verityVideoEl.pause();
+        } catch (_) {}
+        verityVideoEl.classList.add('hidden');
+      }
+      if (verityAudioEl) {
+        try {
+          verityAudioEl.pause();
+        } catch (_) {}
+      }
+      verityStage?.classList.add('hidden');
+
+      if (videoEl) {
+        videoEl.classList.remove('hidden');
+        gifFallback?.classList.add('hidden');
+        videoEl.muted = false;
+        videoEl.volume = 0.85;
+        try {
+          videoEl.currentTime = 42;
+        } catch (_) {}
+        const p = videoEl.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            videoEl.classList.add('hidden');
+            gifFallback?.classList.remove('hidden');
+            if (rickAudioEl) {
+              try {
+                rickAudioEl.currentTime = 42;
+                rickAudioEl.volume = 0.85;
+                rickAudioEl.play().catch(() => {});
+              } catch (_) {}
+            }
+          });
+        }
+      }
+    }
   }
 
   toggleAdMusicTrack() {
-    // Đã xóa hoàn toàn video/nhạc Verity & Rick Roll
+    this.adMusicTrack = (this.adMusicTrack || 'rickroll') === 'rickroll' ? 'verity' : 'rickroll';
+    this.applyAdMusicTrack();
   }
 
   getAdMonetizationConfig() {
@@ -9549,9 +9673,14 @@ class TienLenGame {
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');
     const progressFill = document.getElementById('ad-progress-fill');
+    const lyricsSub = document.getElementById('ad-lyrics-sub');
     const toastMsg = document.getElementById('ad-toast-msg');
 
     if (!overlay) return;
+
+    if (!this.adMusicTrack) {
+      this.adMusicTrack = 'rickroll';
+    }
 
     const AD_DURATION = this.isWelkinActive() ? 1 : 15;
     const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
@@ -9560,46 +9689,10 @@ class TienLenGame {
     this.adSponsorClickedThisSession = false;
     clearInterval(this.adIntervalTimer);
 
-    const adCfg = this.getAdMonetizationConfig();
     this.recordAdMonetizationEvent('view');
 
-    const sponsorBox = document.getElementById('ad-real-sponsor-box');
-    const networkSlot = document.getElementById('ad-real-network-slot');
-
-    // Kích hoạt 2 Zone Banner chính chủ Monetag (Vignette #12175793 & In-Page Push #12175813) có sẵn nút ✕ Đóng
-    try {
-      [
-        { id: 'monetag-vignette-script', zone: '12175793', src: 'https://n6wxm.com/vignette.min.js' },
-        { id: 'monetag-ipp-script', zone: '12175813', src: 'https://nap5k.com/tag.min.js' },
-      ].forEach((item) => {
-        const oldEl = document.getElementById(item.id);
-        if (oldEl) oldEl.remove();
-        const s = document.createElement('script');
-        s.id = item.id;
-        s.dataset.zone = item.zone;
-        s.src = item.src;
-        [document.documentElement, document.body].filter(Boolean).pop().appendChild(s);
-      });
-    } catch (_) {}
-
-    if (sponsorBox) {
-      sponsorBox.classList.remove('hidden');
-      if (networkSlot) {
-        networkSlot.innerHTML =
-          adCfg.bannerHtml ||
-          `
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;text-align:center;width:100%;">
-              <div style="font-size:42px;line-height:1;font-weight:900;color:#facc15;text-shadow:0 2px 12px rgba(250,204,21,0.45);" id="ad-center-sec-num">${AD_DURATION}s</div>
-              <div style="font-size:15px;font-weight:900;color:#fef08a;">📢 ĐANG HIỂN THỊ BANNER QUẢNG CÁO MONETAG (GÓC TRÊN BÊN PHẢI)</div>
-              <div style="font-size:12.5px;color:#cbd5e1;max-width:500px;line-height:1.5;">
-                Quảng cáo chính thức của đối tác <strong>Monetag (nhãn Ad góc phải màn hình)</strong> đang hiển thị.<br/>
-                Hệ thống sẽ tự động cộng <strong style="color:#4ade80;">+1 Roll (+1,600 Xu)</strong> ngay khi đếm ngược về 0s!
-              </div>
-            </div>
-          `;
-      }
-    }
-
+    sfx.bgmPausedForAd = true;
+    sfx.stopBGM();
     overlay.classList.remove('hidden');
 
     if (countdownPill) {
@@ -9616,6 +9709,25 @@ class TienLenGame {
       toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> quảng cáo sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
     }
 
+    const verityLyricsTimeline = [
+      { at: 0, text: "🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵" },
+      { at: 7, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
+      { at: 12, text: "🗼🥖 “What's the capital of France? ~ Oh, oui oui oui, it is Paris!” 🎵" },
+    ];
+    const rickLyricsTimeline = [
+      { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
+      { at: 3, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
+      { at: 7, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
+      { at: 11, text: '🔥 “Never gonna make you cry ~ Never gonna say goodbye!” 👑' },
+    ];
+    if (lyricsSub) {
+      lyricsSub.textContent =
+        this.adMusicTrack === 'verity' ? verityLyricsTimeline[0].text : rickLyricsTimeline[0].text;
+    }
+
+    // Bật hình ảnh Video gốc + phát nhạc Rick Roll (hoặc Verity tùy chọn)
+    this.applyAdMusicTrack();
+
     let elapsed = 0;
     this.adIntervalTimer = setInterval(() => {
       elapsed++;
@@ -9623,9 +9735,13 @@ class TienLenGame {
       const pct = Math.min(100, Math.round((elapsed / AD_DURATION) * 100));
       if (progressFill) progressFill.style.width = `${pct}%`;
 
-      const centerSecEl = document.getElementById('ad-center-sec-num');
+      const activeTimeline = this.adMusicTrack === 'verity' ? verityLyricsTimeline : rickLyricsTimeline;
+      const curLyric = [...activeTimeline].reverse().find((l) => elapsed >= l.at);
+      if (curLyric && lyricsSub) {
+        lyricsSub.textContent = curLyric.text;
+      }
+
       if (this.adRemainingSec > 0) {
-        if (centerSecEl) centerSecEl.textContent = `${this.adRemainingSec}s`;
         if (countdownPill) {
           countdownPill.innerHTML = `⏳ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) sau: <strong>${this.adRemainingSec}s</strong>`;
         }
@@ -9633,7 +9749,6 @@ class TienLenGame {
           skipBtn.textContent = `🔒 Chờ ${this.adRemainingSec}s...`;
         }
       } else {
-        if (centerSecEl) centerSecEl.textContent = `✅ +1 ROLL!`;
         clearInterval(this.adIntervalTimer);
         if (!this.adRewardClaimed) {
           this.adRewardClaimed = true;
@@ -9648,7 +9763,7 @@ class TienLenGame {
           const resBal = document.getElementById('gacha-results-balance');
           if (resBal && me) resBal.textContent = me.coins.toLocaleString();
           this.addLog(
-            `📺 <strong>Quảng Cáo Nhận Thưởng:</strong> Bạn đã xem quảng cáo đủ 15 giây và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
+            `🕺 <strong>Quảng Cáo Rick Roll / Verity:</strong> Bạn đã xem quảng cáo đủ 15 giây và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
             'log-win'
           );
           this.syncCosmeticsInRoom();
@@ -9670,9 +9785,35 @@ class TienLenGame {
   stopRickRollAd() {
     clearInterval(this.adIntervalTimer);
     const overlay = document.getElementById('rickroll-ad-overlay');
-    const networkSlot = document.getElementById('ad-real-network-slot');
-    if (networkSlot) networkSlot.innerHTML = '';
+    const verityVideoEl = document.getElementById('verity-video');
+    const videoEl = document.getElementById('rickroll-video');
+    const audioEl = document.getElementById('rickroll-audio');
+    const verityAudioEl = document.getElementById('verity-audio');
+    if (verityVideoEl) {
+      try {
+        verityVideoEl.pause();
+      } catch (_) {}
+    }
+    if (videoEl) {
+      try {
+        videoEl.pause();
+      } catch (_) {}
+    }
+    if (audioEl) {
+      try {
+        audioEl.pause();
+      } catch (_) {}
+    }
+    if (verityAudioEl) {
+      try {
+        verityAudioEl.pause();
+      } catch (_) {}
+    }
     overlay?.classList.add('hidden');
+    sfx.bgmPausedForAd = false;
+    if (sfx.bgmEnabled && sfx.enabled) {
+      sfx.startBGM();
+    }
     sfx.click();
   }
 
@@ -12410,7 +12551,7 @@ class TienLenGame {
     if (this.sigewinneCareOwnerId !== null) {
       const sp = this.players[this.sigewinneCareOwnerId];
       pills.push(
-        `<span class="round-skill-pill">💉 Trạm Y Tế (${sp ? sp.name : 'Sigewinne'}): Đối thủ nào thắng vòng này phải nộp viện phí ${(b * 3).toLocaleString()} Xu cho ${sp ? sp.name : 'Sigewinne'}!</span>`
+        `<span class="round-skill-pill">💉 Trạm Y Tế (${sp ? sp.name : 'Sigewinne'}): Đã tiêm Tinh Chất Trị Liệu nâng +2 bậc Đỏ (♥/♦) cho 3 lá bài nhỏ!</span>`
       );
     }
     if (this.yelanParityRound) {
@@ -13134,6 +13275,88 @@ class TienLenGame {
     return { ok: true, charId };
   }
 
+  getSkillTargetSelectionSpec(player, charId) {
+    if (!player) return null;
+    const activeOpponents = this.players.filter(
+      (p) => p.active && p.id !== player.id && p.finishRank === null && p.hand.length > 0
+    );
+    const unpassedOpps = activeOpponents.filter((p) => !p.passed);
+    const unpassedOrAll = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
+
+    const singleTargetMap = {
+      citlali: {
+        title: '🛏️ Gối Ôm Ký Sinh — Chọn đối thủ để gắn Gối Citlalin:',
+        desc: 'Hễ mục tiêu này đánh ra bao nhiêu lá bài trong vòng, bạn được vứt bỏ theo bấy nhiêu lá bài rác nhỏ nhất!',
+        candidates: unpassedOrAll,
+      },
+      ayaka: {
+        title: '❄️ Sương Hoa Phong Ấn — Chọn đối thủ để Đóng Băng:',
+        desc: 'Đối thủ bị chọn sẽ bị đóng băng mất lượt kế tiếp trong vòng này!',
+        candidates: unpassedOrAll,
+      },
+      clorinde: {
+        title: '⚡ Thách Đấu Danh Dự — Chọn đối thủ Quyết Đấu 1v1:',
+        desc: 'Khóa vòng đấu hiện tại thành Quyết Đấu 1v1 giữa bạn và đối thủ được chọn (các nhà khác tự bỏ lượt)!',
+        candidates: unpassedOrAll,
+      },
+      skirk: {
+        title: '🌌 Khe Nứt Vực Sâu — Chọn đối thủ để tráo 1 lá bài:',
+        desc: 'Tráo đổi 1 lá bài đang chọn trên tay bạn lấy 1 lá bài ngẫu nhiên của đối thủ này!',
+        candidates: activeOpponents,
+      },
+      yelan: {
+        title: '🎲 Sòng Bạc Dạ Lan — Chọn đối thủ để Thấu Thị 2 lá bài:',
+        desc: 'Lật ngửa 2 lá bài trên tay đối thủ này trong 8.5s và khóa luật Chẵn/Lẻ cho cả vòng!',
+        candidates: activeOpponents,
+      },
+      zibai: {
+        title: '🐎 Bạch Mã Vượt Tuyến — Chọn đối thủ bắt buộc phải đỡ bài:',
+        desc: 'Bỏ qua các nhà ngồi giữa, chỉ định thẳng đối thủ này phải đỡ bài kế tiếp với luật +2 bậc!',
+        candidates: unpassedOrAll,
+      },
+      kazuha: {
+        title: '🍁 Vạn Diệp Phong Vực — Chọn đối thủ bị hạ bài xuống chất Đen:',
+        desc: 'Nhuộm Đỏ toàn bộ bài của bạn (♥/♦) và tước sắc hạ toàn bộ bài của đối thủ được chọn xuống chất Đen (♠/♣)!',
+        candidates: activeOpponents,
+      },
+      neuvillette: {
+        title: '⚖️ Cán Cân Tuyệt Đối — Chọn đối thủ nhận bài rác:',
+        desc: 'Chuyển thẳng tối đa 3 lá bài rác nhỏ nhất từ tay bạn sang tay đối thủ đang ít bài hơn này!',
+        candidates: activeOpponents.filter((p) => p.hand.length < player.hand.length),
+      },
+    };
+    return singleTargetMap[charId] || null;
+  }
+
+  closeSkillTargetPickerModal() {
+    this._pendingSkillTargetCharId = null;
+    document.getElementById('skill-target-picker-modal')?.classList.add('hidden');
+  }
+
+  confirmHumanSkillTarget(targetSeatId) {
+    const modal = document.getElementById('skill-target-picker-modal');
+    modal?.classList.add('hidden');
+    const human = this.getLocalPlayer();
+    const check = this.canUseCharacterSkill(human);
+    if (!check.ok) return;
+    const tid = Number(targetSeatId);
+
+    if (this.isMultiplayer && !this.isHost) {
+      const selectedIds = Array.from(this.selectedCardIds);
+      this.selectedCardIds.clear();
+      this.companionCardIds.clear();
+      this.sendClientEvent({
+        type: 'USE_CHAR_SKILL',
+        clientId: this.myClientId,
+        charId: check.charId,
+        selectedIds,
+        targetSeatId: tid,
+      });
+      return;
+    }
+    this.useCharacterSkill(human, Array.from(this.selectedCardIds), tid);
+  }
+
   onHumanUseSkill() {
     if (this.isGameOver || this.isBurstPlaying) return;
     const human = this.getLocalPlayer();
@@ -13146,6 +13369,46 @@ class TienLenGame {
       return;
     }
 
+    const targetSpec = this.getSkillTargetSelectionSpec(human, check.charId);
+    if (targetSpec && targetSpec.candidates.length >= 2) {
+      const modal = document.getElementById('skill-target-picker-modal');
+      const titleEl = document.getElementById('skill-target-picker-title');
+      const bodyEl = document.getElementById('skill-target-picker-body');
+      if (modal && titleEl && bodyEl) {
+        titleEl.textContent = targetSpec.title;
+        const posNames = { 1: '➡️ Cánh Phải (Kế tiếp)', 2: '⬆️ Đối Diện', 3: '⬅️ Cánh Trái' };
+        bodyEl.innerHTML = `
+          <div style="font-size:12px;color:#cbd5e1;margin-bottom:4px;line-height:1.4;">${targetSpec.desc}</div>
+          ${targetSpec.candidates
+            .map((opp) => {
+              const relSlot = (opp.id - this.mySeatId + 4) % 4;
+              const posLabel = posNames[relSlot] || `Ghế #${opp.id + 1}`;
+              const statusBadge = opp.passed
+                ? '<span style="color:#94a3b8;font-size:11px;">(Đã bỏ lượt vòng này)</span>'
+                : '<span style="color:#4ade80;font-size:11px;">(Đang trong vòng)</span>';
+              return `
+                <button type="button" onclick="window.tienLenGame.confirmHumanSkillTarget(${opp.id})" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(250,204,21,0.55);background:linear-gradient(135deg,rgba(30,41,59,0.95),rgba(15,23,42,0.98));color:#f8fafc;cursor:pointer;text-align:left;transition:transform 0.12s;">
+                  <div>
+                    <div style="font-size:14px;font-weight:900;color:#fef08a;">🎯 ${opp.name}</div>
+                    <div style="font-size:11.5px;color:#cbd5e1;margin-top:2px;">${posLabel} • ${statusBadge}</div>
+                  </div>
+                  <div style="padding:4px 10px;border-radius:999px;background:rgba(234,179,8,0.2);border:1px solid #facc15;font-weight:900;font-size:13px;color:#fde047;">
+                    🃏 ${opp.hand.length} lá
+                  </div>
+                </button>
+              `;
+            })
+            .join('')}
+        `;
+        modal.classList.remove('hidden');
+        sfx.click();
+        return;
+      }
+    }
+
+    const autoTargetId =
+      targetSpec && targetSpec.candidates.length === 1 ? targetSpec.candidates[0].id : null;
+
     if (this.isMultiplayer && !this.isHost) {
       const selectedIds = Array.from(this.selectedCardIds);
       this.selectedCardIds.clear();
@@ -13155,10 +13418,11 @@ class TienLenGame {
         clientId: this.myClientId,
         charId: check.charId,
         selectedIds,
+        targetSeatId: autoTargetId,
       });
       return;
     }
-    this.useCharacterSkill(human, Array.from(this.selectedCardIds));
+    this.useCharacterSkill(human, Array.from(this.selectedCardIds), autoTargetId);
   }
 
   applyElementalReactionBonus(attacker, prevPlayer, rx) {
@@ -13184,7 +13448,7 @@ class TienLenGame {
     return rxBonus;
   }
 
-  useCharacterSkill(player, preferredCardIds = []) {
+  useCharacterSkill(player, preferredCardIds = [], preferredTargetId = null) {
     const check = this.canUseCharacterSkill(player);
     if (!check.ok) return false;
 
@@ -13207,6 +13471,15 @@ class TienLenGame {
         return arr[randBuf[0] % arr.length];
       }
       return arr[Math.floor(Math.random() * arr.length)];
+    };
+    const resolveTargetOpponent = (candOpps, fallbackFn) => {
+      if (preferredTargetId !== null && preferredTargetId !== undefined) {
+        const tid = Number(preferredTargetId);
+        const exact =
+          candOpps.find((p) => p.id === tid) || activeOpponents.find((p) => p.id === tid);
+        if (exact) return exact;
+      }
+      return fallbackFn(candOpps);
     };
 
     try {
@@ -13305,8 +13578,8 @@ class TienLenGame {
       activeFurinaReverseSuit = true;
       skillSummary = `💧 [Luật Sân Khấu Fontaine] ${player.name} đảo ngược chất (♠ > ♣ > ♦ > ♥) khi đè cùng số & CẤM đánh Heo lẻ (2) trong vòng này!`;
     } else if (charId === 'skirk') {
-      // Chọn ngẫu nhiên 100% công bằng (không ưu tiên bất kỳ đối thủ hay lá bài nào)
-      const target = pickRandomItem(activeOpponents);
+      // Chọn đối thủ mục tiêu (người chơi tự chọn hoặc Bot chọn ngẫu nhiên)
+      const target = resolveTargetOpponent(activeOpponents, (opps) => pickRandomItem(opps));
       if (target && target.hand.length > 0 && player.hand.length > 0) {
         let myCard = null;
         if (!player.isBot && preferredCardIds && preferredCardIds.length > 0) {
@@ -13355,7 +13628,10 @@ class TienLenGame {
       this.yelanParityOwnerId = player.id;
       this.yelanParityRound = true;
       this.syncRoundRuleGlobals(player.id);
-      const target = [...activeOpponents].sort((a, b) => a.hand.length - b.hand.length)[0];
+      const target = resolveTargetOpponent(
+        activeOpponents,
+        (opps) => [...opps].sort((a, b) => a.hand.length - b.hand.length)[0]
+      );
       let revNote = '';
       if (target && target.hand.length > 0) {
         const shuffledHand = shuffleDeck([...target.hand]);
@@ -13376,7 +13652,10 @@ class TienLenGame {
       skillSummary = `🎲 [Sòng Bạc Dạ Lan] ${player.name} tung Xúc Xắc Chẵn Lẻ: Mọi đối thủ muốn đè bài trong vòng này BẮT BUỘC phải đánh lá cao nhất CÙNG CHẴN hoặc CÙNG LẺ bậc với bài trên bàn${revNote}!`;
     } else if (charId === 'clorinde') {
       const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      const target = pickRandomItem(unpassedOpps.length > 0 ? unpassedOpps : activeOpponents);
+      const target = resolveTargetOpponent(
+        unpassedOpps.length > 0 ? unpassedOpps : activeOpponents,
+        (opps) => pickRandomItem(opps)
+      );
       if (target) {
         this.clorindeDuelPair = [player.id, target.id];
         this.players.forEach((p) => {
@@ -13388,7 +13667,10 @@ class TienLenGame {
       }
     } else if (charId === 'ayaka') {
       const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      const target = pickRandomItem(unpassedOpps.length > 0 ? unpassedOpps : activeOpponents);
+      const target = resolveTargetOpponent(
+        unpassedOpps.length > 0 ? unpassedOpps : activeOpponents,
+        (opps) => pickRandomItem(opps)
+      );
       if (target) {
         this.ayakaFrozenPlayerId = target.id;
         skillSummary = `❄️ [Sương Hoa Phong Ấn] ${player.name} đóng băng ${target.name} khiến họ mất lượt kế tiếp trong vòng này!`;
@@ -13516,7 +13798,10 @@ class TienLenGame {
     } else if (charId === 'citlali') {
       const unpassedOpps = activeOpponents.filter((p) => !p.passed);
       const candOpps = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
-      const target = [...candOpps].sort((a, b) => a.hand.length - b.hand.length)[0];
+      const target = resolveTargetOpponent(
+        candOpps,
+        (opps) => [...opps].sort((a, b) => a.hand.length - b.hand.length)[0]
+      );
       if (target) {
         this.citlaliPillowOwnerId = player.id;
         this.citlaliPillowTargetId = target.id;
@@ -13583,7 +13868,10 @@ class TienLenGame {
       this.syncRoundRuleGlobals(player.id);
       const unpassedOpps = activeOpponents.filter((p) => !p.passed);
       const candOpps = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
-      const maxCardOpp = [...candOpps].sort((a, b) => b.hand.length - a.hand.length)[0];
+      const maxCardOpp = resolveTargetOpponent(
+        candOpps,
+        (opps) => [...opps].sort((a, b) => b.hand.length - a.hand.length)[0]
+      );
       let redirectNote = '';
       if (maxCardOpp) {
         this.zibaiRedirectTargetId = maxCardOpp.id;
@@ -14166,7 +14454,10 @@ class TienLenGame {
       });
       player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
 
-      const target = [...activeOpponents].sort((a, b) => a.hand.length - b.hand.length)[0];
+      const target = resolveTargetOpponent(
+        activeOpponents,
+        (opps) => [...opps].sort((a, b) => a.hand.length - b.hand.length)[0]
+      );
       let oppNote = '';
       if (target && target.hand.length > 0) {
         const oppUsedSuits = new Map();
@@ -14314,12 +14605,17 @@ class TienLenGame {
         .join(', ');
       skillSummary = `🪞 [Ma Trận Phổ Quang] ${player.name} dựng Ma Trận Gương Ánh Sáng: CẤM đối thủ đánh bộ bài có lá cao nhất nằm ngoài tập số [${allowedLabels}] đang có trên tay Alhaitham trong vòng này!`;
     } else if (charId === 'neuvillette') {
-      const target = [...activeOpponents].sort(
-        (a, b) =>
-          a.hand.length - b.hand.length ||
-          (b.id === this.trickOwnerId ? 1 : 0) - (a.id === this.trickOwnerId ? 1 : 0) ||
-          (a.passed ? 1 : 0) - (b.passed ? 1 : 0)
-      )[0];
+      const validNeuviOpps = activeOpponents.filter((p) => p.hand.length < player.hand.length);
+      const target = resolveTargetOpponent(
+        validNeuviOpps.length > 0 ? validNeuviOpps : activeOpponents,
+        (opps) =>
+          [...opps].sort(
+            (a, b) =>
+              a.hand.length - b.hand.length ||
+              (b.id === this.trickOwnerId ? 1 : 0) - (a.id === this.trickOwnerId ? 1 : 0) ||
+              (a.passed ? 1 : 0) - (b.passed ? 1 : 0)
+          )[0]
+      );
       if (target && player.hand.length > target.hand.length) {
         const diff = player.hand.length - target.hand.length;
         // Chuyển thẳng các lá bài rác nhỏ nhất từ tay Neuvillette sang tay đối thủ cho đến khi số bài 2 bên bằng nhau (tối đa chuyển 3 lá)
@@ -14424,9 +14720,7 @@ class TienLenGame {
         this.selectedCardIds = new Set([healedIds[healedIds.length - 1]]);
         this.companionCardIds.clear();
       }
-      skillSummary = `💉 [Trạm Y Tế Meropide] ${player.name} tiêm Tinh Chất Trị Liệu nâng +2 bậc chất Đỏ cho ${healTargets.length} lá bài nhỏ (${healedLogs.join(', ')}) và đặt Phí Chăm Sóc Đặc Biệt: Khi kết thúc vòng này, đối thủ nào thắng vòng phải nộp 3× tiền cược (${(
-        b * 3
-      ).toLocaleString()} Xu) viện phí cho ${player.name}!`;
+      skillSummary = `💉 [Trạm Y Tế Meropide] ${player.name} tiêm Tinh Chất Trị Liệu chữa lành và nâng +2 bậc chất Đỏ (♥/♦) cho ${healTargets.length} lá bài nhỏ (${healedLogs.join(', ')})!`;
     } else if (charId === 'emilie') {
       const suitCounts = [0, 0, 0, 0];
       if (preferredCardIds && preferredCardIds.length > 0) {
@@ -14738,9 +15032,8 @@ class TienLenGame {
     const hasOppRoundEffect =
       (this.ittoUshiOwnerId !== null && this.ittoUshiOwnerId !== bot.id) ||
       (this.kinichBombOwnerId !== null && this.kinichBombOwnerId !== bot.id) ||
-      (this.citlaliPillowOwnerId !== null && this.citlaliPillowOwnerId !== bot.id) ||
+      (this.citlaliPillowOwnerId !== null && this.citlaliPillowTargetId === bot.id) ||
       (this.hutaoTaxOwnerId !== null && this.hutaoTaxOwnerId !== bot.id) ||
-      (this.sigewinneCareOwnerId !== null && this.sigewinneCareOwnerId !== bot.id) ||
       (this.vesnaSpringOwnerId !== null && this.vesnaSpringOwnerId !== bot.id) ||
       (this.xiaoKarmaOwnerId !== null && this.xiaoKarmaOwnerId !== bot.id) ||
       (this.emiliePerfumeOwnerId !== null && this.emiliePerfumeOwnerId !== bot.id) ||
@@ -14773,8 +15066,7 @@ class TienLenGame {
       (this.citlaliPillowOwnerId !== null &&
         this.citlaliPillowTargetId === bot.id &&
         this.trickOwnerId === this.citlaliPillowOwnerId) ||
-      (this.hutaoTaxOwnerId !== null && this.hutaoTaxOwnerId !== bot.id) ||
-      (this.sigewinneCareOwnerId !== null && this.sigewinneCareOwnerId !== bot.id);
+      (this.hutaoTaxOwnerId !== null && this.hutaoTaxOwnerId !== bot.id);
 
     // Kiểm tra nếu bỏ lượt sẽ chịu phạt nặng
     const passHasDirectDisadvantage =
@@ -15879,20 +16171,16 @@ class TienLenGame {
         shouldCast = true;
       }
     } else if (charId === 'sigewinne') {
-      // Trạm Y Tế Meropide: Nâng 3 lá nhỏ nhất +1 bậc VÀ thu Viện Phí 2x mỗi khi đối thủ đánh đè trong vòng này!
-      // Phải bật khi bàn đang nhỏ (hoặc mở vòng mới) và đánh bài mồi nhỏ (<= 9) để đối thủ đè nhiều lượt nộp Viện Phí!
+      // Trạm Y Tế Meropide: Nâng 3 lá nhỏ nhất +2 bậc Đỏ (♥/♦)
       const low3Ids = new Set(
         sortCardsAsc(bot.hand)
-          .filter((c) => c.rankIndex <= 9 && !struct.bombRanks.has(c.rankIndex))
+          .filter((c) => c.rankIndex <= 4 && !struct.bombRanks.has(c.rankIndex))
           .slice(0, 3)
           .map((c) => c.id)
       );
-      const isSmallTableForSigewinne = !this.currentCombo || this.currentCombo.highRank <= 4;
       const safeToUpgrade3 =
-        isSmallTableForSigewinne &&
         plannedMove &&
         !plannedMove.isBomb &&
-        plannedMove.highRank <= 6 &&
         !plannedMove.cards.some((pc) => low3Ids.has(pc.id));
       if (safeToUpgrade3 && low3Ids.size >= 2 && (minOppCards <= 8 || bot.hand.length <= 9)) {
         shouldCast = true;
@@ -16039,14 +16327,13 @@ class TienLenGame {
       'ineffa',
     ];
 
-    // Nhóm 2: Các nhân vật Gài Bẫy / Phạt Khi Đối Thủ Đánh Đè (Hu Tao, Itto, Kinich, Citlali, Sigewinne, Vesna, Alhaitham...)
+    // Nhóm 2: Các nhân vật Gài Bẫy / Phạt Khi Đối Thủ Đánh Đè (Hu Tao, Itto, Kinich, Citlali, Vesna, Alhaitham...)
     // -> CHỈ kích hoạt khi bài trên sân ĐANG NHỎ và Bot đánh quân mồi NHỎ (<= 8) để đối thủ nhảy vào đè!
     const baitOnSmallTableChars = [
       'hutao',
       'itto',
       'kinich',
       'citlali',
-      'sigewinne',
       'vesna',
       'alhaitham',
       'ayato',
@@ -18300,7 +18587,11 @@ class TienLenGame {
         seat.chopBurst = evt.charId;
         seat.winBurst = evt.charId;
       }
-      this.useCharacterSkill(seat, evt.selectedIds || []);
+      this.useCharacterSkill(
+        seat,
+        evt.selectedIds || [],
+        evt.targetSeatId !== undefined ? evt.targetSeatId : null
+      );
     } else if (evt.type === 'PLAY_CARDS') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
       if (!seat || this.isGameOver) return;
@@ -20308,40 +20599,6 @@ class TienLenGame {
   }
 
   startNewRoundAfterAllPass() {
-    // Trạm Y Tế Meropide của Sigewinne: Khi vòng kết thúc, nếu đối thủ thắng vòng này thì phải đóng viện phí 3× mức cược cho Sigewinne!
-    if (
-      this.sigewinneCareOwnerId !== null &&
-      this.trickOwnerId !== null &&
-      this.trickOwnerId !== this.sigewinneCareOwnerId
-    ) {
-      const sigeOwner = this.players[this.sigewinneCareOwnerId];
-      const roundWinner = this.players[this.trickOwnerId];
-      if (sigeOwner && sigeOwner.active && roundWinner && roundWinner.active) {
-        const b = this.betPerCard || 100;
-        const medFee = Math.round(b * 3);
-        roundWinner.coins -= medFee;
-        sigeOwner.coins += medFee;
-        this.matchChopCoins[roundWinner.id] -= medFee;
-        this.matchChopCoins[sigeOwner.id] += medFee;
-        this.matchChopDetails[roundWinner.id].push({
-          label: `💉 Viện Phí Meropide (${sigeOwner.name}): Thắng vòng nộp phạt (-${medFee.toLocaleString()})`,
-          isSpecial: true,
-        });
-        this.matchChopDetails[sigeOwner.id].push({
-          label: `💉 Thu Viện Phí Meropide từ ${roundWinner.name} (+${medFee.toLocaleString()})`,
-          isGood: true,
-        });
-        this.showComboBanner(
-          `💉 TRẠM Y TẾ MEROPIDE: ${roundWinner.name.toUpperCase()} NỘP VIỆN PHÍ +${medFee.toLocaleString()} XU CHO ${sigeOwner.name.toUpperCase()}!`,
-          'reaction-electro-charged'
-        );
-        this.addLog(
-          `💉 <strong>[Trạm Y Tế Meropide]</strong> <strong>${roundWinner.name}</strong> thắng vòng chăm sóc của <strong>${sigeOwner.name}</strong> nên phải đóng <strong>+${medFee.toLocaleString()} Xu</strong> (3× cược) viện phí cho Y Tá trưởng!`,
-          'log-chop'
-        );
-      }
-    }
-
     // Gió Xuân Đoạt Cái của Vesna: Khi vòng kết thúc, nếu bộ bài thắng vòng cuối cùng của đối thủ có chứa lá Đỏ (♥/♦) -> Vesna tịch thu quyền Cầm Cái mở vòng mới!
     if (
       this.vesnaSpringOwnerId !== null &&
@@ -23348,32 +23605,23 @@ class TienLenGame {
         return true;
       }
 
-      // (B) CHIẾN THUẬT NHỊN ĐÁNH KHI NGƯỜI HOẶC BOT TRƯỚC TRONG VÒNG NÀY ĐÃ KÍCH HOẠT KỸ NĂNG:
-      if (tac.oppSkillActiveInRound && !tac.passHasDirectDisadvantage && !tac.isOpponentAboutToWin) {
+      // (B) CHIẾN THUẬT NHỊN ĐÁNH KHI DẪM BẪY TRỰC TIẾP TRONG VÒNG NÀY (CHỈ NHỊN KHI CHÍNH BOT NÀY SẼ BỊ PHẠT/DẪM BẪY!):
+      if (!tac.passHasDirectDisadvantage && !tac.isOpponentAboutToWin) {
         const triggersVesnaRedSteal =
           this.vesnaSpringOwnerId !== null &&
           this.vesnaSpringOwnerId !== bot.id &&
           cand.move.cards.some((c) => c.suitIndex >= 2);
         if (tac.playTriggersHardTrap || triggersVesnaRedSteal) {
-          return false;
-        }
-        const isChopForCoins = Boolean(canBeatCombo(cand.move, this.currentCombo).isChop);
-        const isStraightCutResponse =
-          this.currentCombo?.type === COMBO_TYPES.STRAIGHT &&
-          cand.move.type === COMBO_TYPES.STRAIGHT &&
-          cand.turnsAdded <= 2 &&
-          cand.trashAdded <= 2 &&
-          !cand.touchesBomb;
-        const isPureTrashDump =
-          cand.breakCost === 0 &&
-          cand.turnsAdded <= 0 &&
-          cand.trashAdded <= 0 &&
-          !cand.touchesBomb &&
-          cand.move.highRank <= 7 &&
-          cand.deficitDelta <= 0 &&
-          cand.afterPlan.totalTurns < beforePlan.totalTurns;
-        if (!isChopForCoins && !isPureTrashDump && !isStraightCutResponse) {
-          return false;
+          const isChopForCoins = Boolean(canBeatCombo(cand.move, this.currentCombo).isChop);
+          const isHighSingleTakeover =
+            this.citlaliPillowOwnerId !== null &&
+            this.citlaliPillowTargetId === bot.id &&
+            this.currentCombo?.type === COMBO_TYPES.SINGLE &&
+            cand.move.highRank >= 9 &&
+            cand.turnsAdded <= 0;
+          if (!isChopForCoins && !isHighSingleTakeover) {
+            return false;
+          }
         }
       }
 

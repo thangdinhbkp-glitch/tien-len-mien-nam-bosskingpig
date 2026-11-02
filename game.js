@@ -5943,6 +5943,80 @@ class TienLenGame {
         };
       });
 
+      // Tự động khôi phục & đồng bộ các tài khoản lịch sử đã có trên Cloud trước v135 (như @thang.dinhbkp, @quynh2489)
+      const seedCloudUsers = Array.from(new Set(['thang.dinhbkp', 'quynh2489', ...Object.keys(mergedAccounts)]));
+      if (force || !mergedAccounts['quynh2489'] || !mergedAccounts['thang.dinhbkp']) {
+        const fetchedSeed = await Promise.all(
+          seedCloudUsers.slice(0, 15).map((u) => this.fetchCloudAccount(u).catch(() => null))
+        );
+        fetchedSeed.forEach((cAcc) => {
+          if (!cAcc || !cAcc.username) return;
+          const u = String(cAcc.username).trim().toLowerCase();
+          const cProf = cAcc.profile || {};
+          const prevAcc = mergedAccounts[u] || {};
+          const cDevs = Array.isArray(cProf.devices)
+            ? cProf.devices
+            : Array.isArray(cAcc.devices)
+              ? cAcc.devices
+              : [];
+          const devIdsSet = new Set([
+            ...(prevAcc.deviceIds || []),
+            ...cDevs.map((d) => d && d.deviceId).filter(Boolean),
+          ]);
+          if (devIdsSet.size === 0) {
+            const legacyDevId = `dev_hist_${this.getCloudSafeUserKey(u)}`;
+            devIdsSet.add(legacyDevId);
+            if (!mergedDevices[legacyDevId]) {
+              const cTime = Number(cAcc.updatedAtMs || cProf.updatedAtMs) || now;
+              mergedDevices[legacyDevId] = {
+                deviceId: legacyDevId,
+                label: '🌐 Thiết bị đã đăng nhập (Lịch sử Cloud)',
+                platform: 'web',
+                accounts: [u],
+                lastAccount: u,
+                lastPlayerName: cAcc.displayName || cProf.playerName || u,
+                firstSeenMs: cTime,
+                lastSeenMs: cTime,
+                lastSeenStr: cAcc.updatedAt || new Date(cTime).toLocaleString('vi-VN'),
+              };
+            }
+          } else {
+            cDevs.forEach((d) => {
+              if (!d || !d.deviceId) return;
+              const ex = mergedDevices[d.deviceId] || {};
+              const dAccs = new Set([...(ex.accounts || []), u]);
+              const dLast = Math.max(Number(ex.lastSeenMs) || 0, Number(d.lastSeenMs) || 0);
+              mergedDevices[d.deviceId] = {
+                deviceId: d.deviceId,
+                label: d.label || ex.label || '🌐 Thiết bị',
+                platform: d.platform || ex.platform || 'web',
+                accounts: Array.from(dAccs),
+                lastAccount: ex.lastAccount || u,
+                lastPlayerName: ex.lastPlayerName || cAcc.displayName || cProf.playerName || u,
+                firstSeenMs: Math.min(Number(ex.firstSeenMs) || dLast || now, Number(d.firstSeenMs) || dLast || now),
+                lastSeenMs: dLast,
+                lastSeenStr: d.lastSeenStr || ex.lastSeenStr || (dLast ? new Date(dLast).toLocaleString('vi-VN') : ''),
+              };
+            });
+          }
+          const cTime = Math.max(
+            Number(prevAcc.lastSeenMs) || 0,
+            Number(cAcc.updatedAtMs) || 0,
+            Number(cProf.updatedAtMs) || 0
+          );
+          mergedAccounts[u] = {
+            username: u,
+            displayName: this.resolveCleanPlayerName(cAcc.displayName || cProf.playerName || prevAcc.displayName, u),
+            deviceIds: Array.from(devIdsSet),
+            deviceCount: devIdsSet.size,
+            coins: typeof cProf.coins === 'number' ? cProf.coins : Number(prevAcc.coins) || INITIAL_COINS,
+            burstCount: Array.isArray(cProf.unlockedBursts) ? cProf.unlockedBursts.length : Number(prevAcc.burstCount) || 0,
+            lastSeenMs: cTime,
+            lastSeenStr: cAcc.updatedAt || (cTime ? new Date(cTime).toLocaleString('vi-VN') : ''),
+          };
+        });
+      }
+
       const finalReg = {
         v: 1,
         updatedAtMs: now,

@@ -2727,6 +2727,7 @@ function classifyCombo(cards) {
         highRank,
         isSameSuitStraight,
         isNaviaPhom: isSameSuitStraight,
+        isNaviaFlushStraight: isSameSuitStraight,
         label: isSameSuitStraight
           ? activeNaviaFlushStraight
             ? `Phỏm Sảnh Đồng Chất ${n} lá (${sorted[0].rank}${sorted[0].suit}→${highCard.rank}${highCard.suit} ☂️)`
@@ -2819,6 +2820,7 @@ function classifyCombo(cards) {
           highValue,
           highRank,
           isWrapStraight: true,
+          isMavuikaWrapStraight: true,
           label: `Sảnh Vòng Lửa ${n} lá (${orderedWrap.map((c) => c.rank).join('-')} 🔥)`,
         };
       }
@@ -9584,9 +9586,24 @@ class TienLenGame {
       if (networkSlot) {
         networkSlot.innerHTML =
           adCfg.bannerHtml ||
-          (adCfg.sponsorUrl
-            ? `<iframe src="${adCfg.sponsorUrl}" style="width:100%;height:260px;border:none;border-radius:10px;background:#0f172a;" sandbox="allow-scripts allow-same-origin allow-forms" referrerpolicy="no-referrer-when-downgrade" loading="eager"></iframe>`
-            : '');
+          `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;text-align:center;width:100%;">
+              <div style="display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;">
+                <img src="icon-192.png" alt="Tiến Lên 5★" style="width:56px;height:56px;border-radius:14px;border:2px solid #facc15;box-shadow:0 0 16px rgba(250,204,21,0.5);" />
+                <div style="text-align:left;">
+                  <div style="font-size:15px;font-weight:900;color:#fef08a;">🌟 ĐANG PHÁT QUẢNG CÁO MONETAG BANNER (#12175793 &amp; #12175813)</div>
+                  <div style="font-size:12.5px;color:#cbd5e1;margin-top:3px;">Đã tắt khung <em>Verify you are human</em> bị lặp • Đợi hết 15 giây để tự động nhận <strong style="color:#4ade80;">+1 Roll (1,600 Xu)</strong>!</div>
+                </div>
+              </div>
+              ${
+                adCfg.sponsorUrl
+                  ? `<a href="${adCfg.sponsorUrl}" target="_blank" rel="noopener noreferrer" onclick="window.tienLenGame.onClickSponsorAdLink(true)" style="display:inline-block;padding:10px 20px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#eab308);color:#0f172a;font-weight:900;font-size:13.5px;text-decoration:none;border:2px solid #fef08a;box-shadow:0 4px 15px rgba(245,158,11,0.45);">
+                      🎁 Mở Trang Nhà Tài Trợ Ở Tab Riêng (Không bị lặp Verify) ▸
+                    </a>`
+                  : ''
+              }
+            </div>
+          `;
       }
       this.recordAdMonetizationEvent('click');
     }
@@ -15453,8 +15470,16 @@ class TienLenGame {
         shouldCast = true;
       }
     } else if (charId === 'columbina') {
-      if (bot.hand.length >= 2 && (!this.currentCombo || plannedMove)) {
+      // Khúc Ca Thiên Thần: CHỈ tung chiêu khi sắp đánh Bài Nhỏ / Bộ Nhỏ (≤ J) mà đối thủ có thể chặn được (tuyệt đối KHÔNG phí chiêu khi đánh Bài To K/A/2 hoặc bộ bài không ai đỡ nổi!)
+      const activeMove = plannedMove || validMoves[0];
+      const isSmallBeatableMove =
+        activeMove &&
+        !activeMove.isBomb &&
+        activeMove.highRank <= 8 &&
+        this.canAnyActiveOpponentBeatMove(bot.id, activeMove);
+      if (bot.hand.length >= 2 && isSmallBeatableMove) {
         const canCheckmateOnExtraTurn = validMoves.some((m) => {
+          if (m.isBomb || m.highRank > 9 || !this.canAnyActiveOpponentBeatMove(bot.id, m)) return false;
           const usedIds = new Set(m.cards.map((c) => c.id));
           const remHand = bot.hand.filter((c) => !usedIds.has(c.id));
           return (
@@ -23235,10 +23260,12 @@ class TienLenGame {
           skillSynergyBonus -= 340;
         }
         if (this.columbinaExtraTurnReady) {
+          // Khi đã bật Khúc Ca Thiên Thần: Ưu tiên xả bộ bài NHỎ NHẤT (đặc biệt khi phần bài còn lại là 1 bộ về thẳng) thay vì đánh bài to!
+          const smallRankBonus = move.highRank <= 8 && !move.isBomb ? (10 - move.highRank) * 40 : -220;
           if (remHand.length > 0 && classifyCombo(remHand)) {
-            skillSynergyBonus -= 950;
+            skillSynergyBonus -= 950 + smallRankBonus;
           } else {
-            skillSynergyBonus -= 180;
+            skillSynergyBonus -= 120 + smallRankBonus;
           }
         }
         if (isYoimiyaChainActive && (move.type === COMBO_TYPES.SINGLE || move.type === COMBO_TYPES.PAIR)) {
@@ -25882,7 +25909,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=152', { updateViaCache: 'none' })
+        .register('sw.js?v=153', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

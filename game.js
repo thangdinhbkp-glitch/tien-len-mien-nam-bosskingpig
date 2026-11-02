@@ -4299,6 +4299,110 @@ class TienLenGame {
     }
   }
 
+  getOrCreateDeviceId() {
+    if (this._cachedDeviceId) return this._cachedDeviceId;
+    let devId = '';
+    try {
+      const cookieId = (this.readCookieValue('tlmn_device_id_v1') || '').trim();
+      const lsId = (localStorage.getItem('tlmn_device_id_v1') || '').trim();
+      devId = cookieId || lsId;
+      if (!devId) {
+        devId = `dev_${Date.now().toString(36).slice(-4)}${Math.random().toString(36).slice(2, 6)}`;
+      }
+      localStorage.setItem('tlmn_device_id_v1', devId);
+      document.cookie = `tlmn_device_id_v1=${encodeURIComponent(devId)}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch (_) {
+      devId = 'dev_local';
+    }
+    this._cachedDeviceId = devId;
+    return devId;
+  }
+
+  getCurrentDeviceEntry() {
+    const devId = this.getOrCreateDeviceId();
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    const host = typeof window !== 'undefined' ? window.location.hostname || '' : '';
+    const search = typeof window !== 'undefined' ? window.location.search || '' : '';
+    const isExe = search.includes('source=exe') || host === '127.0.0.1' || host === 'localhost';
+    const isStandalonePwa =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(display-mode: standalone)').matches;
+
+    let platform = 'web';
+    let label = '🌐 Trình duyệt Web';
+    if (isExe) {
+      platform = 'exe';
+      label = '💻 PC Windows (App .exe)';
+    } else if (/Android/i.test(ua)) {
+      platform = 'mobile';
+      label = isStandalonePwa ? '📱 Điện thoại Android (App)' : '📱 Điện thoại Android (Web)';
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      platform = 'mobile';
+      label = isStandalonePwa ? '📱 iPhone / iPad (App)' : '📱 iPhone / iPad (iOS)';
+    } else if (/Mac/i.test(ua)) {
+      platform = 'pc';
+      label = isStandalonePwa ? '💻 MacBook / macOS (App)' : '💻 MacBook / macOS (Web)';
+    } else if (/Win/i.test(ua)) {
+      platform = 'pc';
+      label = isStandalonePwa ? '🖥️ PC Windows (App Web)' : '🖥️ PC Windows (Trình duyệt)';
+    }
+
+    const nowMs = Date.now();
+    return {
+      deviceId: devId,
+      label,
+      platform,
+      firstSeenMs: nowMs,
+      lastSeenMs: nowMs,
+      lastSeenStr: new Date(nowMs).toLocaleString('vi-VN'),
+    };
+  }
+
+  mergeDeviceLists(listA = [], listB = [], includeCurrent = false) {
+    const map = new Map();
+    const all = [
+      ...(Array.isArray(listA) ? listA : []),
+      ...(Array.isArray(listB) ? listB : []),
+      ...(includeCurrent ? [this.getCurrentDeviceEntry()] : []),
+    ];
+    all.forEach((d) => {
+      if (!d || typeof d !== 'object' || !d.deviceId) return;
+      const id = String(d.deviceId).trim();
+      if (!id) return;
+      const prev = map.get(id);
+      const dTime = Number(d.lastSeenMs) || 0;
+      const dFirst = Number(d.firstSeenMs) || dTime || Date.now();
+      if (!prev) {
+        map.set(id, {
+          deviceId: id,
+          label: d.label || '🌐 Thiết bị',
+          platform: d.platform || 'web',
+          firstSeenMs: dFirst,
+          lastSeenMs: dTime,
+          lastSeenStr: d.lastSeenStr || (dTime ? new Date(dTime).toLocaleString('vi-VN') : ''),
+        });
+      } else {
+        const isNewer = dTime >= (Number(prev.lastSeenMs) || 0);
+        const minFirst = Math.min(Number(prev.firstSeenMs) || dFirst, dFirst);
+        const maxLast = Math.max(Number(prev.lastSeenMs) || 0, dTime);
+        map.set(id, {
+          deviceId: id,
+          label: (isNewer ? d.label : prev.label) || d.label || prev.label || '🌐 Thiết bị',
+          platform: (isNewer ? d.platform : prev.platform) || d.platform || prev.platform || 'web',
+          firstSeenMs: minFirst,
+          lastSeenMs: maxLast,
+          lastSeenStr:
+            (isNewer ? d.lastSeenStr : prev.lastSeenStr) ||
+            (maxLast ? new Date(maxLast).toLocaleString('vi-VN') : ''),
+        });
+      }
+    });
+    return Array.from(map.values())
+      .sort((a, b) => (Number(b.lastSeenMs) || 0) - (Number(a.lastSeenMs) || 0))
+      .slice(0, 30);
+  }
+
   readBackupPayloads() {
     const list = [];
     try {
@@ -4430,6 +4534,9 @@ class TienLenGame {
     if (Array.isArray(data.gachaHistory) && data.gachaHistory.length >= this.gachaHistory.length) {
       this.gachaHistory = data.gachaHistory.slice(0, 300);
     }
+    if (Array.isArray(data.devices) && data.devices.length > 0) {
+      this.accountDevices = this.mergeDeviceLists(this.accountDevices, data.devices, false);
+    }
     if (Array.isArray(data.unlockedSkins)) {
       data.unlockedSkins.forEach((id) => {
         if (ANIME_CARD_SKINS.some((s) => s.id === id)) {
@@ -4535,6 +4642,7 @@ class TienLenGame {
     this.selectedBannerBurstId = 'raiden';
     this.totalWishes = 0;
     this.gachaHistory = [];
+    this.accountDevices = [];
     this.gachaHistoryFilter = 'all';
     this.arenaTheme = 'inazuma';
     this.autoRandomizeBots = true;
@@ -4895,6 +5003,11 @@ class TienLenGame {
           acc.profile.unlockedBursts = Array.from(new Set([...(acc.profile.unlockedBursts || []), ...(cProf.unlockedBursts || [])]));
           acc.profile.unlockedSkins = Array.from(new Set([...(acc.profile.unlockedSkins || ['classic']), ...(cProf.unlockedSkins || ['classic'])]));
           acc.profile.unlockedAvatars = Array.from(new Set([...(acc.profile.unlockedAvatars || ['default_player']), ...(cProf.unlockedAvatars || ['default_player'])]));
+          acc.profile.devices = this.mergeDeviceLists(
+            acc.profile.devices,
+            cProf.devices || existingCloud.devices,
+            usernameKey === this.currentAccountUsername
+          );
           // Nếu trên Đám Mây có bản ghi mới hơn (cloudMaxRev >= localAccRev) với số Vàng cao hơn (do vừa được cấp/đồng bộ từ thiết bị khác), giữ nguyên số Vàng cao hơn đó thay vì ghi đè!
           if (cloudMaxRev >= localAccRev && typeof cProf.coins === 'number' && cProf.coins > (Number(acc.profile.coins) || 0)) {
             acc.profile.coins = cProf.coins;
@@ -4923,6 +5036,14 @@ class TienLenGame {
     if (acc.profile) {
       acc.profile.updatedAtMs = acc.updatedAtMs;
       acc.profile.syncRev = nextRev;
+      acc.profile.devices = this.mergeDeviceLists(
+        acc.profile.devices,
+        usernameKey === this.currentAccountUsername ? this.accountDevices : [],
+        usernameKey === this.currentAccountUsername
+      );
+      if (usernameKey === this.currentAccountUsername) {
+        this.accountDevices = acc.profile.devices;
+      }
     }
     if (usernameKey === this.currentAccountUsername) {
       this.profileUpdatedAtMs = acc.updatedAtMs;
@@ -4931,6 +5052,7 @@ class TienLenGame {
     this.saveAccountsDb(accountsDb);
 
     const cleanDisp = this.resolveCleanPlayerName(acc.displayName || acc.profile?.playerName, usernameKey);
+    const syncedDevices = (acc.profile?.devices || []).slice(0, 30);
     const cloudRecord = {
       v: 28,
       username: usernameKey,
@@ -4940,11 +5062,13 @@ class TienLenGame {
       updatedAt: acc.updatedAt || new Date().toLocaleString('vi-VN'),
       updatedAtMs: acc.updatedAtMs,
       syncRev: nextRev,
+      devices: syncedDevices,
       profile: {
         ...(acc.profile || {}),
         updatedAtMs: acc.updatedAtMs,
         syncRev: nextRev,
         playerName: cleanDisp,
+        devices: syncedDevices,
         gachaHistory: ((acc.profile && acc.profile.gachaHistory) || []).slice(0, 60),
       },
     };
@@ -4983,6 +5107,7 @@ class TienLenGame {
         if (statusEl) {
           statusEl.innerHTML = `☁️ Đã đồng bộ Đám Mây 2 chiều lúc ${this.lastCloudSyncTime} (Rev #${nextRev} • Mọi máy dùng chung 1 tài khoản thực!)`;
         }
+        this.syncGlobalDeviceRegistry(false);
       }
       return ok;
     } catch (_) {
@@ -5062,6 +5187,12 @@ class TienLenGame {
       best.profile.unlockedBursts = Array.from(allBursts);
       best.profile.unlockedSkins = Array.from(allSkins);
       best.profile.unlockedAvatars = Array.from(allAvatars);
+      let allDevices = best.profile.devices || best.devices || [];
+      candidates.forEach((c) => {
+        allDevices = this.mergeDeviceLists(allDevices, c.profile?.devices || c.devices || [], false);
+      });
+      best.profile.devices = allDevices;
+      best.devices = allDevices;
     }
     const withHistory = candidates.find((c) => Array.isArray(c.profile?.gachaHistory) && c.profile.gachaHistory.length > 0);
     if (withHistory && best.profile && (!best.profile.gachaHistory || best.profile.gachaHistory.length === 0)) {
@@ -5101,6 +5232,7 @@ class TienLenGame {
     const mergedHistory = Array.from(historyMap.values())
       .sort((a, b) => (Number(b.pullNo) || 0) - (Number(a.pullNo) || 0))
       .slice(0, 300);
+    const mergedDevices = this.mergeDeviceLists(older.devices, newer.devices, false);
 
     const resolvedSkin =
       newer.equippedSkin && mergedSkins.includes(newer.equippedSkin)
@@ -5172,6 +5304,7 @@ class TienLenGame {
       equippedChopBurst: resolvedActiveChar,
       equippedWinBurst: resolvedActiveChar,
       gachaHistory: mergedHistory,
+      devices: mergedDevices,
       tutorialCompleted: Boolean(
         older.tutorialCompleted ||
           newer.tutorialCompleted ||
@@ -5287,16 +5420,20 @@ class TienLenGame {
           : Number(localAcc?.updatedAtMs) || 0;
 
       const cProf = cloudAcc.profile || {};
+      const myDevId = this.getOrCreateDeviceId();
+      const cloudDevices = cProf.devices || cloudAcc.devices || [];
       const hasNewCloudUnlock =
         (!localAcc?.passwordHash && !!cloudAcc.passwordHash) ||
         (cProf.gachaHistory || []).length > (this.gachaHistory || []).length ||
+        cloudDevices.some((d) => d && d.deviceId && !(this.accountDevices || []).some((ld) => ld && ld.deviceId === d.deviceId)) ||
         (cProf.unlockedBursts || []).some((id) => !this.unlockedBursts.has(id)) ||
         (cProf.unlockedSkins || []).some((id) => !this.unlockedSkins.has(id)) ||
         (cProf.unlockedAvatars || []).some((id) => !this.unlockedAvatars.has(id));
 
       const hasNewLocalUnlock =
         targetUser === this.currentAccountUsername &&
-        (Array.from(this.unlockedBursts).some((id) => !(cProf.unlockedBursts || []).includes(id)) ||
+        (!cloudDevices.some((d) => d && d.deviceId === myDevId) ||
+          Array.from(this.unlockedBursts).some((id) => !(cProf.unlockedBursts || []).includes(id)) ||
           Array.from(this.unlockedSkins).some((id) => !(cProf.unlockedSkins || []).includes(id)) ||
           Array.from(this.unlockedAvatars).some((id) => !(cProf.unlockedAvatars || []).includes(id)));
 
@@ -5354,6 +5491,7 @@ class TienLenGame {
               selectedBannerBurstId: this.selectedBannerBurstId,
               totalWishes: this.totalWishes,
               gachaHistory: this.gachaHistory,
+              devices: this.mergeDeviceLists(this.accountDevices, localAcc?.profile?.devices, true),
               tutorialCompleted: this.tutorialCompleted,
               beginnerBannerUsed: this.beginnerBannerUsed,
               tutorialStep: this.tutorialStep,
@@ -5451,6 +5589,7 @@ class TienLenGame {
           }
         }
       }
+      this.syncGlobalDeviceRegistry(false);
     } catch (_) {}
   }
 
@@ -5530,6 +5669,10 @@ class TienLenGame {
       this.profileUpdatedAtMs = nowMs;
       this.profileSyncRev = nextRev;
 
+      if (this.currentAccountUsername) {
+        this.accountDevices = this.mergeDeviceLists(this.accountDevices, [], true);
+      }
+
       const payload = {
         accountUsername: this.currentAccountUsername || '',
         updatedAtMs: nowMs,
@@ -5555,6 +5698,7 @@ class TienLenGame {
         selectedBannerBurstId: this.selectedBannerBurstId || 'raiden',
         totalWishes: this.totalWishes || 0,
         gachaHistory: (this.gachaHistory || []).slice(0, 300),
+        devices: (this.accountDevices || []).slice(0, 30),
         tutorialCompleted: !!this.tutorialCompleted,
         beginnerBannerUsed: !!this.beginnerBannerUsed,
         tutorialStep: this.tutorialStep || 0,
@@ -5565,8 +5709,8 @@ class TienLenGame {
       };
       const jsonStr = JSON.stringify(payload);
       localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
-      // Bỏ gachaHistory trong cookie để dung lượng cookie luôn < 1.2KB (không bao giờ vượt giới hạn 4KB của trình duyệt!)
-      const cookiePayload = { ...payload, gachaHistory: [] };
+      // Bỏ gachaHistory & devices trong cookie để dung lượng cookie luôn < 1.2KB (không bao giờ vượt giới hạn 4KB của trình duyệt!)
+      const cookiePayload = { ...payload, gachaHistory: [], devices: [] };
       document.cookie = `tlmn_vault_v9=${encodeURIComponent(JSON.stringify(cookiePayload))}; path=/; max-age=31536000; SameSite=Lax`;
       if (this.currentAccountUsername) {
         document.cookie = `tlmn_active_account_v1=${encodeURIComponent(this.currentAccountUsername)}; path=/; max-age=31536000; SameSite=Lax`;
@@ -5644,6 +5788,365 @@ class TienLenGame {
     if (this.currentAccountUsername) {
       this.pullAccountFromCloudAndSync(this.currentAccountUsername);
     }
+    this.syncGlobalDeviceRegistry(true);
+  }
+
+  loadGlobalRegistryCache() {
+    if (this.globalRegistryCache && typeof this.globalRegistryCache === 'object') {
+      return this.globalRegistryCache;
+    }
+    try {
+      const raw = localStorage.getItem('tlmn_global_registry_cache_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          this.globalRegistryCache = parsed;
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    this.globalRegistryCache = { v: 1, updatedAtMs: 0, devices: {}, accounts: {} };
+    return this.globalRegistryCache;
+  }
+
+  async syncGlobalDeviceRegistry(force = false) {
+    if (this._isSyncingGlobalRegistry) return null;
+    const now = Date.now();
+    if (!force && now - (this._lastGlobalRegistrySyncMs || 0) < 20000) {
+      return this.loadGlobalRegistryCache();
+    }
+    this._isSyncingGlobalRegistry = true;
+    try {
+      const localReg = this.loadGlobalRegistryCache();
+      let remoteReg = null;
+      const cacheBust = `${now}_${Math.random().toString(36).slice(2, 6)}`;
+      try {
+        const res = await fetch(`https://textdb.dev/api/data/tlmn_bkp_global_devices_v1?t=${cacheBust}`, {
+          method: 'GET',
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const txt = (await res.text()).trim();
+          if (txt && txt.startsWith('TLMN_GLOBAL_DEV_V1:')) {
+            const jsonStr = decodeURIComponent(escape(atob(txt.slice('TLMN_GLOBAL_DEV_V1:'.length))));
+            const parsed = JSON.parse(jsonStr);
+            if (parsed && typeof parsed === 'object') remoteReg = parsed;
+          }
+        }
+      } catch (_) {}
+
+      const mergedDevices = { ...(localReg.devices || {}), ...(remoteReg?.devices || {}) };
+      Object.keys(localReg.devices || {}).forEach((id) => {
+        const ld = localReg.devices[id];
+        const rd = remoteReg?.devices?.[id];
+        if (ld && rd) {
+          const isRemoteNewer = (Number(rd.lastSeenMs) || 0) >= (Number(ld.lastSeenMs) || 0);
+          const accSet = new Set([...(ld.accounts || []), ...(rd.accounts || [])]);
+          mergedDevices[id] = {
+            ...(isRemoteNewer ? ld : rd),
+            ...(isRemoteNewer ? rd : ld),
+            accounts: Array.from(accSet),
+            firstSeenMs: Math.min(Number(ld.firstSeenMs) || now, Number(rd.firstSeenMs) || now),
+            lastSeenMs: Math.max(Number(ld.lastSeenMs) || 0, Number(rd.lastSeenMs) || 0),
+          };
+        }
+      });
+
+      const mergedAccounts = { ...(localReg.accounts || {}), ...(remoteReg?.accounts || {}) };
+      Object.keys(localReg.accounts || {}).forEach((u) => {
+        const la = localReg.accounts[u];
+        const ra = remoteReg?.accounts?.[u];
+        if (la && ra) {
+          const isRemoteNewer = (Number(ra.lastSeenMs) || 0) >= (Number(la.lastSeenMs) || 0);
+          const devSet = new Set([...(la.deviceIds || []), ...(ra.deviceIds || [])]);
+          mergedAccounts[u] = {
+            ...(isRemoteNewer ? la : ra),
+            ...(isRemoteNewer ? ra : la),
+            deviceIds: Array.from(devSet),
+            deviceCount: devSet.size || Math.max(Number(la.deviceCount) || 1, Number(ra.deviceCount) || 1),
+            lastSeenMs: Math.max(Number(la.lastSeenMs) || 0, Number(ra.lastSeenMs) || 0),
+          };
+        }
+      });
+
+      const curDev = this.getCurrentDeviceEntry();
+      const prevCur = mergedDevices[curDev.deviceId] || {};
+      const curAccSet = new Set(Array.isArray(prevCur.accounts) ? prevCur.accounts : []);
+      if (this.currentAccountUsername) curAccSet.add(this.currentAccountUsername);
+
+      mergedDevices[curDev.deviceId] = {
+        deviceId: curDev.deviceId,
+        label: curDev.label,
+        platform: curDev.platform,
+        accounts: Array.from(curAccSet),
+        lastAccount: this.currentAccountUsername || prevCur.lastAccount || '',
+        lastPlayerName: this.savedPlayerName || prevCur.lastPlayerName || 'Nhà Lữ Hành',
+        firstSeenMs: Math.min(Number(prevCur.firstSeenMs) || now, now),
+        lastSeenMs: now,
+        lastSeenStr: curDev.lastSeenStr,
+      };
+
+      const accountsDb = this.loadAccountsDb();
+      Object.keys(accountsDb).forEach((u) => {
+        const acc = accountsDb[u];
+        if (!acc || !u) return;
+        const prof = acc.profile || {};
+        const accDevs = Array.isArray(prof.devices) ? prof.devices : [];
+        accDevs.forEach((d) => {
+          if (!d || !d.deviceId) return;
+          const ex = mergedDevices[d.deviceId] || {};
+          const dAccs = new Set([...(ex.accounts || []), u]);
+          const dLast = Math.max(Number(ex.lastSeenMs) || 0, Number(d.lastSeenMs) || 0);
+          mergedDevices[d.deviceId] = {
+            deviceId: d.deviceId,
+            label: d.label || ex.label || '🌐 Thiết bị',
+            platform: d.platform || ex.platform || 'web',
+            accounts: Array.from(dAccs),
+            lastAccount: ex.lastAccount || u,
+            lastPlayerName: ex.lastPlayerName || acc.displayName || prof.playerName || u,
+            firstSeenMs: Math.min(Number(ex.firstSeenMs) || dLast || now, Number(d.firstSeenMs) || dLast || now),
+            lastSeenMs: dLast,
+            lastSeenStr: d.lastSeenStr || ex.lastSeenStr || (dLast ? new Date(dLast).toLocaleString('vi-VN') : ''),
+          };
+        });
+
+        const prevAcc = mergedAccounts[u] || {};
+        const devIdsSet = new Set([
+          ...(prevAcc.deviceIds || []),
+          ...accDevs.map((d) => d && d.deviceId).filter(Boolean),
+          ...(u === this.currentAccountUsername ? [curDev.deviceId] : []),
+        ]);
+        if (devIdsSet.size === 0) devIdsSet.add(curDev.deviceId);
+        const accTime =
+          u === this.currentAccountUsername
+            ? now
+            : Math.max(Number(prevAcc.lastSeenMs) || 0, Number(acc.updatedAtMs) || 0, Number(prof.updatedAtMs) || 0);
+        mergedAccounts[u] = {
+          username: u,
+          displayName: this.resolveCleanPlayerName(acc.displayName || prof.playerName || prevAcc.displayName, u),
+          deviceIds: Array.from(devIdsSet),
+          deviceCount: devIdsSet.size,
+          coins:
+            u === this.currentAccountUsername
+              ? this.savedCoins
+              : typeof prof.coins === 'number'
+                ? prof.coins
+                : Number(prevAcc.coins) || INITIAL_COINS,
+          burstCount:
+            u === this.currentAccountUsername
+              ? this.unlockedBursts.size
+              : Array.isArray(prof.unlockedBursts)
+                ? prof.unlockedBursts.length
+                : Number(prevAcc.burstCount) || 0,
+          lastSeenMs: accTime,
+          lastSeenStr: new Date(accTime || now).toLocaleString('vi-VN'),
+        };
+      });
+
+      const finalReg = {
+        v: 1,
+        updatedAtMs: now,
+        devices: mergedDevices,
+        accounts: mergedAccounts,
+      };
+      this.globalRegistryCache = finalReg;
+      this._lastGlobalRegistrySyncMs = now;
+      try {
+        localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(finalReg));
+      } catch (_) {}
+
+      try {
+        const b64 = 'TLMN_GLOBAL_DEV_V1:' + btoa(unescape(encodeURIComponent(JSON.stringify(finalReg))));
+        await fetch('https://textdb.dev/api/data/tlmn_bkp_global_devices_v1', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: b64,
+        });
+      } catch (_) {}
+
+      const statsContainer = document.getElementById('account-device-stats-container');
+      if (statsContainer && !document.getElementById('account-modal')?.classList.contains('hidden')) {
+        statsContainer.innerHTML = this.renderDeviceTrackerSectionHtml();
+      }
+      return finalReg;
+    } catch (_) {
+      return this.loadGlobalRegistryCache();
+    } finally {
+      this._isSyncingGlobalRegistry = false;
+    }
+  }
+
+  async refreshGlobalDeviceStats() {
+    const btn = document.getElementById('btn-refresh-device-stats');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang quét Cloud...';
+    }
+    if (this.currentAccountUsername) {
+      await this.pullAccountFromCloudAndSync(this.currentAccountUsername, { forceCloud: true });
+    }
+    await this.syncGlobalDeviceRegistry(true);
+    const statsContainer = document.getElementById('account-device-stats-container');
+    if (statsContainer) {
+      statsContainer.innerHTML = this.renderDeviceTrackerSectionHtml();
+    }
+    sfx.click();
+  }
+
+  renderDeviceTrackerSectionHtml() {
+    const myDevId = this.getOrCreateDeviceId();
+    const now = Date.now();
+    const accountsDb = this.loadAccountsDb();
+    const curUser = this.currentAccountUsername;
+    const accObj = curUser ? accountsDb[curUser] : null;
+    const myDevices = this.mergeDeviceLists(
+      this.accountDevices,
+      accObj?.profile?.devices || [],
+      !!curUser
+    );
+
+    const globalReg = this.loadGlobalRegistryCache();
+    const allGlobalDevices = Object.values(globalReg.devices || {}).sort(
+      (a, b) => (Number(b.lastSeenMs) || 0) - (Number(a.lastSeenMs) || 0)
+    );
+    const allGlobalAccounts = Object.values(globalReg.accounts || {}).sort(
+      (a, b) => (Number(b.lastSeenMs) || 0) - (Number(a.lastSeenMs) || 0)
+    );
+
+    const totalDevicesCount = Math.max(1, allGlobalDevices.length, myDevices.length);
+    const pcCount = allGlobalDevices.filter((d) => d.platform === 'exe' || d.platform === 'pc' || d.platform === 'web').length || 1;
+    const mobileCount = allGlobalDevices.filter((d) => d.platform === 'mobile').length;
+    const recentOnlineCount = Math.max(
+      1,
+      allGlobalDevices.filter((d) => now - (Number(d.lastSeenMs) || 0) <= 10 * 60 * 1000).length
+    );
+    const totalAccountsCount = Math.max(
+      curUser ? 1 : 0,
+      allGlobalAccounts.length,
+      Object.keys(accountsDb).length
+    );
+
+    const myAccountDevicesHtml = curUser
+      ? `
+        <div class="account-form-box" style="margin-top:8px;border:1px solid rgba(56,189,248,0.35);background:rgba(15,23,42,0.78);">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="font-size:13px;font-weight:900;color:#7dd3fc;">
+              📱 Thiết Bị Đã Đăng Nhập Tài Khoản @${curUser}: <span style="color:#fde047;">${myDevices.length} thiết bị</span>
+            </div>
+            <span style="font-size:11px;color:#94a3b8;">Mã máy này: <strong style="color:#e2e8f0;">#${myDevId.replace(/^dev_/, '')}</strong></span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;max-height:135px;overflow-y:auto;">
+            ${myDevices
+              .map((d, idx) => {
+                const isMe = d.deviceId === myDevId;
+                const isRecent = now - (Number(d.lastSeenMs) || 0) <= 5 * 60 * 1000;
+                const shortId = String(d.deviceId || '').replace(/^dev_/, '');
+                return `
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:${isMe ? 'rgba(16,185,129,0.14)' : 'rgba(30,41,59,0.75)'};border:1px solid ${isMe ? 'rgba(16,185,129,0.45)' : 'rgba(148,163,184,0.2)'};font-size:12px;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <span style="font-weight:800;color:#f8fafc;">#${idx + 1}. ${d.label || '🌐 Thiết bị'}</span>
+                      <span style="font-size:10.5px;color:#94a3b8;">(ID: ${shortId})</span>
+                      ${
+                        isMe
+                          ? '<span style="background:#059669;color:#ecfdf5;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px;">🟢 Thiết bị này</span>'
+                          : isRecent
+                            ? '<span style="background:#0284c7;color:#e0f2fe;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px;">🟢 Vừa online</span>'
+                            : ''
+                      }
+                    </div>
+                    <div style="font-size:11px;color:#cbd5e1;white-space:nowrap;">
+                      🕒 ${d.lastSeenStr || 'Vừa xong'}
+                    </div>
+                  </div>
+                `;
+              })
+              .join('')}
+          </div>
+        </div>
+      `
+      : '';
+
+    const globalDevicesListHtml =
+      allGlobalDevices.length > 0
+        ? allGlobalDevices
+            .slice(0, 20)
+            .map((d, idx) => {
+              const isMe = d.deviceId === myDevId;
+              const shortId = String(d.deviceId || '').replace(/^dev_/, '');
+              const accList = Array.isArray(d.accounts) && d.accounts.length > 0
+                ? d.accounts.map((u) => `@${u}`).join(', ')
+                : d.lastAccount
+                  ? `@${d.lastAccount}`
+                  : 'Khách';
+              return `
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;background:rgba(15,23,42,0.65);border:1px solid rgba(148,163,184,0.16);font-size:11.5px;">
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-weight:800;color:#fde68a;">${idx + 1}. ${d.label || '🌐 Thiết bị'}</span>
+                    <span style="font-size:10.5px;color:#94a3b8;">#${shortId}</span>
+                    ${isMe ? '<span style="color:#34d399;font-weight:800;font-size:10.5px;">(Máy này)</span>' : ''}
+                    <span style="color:#38bdf8;font-weight:700;">• TK: ${accList}</span>
+                  </div>
+                  <span style="font-size:10.5px;color:#94a3b8;white-space:nowrap;">${d.lastSeenStr || ''}</span>
+                </div>
+              `;
+            })
+            .join('')
+        : `<div style="font-size:11.5px;color:#94a3b8;">Đang đồng bộ danh sách thiết bị từ Đám Mây...</div>`;
+
+    const globalAccountsListHtml =
+      allGlobalAccounts.length > 0
+        ? `
+          <div style="margin-top:6px;">
+            <div style="font-size:11.5px;font-weight:800;color:#c4b5fd;margin-bottom:4px;">
+              👥 Danh sách Tài Khoản đã đăng nhập (${allGlobalAccounts.length} tài khoản):
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              ${allGlobalAccounts
+                .slice(0, 20)
+                .map(
+                  (a) => `
+                    <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:rgba(88,28,135,0.35);border:1px solid rgba(168,85,247,0.4);font-size:11px;color:#f3e8ff;">
+                      <strong>@${a.username}</strong> (${a.displayName || a.username}) • 📱 ${a.deviceCount || 1} máy • ⭐ ${a.burstCount || 0} Nộ 5★
+                    </span>
+                  `
+                )
+                .join('')}
+            </div>
+          </div>
+        `
+        : '';
+
+    return `
+      ${myAccountDevicesHtml}
+      <div class="account-form-box" style="margin-top:8px;border:1px solid rgba(250,204,21,0.32);background:rgba(15,23,42,0.82);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="font-size:13px;font-weight:900;color:#fde047;">
+            🌐 Thống Kê Thiết Bị &amp; Người Chơi Toàn Game (Cloud)
+          </div>
+          <button type="button" class="tool-btn" id="btn-refresh-device-stats" onclick="window.tienLenGame.refreshGlobalDeviceStats()" style="padding:4px 10px;font-size:11.5px;font-weight:800;">
+            🔄 Quét &amp; Làm Mới
+          </button>
+        </div>
+        <div class="account-stats-grid" style="margin-top:6px;grid-template-columns:repeat(3,1fr);">
+          <div class="account-stat-item">
+            <span class="account-stat-label">🖥️ Tổng Thiết Bị Vào Game</span>
+            <span class="account-stat-val" style="color:#38bdf8;">${totalDevicesCount} máy <span style="font-size:10.5px;color:#94a3b8;font-weight:600;">(${pcCount} PC • ${mobileCount} ĐT)</span></span>
+          </div>
+          <div class="account-stat-item">
+            <span class="account-stat-label">👤 Tổng Tài Khoản</span>
+            <span class="account-stat-val" style="color:#c084fc;">${totalAccountsCount} tài khoản</span>
+          </div>
+          <div class="account-stat-item">
+            <span class="account-stat-label">🟢 Hoạt Động Gần Đây</span>
+            <span class="account-stat-val" style="color:#34d399;">${recentOnlineCount} thiết bị</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;max-height:130px;overflow-y:auto;">
+          ${globalDevicesListHtml}
+        </div>
+        ${globalAccountsListHtml}
+      </div>
+    `;
   }
 
   switchAccountModalTab(tab) {
@@ -6116,6 +6619,10 @@ class TienLenGame {
             💾 Lưu Thay Đổi &amp; Đồng Bộ Lên Cloud
           </button>
         </div>
+
+        <div id="account-device-stats-container">
+          ${this.renderDeviceTrackerSectionHtml()}
+        </div>
       `;
       return;
     }
@@ -6224,6 +6731,9 @@ class TienLenGame {
         </div>
       `
       }
+      <div id="account-device-stats-container">
+        ${this.renderDeviceTrackerSectionHtml()}
+      </div>
     `;
   }
 

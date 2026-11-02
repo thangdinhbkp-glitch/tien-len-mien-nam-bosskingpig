@@ -9668,6 +9668,35 @@ class TienLenGame {
     }
   }
 
+  rewardCornerBannerClick() {
+    const now = Date.now();
+    if (this._lastCornerBannerRewardMs && now - this._lastCornerBannerRewardMs < 3000) {
+      return;
+    }
+    this._lastCornerBannerRewardMs = now;
+    const reward = AD_REWARD_COINS; // +1,600 Xu (= 1 Roll)
+    const me = this.getLocalPlayer();
+    if (me) {
+      me.coins += reward;
+    } else {
+      this.savedCoins = (this.savedCoins || INITIAL_COINS) + reward;
+    }
+    this.recordAdMonetizationEvent('click');
+    sfx.win();
+    this.saveShopProfile();
+    this.renderShopModal();
+    this.renderSeats();
+    this.renderBetTiers();
+    const resBal = document.getElementById('gacha-results-balance');
+    if (resBal && me) resBal.textContent = me.coins.toLocaleString();
+    this.showCenterToast(`🎉 Đã cộng +1 Roll (+${reward.toLocaleString()} Xu) vào túi từ Banner Quảng Cáo!`);
+    this.addLog(
+      `🎁 <strong>Banner Quảng Cáo Góc Phải:</strong> Bạn vừa nhận ngay <strong>+1 Roll (+${reward.toLocaleString()} Xu)</strong> vào túi!`,
+      'log-win'
+    );
+    this.syncCosmeticsInRoom();
+  }
+
   startRickRollAd() {
     const overlay = document.getElementById('rickroll-ad-overlay');
     const countdownPill = document.getElementById('ad-countdown-pill');

@@ -1545,7 +1545,7 @@
   <script>
     (function () {
       var ua = navigator.userAgent || '';
-      var isMobileOrWebView = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|wv|FBAV|FBAN|Zalo/i.test(ua) || Boolean(window.Capacitor) || window.innerWidth <= 900;
+      var isInAppWebView = /;\s*wv\b|FBAV|FBAN|FBIOS|Line\/|Zalo|Instagram|TikTok|BytedanceWebview|MicroMessenger/i.test(ua) || Boolean(window.Capacitor);
 
       // 1. Khóa biến __vST để hàm af() của Monetag không bao giờ tải script phụ 'in-app' (Zone 5434422 gây lỗi intent://)
       try {
@@ -1596,8 +1596,9 @@
         return res;
       };
 
-      // 4. Chặn hàm hl() của Monetag (tạo <iframe src="about:blank"> rồi gọi iframe.contentWindow.open)
-      //    trên điện thoại để khi chạm vào banner hoặc nút X không bị 302 redirect sang intent:// gây lỗi ERR_UNKNOWN_URL_SCHEME
+      // 4. Khi người chơi bấm vào Banner Quảng Cáo Góc Phải:
+      //    - Cộng ngay +1 Roll (+1,600 Xu) vào túi trong game (rewardCornerBannerClick)
+      //    - Chặn riêng link lỗi 5434422 / intent:// trong In-App WebView, còn lại mở tab đích /resolve?ruid= để Monetag tính 100% tiền thật ($)
       function safeMobileAdOpen(url, target, features) {
         if (typeof url === 'string' && url.length > 0 && url !== 'about:blank') {
           var cleanUrl = url;
@@ -1606,9 +1607,17 @@
             var scheme = schemeMatch && schemeMatch[1] ? schemeMatch[1].toLowerCase() : 'https';
             cleanUrl = scheme + '://' + cleanUrl.replace(/^intent:\/\//i, '').split('#Intent;')[0];
           }
-          if (isMobileOrWebView && /itponytaa|nap5k|monetag|ak\.|\/4\//i.test(cleanUrl)) {
+          if (/5434422/i.test(cleanUrl)) {
+            return { closed: false, focus: function () {}, close: function () {} };
+          }
+          try {
+            if (window.tienLenGame && typeof window.tienLenGame.rewardCornerBannerClick === 'function') {
+              window.tienLenGame.rewardCornerBannerClick();
+            }
+          } catch (_) {}
+          if (isInAppWebView) {
             try {
-              fetch(cleanUrl, { mode: 'no-cors', credentials: 'omit' }).catch(function () {});
+              fetch(cleanUrl, { mode: 'no-cors', credentials: 'include' }).catch(function () {});
             } catch (_) {}
             return { closed: false, focus: function () {}, close: function () {} };
           }
@@ -1670,6 +1679,6 @@
       (function(s){s.dataset.zone='12175813',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
     })();
   </script>
-  <script src="game.js?v=161"></script>
+  <script src="game.js?v=162"></script>
 </body>
 </html>

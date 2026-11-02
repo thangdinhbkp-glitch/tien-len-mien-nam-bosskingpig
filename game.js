@@ -6063,13 +6063,32 @@ class TienLenGame {
       const localAd = localReg.adMonetization || {};
       const remoteAd = remoteReg?.adMonetization || {};
       const newerAdCfg = (Number(remoteAd.cfgUpdatedAtMs) || 0) >= (Number(localAd.cfgUpdatedAtMs) || 0) ? remoteAd : localAd;
+      const mergedGiftcodes = { ...(localAd.giftcodes || {}), ...(remoteAd.giftcodes || {}) };
+      Object.keys(mergedGiftcodes).forEach((codeKey) => {
+        const lc = localAd.giftcodes?.[codeKey];
+        const rc = remoteAd.giftcodes?.[codeKey];
+        if (lc && rc) {
+          const usedBy = Array.from(new Set([...(lc.usedBy || []), ...(rc.usedBy || [])]));
+          mergedGiftcodes[codeKey] = {
+            ...(Number(rc.createdAtMs || 0) >= Number(lc.createdAtMs || 0) ? rc : lc),
+            usedBy,
+            usedCount: Math.max(usedBy.length, Number(lc.usedCount) || 0, Number(rc.usedCount) || 0),
+          };
+        }
+      });
+
       const mergedAdMonetization = {
         sponsorUrl: String(newerAdCfg.sponsorUrl || '').trim(),
         bannerHtml: String(newerAdCfg.bannerHtml || '').trim(),
         adMode: newerAdCfg.adMode || 'auto_open',
+        bankCode: String(newerAdCfg.bankCode || '').trim().toUpperCase(),
+        bankAccount: String(newerAdCfg.bankAccount || '').trim(),
+        bankOwner: String(newerAdCfg.bankOwner || '').trim(),
+        contactUrl: String(newerAdCfg.contactUrl || '').trim(),
         cfgUpdatedAtMs: Math.max(Number(localAd.cfgUpdatedAtMs) || 0, Number(remoteAd.cfgUpdatedAtMs) || 0),
         totalViews: Math.max(Number(localAd.totalViews) || 0, Number(remoteAd.totalViews) || 0),
         totalClicks: Math.max(Number(localAd.totalClicks) || 0, Number(remoteAd.totalClicks) || 0),
+        giftcodes: mergedGiftcodes,
       };
 
       const finalReg = {
@@ -6258,8 +6277,29 @@ class TienLenGame {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     const curAdMode = adCfg.adMode || 'auto_open';
+    const curBankCode = String(adCfg.bankCode || 'MB').replace(/"/g, '&quot;');
+    const curBankAccount = String(adCfg.bankAccount || '').replace(/"/g, '&quot;');
+    const curBankOwner = String(adCfg.bankOwner || '').replace(/"/g, '&quot;');
+    const curContactUrl = String(adCfg.contactUrl || 'https://www.facebook.com/groups/teyvatvn/posts/1533270325387216/').replace(/"/g, '&quot;');
     const totalAdViews = Number(adCfg.totalViews) || 0;
     const totalAdClicks = Number(adCfg.totalClicks) || 0;
+    const cloudGiftcodesList = Object.values(adCfg.giftcodes || {}).sort(
+      (a, b) => (Number(b.createdAtMs) || 0) - (Number(a.createdAtMs) || 0)
+    );
+    const giftcodesListHtml =
+      cloudGiftcodesList.length > 0
+        ? cloudGiftcodesList
+            .slice(0, 12)
+            .map(
+              (g) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;background:rgba(15,23,42,0.85);border:1px solid rgba(250,204,21,0.3);font-size:11px;">
+                  <span>🔑 <strong style="color:#fde047;">${g.code}</strong> • +${g.rolls || 0} Roll ${g.welkinDays ? `• 🌙 Nguyệt Chúc ${g.welkinDays} ngày` : ''}</span>
+                  <span style="color:#94a3b8;">Đã nhập: <strong>${g.usedCount || 0}/${g.maxUses || 1}</strong></span>
+                </div>
+              `
+            )
+            .join('')
+        : '<div style="font-size:11px;color:#94a3b8;">Chưa có mã Giftcode VIP nào (mã mặc định cho mọi người chơi: <strong>TIENLEN5SAO</strong> = +1 Roll).</div>';
 
     return `
       ${myAccountDevicesHtml}
@@ -6305,11 +6345,42 @@ class TienLenGame {
             </label>
             <textarea id="admin-input-banner-html" rows="2" placeholder="Dán mã <iframe> hoặc <script> banner quảng cáo vào đây (nếu có)..." style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#cbd5e1;font-size:11.5px;resize:vertical;">${curBannerHtml}</textarea>
           </div>
+          <div style="padding-top:6px;border-top:1px dashed rgba(148,163,184,0.3);">
+            <label style="display:block;font-weight:800;color:#fde047;margin-bottom:4px;">
+              4️⃣ Cài Đặt Ngân Hàng Tự Tạo Mã VietQR Ủng Hộ Dev (Hiện trong mục 🎁 Giftcode / VIP):
+            </label>
+            <div style="display:grid;grid-template-columns:1fr 1.4fr 1.4fr;gap:6px;">
+              <input type="text" id="admin-input-bank-code" value="${curBankCode}" placeholder="Mã NH (VD: MB, VCB, TCB, ACB)" style="padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:11.5px;" />
+              <input type="text" id="admin-input-bank-account" value="${curBankAccount}" placeholder="Số tài khoản nhận tiền..." style="padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:11.5px;" />
+              <input type="text" id="admin-input-bank-owner" value="${curBankOwner}" placeholder="Tên chủ TK (VD: DINH VIET THANG)" style="padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:11.5px;" />
+            </div>
+            <input type="url" id="admin-input-contact-url" value="${curContactUrl}" placeholder="Link Facebook / Zalo nhận ảnh chụp chuyển khoản để gửi Giftcode..." style="width:100%;margin-top:5px;padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:11.5px;" />
+          </div>
           <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:2px;">
             <span style="font-size:11px;color:#94a3b8;">💡 Lấy Direct Link duyệt ngay trong 1 phút tại <strong>monetag.com</strong> hoặc <strong>adsterra.com</strong></span>
             <button type="button" class="primary-btn" id="btn-save-admin-ad-config" onclick="window.tienLenGame.saveAdminAdMonetizationConfig()" style="padding:6px 14px;font-size:12px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
-              💾 Lưu &amp; Áp Dụng Quảng Cáo Toàn Server
+              💾 Lưu Cấu Hình Kiếm Tiền &amp; VietQR Toàn Server
             </button>
+          </div>
+          <div style="padding-top:8px;margin-top:4px;border-top:1px dashed rgba(250,204,21,0.35);">
+            <label style="display:block;font-weight:900;color:#fde047;margin-bottom:4px;">
+              🎁 5️⃣ Tạo Mã Giftcode / Thẻ Tháng Nguyệt Chúc Cho Người Chơi Ủng Hộ:
+            </label>
+            <div style="display:grid;grid-template-columns:1.2fr 0.9fr 1.2fr 0.8fr auto;gap:5px;align-items:center;">
+              <input type="text" id="admin-new-giftcode-str" placeholder="Mã (VD: VIP999)" style="padding:6px 8px;border-radius:7px;border:1px solid rgba(250,204,21,0.45);background:rgba(15,23,42,0.95);color:#fde047;font-weight:800;font-size:11.5px;text-transform:uppercase;" />
+              <input type="number" id="admin-new-giftcode-rolls" value="10" min="1" max="500" title="Số Roll thưởng ngay" placeholder="Số Roll" style="padding:6px 8px;border-radius:7px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.95);color:#fff;font-size:11.5px;" />
+              <select id="admin-new-giftcode-welkin" style="padding:6px 6px;border-radius:7px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.95);color:#c4b5fd;font-size:11px;font-weight:700;">
+                <option value="30">🌙 Kèm Nguyệt Chúc 30 ngày</option>
+                <option value="0">Chỉ cộng Roll ngay</option>
+              </select>
+              <input type="number" id="admin-new-giftcode-maxuses" value="1" min="1" max="1000" title="Số lượt nhập tối đa" placeholder="Số lượt" style="padding:6px 6px;border-radius:7px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.95);color:#fff;font-size:11.5px;" />
+              <button type="button" class="primary-btn" onclick="window.tienLenGame.adminCreateCloudGiftcode()" style="padding:6px 10px;font-size:11.5px;font-weight:900;white-space:nowrap;">
+                ➕ Tạo Code
+              </button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;max-height:95px;overflow-y:auto;">
+              ${giftcodesListHtml}
+            </div>
           </div>
         </div>
       </div>
@@ -6421,23 +6492,22 @@ class TienLenGame {
 
     const inputHash = this.hashAccountPassword(pass, usernameKey);
     const accountsDb = this.loadAccountsDb();
+    const globalReg = this.loadGlobalRegistryCache();
     const cloudExisting = await this.fetchCloudAccount(usernameKey);
-    const existingAcc = cloudExisting || accountsDb[usernameKey];
+    const existingAcc = cloudExisting || accountsDb[usernameKey] || globalReg?.accounts?.[usernameKey];
 
     if (existingAcc) {
-      // Nếu trùng đúng mật khẩu của chính người chơi (ví dụ qua máy mới bấm nhầm Tạo TK thay vì Đăng Nhập) ➔ Tự động đăng nhập luôn!
-      if (existingAcc.passwordHash === inputHash) {
-        accountsDb[usernameKey] = existingAcc;
-        this.saveAccountsDb(accountsDb);
-        await this.loginAccount(usernameKey, pass);
-        return;
-      }
       if (btnEl) {
         btnEl.disabled = false;
         btnEl.textContent = '🔐 Tạo Tài Khoản & Đồng Bộ Đám Mây Ngay';
       }
+      const statusEl = document.getElementById('acc-reg-username-status');
+      if (statusEl) {
+        statusEl.style.color = '#f87171';
+        statusEl.innerHTML = `❌ Tên tài khoản <strong>@${rawUser}</strong> đã bị trùng (đã có người sử dụng)! Vui lòng đặt tên khác.`;
+      }
       alert(
-        `⚠️ Tài khoản "${rawUser}" đã tồn tại trên hệ thống Đám Mây! Nếu đây là tài khoản của bạn, hãy chuyển sang tab "🔑 Đăng Nhập" nhé.`
+        `⚠️ Tên đăng nhập "${rawUser}" đã bị trùng (đã tồn tại trên hệ thống Đám Mây)!\n\n👉 Vui lòng chọn một tên đăng nhập khác (hoặc chuyển sang tab "🔑 Đăng Nhập" nếu đây là tài khoản của bạn).`
       );
       return;
     }
@@ -6730,6 +6800,50 @@ class TienLenGame {
     }
   }
 
+  onRegUsernameInput(rawVal) {
+    const val = String(rawVal || '').trim();
+    const d = document.getElementById('acc-reg-displayname');
+    if (d && !d.dataset.userEdited) {
+      d.value = val;
+    }
+    const statusEl = document.getElementById('acc-reg-username-status');
+    if (!statusEl) return;
+    if (!val) {
+      statusEl.textContent = '';
+      return;
+    }
+    if (!/^[a-zA-Z0-9_.-]{3,20}$/.test(val)) {
+      statusEl.style.color = '#fbbf24';
+      statusEl.textContent = '⚠️ Cần dài 3–20 ký tự, viết liền không dấu (chữ, số, dấu gạch dưới).';
+      return;
+    }
+    const uKey = val.toLowerCase();
+    const accountsDb = this.loadAccountsDb();
+    const globalReg = this.loadGlobalRegistryCache();
+    if (accountsDb[uKey] || globalReg?.accounts?.[uKey]) {
+      statusEl.style.color = '#f87171';
+      statusEl.innerHTML = `❌ Tên đăng nhập <strong>@${val}</strong> đã bị trùng! Vui lòng chọn tên khác.`;
+      return;
+    }
+    statusEl.style.color = '#94a3b8';
+    statusEl.textContent = `⏳ Đang kiểm tra tên @${val} trên Đám Mây...`;
+    clearTimeout(this._regUsernameCheckTimer);
+    this._regUsernameCheckTimer = setTimeout(async () => {
+      const cloudAcc = await this.fetchCloudAccount(uKey).catch(() => null);
+      const curInput = (document.getElementById('acc-reg-username')?.value || '').trim().toLowerCase();
+      if (curInput !== uKey) return;
+      const st = document.getElementById('acc-reg-username-status');
+      if (!st) return;
+      if (cloudAcc) {
+        st.style.color = '#f87171';
+        st.innerHTML = `❌ Tên đăng nhập <strong>@${val}</strong> đã bị trùng trên Đám Mây! Vui lòng chọn tên khác.`;
+      } else {
+        st.style.color = '#34d399';
+        st.innerHTML = `✅ Tên đăng nhập <strong>@${val}</strong> hợp lệ (chưa có ai sử dụng)!`;
+      }
+    }, 320);
+  }
+
   renderAccountModal() {
     const body = document.getElementById('account-modal-body');
     if (!body) return;
@@ -6885,7 +6999,8 @@ class TienLenGame {
         <div class="account-form-box">
           <div class="account-field">
             <label>👤 Tên tài khoản (Username — viết liền không dấu, 3–20 ký tự):</label>
-            <input type="text" id="acc-reg-username" maxlength="20" placeholder="Ví dụ: player2026" oninput="const d=document.getElementById('acc-reg-displayname'); if(d && !d.dataset.userEdited){ d.value=this.value.trim(); }" />
+            <input type="text" id="acc-reg-username" maxlength="20" placeholder="Ví dụ: player2026" oninput="window.tienLenGame.onRegUsernameInput(this.value)" />
+            <div id="acc-reg-username-status" style="font-size:11.5px;font-weight:800;margin-top:4px;min-height:16px;"></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <div class="account-field">
@@ -9138,9 +9253,14 @@ class TienLenGame {
       sponsorUrl: String(ad.sponsorUrl || '').trim(),
       bannerHtml: String(ad.bannerHtml || '').trim(),
       adMode: ad.adMode || 'auto_open',
+      bankCode: String(ad.bankCode || 'MB').trim().toUpperCase(),
+      bankAccount: String(ad.bankAccount || '').trim(),
+      bankOwner: String(ad.bankOwner || '').trim(),
+      contactUrl: String(ad.contactUrl || 'https://www.facebook.com/groups/teyvatvn/posts/1533270325387216/').trim(),
       cfgUpdatedAtMs: Number(ad.cfgUpdatedAtMs) || 0,
       totalViews: Number(ad.totalViews) || 0,
       totalClicks: Number(ad.totalClicks) || 0,
+      giftcodes: ad.giftcodes || {},
     };
   }
 
@@ -9149,11 +9269,19 @@ class TienLenGame {
     const urlInput = document.getElementById('admin-input-sponsor-url');
     const modeSelect = document.getElementById('admin-select-ad-mode');
     const bannerInput = document.getElementById('admin-input-banner-html');
+    const bankCodeInput = document.getElementById('admin-input-bank-code');
+    const bankAccInput = document.getElementById('admin-input-bank-account');
+    const bankOwnerInput = document.getElementById('admin-input-bank-owner');
+    const contactUrlInput = document.getElementById('admin-input-contact-url');
     const btn = document.getElementById('btn-save-admin-ad-config');
 
     const sponsorUrl = String(urlInput ? urlInput.value : '').trim();
     const adMode = String(modeSelect ? modeSelect.value : 'auto_open').trim();
     const bannerHtml = String(bannerInput ? bannerInput.value : '').trim();
+    const bankCode = String(bankCodeInput ? bankCodeInput.value : 'MB').trim().toUpperCase();
+    const bankAccount = String(bankAccInput ? bankAccInput.value : '').trim();
+    const bankOwner = String(bankOwnerInput ? bankOwnerInput.value : '').trim();
+    const contactUrl = String(contactUrlInput ? contactUrlInput.value : '').trim();
 
     if (btn) {
       btn.disabled = true;
@@ -9167,6 +9295,10 @@ class TienLenGame {
       sponsorUrl,
       bannerHtml,
       adMode,
+      bankCode,
+      bankAccount,
+      bankOwner,
+      contactUrl,
       cfgUpdatedAtMs: Date.now(),
     };
     this.globalRegistryCache = reg;
@@ -9177,14 +9309,312 @@ class TienLenGame {
     await this.syncGlobalDeviceRegistry(true);
     sfx.win();
     alert(
-      sponsorUrl
-        ? `✅ Đã bật Kiếm Tiền Quảng Cáo toàn Server!\n🔗 Link QC: ${sponsorUrl}\n⚙️ Chế độ: ${adMode}`
-        : '✅ Đã cập nhật cấu hình Quảng Cáo toàn Server!'
+      `✅ Đã lưu cấu hình Kiếm Tiền Quảng Cáo & VietQR toàn Server!\n${
+        sponsorUrl ? `🔗 Link QC: ${sponsorUrl}\n` : ''
+      }${bankAccount ? `🏦 VietQR: ${bankCode} - ${bankAccount} (${bankOwner})` : ''}`
     );
     const statsContainer = document.getElementById('account-device-stats-container');
     if (statsContainer) {
       statsContainer.innerHTML = this.renderDeviceTrackerSectionHtml();
     }
+  }
+
+  async adminCreateCloudGiftcode() {
+    if (!this.isAdminAccount()) return;
+    const codeInp = document.getElementById('admin-new-giftcode-str');
+    const rollsInp = document.getElementById('admin-new-giftcode-rolls');
+    const welkinSel = document.getElementById('admin-new-giftcode-welkin');
+    const maxUsesInp = document.getElementById('admin-new-giftcode-maxuses');
+
+    let code = String(codeInp ? codeInp.value : '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9_]/g, '');
+    if (!code) {
+      code = 'VIP' + Math.floor(100000 + Math.random() * 900000);
+    }
+    const rolls = Math.max(1, Math.min(500, Math.round(Number(rollsInp ? rollsInp.value : 10) || 10)));
+    const welkinDays = Math.max(0, Math.round(Number(welkinSel ? welkinSel.value : 30) || 0));
+    const maxUses = Math.max(1, Math.min(1000, Math.round(Number(maxUsesInp ? maxUsesInp.value : 1) || 1)));
+
+    const reg = this.loadGlobalRegistryCache();
+    if (!reg.adMonetization) reg.adMonetization = {};
+    if (!reg.adMonetization.giftcodes) reg.adMonetization.giftcodes = {};
+
+    reg.adMonetization.giftcodes[code] = {
+      code,
+      rolls,
+      welkinDays,
+      maxUses,
+      usedCount: 0,
+      usedBy: [],
+      createdAtMs: Date.now(),
+    };
+    reg.adMonetization.cfgUpdatedAtMs = Date.now();
+    this.globalRegistryCache = reg;
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+
+    await this.syncGlobalDeviceRegistry(true);
+    sfx.win();
+    try {
+      navigator.clipboard?.writeText(code);
+    } catch (_) {}
+    alert(
+      `🎁 Đã tạo Mã Giftcode Đám Mây thành công (đã copy vào bộ nhớ tạm)!\n\n🔑 Mã Code: ${code}\n🌟 Phần thưởng: +${rolls} Roll (+${(
+        rolls * WISH_COST_SINGLE
+      ).toLocaleString()} Xu)${
+        welkinDays > 0 ? ` + 🌙 Thẻ Tháng Nguyệt Chúc ${welkinDays} ngày` : ''
+      }\n👥 Giới hạn: ${maxUses} lượt nhập`
+    );
+    const statsContainer = document.getElementById('account-device-stats-container');
+    if (statsContainer) {
+      statsContainer.innerHTML = this.renderDeviceTrackerSectionHtml();
+    }
+  }
+
+  isWelkinActive() {
+    const expMs = Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0;
+    return expMs > Date.now();
+  }
+
+  getWelkinDaysRemaining() {
+    const expMs = Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0;
+    if (expMs <= Date.now()) return 0;
+    return Math.ceil((expMs - Date.now()) / (24 * 3600 * 1000));
+  }
+
+  claimDailyWelkinReward() {
+    if (!this.isWelkinActive()) return;
+    const today = this.getTodayKey();
+    const lastClaim = localStorage.getItem('tlmn_welkin_last_claim_v1') || '';
+    if (lastClaim === today) {
+      alert('✅ Hôm nay bạn đã nhận +2 Roll (3,200 Xu) từ Không Không Nguyệt Chúc rồi! Hãy quay lại vào ngày mai nhé.');
+      return;
+    }
+    localStorage.setItem('tlmn_welkin_last_claim_v1', today);
+    const reward = WISH_COST_SINGLE * 2; // 3,200 Xu = 2 Roll
+    const me = this.getLocalPlayer();
+    if (me) me.coins += reward;
+    sfx.win();
+    this.saveShopProfile();
+    this.renderSeats();
+    this.renderShopModal();
+    this.renderGiftcodeModal();
+    alert(`🌙 KHÔNG KHÔNG NGUYỆT CHÚC: Bạn đã nhận +2 Roll (+${reward.toLocaleString()} Xu) hôm nay!`);
+  }
+
+  async openGiftcodeModal() {
+    const modal = document.getElementById('giftcode-modal');
+    if (!modal) return;
+    this.renderGiftcodeModal();
+    modal.classList.remove('hidden');
+    sfx.click();
+    await this.syncGlobalDeviceRegistry(true);
+    this.renderGiftcodeModal();
+  }
+
+  closeGiftcodeModal() {
+    document.getElementById('giftcode-modal')?.classList.add('hidden');
+    sfx.click();
+  }
+
+  renderGiftcodeModal() {
+    const body = document.getElementById('giftcode-modal-body');
+    if (!body) return;
+    const cfg = this.getAdMonetizationConfig();
+    const welkinDays = this.getWelkinDaysRemaining();
+    const today = this.getTodayKey();
+    const welkinClaimedToday = (localStorage.getItem('tlmn_welkin_last_claim_v1') || '') === today;
+    const myUser = this.currentAccountUsername || this.savedPlayerName || 'Khach';
+    const transferMemo = `TLMN ${myUser}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
+    const hasBank = Boolean(cfg.bankCode && cfg.bankAccount);
+    const vietQrUrl = hasBank
+      ? `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
+          cfg.bankAccount
+        )}-compact2.png?amount=20000&addInfo=${encodeURIComponent(transferMemo)}&accountName=${encodeURIComponent(
+          cfg.bankOwner || ''
+        )}`
+      : '';
+
+    body.innerHTML = `
+      <!-- Khung 1: Nhập Giftcode Nhận Roll -->
+      <div style="padding:12px 14px;border-radius:12px;background:rgba(15,23,42,0.9);border:1.5px solid rgba(250,204,21,0.5);">
+        <div style="font-size:14px;font-weight:900;color:#fde047;margin-bottom:6px;">
+          🔑 NHẬP MÃ GIFTCODE NHẬN LƯỢT CẦU NGUYỆN &amp; QUÀ VIP
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="text" id="input-redeem-giftcode" placeholder="Nhập mã Giftcode (VD: TIENLEN5SAO)..." style="flex:1;min-width:190px;padding:9px 12px;border-radius:10px;border:1.5px solid rgba(250,204,21,0.55);background:rgba(30,41,59,0.95);color:#fef08a;font-weight:900;font-size:13.5px;text-transform:uppercase;" />
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.redeemGiftcodeNow()" style="padding:9px 18px;font-weight:900;font-size:13.5px;">
+            🎁 Đổi Mã Ngay
+          </button>
+        </div>
+        <div style="font-size:11.5px;color:#cbd5e1;margin-top:6px;">
+          💡 Mã Tân Thủ miễn phí cho mọi người chơi: <strong style="color:#fde047;cursor:pointer;" onclick="document.getElementById('input-redeem-giftcode').value='TIENLEN5SAO'">TIENLEN5SAO</strong> (Nhận ngay <strong>+1 Roll = 1,600 Xu</strong>).
+        </div>
+      </div>
+
+      <!-- Khung 2: Thẻ Tháng Không Không Nguyệt Chúc (Welkin Moon) -->
+      <div style="padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(49,46,129,0.75),rgba(15,23,42,0.95));border:1.5px solid rgba(167,139,250,0.6);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:14.5px;font-weight:900;color:#e9d5ff;">
+              🌙 THẺ THÁNG: KHÔNG KHÔNG NGUYỆT CHÚC (30 NGÀY)
+            </div>
+            <div style="font-size:12px;color:#cbd5e1;margin-top:3px;line-height:1.4;">
+              • Kích hoạt nhận ngay <strong>+10 Roll (16,000 Xu)</strong> + Mỗi ngày nhận <strong>+2 Roll (3,200 Xu)</strong> suốt 30 ngày (Tổng <strong>70 Roll = 112,000 Xu</strong>)!<br/>
+              • ⚡ <strong>Đặc quyền VIP:</strong> Bấm <em>"📺 Xem QC (+1 Roll)"</em> nhận thưởng <strong>tức thì 0 giây</strong> (bỏ qua 15 giây chờ)!
+            </div>
+          </div>
+          <div>
+            ${
+              welkinDays > 0
+                ? `<button type="button" class="primary-btn" onclick="window.tienLenGame.claimDailyWelkinReward()" ${
+                    welkinClaimedToday ? 'disabled' : ''
+                  } style="padding:8px 14px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
+                    ${welkinClaimedToday ? `✅ Đã nhận hôm nay (Còn ${welkinDays} ngày)` : `🌙 Nhận +2 Roll Hôm Nay (Còn ${welkinDays} ngày)`}
+                  </button>`
+                : `<span style="display:inline-block;padding:5px 10px;border-radius:999px;background:rgba(148,163,184,0.2);color:#cbd5e1;font-size:11.5px;font-weight:800;">Chưa kích hoạt</span>`
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Khung 3: Ủng Hộ Dev / Nhận Giftcode Tri Ân -->
+      <div style="padding:12px 14px;border-radius:12px;background:rgba(15,23,42,0.88);border:1px solid rgba(52,211,153,0.45);">
+        <div style="font-size:13.5px;font-weight:900;color:#6ee7b7;margin-bottom:6px;">
+          ☕ ỦNG HỘ DEV DUY TRÌ SERVER &amp; NHẬN MÃ GIFTCODE TRI ÂN
+        </div>
+        ${
+          hasBank
+            ? `
+              <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+                <img src="${vietQrUrl}" alt="VietQR Ủng Hộ Dev" style="width:155px;height:auto;border-radius:10px;border:2px solid #fde047;background:#fff;padding:4px;" />
+                <div style="flex:1;min-width:210px;font-size:12px;color:#e2e8f0;line-height:1.5;">
+                  <div>🏦 Ngân hàng: <strong style="color:#fde047;">${cfg.bankCode}</strong></div>
+                  <div>💳 Số TK: <strong style="color:#38bdf8;">${cfg.bankAccount}</strong></div>
+                  ${cfg.bankOwner ? `<div>👤 Chủ TK: <strong>${cfg.bankOwner}</strong></div>` : ''}
+                  <div>📝 Nội dung CK: <strong style="color:#6ee7b7;">${transferMemo}</strong></div>
+                  <div style="margin-top:6px;color:#fde68a;">
+                    🎁 Quét mã ủng hộ Dev tùy tâm (từ <strong>20.000đ</strong> nhận ngay <strong>Mã Giftcode Gói Nguyệt Chúc 30 ngày + 10 Roll</strong>)!
+                  </div>
+                  ${
+                    cfg.contactUrl
+                      ? `<a href="${cfg.contactUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;padding:6px 12px;border-radius:8px;background:#2563eb;color:#fff;font-weight:800;text-decoration:none;font-size:12px;">💬 Nhắn cho Dev nhận Mã Giftcode ▸</a>`
+                      : ''
+                  }
+                </div>
+              </div>
+            `
+            : `
+              <div style="font-size:12px;color:#cbd5e1;line-height:1.5;">
+                💬 Liên hệ Admin <strong>@thang.dinhbkp</strong> trên bài viết nhóm Facebook để nhận mã Giftcode sự kiện hoặc ủng hộ gói Không Không Nguyệt Chúc!
+                ${
+                  cfg.contactUrl
+                    ? `<div style="margin-top:8px;"><a href="${cfg.contactUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:800;text-decoration:none;font-size:12px;">🌐 Mở Bài Viết Nhóm Genshin Để Nhận Giftcode ▸</a></div>`
+                    : ''
+                }
+              </div>
+            `
+        }
+      </div>
+    `;
+  }
+
+  async redeemGiftcodeNow() {
+    const inp = document.getElementById('input-redeem-giftcode');
+    const code = String(inp ? inp.value : '')
+      .trim()
+      .toUpperCase();
+    if (!code) {
+      alert('⚠️ Vui lòng nhập mã Giftcode!');
+      return;
+    }
+
+    const usedLocalRaw = localStorage.getItem('tlmn_redeemed_codes_v1') || '[]';
+    let usedLocal = [];
+    try {
+      usedLocal = JSON.parse(usedLocalRaw);
+      if (!Array.isArray(usedLocal)) usedLocal = [];
+    } catch (_) {
+      usedLocal = [];
+    }
+
+    if (usedLocal.includes(code)) {
+      alert(`⚠️ Bạn đã sử dụng mã Giftcode "${code}" trên tài khoản này rồi!`);
+      return;
+    }
+
+    // 1. Kiểm tra mã Tân Thủ mặc định TIENLEN5SAO / TANTHUGENSHIN
+    if (code === 'TIENLEN5SAO' || code === 'TANTHUGENSHIN') {
+      usedLocal.push(code);
+      localStorage.setItem('tlmn_redeemed_codes_v1', JSON.stringify(usedLocal));
+      const me = this.getLocalPlayer();
+      const reward = WISH_COST_SINGLE; // 1,600 Xu = 1 Roll
+      if (me) me.coins += reward;
+      sfx.win();
+      this.saveShopProfile();
+      this.renderSeats();
+      this.renderShopModal();
+      this.renderGiftcodeModal();
+      alert(`🎉 Đổi Giftcode "${code}" thành công!\n🎁 Bạn nhận được +1 Roll (+${reward.toLocaleString()} Xu)!`);
+      return;
+    }
+
+    // 2. Đồng bộ Cloud để kiểm tra mã Giftcode VIP do Admin @thang.dinhbkp tạo
+    await this.syncGlobalDeviceRegistry(true);
+    const reg = this.loadGlobalRegistryCache();
+    const gMap = reg.adMonetization?.giftcodes || {};
+    const entry = gMap[code];
+
+    if (!entry) {
+      alert(`❌ Mã Giftcode "${code}" không tồn tại hoặc đã hết hạn!`);
+      return;
+    }
+
+    const myKey = this.currentAccountUsername || this.getOrCreateDeviceId();
+    const usedBy = Array.isArray(entry.usedBy) ? entry.usedBy : [];
+    if (usedBy.includes(myKey)) {
+      alert(`⚠️ Tài khoản của bạn đã nhập mã "${code}" trước đó rồi!`);
+      return;
+    }
+    if ((Number(entry.usedCount) || 0) >= (Number(entry.maxUses) || 1)) {
+      alert(`❌ Mã Giftcode "${code}" đã hết lượt sử dụng (${entry.usedCount}/${entry.maxUses})!`);
+      return;
+    }
+
+    entry.usedBy = [...usedBy, myKey];
+    entry.usedCount = entry.usedBy.length;
+    this.globalRegistryCache = reg;
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+    usedLocal.push(code);
+    localStorage.setItem('tlmn_redeemed_codes_v1', JSON.stringify(usedLocal));
+
+    const rolls = Number(entry.rolls) || 10;
+    const rewardCoins = rolls * WISH_COST_SINGLE;
+    const me = this.getLocalPlayer();
+    if (me) me.coins += rewardCoins;
+
+    let welkinMsg = '';
+    if (Number(entry.welkinDays) > 0) {
+      const curExp = Math.max(Date.now(), Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0);
+      const newExp = curExp + Number(entry.welkinDays) * 24 * 3600 * 1000;
+      localStorage.setItem('tlmn_welkin_expire_ms_v1', String(newExp));
+      welkinMsg = `\n🌙 Đã kích hoạt Không Không Nguyệt Chúc (+${entry.welkinDays} ngày • Bỏ qua chờ 15s QC & nhận +2 Roll mỗi ngày)!`;
+    }
+
+    sfx.win();
+    this.saveShopProfile();
+    this.renderSeats();
+    this.renderShopModal();
+    this.renderGiftcodeModal();
+    await this.syncGlobalDeviceRegistry(true);
+    alert(
+      `🎉 Chúc mừng! Bạn đã đổi mã VIP "${code}" thành công!\n🌟 Nhận ngay: +${rolls} Roll (+${rewardCoins.toLocaleString()} Xu)${welkinMsg}`
+    );
   }
 
   recordAdMonetizationEvent(type = 'view') {
@@ -9247,7 +9677,7 @@ class TienLenGame {
       this.adMusicTrack = 'verity';
     }
 
-    const AD_DURATION = 15;
+    const AD_DURATION = this.isWelkinActive() ? 1 : 15;
     const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
     this.adRemainingSec = AD_DURATION;
     this.adRewardClaimed = false;

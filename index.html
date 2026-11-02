@@ -438,9 +438,13 @@
             <span class="dock-icon">🧭</span>
             <span class="dock-label">Nhiệm Vụ (<span id="lobby-quest-badge">0/4</span>)</span>
           </button>
-          <button class="app-dock-btn dock-ad" id="btn-lobby-watch-ad" title="Xem Quảng Cáo Rick Roll (15s) nhận ngay +1 Roll (1,600 Xu)!">
+          <button class="app-dock-btn dock-ad" id="btn-lobby-watch-ad" title="Xem Quảng Cáo (15s) nhận ngay +1 Roll (1,600 Xu)!">
             <span class="dock-icon">📺</span>
             <span class="dock-label">Xem QC (+1 Roll)</span>
+          </button>
+          <button class="app-dock-btn" id="btn-lobby-giftcode" onclick="window.tienLenGame.openGiftcodeModal()" style="border-color:rgba(250,204,21,0.65);background:linear-gradient(135deg,rgba(161,98,7,0.38),rgba(30,27,75,0.85));" title="Nhập Giftcode nhận Roll &amp; Thẻ Tháng Không Không Nguyệt Chúc">
+            <span class="dock-icon">🎁</span>
+            <span class="dock-label" style="color:#fde047;font-weight:900;">Giftcode / VIP</span>
           </button>
           <button class="app-dock-btn" id="btn-lobby-bgm" title="Đổi bài nhạc nền Genshin Impact hoặc Tắt nhạc">
             <span class="dock-icon">🎵</span>
@@ -1374,6 +1378,23 @@
       </div>
     </div>
 
+    <!-- MODAL NHẬP GIFTCODE & THẺ THÁNG KHÔNG KHÔNG NGUYỆT CHÚC / ỦNG HỘ DEV -->
+    <div class="modal-backdrop hidden" id="giftcode-modal" style="z-index: 9880;">
+      <div class="modal-card" style="max-width: 680px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div>
+            <h2>🎁 NHẬP GIFTCODE &amp; THẺ THÁNG NGUYỆT CHÚC</h2>
+            <p style="font-size:12px;color:#cbd5e1;margin:2px 0 0;">Nhập mã đổi Lượt Cầu Nguyện • Kích hoạt Không Không Nguyệt Chúc (+2 Roll mỗi ngày &amp; Bỏ qua chờ 15s QC)</p>
+          </div>
+          <button type="button" class="close-modal-btn" onclick="window.tienLenGame.closeGiftcodeModal()">✕</button>
+        </div>
+        <div class="modal-body" id="giftcode-modal-body" style="overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;"></div>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;">
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.closeGiftcodeModal()">✅ Đóng</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL XEM CHI TIẾT KỸ NĂNG NHÂN VẬT ĐANG XÀI KHI BẤM VÀO ẢNH ĐẠI DIỆN / Ô NHÂN VẬT -->
     <div class="modal-backdrop hidden" id="char-skill-detail-modal">
       <div class="modal-card" style="max-width: 680px;">
@@ -1533,6 +1554,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=144"></script>
+  <script src="game.js?v=145"></script>
 </body>
 </html>

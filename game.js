@@ -2862,10 +2862,11 @@ function canBeatCombo(candidate, current) {
         reason: '🐍 Khiên Trường Sinh (Baizhu): Bộ bài này đang được Khiên Ngọc bảo hộ — Miễn nhiễm bị chặt!',
       };
     }
+    const isTargetTwoOrBomb = Boolean(current.highRank === 12 || current.isBomb);
     return {
       ok: true,
-      isChop: true,
-      chopReason: `Phỏm Pha Lê (${candidate.label}) chặt ${current.label}!`,
+      isChop: isTargetTwoOrBomb,
+      chopReason: isTargetTwoOrBomb ? `Phỏm Pha Lê (${candidate.label}) chặt ${current.label}!` : undefined,
     };
   }
 

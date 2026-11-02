@@ -1284,67 +1284,40 @@
       </div>
     </div>
 
-    <!-- RICK ROLL REWARDED VIDEO AD OVERLAY (XEM QUẢNG CÁO NHẬN XU) -->
+    <!-- REWARDED SPONSOR AD OVERLAY (XEM QUẢNG CÁO MONETAG 15 GIÂY NHẬN +1 ROLL = 1,600 XU) -->
     <div class="rickroll-ad-overlay hidden" id="rickroll-ad-overlay">
       <div class="rickroll-ad-card">
         <!-- Top Ad HUD Bar -->
         <div class="ad-top-bar">
           <div class="ad-sponsor-badge" id="ad-sponsor-badge">
-            📢 QUẢNG CÁO NHẬN THƯỞNG • TÀI TRỢ BỞI VERITY AI &amp; FONTAINE TV
+            📢 QUẢNG CÁO NHÀ TÀI TRỢ • NHẬN +1 ROLL (1,600 XU)
           </div>
           <div class="ad-top-right" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <button type="button" class="ad-skip-btn" id="btn-ad-switch-music" onclick="window.tienLenGame.toggleAdMusicTrack()" style="background:rgba(250,204,21,0.18);border-color:#fde047;color:#fef08a;cursor:pointer;" title="Đổi nhạc quảng cáo giữa Verity và Rick Roll">
-              🎵 Nhạc: Hey It's Me, It's Verity
-            </button>
             <div class="ad-countdown-pill" id="ad-countdown-pill">
               ⏳ Nhận +1 Roll (1,600 Xu) sau: <strong>15s</strong>
             </div>
             <button class="ad-skip-btn" id="btn-ad-skip-or-claim">
               🔒 Chờ 15s...
             </button>
+            <button type="button" onclick="window.tienLenGame.stopRickRollAd()" style="padding:6px 12px;border-radius:999px;background:rgba(239,68,68,0.92);color:#fff;font-weight:900;font-size:12px;border:1.5px solid #fca5a5;cursor:pointer;">
+              ✕ Đóng QC
+            </button>
           </div>
         </div>
 
-        <!-- Video Stage -->
-        <div class="ad-video-stage">
-          <video class="rickroll-video" id="verity-video" src="verity.mp4" playsinline loop preload="auto"></video>
-          <video class="rickroll-video hidden" id="rickroll-video" src="rickroll.mp4" playsinline></video>
-          <img class="rickroll-gif-fallback hidden" id="rickroll-gif-fallback" src="rickroll.gif" alt="Rick Astley Dancing" />
-          <div class="verity-ad-stage hidden" id="verity-ad-stage">
-            <div class="verity-smiley-orb">
-              <div class="verity-eyes">
-                <span></span>
-                <span></span>
-              </div>
-              <div class="verity-mouth"></div>
-            </div>
-            <div class="verity-eq-bars">
-              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-            </div>
-          </div>
-          <audio id="rickroll-audio" src="rickroll.mp3" preload="auto"></audio>
-          <audio id="verity-audio" src="verity.mp3" loop preload="auto"></audio>
-
-          <div class="ad-rickroll-banner" id="ad-rickroll-banner">
-            🙂 <strong>HEY, IT'S ME, IT'S VERITY!</strong> Thưởng thức giai điệu quảng cáo <em>“It's Me, It's Verity”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎶
-          </div>
-
-          <!-- Khung Hiển Thị Quảng Cáo Thật (Có Nút ✕ Đóng Ngay Trên Khung & Chặn Chuyển Trang) -->
-          <div id="ad-real-sponsor-box" class="hidden" style="position:relative;z-index:25;margin:8px auto 0;max-width:520px;width:92%;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,rgba(15,23,42,0.96),rgba(30,27,75,0.96));border:2px solid #facc15;box-shadow:0 8px 25px rgba(0,0,0,0.8);text-align:center;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-              <span style="font-size:11px;font-weight:800;color:#fde047;">📢 QUẢNG CÁO TÀI TRỢ (TỰ ĐÓNG SAU 15 GIÂY)</span>
-              <button type="button" onclick="document.getElementById('ad-real-sponsor-box').classList.add('hidden'); document.getElementById('ad-real-network-slot').innerHTML='';" style="padding:3px 10px;border-radius:999px;background:rgba(239,68,68,0.9);color:#fff;font-weight:900;font-size:11.5px;border:1px solid #fca5a5;cursor:pointer;">
-                ✕ Tắt khung QC
+        <!-- Sponsor Ad Stage (100% Real Ad - Đã xóa hoàn toàn Quảng Cáo Verity / Rick Roll) -->
+        <div class="ad-video-stage" style="display:flex;flex-direction:column;justify-content:center;align-items:center;padding:12px;min-height:340px;">
+          <div id="ad-real-sponsor-box" style="position:relative;z-index:25;width:100%;max-width:680px;height:100%;min-height:310px;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,rgba(15,23,42,0.98),rgba(30,27,75,0.98));border:2px solid #facc15;box-shadow:0 8px 25px rgba(0,0,0,0.8);display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-size:12px;font-weight:900;color:#fde047;">🌐 ĐỐI TÁC TÀI TRỢ MONETAG (TỰ ĐỘNG CỘNG +1 ROLL SAU 15 GIÂY)</span>
+              <button type="button" onclick="window.tienLenGame.stopRickRollAd()" style="padding:4px 12px;border-radius:999px;background:rgba(239,68,68,0.92);color:#fff;font-weight:900;font-size:11.5px;border:1px solid #fca5a5;cursor:pointer;">
+                ✕ Tắt Quảng Cáo
               </button>
             </div>
-            <div id="ad-real-network-slot" style="margin-bottom:6px;display:flex;justify-content:center;align-items:center;overflow:hidden;border-radius:8px;"></div>
-            <div id="ad-real-sponsor-sub" style="font-size:11px;color:#cbd5e1;">
-              💡 Xem hết 15 giây hoặc bấm <strong>"✕ Tắt khung QC"</strong> góc phải để ẩn khung này.
+            <div id="ad-real-network-slot" style="flex:1;width:100%;min-height:250px;display:flex;justify-content:center;align-items:center;overflow:hidden;border-radius:10px;background:#0f172a;"></div>
+            <div id="ad-real-sponsor-sub" style="font-size:11.5px;color:#cbd5e1;margin-top:8px;text-align:center;">
+              💡 Xem đủ 15 giây để tự động nhận <strong>+1 Roll (1,600 Xu)</strong> hoặc bấm <strong>"✕ Tắt Quảng Cáo"</strong> góc trên để đóng.
             </div>
-          </div>
-
-          <div class="ad-lyrics-sub" id="ad-lyrics-sub">
-            🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵
           </div>
         </div>
 
@@ -1537,6 +1510,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=149"></script>
+  <script src="game.js?v=150"></script>
 </body>
 </html>

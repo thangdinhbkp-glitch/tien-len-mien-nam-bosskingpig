@@ -6116,12 +6116,17 @@ class TienLenGame {
         `
         : '';
 
+    const isAdmin = String(curUser || '').trim().toLowerCase() === 'thang.dinhbkp';
+    if (!isAdmin) {
+      return myAccountDevicesHtml;
+    }
+
     return `
       ${myAccountDevicesHtml}
       <div class="account-form-box" style="margin-top:8px;border:1px solid rgba(250,204,21,0.32);background:rgba(15,23,42,0.82);">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
           <div style="font-size:13px;font-weight:900;color:#fde047;">
-            🌐 Thống Kê Thiết Bị &amp; Người Chơi Toàn Game (Cloud)
+            👑 Thống Kê Thiết Bị &amp; Người Chơi Toàn Game (Chỉ Admin @thang.dinhbkp)
           </div>
           <button type="button" class="tool-btn" id="btn-refresh-device-stats" onclick="window.tienLenGame.refreshGlobalDeviceStats()" style="padding:4px 10px;font-size:11.5px;font-weight:800;">
             🔄 Quét &amp; Làm Mới

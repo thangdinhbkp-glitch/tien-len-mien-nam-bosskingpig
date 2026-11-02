@@ -3731,10 +3731,27 @@ class TienLenGame {
       clearTimeout(this.botTimer);
       clearInterval(this.turnCountdownInterval);
       this.openAccountModal('register');
-    } else if (!this.tutorialCompleted && this.tutorialStep >= 2 && this.tutorialStep <= 6) {
-      setTimeout(() => this.resumeNewbieTutorialOnBoot(), 120);
-    } else if (!this.tutorialCompleted && (this.tutorialStep === 1 || (this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0))) {
-      setTimeout(() => this.startNewbieTutorial(false), 120);
+    } else if (this.isAdminAccount() || this.unlockedBursts.size > 0 || (this.totalWishes || 0) > 0) {
+      this.tutorialCompleted = true;
+      this.beginnerBannerUsed = true;
+      this.tutorialStep = 0;
+      this.hideTravelerGuide();
+    } else {
+      // Đợi đồng bộ Đám Mây xong rồi mới kiểm tra xem có phải tài khoản Tân Thủ thật sự hay không (tránh chạy nhầm hướng dẫn khi mạng đang tải hồ sơ Cloud!)
+      this.pullAccountFromCloudAndSync(this.currentAccountUsername).finally(() => {
+        if (this.isAdminAccount() || this.unlockedBursts.size > 0 || (this.totalWishes || 0) > 0 || this.tutorialCompleted) {
+          this.tutorialCompleted = true;
+          this.beginnerBannerUsed = true;
+          this.tutorialStep = 0;
+          this.hideTravelerGuide();
+          return;
+        }
+        if (this.tutorialStep >= 2 && this.tutorialStep <= 6) {
+          this.resumeNewbieTutorialOnBoot();
+        } else if (this.tutorialStep === 1 || (this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0)) {
+          this.startNewbieTutorial(false);
+        }
+      });
     }
     this.setupCrossDeviceCloudSync();
     if (this.dailyRecoveredOnLoad) {
@@ -4614,15 +4631,16 @@ class TienLenGame {
     if (typeof data.tutorialStep === 'number' && isNewerOrEqual) {
       this.tutorialStep = data.tutorialStep;
     }
-    // Bất kỳ người chơi nào đã từng hoàn thành hướng dẫn hoặc đã sở hữu Nhân Vật 5★ / đã quay Gacha đều được đánh dấu hoàn thành vĩnh viễn!
+    // Bất kỳ người chơi nào đã từng hoàn thành hướng dẫn hoặc đã sở hữu Nhân Vật 5★ / đã quay Gacha / Admin đều được đánh dấu hoàn thành vĩnh viễn!
     if (
+      this.isAdminAccount() ||
       this.tutorialCompleted ||
-      this.unlockedBursts.size > 1 ||
-      (this.totalWishes || 0) > 0 ||
-      (this.unlockedBursts.size >= 1 && (this.beginnerBannerUsed || this.tutorialStep >= 6 || this.tutorialStep === 0))
+      this.unlockedBursts.size >= 1 ||
+      (this.totalWishes || 0) > 0
     ) {
       this.tutorialCompleted = true;
       this.beginnerBannerUsed = true;
+      this.tutorialStep = 0;
     }
     if (data.dailyQuestsDate === today && data.dailyQuestsState && typeof data.dailyQuestsState === 'object') {
       this.dailyQuestsDate = today;
@@ -4985,6 +5003,9 @@ class TienLenGame {
           gachaGuaranteed4,
           selectedBannerBurstId,
           totalWishes,
+          tutorialCompleted: Boolean(unlockedBursts.length > 0 || totalWishes > 0 || usernameKey === 'thang.dinhbkp'),
+          beginnerBannerUsed: Boolean(unlockedBursts.length > 0 || totalWishes > 0 || usernameKey === 'thang.dinhbkp'),
+          tutorialStep: 0,
           gachaHistory: [],
           lastDailyDate: dailyQuestsDate,
           dailyReliefUsed: 0,
@@ -5324,9 +5345,8 @@ class TienLenGame {
       tutorialCompleted: Boolean(
         older.tutorialCompleted ||
           newer.tutorialCompleted ||
-          mergedBursts.length > 1 ||
-          maxTotalWishes > 0 ||
-          (mergedBursts.length > 0 && (older.beginnerBannerUsed || newer.beginnerBannerUsed || !newer.tutorialStep))
+          mergedBursts.length >= 1 ||
+          maxTotalWishes > 0
       ),
       beginnerBannerUsed: Boolean(
         older.beginnerBannerUsed ||
@@ -5335,7 +5355,12 @@ class TienLenGame {
           maxTotalWishes > 0
       ),
       tutorialStep:
-        typeof newer.tutorialStep === 'number' && newer.tutorialStep > 0
+        older.tutorialCompleted ||
+        newer.tutorialCompleted ||
+        mergedBursts.length >= 1 ||
+        maxTotalWishes > 0
+          ? 0
+          : typeof newer.tutorialStep === 'number' && newer.tutorialStep > 0
           ? newer.tutorialStep
           : Number(older.tutorialStep) || 0,
       dailyQuestsDate: today,
@@ -5555,10 +5580,21 @@ class TienLenGame {
         this.resetProfileMemoryToDefaults();
         this.currentAccountUsername = targetUser;
         this.applyProfileDataObject(mergedProfile, this.getTodayKey());
-        if (prevTutorialActive) {
+        if (
+          prevTutorialActive &&
+          !this.tutorialCompleted &&
+          this.unlockedBursts.size === 0 &&
+          (this.totalWishes || 0) === 0 &&
+          !this.isAdminAccount()
+        ) {
           this.tutorialCompleted = prevTutorialCompleted;
           this.beginnerBannerUsed = prevBeginnerBannerUsed;
           this.tutorialStep = Math.max(prevTutorialStep, Number(this.tutorialStep) || 0);
+        } else if (this.tutorialCompleted || this.unlockedBursts.size >= 1 || this.isAdminAccount()) {
+          this.tutorialCompleted = true;
+          this.beginnerBannerUsed = true;
+          this.tutorialStep = 0;
+          this.hideTravelerGuide();
         }
         this.profileUpdatedAtMs = mergedProfile.updatedAtMs;
         this.profileSyncRev = syncedRev;
@@ -5573,6 +5609,8 @@ class TienLenGame {
         }
         if (!this.tutorialCompleted && this.tutorialStep >= 1) {
           this.renderTravelerGuide();
+        } else {
+          this.hideTravelerGuide();
         }
       }
 
@@ -9525,16 +9563,41 @@ class TienLenGame {
     const sponsorBox = document.getElementById('ad-real-sponsor-box');
     const networkSlot = document.getElementById('ad-real-network-slot');
 
+    // Kích hoạt Banner Vignette chính chủ Monetag (Zone #12175793) có sẵn nút ✕ Đóng và không bị chặn Verify AdEx
+    try {
+      const oldVig = document.getElementById('monetag-vignette-script');
+      if (oldVig) oldVig.remove();
+      const s = document.createElement('script');
+      s.id = 'monetag-vignette-script';
+      s.dataset.zone = '12175793';
+      s.src = `https://n6wxm.com/vignette.min.js?t=${Date.now()}`;
+      (document.body || document.documentElement).appendChild(s);
+    } catch (_) {}
+
     if (sponsorBox) {
       sponsorBox.classList.remove('hidden');
       if (networkSlot) {
         networkSlot.innerHTML =
           adCfg.bannerHtml ||
-          (adCfg.sponsorUrl
-            ? `<iframe src="${adCfg.sponsorUrl}" style="width:100%;height:260px;border:none;border-radius:10px;background:#0f172a;" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer-when-downgrade" loading="eager"></iframe>`
-            : '');
+          `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;text-align:center;width:100%;">
+              <div style="display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;">
+                <img src="icon-192.png" alt="Tiến Lên 5★" style="width:56px;height:56px;border-radius:14px;border:2px solid #facc15;box-shadow:0 0 16px rgba(250,204,21,0.5);" />
+                <div style="text-align:left;">
+                  <div style="font-size:15px;font-weight:900;color:#fef08a;">🌟 NHÀ TÀI TRỢ CẦU NGUYỆN 5★ (MONETAG BANNER #12175793)</div>
+                  <div style="font-size:12.5px;color:#cbd5e1;margin-top:3px;">Đang hiển thị Quảng Cáo Tài Trợ • Đợi hết 15 giây để nhận tự động <strong style="color:#4ade80;">+1 Roll (1,600 Xu)</strong>!</div>
+                </div>
+              </div>
+              ${
+                adCfg.sponsorUrl
+                  ? `<a href="${adCfg.sponsorUrl}" target="_blank" rel="noopener noreferrer" onclick="window.tienLenGame.onClickSponsorAdLink(true)" style="display:inline-block;padding:10px 20px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#eab308);color:#0f172a;font-weight:900;font-size:13.5px;text-decoration:none;border:2px solid #fef08a;box-shadow:0 4px 15px rgba(245,158,11,0.45);">
+                      🎁 Xem Ưu Đãi Nhà Tài Trợ (Tùy chọn) ▸
+                    </a>`
+                  : ''
+              }
+            </div>
+          `;
       }
-      this.recordAdMonetizationEvent('click');
     }
 
     overlay.classList.remove('hidden');
@@ -25828,7 +25891,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=150', { updateViaCache: 'none' })
+        .register('sw.js?v=151', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

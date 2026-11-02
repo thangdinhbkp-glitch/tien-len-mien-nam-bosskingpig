@@ -505,6 +505,9 @@
                 <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-toggle-auto-random-bot" onclick="window.tienLenGame.toggleAutoRandomBots()" title="Bật/Tắt tự động đổi ngẫu nhiên Nhân Vật Bot sau mỗi ván bài">
                   🔄 Tự Động Random: BẬT
                 </button>
+                <button type="button" class="primary-btn" onclick="window.tienLenGame.openBotReplayLearningModal()" title="Cho Bot xem lại lối đánh của bạn ở mấy trận trước để học theo" style="padding:8px 14px;font-size:13px;border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
+                  🧠 Học Lối Đánh Của Bạn
+                </button>
               </div>
             </div>
 
@@ -849,6 +852,9 @@
                 </button>
                 <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-summary-auto-random-bot-2" onclick="window.tienLenGame.toggleAutoRandomBots()" style="padding:8px 12px;font-size:12.5px;font-weight:800;border-radius:10px;">
                   🔄 Tự Động Random: BẬT
+                </button>
+                <button type="button" class="primary-btn" onclick="window.tienLenGame.openBotReplayLearningModal()" title="Cho Bot xem lại lối đánh của bạn mấy trận trước để học theo" style="padding:8px 14px;font-size:12.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
+                  🧠 Xem Lại &amp; Học Lối Đánh
                 </button>
                 <button type="button" class="icon-btn" onclick="window.tienLenGame.resetSummaryBotPrompt()" style="padding:6px 10px;font-size:12px;">
                   ⬅️ Quay lại
@@ -1361,6 +1367,30 @@
       </div>
     </div>
 
+    <!-- MODAL CHO BOT XEM LẠI & HỌC LỐI ĐÁNH CỦA NGƯỜI CHƠI TỪ CÁC TRẬN TRƯỚC -->
+    <div class="modal-backdrop hidden" id="bot-replay-learning-modal" style="z-index: 9850;">
+      <div class="modal-card" style="max-width: 860px; width: 95vw; max-height: 88vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div>
+            <h2>🧠 BOT XEM LẠI &amp; HỌC LỐI ĐÁNH CỦA BẠN (REPLAY AI)</h2>
+            <p style="font-size:12.5px;color:#cbd5e1;margin:3px 0 0;">
+              Tua lại lịch sử các ván đấu gần nhất của bạn • Học cách xé Sảnh (<code>6-7-7-8-8-9</code> / <code>3-4-5-6-6-7-8-9</code>), chặn bài nhỏ &amp; canh nhịp Kỹ Năng Nộ
+            </p>
+          </div>
+          <button type="button" class="close-modal-btn" onclick="window.tienLenGame.closeBotReplayLearningModal()">✕</button>
+        </div>
+        <div class="modal-body" id="bot-replay-learning-body" style="overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:14px 16px;"></div>
+        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.triggerManualBotReplayReview()" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;font-weight:800;">
+            🔥 Cho Bot Tua Lại &amp; Học Sâu Ngay (135%)
+          </button>
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.closeBotReplayLearningModal()" style="padding:9px 22px;font-weight:800;">
+            ✅ Đóng Bảng Học Lối Đánh
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Thanh Thông Báo Nhỏ Gọn Sát Mép Trên Màn Hình Khi Tung Chiêu Nộ (Giữ nguyên đến khi có Chiêu Nộ khác đè lên) -->
     <div class="burst-effect-screen-banner hidden" id="burst-effect-screen-banner">
       <img class="burst-effect-banner-avatar" id="burst-effect-banner-avatar" src="fanart/raiden.jpg" alt="" />
@@ -1450,6 +1480,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=137"></script>
+  <script src="game.js?v=138"></script>
 </body>
 </html>

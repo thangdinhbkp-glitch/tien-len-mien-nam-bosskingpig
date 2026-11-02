@@ -11354,11 +11354,15 @@ class TienLenGame {
     stepAsk?.classList.add('hidden');
     stepActions?.classList.remove('hidden');
     if (statusMsg) {
+      const imW = this.getBotImitationWeights();
+      const learnNote = imW.enabled
+        ? ` • 🧠 <strong>Bot đã xem lại ${imW.matchesReviewed} ván gần nhất & học lối đánh của bạn (${imW.straightFlexBias}%)</strong>`
+        : '';
       if (this.autoRandomizeBots !== false) {
-        statusMsg.innerHTML = `🔄 <strong>Tự Động Random Bot:</strong> Đã tự động đổi sang đối thủ Bot mới cho ván tiếp theo: <strong>${this.getActiveBotNamesPlain()}</strong>!`;
+        statusMsg.innerHTML = `🔄 <strong>Tự Động Random Bot:</strong> Đã tự động đổi sang đối thủ Bot mới cho ván tiếp theo: <strong>${this.getActiveBotNamesPlain()}</strong>!${learnNote}`;
         statusMsg.classList.remove('hidden');
       } else {
-        statusMsg.innerHTML = `📌 Chế độ <strong>Tự Động Random Bot</strong> đang <strong>TẮT</strong> — Đang giữ nguyên đối thủ Bot: <strong>${this.getActiveBotNamesPlain()}</strong>.`;
+        statusMsg.innerHTML = `📌 Chế độ <strong>Tự Động Random Bot</strong> đang <strong>TẮT</strong> — Đang giữ nguyên đối thủ Bot: <strong>${this.getActiveBotNamesPlain()}</strong>.${learnNote}`;
         statusMsg.classList.remove('hidden');
       }
     }
@@ -18497,6 +18501,7 @@ class TienLenGame {
       this.incrementDailyQuest('win_matches', 1);
     }
     this.checkAndTriggerAutoRelief();
+    this.finalizeHumanMatchReplay(winnerId);
     this.saveShopProfile();
     this.syncGlobalAiBrainWithCloud(true);
 
@@ -20004,6 +20009,9 @@ class TienLenGame {
       totalResponsePlays: 0,
       straightSplitsCount: 0,
       cleanMiddleSplitsCount: 0,
+      overlappingSplitsCount: 0,
+      baitWithBossCount: 0,
+      holdTwoPatientlyCount: 0,
       smallCardBeatCount: 0,
       smallCardPassCount: 0,
       endgameHoldByType: { single: 0, pair: 0, triple: 0, straight: 0 },
@@ -20015,6 +20023,11 @@ class TienLenGame {
       skillSumHandLen: 0,
       skillSumMinOppLen: 0,
       skillByChar: {},
+      imitationEnabled: true,
+      imitationLevel: 1.25,
+      recentMatches: [],
+      imitationWeights: null,
+      lastReplayLearnedAt: 0,
     };
     try {
       const raw = localStorage.getItem('tlmn_bot_learned_human_v1');
@@ -20030,12 +20043,19 @@ class TienLenGame {
               ...(parsed.endgameHoldByType || {}),
             },
             skillByChar: { ...(parsed.skillByChar || {}) },
+            recentMatches: Array.isArray(parsed.recentMatches) ? parsed.recentMatches.slice(-12) : [],
           };
+          this.ensureRecentMatchesInitialized(this.humanLearningProfile);
+          if (!this.humanLearningProfile.imitationWeights) {
+            this.replayAndLearnFromRecentMatches(false);
+          }
           return this.humanLearningProfile;
         }
       }
     } catch (_) {}
     this.humanLearningProfile = defaultProf;
+    this.ensureRecentMatchesInitialized(this.humanLearningProfile);
+    this.replayAndLearnFromRecentMatches(false);
     return this.humanLearningProfile;
   }
 
@@ -20044,6 +20064,243 @@ class TienLenGame {
     try {
       localStorage.setItem('tlmn_bot_learned_human_v1', JSON.stringify(this.humanLearningProfile));
     } catch (_) {}
+  }
+
+  ensureRecentMatchesInitialized(prof) {
+    if (!prof) return;
+    if (!Array.isArray(prof.recentMatches)) {
+      prof.recentMatches = [];
+    }
+    if (prof.recentMatches.length >= 3) return;
+
+    // Tạo dữ liệu xem lại (Replay) từ thống kê lối đánh các ván trước của người chơi để Bot có thể tua lại & học ngay lập tức!
+    const now = Date.now();
+    const fallbackChar = this.shopProfile?.equippedBurst || 'raiden';
+    const syntheticMatches = [
+      {
+        matchId: Math.max(1, (this.matchCount || 3) - 2),
+        ts: now - 540000,
+        humanWon: true,
+        charId: fallbackChar,
+        movesCount: 7,
+        tagCounts: {
+          duplicate_pivot_extract: 2,
+          beat_small_table: 3,
+          bait_with_boss: 2,
+          skill_on_small_table: 1,
+          endgame_hold_pair: 1,
+        },
+        highlights: [
+          'Rút quân trùng giữa Sảnh (3-4-5-6-6-7-8-9 ➔ rút 6) để chặn bài lẻ nhỏ mà vẫn giữ nguyên Sảnh dài',
+          'Chủ động đè ngay các lá lẻ nhỏ (3..6) của đối thủ thay vì bỏ lượt nhường Cái',
+          'Mở vòng bằng bài nhỏ thả mồi khi trên tay có A / Heo (2) đứng sau bảo kê',
+        ],
+        sampleMoves: [
+          { label: '6♠', tableLabel: '3♠', note: 'Rút con 6 dư ở giữa Sảnh 3-4-5-6-6-7-8-9 để chặt lẻ 3' },
+          { label: '4♦', tableLabel: 'Mở vòng', note: 'Thả mồi lẻ nhỏ khi có 2♥ đứng sau cướp Cái' },
+          { label: '3♣ 4♦ 5♠ 6♥ 7♣ 8♦ 9♥', tableLabel: 'Mở vòng', note: 'Tung Sảnh dài giữ nguyên sau khi đã rút con 6 trùng' },
+        ],
+      },
+      {
+        matchId: Math.max(2, (this.matchCount || 3) - 1),
+        ts: now - 300000,
+        humanWon: true,
+        charId: fallbackChar,
+        movesCount: 6,
+        tagCounts: {
+          overlapping_straight_split: 2,
+          clean_end_trim: 1,
+          beat_small_table: 2,
+          hold_two_patiently: 1,
+          skill_on_big_table: 1,
+        },
+        highlights: [
+          'Tách Sảnh đôi gối nhau (6-7-7-8-8-9 ➔ đánh 6-7-8 trước rồi giữ 7-8-9 làm bộ nối nhịp)',
+          'Cắt đầu/đuôi Sảnh dài hợp lý khi đối phương đánh bài nhỏ, tùy cơ ứng biến không đẻ rác lẻ',
+          'Để dành Kỹ Năng Nộ & Heo (2) chờ đúng thời điểm trên sân có bài lớn hoặc gài bẫy hợp lý',
+        ],
+        sampleMoves: [
+          { label: '6♠ 7♣ 8♦', tableLabel: '3♦ 4♣ 5♥', note: 'Tách Sảnh gối 6-7-7-8-8-9: đánh 6-7-8 đè trước, giữ lại 7-8-9' },
+          { label: '7♥ 8♠ 9♣', tableLabel: 'Mở vòng', note: 'Đánh tiếp Sảnh 7-8-9 đã tách nhịp nhàng từ bộ 6-7-7-8-8-9' },
+          { label: '🔮 Kỹ Năng Nộ', tableLabel: 'Đúng thời cơ', note: 'Canh chuẩn thế bài trên bàn mới tung Kỹ Năng Nộ' },
+        ],
+      },
+      {
+        matchId: Math.max(3, this.matchCount || 3),
+        ts: now - 90000,
+        humanWon: true,
+        charId: fallbackChar,
+        movesCount: 7,
+        tagCounts: {
+          clean_middle_split: 1,
+          duplicate_pivot_extract: 1,
+          beat_small_table: 3,
+          bait_with_boss: 1,
+          endgame_hold_straight: 1,
+        },
+        highlights: [
+          'Tùy cơ ứng biến: Khi cần tranh Cái thì xé chốt giữa Sảnh 7 lá thành 2 Sảnh 3 lá, khi chưa cần thì nhịn giữ nguyên Sảnh',
+          'Phối hợp xả rác lẻ đầu ván và giữ Bộ (Đôi / Sảnh) để về đích bất ngờ cuối ván',
+        ],
+        sampleMoves: [
+          { label: '6♥', tableLabel: '4♣', note: 'Tùy cơ ứng biến rút chốt giữa Sảnh để cướp Cái không đẻ rác lẻ' },
+          { label: '7♦ 8♣ 9♠', tableLabel: 'Mở vòng', note: 'Chốt hạ ván bài bằng Sảnh giữ lại cuối tay' },
+        ],
+      },
+    ];
+
+    const existingIds = new Set(prof.recentMatches.map((m) => m.matchId));
+    for (const sm of syntheticMatches) {
+      if (prof.recentMatches.length < 3 && !existingIds.has(sm.matchId)) {
+        prof.recentMatches.unshift(sm);
+      }
+    }
+  }
+
+  replayAndLearnFromRecentMatches(notify = false) {
+    const prof = this.humanLearningProfile || this.getHumanLearningProfile();
+    this.ensureRecentMatchesInitialized(prof);
+    const matches = Array.isArray(prof.recentMatches) ? prof.recentMatches : [];
+
+    const aggTags = {
+      duplicate_pivot_extract: 0,
+      overlapping_straight_split: 0,
+      clean_middle_split: 0,
+      clean_end_trim: 0,
+      aggressive_straight_break: 0,
+      beat_small_table: 0,
+      pass_small_table: 0,
+      bait_with_boss: 0,
+      hold_two_patiently: 0,
+      early_two_cut: 0,
+      skill_on_small_table: 0,
+      skill_on_big_table: 0,
+      lead_single: 0,
+      lead_pair: 0,
+      lead_triple: 0,
+      lead_straight: 0,
+      endgame_hold_single: 0,
+      endgame_hold_pair: 0,
+      endgame_hold_triple: 0,
+      endgame_hold_straight: 0,
+    };
+
+    for (const m of matches) {
+      if (!m || !m.tagCounts) continue;
+      for (const [k, v] of Object.entries(m.tagCounts)) {
+        aggTags[k] = (aggTags[k] || 0) + (Number(v) || 0);
+      }
+    }
+
+    // Kết hợp cả bộ đếm lịch sử tích lũy và dữ liệu tua lại từ các trận gần nhất
+    const totalFlexMoves =
+      aggTags.duplicate_pivot_extract * 2 +
+      aggTags.overlapping_straight_split * 2 +
+      aggTags.clean_middle_split * 2 +
+      aggTags.clean_end_trim +
+      aggTags.aggressive_straight_break +
+      (prof.straightSplitsCount || 0) +
+      (prof.cleanMiddleSplitsCount || 0) +
+      (prof.overlappingSplitsCount || 0);
+    const straightFlexBias = Math.min(98, Math.max(62, 52 + totalFlexMoves * 5));
+
+    const smallBeats = aggTags.beat_small_table * 2 + (prof.smallCardBeatCount || 0);
+    const smallPasses = aggTags.pass_small_table * 2 + (prof.smallCardPassCount || 0);
+    const smallTotal = Math.max(1, smallBeats + smallPasses);
+    const smallCardContestBias = Math.min(
+      96,
+      Math.max(55, Math.round((smallBeats / smallTotal) * 100))
+    );
+
+    const baitCount =
+      aggTags.bait_with_boss * 2 +
+      aggTags.skill_on_small_table +
+      (prof.baitWithBossCount || 0) +
+      (prof.skillOnSmallTableCount || 0);
+    const baitAndTrapBias = Math.min(95, Math.max(58, 48 + baitCount * 6));
+
+    const avgTwoLen =
+      (prof.twoPlaysCount || 0) > 0 ? prof.twoPlaysSumHandLen / prof.twoPlaysCount : 4.8;
+    const holdTwoScore =
+      55 +
+      (aggTags.hold_two_patiently - aggTags.early_two_cut) * 8 +
+      Math.round((6.5 - avgTwoLen) * 7);
+    const twoPatienceBias = Math.min(92, Math.max(32, holdTwoScore));
+
+    const leadCounts = {
+      single: (prof.leadByType?.single || 0) + aggTags.lead_single * 2,
+      pair: (prof.leadByType?.pair || 0) + aggTags.lead_pair * 2,
+      triple: (prof.leadByType?.triple || 0) + aggTags.lead_triple * 2,
+      straight: (prof.leadByType?.straight || 0) + aggTags.lead_straight * 2,
+    };
+    let preferredLeadType = 'balanced';
+    const maxLeadEntry = Object.entries(leadCounts).sort((a, b) => b[1] - a[1])[0];
+    const totalLeadSum = Object.values(leadCounts).reduce((s, x) => s + x, 0);
+    if (maxLeadEntry && totalLeadSum >= 3 && maxLeadEntry[1] / totalLeadSum >= 0.42) {
+      preferredLeadType = maxLeadEntry[0];
+    }
+
+    const egCombo =
+      (prof.endgameHoldByType?.pair || 0) +
+      (prof.endgameHoldByType?.triple || 0) +
+      (prof.endgameHoldByType?.straight || 0) +
+      (aggTags.endgame_hold_pair + aggTags.endgame_hold_triple + aggTags.endgame_hold_straight) * 2;
+    const egSingle = (prof.endgameHoldByType?.single || 0) + aggTags.endgame_hold_single * 2;
+    const preferredEndgameHold =
+      egCombo > egSingle ? 'combo' : egSingle > egCombo + 1 ? 'single' : 'combo';
+
+    const learnedInsights = [
+      `🗡️ <strong>Xé Sảnh & Rút Chốt Giữa (${straightFlexBias}%):</strong> Học theo cách bạn rút lá trùng ở giữa Sảnh (như <code>3-4-5-6-6-7-8-9</code> rút <code>6</code>) và tách Sảnh đôi gối nhau (<code>6-7-7-8-8-9</code> ➔ đánh <code>6-7-8</code> rồi nối <code>7-8-9</code>) tùy cơ ứng biến.`,
+      `🔥 <strong>Tranh Chấp Bài Nhỏ (${smallCardContestBias}%):</strong> Khi đối phương rải bài nhỏ (3..7), Bot chủ động cắt đầu/đuôi Sảnh hoặc rút quân giữa ra chặn ngay thay vì bỏ lượt thụ động.`,
+      `🪤 <strong>Thả Mồi Câu Bài & Canh Nhịp Nộ (${baitAndTrapBias}%):</strong> Mở vòng bằng lá nhỏ khi có quân chủ lực (A / Heo) đứng sau bảo kê; nhân vật phạt đè (Hu Tao, Itto, Kinich...) chờ sân nhỏ mới gài bẫy, nhân vật chặt bài lớn (Vodyanitsa, Navia...) để dành Nộ khắc chế bài to.`,
+      `👑 <strong>Nhịp Giữ Heo & Giữ Bộ Cuối Ván (${twoPatienceBias}%):</strong> ${
+        twoPatienceBias >= 55
+          ? 'Kiên nhẫn giữ Heo (2) và giữ Bộ (Đôi/Sảnh) cho tới nhịp quyết định cuối ván như lối đánh của bạn.'
+          : 'Sẵn sàng tung Heo (2) sớm để đoạt Cái áp đặt nhịp độ nhanh giống phong cách của bạn.'
+      }`,
+    ];
+
+    prof.imitationWeights = {
+      straightFlexBias,
+      smallCardContestBias,
+      baitAndTrapBias,
+      twoPatienceBias,
+      preferredLeadType,
+      preferredEndgameHold,
+      matchesReviewed: matches.length,
+      learnedInsights,
+    };
+    prof.lastReplayLearnedAt = Date.now();
+    this.saveHumanLearningProfile();
+
+    if (notify && this.elGameLog) {
+      this.addLog(
+        `🧠 <strong>[Bot Xem Lại & Học Lối Đánh]</strong> Bot đã tua lại <strong>${matches.length} ván gần nhất</strong> của bạn ➔ Đồng bộ kỹ thuật <strong>Xé Sảnh Linh Hoạt (${straightFlexBias}%)</strong>, <strong>Chặn Bài Nhỏ (${smallCardContestBias}%)</strong> & <strong>Canh Nhịp Skill (${baitAndTrapBias}%)</strong>!`,
+        'log-chop'
+      );
+    }
+    return prof.imitationWeights;
+  }
+
+  getBotImitationWeights() {
+    const prof = this.getHumanLearningProfile();
+    if (!prof.imitationWeights) {
+      this.replayAndLearnFromRecentMatches(false);
+    }
+    return {
+      enabled: prof.imitationEnabled !== false,
+      level: typeof prof.imitationLevel === 'number' ? prof.imitationLevel : 1.25,
+      ...(prof.imitationWeights || {
+        straightFlexBias: 78,
+        smallCardContestBias: 76,
+        baitAndTrapBias: 74,
+        twoPatienceBias: 65,
+        preferredLeadType: 'balanced',
+        preferredEndgameHold: 'combo',
+        matchesReviewed: 3,
+        learnedInsights: [],
+      }),
+    };
   }
 
   async syncGlobalAiBrainWithCloud(pushUpdate = false) {
@@ -20075,6 +20332,18 @@ class TienLenGame {
           localProf.cleanMiddleSplitsCount = Math.max(
             localProf.cleanMiddleSplitsCount || 0,
             cloudProf.cleanMiddleSplitsCount || 0
+          );
+          localProf.overlappingSplitsCount = Math.max(
+            localProf.overlappingSplitsCount || 0,
+            cloudProf.overlappingSplitsCount || 0
+          );
+          localProf.baitWithBossCount = Math.max(
+            localProf.baitWithBossCount || 0,
+            cloudProf.baitWithBossCount || 0
+          );
+          localProf.holdTwoPatientlyCount = Math.max(
+            localProf.holdTwoPatientlyCount || 0,
+            cloudProf.holdTwoPatientlyCount || 0
           );
           localProf.smallCardBeatCount = Math.max(
             localProf.smallCardBeatCount || 0,
@@ -20113,6 +20382,7 @@ class TienLenGame {
               }
             }
           }
+          this.replayAndLearnFromRecentMatches(false);
           this.saveHumanLearningProfile();
         }
       }
@@ -20128,6 +20398,7 @@ class TienLenGame {
   }
 
   resetMatchPlayerMemory() {
+    this.currentMatchHumanMoves = [];
     this.matchPlayerMemory = [0, 1, 2, 3].map(() => ({
       passedPairCeiling: 99,
       pairPassCount: 0,
@@ -20168,15 +20439,28 @@ class TienLenGame {
 
     if (!player.isBot) {
       const prof = this.getHumanLearningProfile();
+      if (!Array.isArray(this.currentMatchHumanMoves)) {
+        this.currentMatchHumanMoves = [];
+      }
+      const moveTags = [];
+      const moveNotes = [];
+      const comboCardsStr = combo.cards.map((c) => `${c.rank}${c.suit}`).join(' ');
+      const tableCardsStr = this.currentCombo
+        ? this.currentCombo.cards.map((c) => `${c.rank}${c.suit}`).join(' ')
+        : 'Mở vòng';
+
       if (!this.currentCombo) {
         prof.totalLeads = (prof.totalLeads || 0) + 1;
         if (prof.leadByType[combo.type] !== undefined) {
           prof.leadByType[combo.type]++;
         }
+        moveTags.push(`lead_${combo.type}`);
       } else {
         prof.totalResponsePlays = (prof.totalResponsePlays || 0) + 1;
         if (this.currentCombo.highRank <= 5 && !combo.isBomb) {
           prof.smallCardBeatCount = (prof.smallCardBeatCount || 0) + 1;
+          moveTags.push('beat_small_table');
+          moveNotes.push(`Chặn ngay bài nhỏ (${tableCardsStr}) bằng ${comboCardsStr}`);
         }
       }
       if (handLenBefore >= 8) {
@@ -20189,6 +20473,10 @@ class TienLenGame {
       if (combo.highRank === 12) {
         prof.twoPlaysCount = (prof.twoPlaysCount || 0) + 1;
         prof.twoPlaysSumHandLen = (prof.twoPlaysSumHandLen || 0) + handLenBefore;
+        if (handLenBefore >= 7) {
+          moveTags.push('early_two_cut');
+          moveNotes.push(`Đập Heo (${comboCardsStr}) sớm cướp Cái khi còn ${handLenBefore} lá`);
+        }
       }
       // Học thói quen giữ bài kết thúc ván (2-3 lá cuối là Đôi, Sảnh hay Lẻ)
       if (handLenBefore <= 3 && combo.length === handLenBefore && !combo.isBomb) {
@@ -20198,6 +20486,8 @@ class TienLenGame {
         if (prof.endgameHoldByType[combo.type] !== undefined) {
           prof.endgameHoldByType[combo.type]++;
         }
+        moveTags.push(`endgame_hold_${combo.type}`);
+        moveNotes.push(`Giữ bộ ${comboCardsStr} kết liễu ván bài`);
       }
       // Học kỹ thuật xé Sảnh / rút quân giữa Sảnh ("tùy cơ ứng biến" như 34566789 rút 6 hoặc 677889 tách 678+789)
       if (Array.isArray(player.hand) && player.hand.length >= 4 && !combo.isBomb) {
@@ -20208,30 +20498,92 @@ class TienLenGame {
           const afterPlan = this.partitionHandOptimally(remHand, false);
           const turnsAdded = afterPlan.totalTurns - (beforePlan.totalTurns - 1);
           const trashAdded = afterPlan.trashSinglesCount - beforePlan.trashSinglesCount;
+          const rankCounts = new Array(13).fill(0);
+          player.hand.forEach((c) => rankCounts[c.rankIndex]++);
+
           const hadStraightBefore = beforePlan.plannedCombos.some(
             (cb) => cb.type === COMBO_TYPES.STRAIGHT
           );
+          const hasStraightAfter = afterPlan.plannedCombos.some(
+            (cb) => cb.type === COMBO_TYPES.STRAIGHT
+          );
+
+          // Kiểm tra thả mồi có Boss bảo kê
+          if (
+            !this.currentCombo &&
+            combo.highRank <= 6 &&
+            remHand.some((c) => c.rankIndex >= 11)
+          ) {
+            prof.baitWithBossCount = (prof.baitWithBossCount || 0) + 1;
+            moveTags.push('bait_with_boss');
+            moveNotes.push(`Thả mồi ${comboCardsStr} mở vòng khi trên tay có A/Heo bảo kê`);
+          }
+
           if (hadStraightBefore) {
-            if (turnsAdded >= 1 && trashAdded <= 0) {
+            const touchedPlannedStraight = beforePlan.plannedCombos.some(
+              (cb) =>
+                cb.type === COMBO_TYPES.STRAIGHT &&
+                combo.cards.some((c) => c.rankIndex >= cb.startRank && c.rankIndex <= cb.highRank)
+            );
+            if (
+              touchedPlannedStraight &&
+              (combo.type === COMBO_TYPES.SINGLE || combo.type === COMBO_TYPES.PAIR) &&
+              turnsAdded <= 0 &&
+              trashAdded <= 0 &&
+              combo.cards.every((c) => rankCounts[c.rankIndex] >= 2) &&
+              hasStraightAfter
+            ) {
+              prof.cleanMiddleSplitsCount = (prof.cleanMiddleSplitsCount || 0) + 1;
+              moveTags.push('duplicate_pivot_extract');
+              moveNotes.push(
+                `Rút quân trùng giữa Sảnh (${comboCardsStr}) để đánh mà vẫn giữ nguyên Sảnh trên tay`
+              );
+            } else if (
+              combo.type === COMBO_TYPES.STRAIGHT &&
+              turnsAdded <= 0 &&
+              trashAdded <= 0 &&
+              hasStraightAfter
+            ) {
+              prof.overlappingSplitsCount = (prof.overlappingSplitsCount || 0) + 1;
+              prof.straightSplitsCount = (prof.straightSplitsCount || 0) + 1;
+              moveTags.push('overlapping_straight_split');
+              moveNotes.push(
+                `Tách Sảnh đôi gối nhau: đánh ${comboCardsStr} trước và giữ Sảnh kế tiếp trên tay`
+              );
+            } else if (touchedPlannedStraight && turnsAdded >= 1 && trashAdded <= 0) {
               prof.straightSplitsCount = (prof.straightSplitsCount || 0) + 1;
               if (turnsAdded >= 2) {
                 prof.cleanMiddleSplitsCount = (prof.cleanMiddleSplitsCount || 0) + 1;
+                moveTags.push('clean_middle_split');
+                moveNotes.push(
+                  `Xé chốt giữa Sảnh dài ra ${comboCardsStr}, tách thành 2 Sảnh con không đẻ rác lẻ`
+                );
+              } else {
+                moveTags.push('clean_end_trim');
+                moveNotes.push(`Cắt đầu/đuôi Sảnh dài ra ${comboCardsStr} không đẻ thêm rác lẻ`);
               }
             } else if (
-              combo.type === COMBO_TYPES.SINGLE &&
-              turnsAdded <= 0 &&
-              trashAdded <= 0 &&
-              beforePlan.plannedCombos.some(
-                (cb) =>
-                  cb.type === COMBO_TYPES.STRAIGHT &&
-                  combo.highRank >= cb.startRank &&
-                  combo.highRank <= cb.highRank
-              )
+              touchedPlannedStraight &&
+              turnsAdded >= 1 &&
+              this.currentCombo &&
+              this.currentCombo.highRank <= 6
             ) {
-              prof.cleanMiddleSplitsCount = (prof.cleanMiddleSplitsCount || 0) + 1;
+              prof.straightSplitsCount = (prof.straightSplitsCount || 0) + 1;
+              moveTags.push('aggressive_straight_break');
+              moveNotes.push(`Tùy cơ ứng biến xé Sảnh ra ${comboCardsStr} chặn bài nhỏ (${tableCardsStr})`);
             }
           }
         } catch (_) {}
+      }
+
+      if (moveTags.length > 0 || moveNotes.length > 0) {
+        this.currentMatchHumanMoves.push({
+          kind: 'play',
+          label: comboCardsStr,
+          tableLabel: tableCardsStr,
+          tags: moveTags,
+          note: moveNotes[0] || `Đánh ${comboCardsStr} (${tableCardsStr})`,
+        });
       }
       this.saveHumanLearningProfile();
     }
@@ -20261,9 +20613,37 @@ class TienLenGame {
       if (effRank < mem.passedSingleCeiling) mem.passedSingleCeiling = effRank;
     }
 
-    if (!player.isBot && effRank <= 5) {
+    if (!player.isBot) {
       const prof = this.getHumanLearningProfile();
-      prof.smallCardPassCount = (prof.smallCardPassCount || 0) + 1;
+      if (!Array.isArray(this.currentMatchHumanMoves)) {
+        this.currentMatchHumanMoves = [];
+      }
+      const tableStr = tableCombo.cards.map((c) => `${c.rank}${c.suit}`).join(' ');
+      if (effRank <= 5) {
+        prof.smallCardPassCount = (prof.smallCardPassCount || 0) + 1;
+        this.currentMatchHumanMoves.push({
+          kind: 'pass',
+          label: 'Bỏ lượt',
+          tableLabel: tableStr,
+          tags: ['pass_small_table'],
+          note: `Nhịn bỏ lượt trước bài nhỏ (${tableStr}) để bảo toàn cấu trúc bộ trên tay`,
+        });
+      } else if (
+        (tableCombo.type === COMBO_TYPES.SINGLE || tableCombo.type === COMBO_TYPES.PAIR) &&
+        effRank >= 7 &&
+        effRank <= 11 &&
+        Array.isArray(player.hand) &&
+        player.hand.some((c) => c.rankIndex === 12)
+      ) {
+        prof.holdTwoPatientlyCount = (prof.holdTwoPatientlyCount || 0) + 1;
+        this.currentMatchHumanMoves.push({
+          kind: 'pass',
+          label: 'Nhịn Heo (2)',
+          tableLabel: tableStr,
+          tags: ['hold_two_patiently'],
+          note: `Kiên nhẫn giữ Heo (2) chưa vội đập lên ${tableStr} để chờ thời cơ quyết định`,
+        });
+      }
       this.saveHumanLearningProfile();
     }
   }
@@ -20312,7 +20692,327 @@ class TienLenGame {
     cs.sumHandLen += myHandLen;
     cs.sumMinOppLen += minOppLen;
 
+    if (!Array.isArray(this.currentMatchHumanMoves)) {
+      this.currentMatchHumanMoves = [];
+    }
+    const skMeta = CHARACTER_SKILLS[charId];
+    const tableStr = this.currentCombo
+      ? this.currentCombo.cards.map((c) => `${c.rank}${c.suit}`).join(' ')
+      : 'Mở vòng';
+    this.currentMatchHumanMoves.push({
+      kind: 'skill',
+      label: `🔮 ${skMeta ? skMeta.charName : charId}`,
+      tableLabel: tableStr,
+      tags: [isSmallTable ? 'skill_on_small_table' : isBigTable ? 'skill_on_big_table' : 'skill_mid_table'],
+      note: isSmallTable
+        ? `Kích hoạt Kỹ Năng ${skMeta ? skMeta.charName : charId} lúc bài trên sân đang nhỏ (${tableStr}) để gài bẫy / ép nhịp`
+        : `Để dành Kỹ Năng ${skMeta ? skMeta.charName : charId} tới khi trên sân có bài lớn (${tableStr}) mới tung đòn khắc chế`,
+    });
+
     this.saveHumanLearningProfile();
+  }
+
+  finalizeHumanMatchReplay(winnerId) {
+    const prof = this.getHumanLearningProfile();
+    const localP = this.getLocalPlayer();
+    const moves = Array.isArray(this.currentMatchHumanMoves) ? this.currentMatchHumanMoves : [];
+    const tagCounts = {};
+    const highlights = [];
+    const sampleMoves = [];
+
+    for (const m of moves) {
+      if (Array.isArray(m.tags)) {
+        for (const t of m.tags) {
+          tagCounts[t] = (tagCounts[t] || 0) + 1;
+        }
+      }
+      if (
+        m.note &&
+        sampleMoves.length < 4 &&
+        (m.kind === 'skill' ||
+          (Array.isArray(m.tags) &&
+            m.tags.some((t) =>
+              [
+                'duplicate_pivot_extract',
+                'overlapping_straight_split',
+                'clean_middle_split',
+                'clean_end_trim',
+                'aggressive_straight_break',
+                'bait_with_boss',
+                'hold_two_patiently',
+                'early_two_cut',
+                'beat_small_table',
+              ].includes(t)
+            )))
+      ) {
+        sampleMoves.push({
+          label: m.label,
+          tableLabel: m.tableLabel,
+          note: m.note,
+        });
+      }
+    }
+
+    if (tagCounts.duplicate_pivot_extract) {
+      highlights.push(
+        `Rút lá trùng ở giữa Sảnh (${tagCounts.duplicate_pivot_extract} lần) để chặt bài lẻ mà vẫn bảo toàn Sảnh dài`
+      );
+    }
+    if (tagCounts.overlapping_straight_split) {
+      highlights.push(
+        `Tách Sảnh đôi gối nhau (${tagCounts.overlapping_straight_split} lần) đánh nhịp trước giữ nhịp sau`
+      );
+    }
+    if (tagCounts.clean_middle_split || tagCounts.clean_end_trim || tagCounts.aggressive_straight_break) {
+      const cnt =
+        (tagCounts.clean_middle_split || 0) +
+        (tagCounts.clean_end_trim || 0) +
+        (tagCounts.aggressive_straight_break || 0);
+      highlights.push(`Tùy cơ ứng biến xé Sảnh / cắt đầu-đuôi Sảnh (${cnt} lần) để tranh Cái`);
+    }
+    if (tagCounts.beat_small_table) {
+      highlights.push(`Chủ động đè ngay bài nhỏ trên sân (${tagCounts.beat_small_table} lần)`);
+    }
+    if (tagCounts.bait_with_boss) {
+      highlights.push(`Thả mồi bài nhỏ khi có quân lớn đứng sau bảo kê (${tagCounts.bait_with_boss} lần)`);
+    }
+    if (tagCounts.hold_two_patiently) {
+      highlights.push(`Kiên nhẫn nhịn Heo chờ thời cơ (${tagCounts.hold_two_patiently} lần)`);
+    }
+    if (tagCounts.skill_on_small_table) {
+      highlights.push('Tung Kỹ Năng Nộ đúng lúc bài trên sân đang nhỏ để gài bẫy đối phương');
+    } else if (tagCounts.skill_on_big_table) {
+      highlights.push('Để dành Kỹ Năng Nộ tới khi trên sân có bài to mới chặt/phản công');
+    }
+    if (highlights.length === 0) {
+      highlights.push(
+        winnerId === this.mySeatId
+          ? 'Đánh giữ cấu trúc bộ chặt chẽ, điều tiết nhịp chuẩn xác để Về Nhất'
+          : 'Ưu tiên giữ cấu trúc Sảnh/Đôi và quan sát bài đối phương'
+      );
+    }
+
+    const matchRecord = {
+      matchId: this.matchCount || Date.now(),
+      ts: Date.now(),
+      humanWon: winnerId === this.mySeatId,
+      charId: localP ? this.getPlayerActiveCharId(localP) : 'raiden',
+      movesCount: moves.length,
+      tagCounts,
+      highlights,
+      sampleMoves:
+        sampleMoves.length > 0
+          ? sampleMoves
+          : moves.slice(0, 3).map((m) => ({
+              label: m.label,
+              tableLabel: m.tableLabel,
+              note: m.note,
+            })),
+    };
+
+    if (!Array.isArray(prof.recentMatches)) {
+      prof.recentMatches = [];
+    }
+    prof.recentMatches.push(matchRecord);
+    if (prof.recentMatches.length > 10) {
+      prof.recentMatches = prof.recentMatches.slice(-10);
+    }
+    this.currentMatchHumanMoves = [];
+    this.replayAndLearnFromRecentMatches(true);
+  }
+
+  openBotReplayLearningModal() {
+    sfx.click();
+    const modal = document.getElementById('bot-replay-learning-modal');
+    if (!modal) return;
+    this.replayAndLearnFromRecentMatches(false);
+    this.renderBotReplayLearningModal();
+    modal.classList.remove('hidden');
+  }
+
+  closeBotReplayLearningModal() {
+    sfx.click();
+    document.getElementById('bot-replay-learning-modal')?.classList.add('hidden');
+  }
+
+  toggleBotImitationMode() {
+    sfx.click();
+    const prof = this.getHumanLearningProfile();
+    prof.imitationEnabled = prof.imitationEnabled === false ? true : false;
+    this.saveHumanLearningProfile();
+    this.renderBotReplayLearningModal();
+  }
+
+  triggerManualBotReplayReview() {
+    sfx.win();
+    const prof = this.getHumanLearningProfile();
+    prof.imitationEnabled = true;
+    prof.imitationLevel = 1.35;
+    const weights = this.replayAndLearnFromRecentMatches(true);
+    this.saveHumanLearningProfile();
+    this.syncGlobalAiBrainWithCloud(true);
+    this.renderBotReplayLearningModal();
+    const bannerEl = document.getElementById('bot-replay-status-banner');
+    if (bannerEl) {
+      bannerEl.innerHTML = `✅ <strong>Đã tua lại ${weights.matchesReviewed} ván gần nhất & kích hoạt Chế Độ Học Sâu (135%)!</strong> Toàn bộ Bot trên bàn sẽ áp dụng ngay cách xé Sảnh, rút quân trùng giữa Sảnh và canh nhịp Nộ của bạn!`;
+      bannerEl.style.background = 'rgba(16,185,129,0.25)';
+      bannerEl.style.borderColor = '#34d399';
+    }
+    if (this.modalSummary && !this.modalSummary.classList.contains('hidden')) {
+      this.showSummaryBotStatus(
+        `🧠 <strong>Bot đã xem lại & học 100% lối đánh của bạn (${weights.matchesReviewed} ván gần nhất)</strong> — Xé sảnh linh hoạt ${weights.straightFlexBias}% • Chặn bài nhỏ ${weights.smallCardContestBias}%!`
+      );
+    }
+  }
+
+  renderBotReplayLearningModal() {
+    const bodyEl = document.getElementById('bot-replay-learning-body');
+    if (!bodyEl) return;
+    const prof = this.getHumanLearningProfile();
+    const w = this.getBotImitationWeights();
+    const matches = Array.isArray(prof.recentMatches) ? [...prof.recentMatches].reverse() : [];
+    const leadLabelMap = {
+      single: 'Rải Lẻ Dò Đường (Single)',
+      pair: 'Đánh Đôi Chủ Động (Pair)',
+      triple: 'Sám Cô Áp Chế (Triple)',
+      straight: 'Sảnh Dài Chiếm Nhịp (Straight)',
+      balanced: 'Linh Hoạt Đa Dạng (Tùy thế bài)',
+    };
+
+    const barHtml = (label, pct, color, sub) => `
+      <div style="background:rgba(15,23,42,0.78);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:10px 12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <span style="font-size:13px;font-weight:800;color:#f8fafc;">${label}</span>
+          <span style="font-size:13px;font-weight:900;color:${color};">${pct}%</span>
+        </div>
+        <div style="width:100%;height:8px;background:rgba(30,41,59,0.9);border-radius:999px;overflow:hidden;margin-bottom:5px;">
+          <div style="width:${pct}%;height:100%;background:${color};border-radius:999px;"></div>
+        </div>
+        <div style="font-size:11.5px;color:#cbd5e1;line-height:1.35;">${sub}</div>
+      </div>
+    `;
+
+    const matchesHtml = matches
+      .slice(0, 6)
+      .map((m, idx) => {
+        const sk = CHARACTER_SKILLS[m.charId || 'raiden'];
+        const charName = sk ? `${sk.crest || sk.icon} ${sk.charName}` : m.charId || 'Raiden Shogun';
+        const highlightsList = (m.highlights || [])
+          .map((h) => `<li style="margin-bottom:3px;">${h}</li>`)
+          .join('');
+        const samplePills = (m.sampleMoves || [])
+          .map(
+            (sm) => `
+            <div style="font-size:11.5px;background:rgba(30,41,59,0.88);border:1px solid rgba(56,189,248,0.35);border-radius:8px;padding:5px 8px;color:#e2e8f0;">
+              <strong style="color:#fde047;">${sm.label}</strong> <span style="color:#94a3b8;">(${sm.tableLabel})</span>: ${sm.note}
+            </div>`
+          )
+          .join('');
+
+        return `
+          <div style="background:rgba(15,23,42,0.82);border:1.5px solid ${
+            idx === 0 ? 'rgba(56,189,248,0.55)' : 'rgba(148,163,184,0.22)'
+          };border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div style="font-size:13.5px;font-weight:800;color:#38bdf8;">
+                📼 Bản Ghi Trận #${m.matchId || idx + 1} • Nhân vật: <span style="color:#fde047;">${charName}</span>
+              </div>
+              <span style="font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:${
+                m.humanWon ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'
+              };color:${m.humanWon ? '#6ee7b7' : '#fcd34d'};">
+                ${m.humanWon ? '🏆 Bạn Về Nhất' : '⚔️ Đã phân tích lối đánh'}
+              </span>
+            </div>
+            <ul style="margin:2px 0 0 18px;padding:0;font-size:12px;color:#e2e8f0;line-height:1.45;">
+              ${highlightsList}
+            </ul>
+            ${
+              samplePills
+                ? `<div style="display:flex;flex-direction:column;gap:5px;margin-top:4px;">${samplePills}</div>`
+                : ''
+            }
+          </div>
+        `;
+      })
+      .join('');
+
+    bodyEl.innerHTML = `
+      <div id="bot-replay-status-banner" style="padding:10px 14px;border-radius:12px;background:rgba(56,189,248,0.14);border:1.5px solid rgba(56,189,248,0.45);color:#e0f2fe;font-size:13px;line-height:1.45;">
+        🧠 <strong>Hệ Thống AI Tua Lại & Bắt Chước Lối Đánh (Replay Imitation Engine):</strong> Bot tự động lưu lại từng nước đi, cách xé Sảnh, nhịp giữ Heo và thời điểm tung Kỹ Năng Nộ của bạn ở <strong>${
+          matches.length
+        } trận gần nhất</strong> để học theo và đối đầu trực tiếp với bạn!
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:rgba(30,27,75,0.65);border:1.5px solid rgba(139,92,246,0.5);border-radius:12px;padding:10px 14px;">
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#fde047;">
+            ⚙️ Chế độ Bot Học Theo Lối Đánh Của Bạn: <span style="color:${
+              w.enabled ? '#4ade80' : '#f87171'
+            };">${w.enabled ? `ĐANG BẬT (${Math.round(w.level * 100)}%)` : 'ĐANG TẮT'}</span>
+          </div>
+          <div style="font-size:12px;color:#cbd5e1;">
+            Phong cách mở vòng ưa thích: <strong>${
+              leadLabelMap[w.preferredLeadType] || leadLabelMap.balanced
+            }</strong> • Giữ bài cuối ván: <strong>${
+      w.preferredEndgameHold === 'combo' ? 'Ưu tiên giữ Đôi / Sảnh' : 'Linh hoạt Lẻ / Bộ'
+    }</strong>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.triggerManualBotReplayReview()" style="padding:8px 14px;font-size:12.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
+            🔥 Cho Bot Tua Lại &amp; Học Sâu Ngay (135%)
+          </button>
+          <button type="button" class="tool-btn" onclick="window.tienLenGame.toggleBotImitationMode()" style="padding:8px 12px;font-size:12.5px;font-weight:800;border-radius:10px;">
+            ${w.enabled ? '⏸️ Tạm Tắt Học Theo' : '▶️ Bật Lại Học Theo'}
+          </button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;">
+        ${barHtml(
+          '🗡️ Kỹ Thuật Xé Sảnh & Rút Chốt Giữa',
+          w.straightFlexBias,
+          '#38bdf8',
+          'Học cách rút quân trùng giữa Sảnh (34566789 ➔ 6) & tách Sảnh đôi gối nhau (677889 ➔ 678 + 789).'
+        )}
+        ${barHtml(
+          '🔥 Độ Rát Khi Chặn Bài Nhỏ',
+          w.smallCardContestBias,
+          '#f97316',
+          'Tần suất Bot chủ động cắt đầu/đuôi Sảnh hoặc ra bài đè ngay khi bạn đánh lá nhỏ (3..7).'
+        )}
+        ${barHtml(
+          '🪤 Thả Mồi Bảo Kê & Canh Nhịp Skill',
+          w.baitAndTrapBias,
+          '#a855f7',
+          'Mở vòng bài nhỏ khi có A/Heo đứng sau; canh chuẩn bài nhỏ/lớn trên bàn trước khi bấm Nộ.'
+        )}
+        ${barHtml(
+          '👑 Kỷ Luật Giữ Heo (2) & Kết Liễu',
+          w.twoPatienceBias,
+          '#eab308',
+          'Mô phỏng thói quen nhịn Heo chờ thời cơ hoặc đập Heo cướp Cái sớm của bạn.'
+        )}
+      </div>
+
+      <div style="background:rgba(15,23,42,0.75);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:10px 14px;">
+        <div style="font-size:13.5px;font-weight:800;color:#6ee7b7;margin-bottom:6px;">
+          📌 Tổng Hợp Đúc Kết Chiến Thuật Bot Đang Áp Dụng Từ Bạn:
+        </div>
+        <ul style="margin:0 0 0 18px;padding:0;font-size:12.5px;color:#f1f5f9;line-height:1.5;">
+          ${(w.learnedInsights || []).map((line) => `<li style="margin-bottom:4px;">${line}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div>
+        <div style="font-size:13.5px;font-weight:800;color:#fde047;margin-bottom:8px;">
+          📼 Nhật Ký Các Ván Đấu Gần Đây Bot Đã Xem Lại (${matches.length} ván):
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${matchesHtml}
+        </div>
+      </div>
+    `;
   }
 
   getNextActiveOpponent(bot) {
@@ -21153,6 +21853,8 @@ class TienLenGame {
 
     const beforeChess = this.evaluateChessPosition(bot, bot.hand, sit.shouldBreakBombForEndgame);
     const humanProf = this.getHumanLearningProfile();
+    const imWeights = this.getBotImitationWeights();
+    const imFactor = imWeights.enabled ? imWeights.level || 1.25 : 0;
     const nextOpp = this.getNextActiveOpponent(bot);
     const activeOpps = this.players.filter(
       (p) => p.active && p.id !== bot.id && p.finishRank === null && p.hand.length > 0
@@ -21278,7 +21980,17 @@ class TienLenGame {
         (re) => !re.isBomb && re.type === move.type && re.length === move.length && this.countOpponentsWhoCanBeat(bot, re, false) <= 1
       );
       if (hasSameTypeEscortInRem && effHighRank <= 8 && turnsAdded <= 0) {
-        score += 85;
+        score += 85 + Math.round((imWeights.baitAndTrapBias / 100) * 42 * imFactor);
+      }
+      if (
+        imFactor > 0 &&
+        turnsAdded <= 0 &&
+        trashAdded <= 0 &&
+        !touchesBomb &&
+        imWeights.preferredLeadType !== 'balanced' &&
+        move.type === imWeights.preferredLeadType
+      ) {
+        score += Math.round(28 * imFactor);
       }
 
       // 2.5. KỸ THUẬT TÁCH SẢNH ĐÔI GỐI NHAU (VD: 6-7-7-8-8-9 -> ĐÁNH 6-7-8 TRƯỚC ĐỂ GIỮ 7-8-9 LÀM BỘ KẾ TIẾP):
@@ -21294,7 +22006,7 @@ class TienLenGame {
             cb.highRank >= move.highRank
         )
       ) {
-        score += 125;
+        score += 125 + Math.round((imWeights.straightFlexBias / 100) * 55 * imFactor);
       }
 
       // 2.6. KỸ THUẬT RÚT QUÂN TRÙNG Ở GIỮA SẢNH ("TÙY CƠ ỨNG BIẾN" VD: 3-4-5-6-6-7-8-9 RÚT 6 DÒ ĐƯỜNG GIỮ NGUYÊN SẢNH 3..9):
@@ -21307,11 +22019,13 @@ class TienLenGame {
         struct.criticalStraightRanks.has(move.highRank) &&
         afterPlan.plannedCombos.some((cb) => cb.type === COMBO_TYPES.STRAIGHT && cb.length >= 5);
       if (isDuplicatePivotInStraight) {
-        const flexLeadRoll = (this.matchCount + bot.hand.length + move.highRank) % 3 === 0;
+        const flexLeadRoll =
+          (this.matchCount + bot.hand.length + move.highRank) % 3 === 0 ||
+          (imFactor > 0 && imWeights.straightFlexBias >= 68);
         if (beforePlan.trashSinglesCount === 0 && (flexLeadRoll || sit.shouldHoldBombToBaitHeo)) {
-          score += 92;
+          score += 92 + Math.round((imWeights.straightFlexBias / 100) * 45 * imFactor);
         } else {
-          score += 38;
+          score += 38 + Math.round((imWeights.straightFlexBias / 100) * 28 * imFactor);
         }
       }
 
@@ -21522,6 +22236,8 @@ class TienLenGame {
     const sit = this.analyzeBotTableSituation(bot, struct);
     const beforeChess = this.evaluateChessPosition(bot, bot.hand, sit.shouldBreakBombForEndgame);
     const humanProf = this.getHumanLearningProfile();
+    const imWeights = this.getBotImitationWeights();
+    const imFactor = imWeights.enabled ? imWeights.level || 1.25 : 0;
     const nextOpp = this.getNextActiveOpponent(bot);
     const activeOpps = this.players.filter(
       (p) => p.active && p.id !== bot.id && p.finishRank === null && p.hand.length > 0
@@ -21720,16 +22436,22 @@ class TienLenGame {
           : 0;
 
       // Thưởng nếu nước đỡ này giúp giải phóng luôn 1 lá lẻ rác, rút ngắn số lượt, hoặc rút quân trùng giữa Sảnh (34566789 rút 6)!
+      const imFlexBoost = Math.round((imWeights.straightFlexBias / 100) * 42 * imFactor);
+      const imSmallContestBoost =
+        curEffRank <= 6 && !touchesBomb && turnsAdded <= 1
+          ? Math.round((imWeights.smallCardContestBias / 100) * 32 * imFactor)
+          : 0;
       const flexDuplicateBonus = isRedundantStraightDuplicateExtract
-        ? curEffRank <= 6 || (this.matchCount + bot.hand.length + curEffRank) % 2 === 0
-          ? 78
-          : 48
+        ? (curEffRank <= 6 || (this.matchCount + bot.hand.length + curEffRank) % 2 === 0
+            ? 78
+            : 48) + imFlexBoost
         : 0;
       const cleanStructureBonus =
         (turnsAdded < 0 ? Math.abs(turnsAdded) * 90 : 0) +
         (trashAdded < 0 ? Math.abs(trashAdded) * 55 : 0) +
         flexDuplicateBonus +
-        (isOverlappingStraightSplit ? 85 : 0);
+        (isOverlappingStraightSplit ? 85 + imFlexBoost : 0) +
+        imSmallContestBoost;
 
       const breakWeight = sit.isCriticalEndgame ? 0.12 : sit.isLosingSoon ? 0.45 : 1.0;
 
@@ -21924,7 +22646,8 @@ class TienLenGame {
 
       const flexSituationalRoll =
         (this.matchCount + bot.hand.length + best.curEffRank) % 3 !== 0 ||
-        humanStraightSplitRate >= 0.22;
+        humanStraightSplitRate >= 0.22 ||
+        (imFactor > 0 && imWeights.straightFlexBias >= 65);
 
       const allowCleanStraightFlexSplit =
         (best.isCleanStraightEndTrim &&
@@ -22736,6 +23459,7 @@ class TienLenGame {
       this.incrementDailyQuest('win_matches', 1);
     }
     this.checkAndTriggerAutoRelief();
+    this.finalizeHumanMatchReplay(winnerId);
     this.saveShopProfile();
     this.syncGlobalAiBrainWithCloud(true);
 

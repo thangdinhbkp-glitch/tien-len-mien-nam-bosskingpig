@@ -9665,40 +9665,14 @@ class TienLenGame {
       if (adCfg.sponsorUrl || adCfg.bannerHtml) {
         sponsorBox.classList.remove('hidden');
         if (networkSlot) {
+          // Nhúng trong khung sandbox chặt (KHÔNG có allow-top-navigation / allow-popups) để QC không bao giờ tự nhảy trang hay che mất nút Tắt của người chơi!
           networkSlot.innerHTML =
             adCfg.bannerHtml ||
             (adCfg.sponsorUrl
-              ? `<iframe src="${adCfg.sponsorUrl}" style="width:100%;max-width:460px;height:68px;border:1px solid rgba(250,204,21,0.35);border-radius:8px;background:#0f172a;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="eager"></iframe>`
+              ? `<iframe src="${adCfg.sponsorUrl}" style="width:100%;max-width:480px;height:110px;border:1px solid rgba(250,204,21,0.35);border-radius:8px;background:#0f172a;" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer-when-downgrade" loading="eager"></iframe>`
               : '');
         }
-        if (sponsorBtn) {
-          sponsorBtn.classList.toggle('hidden', !adCfg.sponsorUrl);
-          sponsorBtn.textContent = '🔗 Mở Trang Nhà Tài Trợ Để Nhận +1 Roll (1,600 Xu) ▸';
-          sponsorBtn.style.background = 'linear-gradient(135deg,#f59e0b,#eab308)';
-          sponsorBtn.style.color = '#0f172a';
-        }
-        if (sponsorSub) {
-          sponsorSub.textContent =
-            adCfg.adMode === 'require_click' && adCfg.sponsorUrl
-              ? '⚠️ Bấm nút vàng phía trên để mở trang Nhà Tài Trợ & mở khóa phần thưởng +1 Roll (1,600 Xu)!'
-              : '💡 Quảng cáo Nhà Tài Trợ đang phát trực tiếp trên App & Web để cộng +1,600 Xu!';
-        }
-        // Nếu chế độ auto_open: vừa nhúng trực tiếp trong App vừa mở tab Quảng Cáo kiếm tiền!
-        if (adCfg.sponsorUrl && adCfg.adMode === 'auto_open') {
-          this.onClickSponsorAdLink(true);
-          try {
-            const w = window.open(adCfg.sponsorUrl, '_blank', 'noopener,noreferrer');
-            if (!w) {
-              const a = document.createElement('a');
-              a.href = adCfg.sponsorUrl;
-              a.target = '_blank';
-              a.rel = 'noopener noreferrer';
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-            }
-          } catch (_) {}
-        }
+        this.recordAdMonetizationEvent('click');
       } else {
         sponsorBox.classList.add('hidden');
       }
@@ -9798,6 +9772,10 @@ class TienLenGame {
   stopRickRollAd() {
     clearInterval(this.adIntervalTimer);
     const overlay = document.getElementById('rickroll-ad-overlay');
+    const networkSlot = document.getElementById('ad-real-network-slot');
+    const sponsorBox = document.getElementById('ad-real-sponsor-box');
+    if (networkSlot) networkSlot.innerHTML = '';
+    if (sponsorBox) sponsorBox.classList.add('hidden');
     const verityVideoEl = document.getElementById('verity-video');
     const videoEl = document.getElementById('rickroll-video');
     const audioEl = document.getElementById('rickroll-audio');
@@ -26049,7 +26027,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=148', { updateViaCache: 'none' })
+        .register('sw.js?v=149', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

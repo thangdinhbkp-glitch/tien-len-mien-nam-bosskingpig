@@ -1329,14 +1329,17 @@
             🙂 <strong>HEY, IT'S ME, IT'S VERITY!</strong> Thưởng thức giai điệu quảng cáo <em>“It's Me, It's Verity”</em> đủ 15 giây để nhận ngay <strong>1 Roll (+1,600 Xu)</strong>! 🎶
           </div>
 
-          <!-- Khung Hiển Thị Quảng Cáo Thật (Monetag / Adsterra / AdSense Banner & Nút Mở Link Tài Trợ) -->
-          <div id="ad-real-sponsor-box" class="hidden" style="position:relative;z-index:25;margin:8px auto 0;max-width:620px;width:92%;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(30,27,75,0.95));border:2px solid #facc15;box-shadow:0 8px 25px rgba(0,0,0,0.75);text-align:center;">
-            <div id="ad-real-network-slot" style="margin-bottom:6px;display:flex;justify-content:center;align-items:center;overflow:hidden;"></div>
-            <button type="button" id="btn-ad-open-sponsor-link" onclick="window.tienLenGame.onClickSponsorAdLink()" style="padding:9px 20px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#eab308);color:#0f172a;font-weight:900;font-size:13.5px;border:2px solid #fef08a;cursor:pointer;box-shadow:0 0 16px rgba(250,204,21,0.65);">
-              🔗 Mở Trang Nhà Tài Trợ Để Mở Khóa +1 Roll (1,600 Xu) ▸
-            </button>
-            <div id="ad-real-sponsor-sub" style="font-size:11.5px;color:#fde68a;margin-top:4px;">
-              💡 Bấm xem trang Nhà Tài Trợ để ủng hộ Server duy trì miễn phí &amp; nhận ngay +1,600 Xu!
+          <!-- Khung Hiển Thị Quảng Cáo Thật (Có Nút ✕ Đóng Ngay Trên Khung & Chặn Chuyển Trang) -->
+          <div id="ad-real-sponsor-box" class="hidden" style="position:relative;z-index:25;margin:8px auto 0;max-width:520px;width:92%;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,rgba(15,23,42,0.96),rgba(30,27,75,0.96));border:2px solid #facc15;box-shadow:0 8px 25px rgba(0,0,0,0.8);text-align:center;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:800;color:#fde047;">📢 QUẢNG CÁO TÀI TRỢ (TỰ ĐÓNG SAU 15 GIÂY)</span>
+              <button type="button" onclick="document.getElementById('ad-real-sponsor-box').classList.add('hidden'); document.getElementById('ad-real-network-slot').innerHTML='';" style="padding:3px 10px;border-radius:999px;background:rgba(239,68,68,0.9);color:#fff;font-weight:900;font-size:11.5px;border:1px solid #fca5a5;cursor:pointer;">
+                ✕ Tắt khung QC
+              </button>
+            </div>
+            <div id="ad-real-network-slot" style="margin-bottom:6px;display:flex;justify-content:center;align-items:center;overflow:hidden;border-radius:8px;"></div>
+            <div id="ad-real-sponsor-sub" style="font-size:11px;color:#cbd5e1;">
+              💡 Xem hết 15 giây hoặc bấm <strong>"✕ Tắt khung QC"</strong> góc phải để ẩn khung này.
             </div>
           </div>
 
@@ -1534,6 +1537,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=148"></script>
+  <script src="game.js?v=149"></script>
 </body>
 </html>

@@ -16634,7 +16634,7 @@ class TienLenGame {
   }
 
   getShareableRoomUrl(code) {
-    return `https://thangdinhbkp-glitch.github.io/tien-len-mien-nam-bosskingpig/?room=${code}`;
+    return `https://tienlenmiennamgenshin.web.app/?room=${code}`;
   }
 
   async createWifiRoom() {

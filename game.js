@@ -6078,7 +6078,7 @@ class TienLenGame {
       });
 
       const mergedAdMonetization = {
-        sponsorUrl: String(newerAdCfg.sponsorUrl || '').trim(),
+        sponsorUrl: String(newerAdCfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim(),
         bannerHtml: String(newerAdCfg.bannerHtml || '').trim(),
         adMode: newerAdCfg.adMode || 'auto_open',
         bankCode: String(newerAdCfg.bankCode || '').trim().toUpperCase(),
@@ -6271,7 +6271,7 @@ class TienLenGame {
     }
 
     const adCfg = globalReg.adMonetization || {};
-    const curSponsorUrl = String(adCfg.sponsorUrl || '').replace(/"/g, '&quot;');
+    const curSponsorUrl = String(adCfg.sponsorUrl || 'https://uplcm.com/4/12175425').replace(/"/g, '&quot;');
     const curBannerHtml = String(adCfg.bannerHtml || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -9219,7 +9219,7 @@ class TienLenGame {
     const reg = this.loadGlobalRegistryCache();
     const ad = reg.adMonetization || {};
     return {
-      sponsorUrl: String(ad.sponsorUrl || '').trim(),
+      sponsorUrl: String(ad.sponsorUrl || 'https://uplcm.com/4/12175425').trim(),
       bannerHtml: String(ad.bannerHtml || '').trim(),
       adMode: ad.adMode || 'auto_open',
       bankCode: String(ad.bankCode || 'MB').trim().toUpperCase(),

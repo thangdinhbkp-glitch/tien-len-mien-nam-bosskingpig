@@ -9665,7 +9665,11 @@ class TienLenGame {
       if (adCfg.sponsorUrl || adCfg.bannerHtml) {
         sponsorBox.classList.remove('hidden');
         if (networkSlot) {
-          networkSlot.innerHTML = adCfg.bannerHtml || '';
+          networkSlot.innerHTML =
+            adCfg.bannerHtml ||
+            (adCfg.sponsorUrl
+              ? `<iframe src="${adCfg.sponsorUrl}" style="width:100%;max-width:460px;height:68px;border:1px solid rgba(250,204,21,0.35);border-radius:8px;background:#0f172a;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="eager"></iframe>`
+              : '');
         }
         if (sponsorBtn) {
           sponsorBtn.classList.toggle('hidden', !adCfg.sponsorUrl);
@@ -9677,14 +9681,21 @@ class TienLenGame {
           sponsorSub.textContent =
             adCfg.adMode === 'require_click' && adCfg.sponsorUrl
               ? '⚠️ Bấm nút vàng phía trên để mở trang Nhà Tài Trợ & mở khóa phần thưởng +1 Roll (1,600 Xu)!'
-              : '💡 Bấm xem trang Nhà Tài Trợ để ủng hộ Server duy trì miễn phí & nhận ngay +1,600 Xu!';
+              : '💡 Quảng cáo Nhà Tài Trợ đang phát trực tiếp trên App & Web để cộng +1,600 Xu!';
         }
-        // Nếu chế độ auto_open: mở ngay tab Quảng Cáo kiếm tiền trong luồng click của người chơi!
+        // Nếu chế độ auto_open: vừa nhúng trực tiếp trong App vừa mở tab Quảng Cáo kiếm tiền!
         if (adCfg.sponsorUrl && adCfg.adMode === 'auto_open') {
+          this.onClickSponsorAdLink(true);
           try {
             const w = window.open(adCfg.sponsorUrl, '_blank', 'noopener,noreferrer');
-            if (w) {
-              this.onClickSponsorAdLink(true);
+            if (!w) {
+              const a = document.createElement('a');
+              a.href = adCfg.sponsorUrl;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
             }
           } catch (_) {}
         }
@@ -26038,7 +26049,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=129', { updateViaCache: 'none' })
+        .register('sw.js?v=148', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

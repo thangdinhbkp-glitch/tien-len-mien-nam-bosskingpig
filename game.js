@@ -9584,28 +9584,17 @@ class TienLenGame {
     if (sponsorBox) {
       sponsorBox.classList.remove('hidden');
       if (networkSlot) {
+        const showcaseBurst =
+          GENSHIN_BURSTS[Math.floor(Math.random() * GENSHIN_BURSTS.length)] || GENSHIN_BURSTS[0];
         networkSlot.innerHTML =
           adCfg.bannerHtml ||
           `
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;text-align:center;width:100%;">
-              <div style="display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;">
-                <img src="icon-192.png" alt="Tiến Lên 5★" style="width:56px;height:56px;border-radius:14px;border:2px solid #facc15;box-shadow:0 0 16px rgba(250,204,21,0.5);" />
-                <div style="text-align:left;">
-                  <div style="font-size:15px;font-weight:900;color:#fef08a;">🌟 ĐANG PHÁT QUẢNG CÁO MONETAG BANNER (#12175793 &amp; #12175813)</div>
-                  <div style="font-size:12.5px;color:#cbd5e1;margin-top:3px;">Đã tắt khung <em>Verify you are human</em> bị lặp • Đợi hết 15 giây để tự động nhận <strong style="color:#4ade80;">+1 Roll (1,600 Xu)</strong>!</div>
-                </div>
-              </div>
-              ${
-                adCfg.sponsorUrl
-                  ? `<a href="${adCfg.sponsorUrl}" target="_blank" rel="noopener noreferrer" onclick="window.tienLenGame.onClickSponsorAdLink(true)" style="display:inline-block;padding:10px 20px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#eab308);color:#0f172a;font-weight:900;font-size:13.5px;text-decoration:none;border:2px solid #fef08a;box-shadow:0 4px 15px rgba(245,158,11,0.45);">
-                      🎁 Mở Trang Nhà Tài Trợ Ở Tab Riêng (Không bị lặp Verify) ▸
-                    </a>`
-                  : ''
-              }
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px;text-align:center;width:100%;">
+              <video src="${showcaseBurst.mp4Url}" poster="${showcaseBurst.posterUrl || 'icon-192.png'}" autoplay muted loop playsinline webkit-playsinline="true" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" style="width:100%;max-width:460px;height:210px;object-fit:cover;border-radius:10px;border:1.5px solid rgba(250,204,21,0.5);background:#0f172a;"></video>
+              <div style="font-size:13px;font-weight:900;color:#fef08a;">🌟 ${showcaseBurst.name} • Đợi hết 15 giây để nhận tự động <span style="color:#4ade80;">+1 Roll (1,600 Xu)</span> ngay trong game!</div>
             </div>
           `;
       }
-      this.recordAdMonetizationEvent('click');
     }
 
     overlay.classList.remove('hidden');
@@ -10115,10 +10104,6 @@ class TienLenGame {
         }
         sfx.pass();
         return;
-      }
-      const adCfg = this.getAdMonetizationConfig();
-      if (adCfg.sponsorUrl && adCfg.adMode === 'require_click' && !this.adSponsorClickedThisSession) {
-        this.onClickSponsorAdLink(false);
       }
       this.stopRickRollAd();
     });
@@ -25909,7 +25894,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=153', { updateViaCache: 'none' })
+        .register('sw.js?v=154', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

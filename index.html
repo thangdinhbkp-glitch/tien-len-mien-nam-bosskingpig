@@ -1541,23 +1541,69 @@
     </div>
   </div>
 
-  <!-- BANNER QUẢNG CÁO MONETAG GÓC PHẢI (CHỈ BẬT TRÊN MÁY TÍNH ĐỂ TRÁNH LỖI INTENT:// ERR_UNKNOWN_URL_SCHEME TRÊN ĐIỆN THOẠI ANDROID/WEBVIEW) -->
+  <!-- BANNER QUẢNG CÁO MONETAG GÓC PHẢI (HIỂN THỊ TRÊN CẢ ĐIỆN THOẠI & MÁY TÍNH + TỰ ĐỘNG CHUYỂN ĐỔI LINK INTENT:// SANG HTTPS:// TRÁNH LỖI ERR_UNKNOWN_URL_SCHEME) -->
   <script>
     (function () {
+      function sanitizeIntentUrl(url) {
+        if (typeof url !== 'string' || !/^intent:\/\//i.test(url)) return url;
+        var schemeMatch = url.match(/;scheme=([a-zA-Z0-9+.-]+);/i);
+        var scheme = schemeMatch && schemeMatch[1] ? schemeMatch[1].toLowerCase() : 'https';
+        var body = url.replace(/^intent:\/\//i, '').split('#Intent;')[0];
+        return scheme + '://' + body;
+      }
+
+      function sanitizeAnchor(a) {
+        if (!a || !a.getAttribute) return;
+        var rawHref = a.getAttribute('href');
+        if (rawHref && /^intent:\/\//i.test(rawHref)) {
+          a.setAttribute('href', sanitizeIntentUrl(rawHref));
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener noreferrer');
+        }
+      }
+
+      var origWindowOpen = window.open;
+      if (typeof origWindowOpen === 'function') {
+        window.open = function (url, target, features) {
+          return origWindowOpen.call(window, sanitizeIntentUrl(url), target || '_blank', features);
+        };
+      }
+
       window.addEventListener('click', function (e) {
         var a = e.target && e.target.closest ? e.target.closest('a') : null;
-        if (a && a.href && /^intent:/i.test(a.href)) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
+        if (a) sanitizeAnchor(a);
       }, true);
-      var ua = navigator.userAgent || '';
-      var isMobileOrWebView = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|wv/i.test(ua) || Boolean(window.Capacitor) || window.innerWidth <= 900;
-      if (!isMobileOrWebView) {
-        (function(s){s.dataset.zone='12175813',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+
+      if (typeof MutationObserver !== 'undefined') {
+        var obs = new MutationObserver(function (mutations) {
+          for (var i = 0; i < mutations.length; i++) {
+            var m = mutations[i];
+            if (m.type === 'attributes' && m.target && m.target.tagName === 'A') {
+              sanitizeAnchor(m.target);
+            } else if (m.addedNodes && m.addedNodes.length) {
+              for (var j = 0; j < m.addedNodes.length; j++) {
+                var node = m.addedNodes[j];
+                if (!node || node.nodeType !== 1) continue;
+                if (node.tagName === 'A') sanitizeAnchor(node);
+                if (node.querySelectorAll) {
+                  var links = node.querySelectorAll('a[href^="intent:"]');
+                  for (var k = 0; k < links.length; k++) sanitizeAnchor(links[k]);
+                }
+              }
+            }
+          }
+        });
+        obs.observe(document.documentElement || document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['href']
+        });
       }
+
+      (function(s){s.dataset.zone='12175813',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
     })();
   </script>
-  <script src="game.js?v=159"></script>
+  <script src="game.js?v=160"></script>
 </body>
 </html>

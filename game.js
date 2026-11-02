@@ -244,7 +244,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'nahida', name: 'Nahida (Thảo Thần Kusanali)', desc: '[Thần Thoại] Thảo Thần kết nối Akasha lật ngửa 3 lá lớn nhất của CẢ 3 ĐỐI THỦ & giảm -1 bậc lá cao nhất của họ.', avatarPrice: 95000, skinPrice: 145000, crest: '🌱' },
   { id: 'alhaitham', name: 'Alhaitham (Quan Thư Ký Giáo Viện)', desc: '[Huyền Thoại] Lăng Kính Khúc Xạ nối 2 lá rác nhỏ nhất vào lá đơn lớn nhất trên tay thành Sảnh Thượng Đẳng 3 lá.', avatarPrice: 82000, skinPrice: 125000, crest: '📗' },
   { id: 'neuvillette', name: 'Neuvillette (Thẩm Phán Tối Cao Fontaine)', desc: '[Thần Thoại] Thủy Long Vương gõ Cán Cân Tuyệt Đối chuyển thẳng các lá bài rác nhỏ nhất sang tay đối thủ ít bài nhất để san bằng số lá.', avatarPrice: 95000, skinPrice: 145000, crest: '⚖️' },
-  { id: 'wriothesley', name: 'Wriothesley (Công Tước Pháo Đài Meropide)', desc: '[Huyền Thoại] Cú đấm móc băng giá cho phép dùng 1 bộ Đôi đấm vỡ và đè trực tiếp lên bất kỳ bộ Sảnh nào trên bàn.', avatarPrice: 82000, skinPrice: 125000, crest: '🥊' },
+  { id: 'wriothesley', name: 'Wriothesley (Công Tước Pháo Đài Meropide)', desc: '[Huyền Thoại] Thiết Quyền Đối Xứng: Đấm lật ngược toàn bộ bài đang nằm trên sân thành đối xứng gương của nó (3 ⇄ A, 4 ⇄ K, 5 ⇄ Q, 6 ⇄ J, 7 ⇄ 10, 8 ⇄ 9, 2 ➔ 3; ♠ ⇄ ♥, ♣ ⇄ ♦).', avatarPrice: 82000, skinPrice: 125000, crest: '🥊' },
   { id: 'sigewinne', name: 'Sigewinne (Y Tá Trưởng Melusine)', desc: '[Huyền Thoại] Bắn Bong Bóng Nước khóa cứng lá bài lớn nhất của TẤT CẢ đối thủ và nâng 1 lá rác thành A♥.', avatarPrice: 78000, skinPrice: 120000, crest: '💉' },
   { id: 'emilie', name: 'Emilie (Nhà Điều Hương Fontaine)', desc: '[Huyền Thoại] Nhà điều hương tỏa Tinh Dầu Khử Trùng bắt buộc mọi bộ bài đối thủ đánh ra trong vòng phải chứa ít nhất 1 lá mang Chất Hương Hoa.', avatarPrice: 80000, skinPrice: 125000, crest: '🧪' },
   { id: 'chasca', name: 'Chasca (Người Hòa Giải Tlalocan)', desc: '[Huyền Thoại] Nạp 2 lá bài rác lẻ vào ổ súng Linh Hồn bắn nối dài bộ Sảnh trên tay thêm +2 lá liên tiếp.', avatarPrice: 82000, skinPrice: 125000, crest: '🔫' },
@@ -1116,7 +1116,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'wriothesley',
     name: 'Wriothesley — Cú Cắn Hắc Kim Lang',
-    desc: '[Huyền Thoại] Công Tước Pháo Đài Meropide mở Đấu Trường Ngục Tù: CẤM toàn bộ đối thủ đánh Bài Lẻ 1 lá trong vòng này (chỉ được đánh Đôi/Sám/Sảnh ≥ 2 lá) & đấm vỡ Bài Lẻ trên bàn để cướp Cái!',
+    desc: '[Huyền Thoại] Công Tước Pháo Đài Meropide tung Thiết Quyền Đối Xứng: Đấm lật ngược toàn bộ bài đang nằm trên sân thành đối xứng gương của nó (3 ⇄ A, 4 ⇄ K, 5 ⇄ Q, 6 ⇄ J, 7 ⇄ 10, 8 ⇄ 9, 2 ➔ 3; chất ♠ ⇄ ♥, ♣ ⇄ ♦)!',
     price: 155000,
     mp4Url: 'wriothesley_burst.mp4?v=64',
     audioUrl: 'wriothesley_burst.ogg?v=64',
@@ -1124,8 +1124,8 @@ const GENSHIN_BURSTS = [
     theme: 'theme-cryo',
     sfxType: 'raiden',
     tag: '🥊 KỸ NĂNG NỘ • WRIOTHESLEY (DARKGOLD WOLFBITE)',
-    title: 'CÔNG TƯỚC MEROPIDE: ĐẤU TRƯỜNG NGỤC TÙ',
-    quote: '“Luật Của Meropide — Kẻ Nào Đánh Lẻ Sẽ Bị Đấm Vỡ Nát!”',
+    title: 'CÔNG TƯỚC MEROPIDE: THIẾT QUYỀN ĐỐI XỨNG',
+    quote: '“Mọi Thứ Trên Đấu Trường Này Đều Phải Lật Ngược Trước Cú Đấm Của Ta!”',
   },
   {
     id: 'sigewinne',
@@ -1852,8 +1852,8 @@ const CHARACTER_SKILLS = {
     id: 'wriothesley',
     charName: 'Wriothesley',
     icon: '🥊',
-    name: 'Đấu Trường Ngục Tù',
-    shortDesc: 'Đấm sập sàn đấu mở Luật Ngục Tù Meropide trong vòng này: CẤM toàn bộ đối thủ đánh Bài Lẻ 1 lá (bắt buộc chỉ được đánh Đôi, Sám Cô hoặc Sảnh ≥ 2 lá) & đấm vỡ Bài Lẻ trên bàn để cướp Cái!',
+    name: 'Thiết Quyền Đối Xứng',
+    shortDesc: 'Đấm lật ngược toàn bộ bộ bài đang nằm trên sân thành đối xứng gương của nó qua trục giữa (3 ⇄ A, 4 ⇄ K, 5 ⇄ Q, 6 ⇄ J, 7 ⇄ 10, 8 ⇄ 9, 2 ➔ 3; Chất ♠ ⇄ ♥, ♣ ⇄ ♦), biến ngay bài lớn của đối thủ thành bài nhỏ để đánh đè!',
   },
   sigewinne: {
     id: 'sigewinne',
@@ -12868,6 +12868,53 @@ class TienLenGame {
     return null;
   }
 
+  buildWriothesleyMirroredCombo(combo) {
+    if (!combo || combo.isBomb || !Array.isArray(combo.cards) || combo.cards.length === 0) {
+      return null;
+    }
+    const mirroredCards = sortCardsAsc(
+      combo.cards.map((c, idx) => {
+        const newRankIndex = c.rankIndex >= 12 ? 0 : Math.max(0, Math.min(11, 11 - c.rankIndex));
+        const newSuitIndex = 3 - Math.max(0, Math.min(3, c.suitIndex ?? 0));
+        return {
+          ...c,
+          id: `${c.id}_wrio_${idx}`,
+          rank: RANKS[newRankIndex],
+          suit: SUITS[newSuitIndex],
+          rankIndex: newRankIndex,
+          suitIndex: newSuitIndex,
+          value: newRankIndex * 4 + newSuitIndex,
+          color: newSuitIndex >= 2 ? 'red' : 'black',
+          isBoostedCard: true,
+        };
+      })
+    );
+    const classified = classifyCombo(mirroredCards);
+    if (classified) {
+      return classified;
+    }
+    const highCard = mirroredCards[mirroredCards.length - 1];
+    const typeLabel =
+      combo.type === COMBO_TYPES.STRAIGHT
+        ? `Sảnh ${mirroredCards.length} lá`
+        : combo.type === COMBO_TYPES.TRIPLE
+        ? 'Sám cô'
+        : combo.type === COMBO_TYPES.PAIR
+        ? 'Đôi'
+        : 'Lẻ';
+    return {
+      ...combo,
+      cards: mirroredCards,
+      length: mirroredCards.length,
+      highCard,
+      highRank: highCard.rankIndex,
+      highSuit: highCard.suitIndex,
+      highValue: highCard.value,
+      isBomb: false,
+      label: `${typeLabel} (${mirroredCards.map((mc) => `${mc.rank}${mc.suit}`).join(' ')})`,
+    };
+  }
+
   canUseCharacterSkill(player) {
     if (!player || !player.active || player.skillUsed || this.isGameOver) return { ok: false, reason: 'Đã dùng kỹ năng trong ván này' };
 
@@ -13232,11 +13279,30 @@ class TienLenGame {
       }
     }
     if (charId === 'wriothesley') {
-      if (this.wriothesleyNoSingleRound) {
-        return { ok: false, reason: 'Đấu Trường Ngục Tù đã thiết lập trong vòng này' };
+      if (!this.currentCombo || this.currentCombo.isBomb) {
+        return {
+          ok: false,
+          reason: 'Thiết Quyền Đối Xứng chỉ kích hoạt khi trên sân đang có bài của đối thủ (Lẻ, Đôi, Sám Cô hoặc Sảnh) để lật đối xứng!',
+        };
       }
-      if (player.hand.length < 2) {
-        return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để mở Đấu Trường Ngục Tù (Cấm Đánh Lẻ)!' };
+      const mirrored = this.buildWriothesleyMirroredCombo(this.currentCombo);
+      if (!mirrored) {
+        return { ok: false, reason: 'Không thể lật đối xứng bộ bài hiện tại trên bàn!' };
+      }
+      if (player.isBot) {
+        if (mirrored.highValue >= this.currentCombo.highValue) {
+          return {
+            ok: false,
+            reason: 'Bài trên bàn đang nhỏ, lật đối xứng sẽ làm bài trên bàn lớn hơn!',
+          };
+        }
+        const validAfter = getValidMoves(player.hand, mirrored, this.mustPlay3Spade, false);
+        if (validAfter.length === 0) {
+          return {
+            ok: false,
+            reason: 'Chưa có bộ bài phù hợp trên tay để đè sau khi lật đối xứng!',
+          };
+        }
       }
     }
     if (charId === 'sigewinne') {
@@ -14720,46 +14786,43 @@ class TienLenGame {
         skillSummary = `⚖️ [Cán Cân Tuyệt Đối] ${player.name} gõ trượng Cán Cân Công Lý chuyển thẳng ${toTransfer.length} lá bài rác nhỏ nhất (${transferLabels}) từ tay mình sang tay ${target.name} (cân bằng quân số: ${player.name} còn ${player.hand.length} lá — ${target.name} lên ${target.hand.length} lá)!`;
       }
     } else if (charId === 'wriothesley') {
-      this.wriothesleyNoSingleOwnerId = player.id;
-      this.wriothesleyNoSingleRound = true;
-      this.syncRoundRuleGlobals(player.id);
-      let smashNote = '';
-      if (
-        this.currentCombo &&
-        !this.currentCombo.isBomb &&
-        this.currentCombo.type === COMBO_TYPES.SINGLE &&
-        this.currentCombo.highRank < 12
-      ) {
-        const oldSingleLabel = this.currentCombo.label;
-        this.previousCombo = this.currentCombo;
-        this.currentCombo = null;
-        this.trickOwnerId = player.id;
-        this.chopPot = 0;
-        this.lastChoppedPlayerId = null;
-        this.roundChoppableStack = [];
-        this.kinichBombOwnerId = null;
-        this.citlaliPillowOwnerId = null;
-        this.citlaliPillowTargetId = null;
-        this.hutaoTaxOwnerId = null;
-        this.arlecchinoBondOwnerId = null;
-        this.flinsLanternOwnerId = null;
-        this.ittoUshiOwnerId = null;
-        this.baizhuShieldOwnerId = null;
-        activeBaizhuShield = false;
-        this.players.forEach((p) => {
-          p.passed = false;
-          p.declinedFourPairsCut = false;
-        });
-        smashNote = ` • Đấm tan ${oldSingleLabel} trên bàn để cướp quyền mở vòng bằng bộ ghép`;
+      if (this.currentCombo && !this.currentCombo.isBomb) {
+        const oldCombo = this.currentCombo;
+        const oldText = oldCombo.cards.map((c) => `${c.rank}${c.suit}`).join(' ');
+        const mirroredCombo = this.buildWriothesleyMirroredCombo(oldCombo);
+        if (mirroredCombo) {
+          this.currentCombo = mirroredCombo;
+          if (oldCombo.highRank === 12) {
+            this.chopPot = 0;
+            this.lastChoppedPlayerId = null;
+            this.roundChoppableStack = [];
+          }
+          const newText = mirroredCombo.cards.map((c) => `${c.rank}${c.suit}`).join(' ');
+          const validAfter = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false);
+          if (validAfter.length > 0) {
+            let bestFollowUp = null;
+            if (player.isBot) {
+              try {
+                bestFollowUp = this.chooseBotResponseMove(player, validAfter);
+              } catch (_) {}
+            }
+            if (!bestFollowUp) {
+              const nonBombSameType = validAfter
+                .filter((m) => !m.isBomb && m.type === this.currentCombo.type)
+                .sort((a, b) => a.highValue - b.highValue);
+              bestFollowUp = nonBombSameType[0] || validAfter[0];
+            }
+            if (bestFollowUp) {
+              player._skillForcedComboIds = bestFollowUp.cards.map((c) => c.id);
+              if (player.id === this.mySeatId) {
+                this.selectedCardIds = new Set(player._skillForcedComboIds);
+                this.companionCardIds.clear();
+              }
+            }
+          }
+          skillSummary = `🥊 [Thiết Quyền Đối Xứng] ${player.name} tung cú đấm đối xứng lật ngược toàn bộ bài trên sân từ [${oldText}] thành đối xứng gương [${newText}] (3 ⇄ A, 4 ⇄ K, 5 ⇄ Q, 6 ⇄ J, 7 ⇄ 10, 8 ⇄ 9, 2 ➔ 3; ♠ ⇄ ♥, ♣ ⇄ ♦)!`;
+        }
       }
-      const multiCombos = generateAllCombosFromHand(player.hand).filter(
-        (m) => m.length >= 2 && (!this.currentCombo || canBeatCombo(m, this.currentCombo).ok)
-      );
-      if (multiCombos.length > 0 && player.id === this.mySeatId) {
-        this.selectedCardIds = new Set(multiCombos[0].cards.map((c) => c.id));
-        this.companionCardIds.clear();
-      }
-      skillSummary = `🥊 [Đấu Trường Ngục Tù] ${player.name} thiết lập Luật Đấu Trường Meropide: CẤM TẤT CẢ đối thủ đánh Bài Lẻ (1 lá) trong vòng này — Đối thủ chỉ được phép tung Đôi, Sám Cô, Sảnh (≥ 2 lá) hoặc Hàng${smashNote}!`;
     } else if (charId === 'sigewinne') {
       this.sigewinneCareOwnerId = player.id;
       const struct = this.analyzeBotHandStructure(player.hand);
@@ -15243,11 +15306,18 @@ class TienLenGame {
       }
       if (
         charId === 'wriothesley' &&
-        this.currentCombo.type === COMBO_TYPES.SINGLE &&
-        this.currentCombo.highRank < 12 &&
-        !this.currentCombo.isBomb
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank >= 6
       ) {
-        return this.useCharacterSkill(bot, []);
+        const mirrored = this.buildWriothesleyMirroredCombo(this.currentCombo);
+        if (
+          mirrored &&
+          mirrored.highValue < this.currentCombo.highValue &&
+          getValidMoves(bot.hand, mirrored, this.mustPlay3Spade, false).length > 0
+        ) {
+          return this.useCharacterSkill(bot, []);
+        }
       }
     }
 
@@ -16225,22 +16295,30 @@ class TienLenGame {
         shouldCast = true;
       }
     } else if (charId === 'wriothesley') {
-      // Đấu Trường Ngục Tù: Cấm đối thủ đánh Lẻ (1 lá) & đấm văng lá Lẻ (< 2) trên bàn để cướp Cái!
-      const multiCombos = generateAllCombosFromHand(bot.hand).filter((m) => m.length >= 2 && !m.isBomb);
-      const canSmashSingleOnTable =
-        multiCombos.length > 0 &&
-        this.currentCombo &&
-        !this.currentCombo.isBomb &&
-        this.currentCombo.type === COMBO_TYPES.SINGLE &&
-        this.currentCombo.highRank < 12 &&
-        (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 65 || bot.hand.length <= 8 || minOppCards <= 7);
-      const canLockNoSingleRound =
-        plannedMove &&
-        plannedMove.length >= 2 &&
-        bot.hand.length >= 2 &&
-        (bot.hand.length <= 8 || minOppCards <= 7);
-      if (canSmashSingleOnTable || canLockNoSingleRound) {
-        shouldCast = true;
+      // Thiết Quyền Đối Xứng: Chỉ kích hoạt khi bài trên sân đang LỚN (từ 9..Heo) mà sau khi lật đối xứng bài trên sân NHỎ HƠN HẲN và Bot có sẵn bài đè đẹp!
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank >= 6) {
+        const mirrored = this.buildWriothesleyMirroredCombo(this.currentCombo);
+        if (mirrored && mirrored.highRank < this.currentCombo.highRank) {
+          const movesAfterMirror = getValidMoves(bot.hand, mirrored, this.mustPlay3Spade, false);
+          const cleanBeatAfterMirror = movesAfterMirror.find(
+            (m) => !m.isBomb && m.highRank < 12 && this.evaluateMoveBreakCost(m, struct) < 75
+          );
+          const cannotBeatNowOrTooCostly =
+            !plannedMove ||
+            plannedMove.isBomb ||
+            plannedMove.highRank >= 11 ||
+            this.evaluateMoveBreakCost(plannedMove, struct) >= 55;
+          const isHighTableCombo =
+            this.currentCombo.highRank >= 9 ||
+            (this.currentCombo.length >= 2 && this.currentCombo.highRank >= 7);
+          if (
+            movesAfterMirror.length > 0 &&
+            (cannotBeatNowOrTooCostly || isHighTableCombo || minOppCards <= 6 || bot.hand.length <= 7) &&
+            (cleanBeatAfterMirror || minOppCards <= 4 || !plannedMove)
+          ) {
+            shouldCast = true;
+          }
+        }
       }
     } else if (charId === 'sigewinne') {
       // Trạm Y Tế Meropide: Nâng 3 lá nhỏ nhất +2 bậc Đỏ (♥/♦)

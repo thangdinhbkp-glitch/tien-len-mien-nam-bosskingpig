@@ -1541,69 +1541,135 @@
     </div>
   </div>
 
-  <!-- BANNER QUẢNG CÁO MONETAG GÓC PHẢI (HIỂN THỊ TRÊN CẢ ĐIỆN THOẠI & MÁY TÍNH + TỰ ĐỘNG CHUYỂN ĐỔI LINK INTENT:// SANG HTTPS:// TRÁNH LỖI ERR_UNKNOWN_URL_SCHEME) -->
+  <!-- BANNER QUẢNG CÁO MONETAG GÓC PHẢI (HIỂN THỊ TRÊN CẢ ĐIỆN THOẠI & MÁY TÍNH — CHẶN TẬN GỐC SCRIPT PHỤ IN-APP 5434422 & IFRAME POPUP INTENT:// TRÊN ANDROID) -->
   <script>
     (function () {
-      function sanitizeIntentUrl(url) {
-        if (typeof url !== 'string' || !/^intent:\/\//i.test(url)) return url;
-        var schemeMatch = url.match(/;scheme=([a-zA-Z0-9+.-]+);/i);
-        var scheme = schemeMatch && schemeMatch[1] ? schemeMatch[1].toLowerCase() : 'https';
-        var body = url.replace(/^intent:\/\//i, '').split('#Intent;')[0];
-        return scheme + '://' + body;
-      }
+      var ua = navigator.userAgent || '';
+      var isMobileOrWebView = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|wv|FBAV|FBAN|Zalo/i.test(ua) || Boolean(window.Capacitor) || window.innerWidth <= 900;
 
-      function sanitizeAnchor(a) {
-        if (!a || !a.getAttribute) return;
-        var rawHref = a.getAttribute('href');
-        if (rawHref && /^intent:\/\//i.test(rawHref)) {
-          a.setAttribute('href', sanitizeIntentUrl(rawHref));
-          a.setAttribute('target', '_blank');
-          a.setAttribute('rel', 'noopener noreferrer');
+      // 1. Khóa biến __vST để hàm af() của Monetag không bao giờ tải script phụ 'in-app' (Zone 5434422 gây lỗi intent://)
+      try {
+        window.__vST = new Promise(function () {});
+      } catch (_) {}
+
+      // 2. Xóa bộ đếm ẩn/cooldown của Monetag trong localStorage để Banner góc phải luôn xuất hiện ngay khi vào trang
+      try {
+        var lsKeys = Object.keys(localStorage);
+        for (var i = 0; i < lsKeys.length; i++) {
+          var k = lsKeys[i];
+          if (/^(eyksk73dur|giyatxfciex|proxaec71mg|kbq3ok0e4pq|pq9v3jzmcp)/i.test(k)) {
+            localStorage.removeItem(k);
+          }
         }
+      } catch (_) {}
+
+      // 3. Lọc cấu hình JSON của Zone 12175813 ngay khi Monetag giải mã:
+      //    - Xóa fakepushRelatedZones / extra (chứa zone 5434422 in-app redirect)
+      //    - Xóa fakepushMisclickUrl (bẫy bấm nhầm nút X nhảy sang link intent://)
+      //    - Ép vị trí hiển thị ở góc trên bên phải (top-right) trên cả điện thoại và máy tính
+      var origJsonParse = JSON.parse;
+      JSON.parse = function (text, reviver) {
+        var res = origJsonParse.call(JSON, text, reviver);
+        if (res && typeof res === 'object') {
+          if ('fakepushZoneId' in res || 'fakepushRelatedZones' in res || 'fakepushMisclickUrl' in res) {
+            res.fakepushRelatedZones = {};
+            res.extra = {};
+            res.fakepushExtraScripts = [];
+            res.fakepushExcludeScriptsOnUrls = [];
+            res.fakepushMisclickUrl = '';
+            res.fakepushMisclickCounter = 0;
+            res.fakepushReloadScript = false;
+            res.fakepushVignetteFirst = false;
+            res.fakepushPositionX = 'right';
+            res.fakepushPositionY = 'top';
+            res.fakepushPositionYMobile = 'top';
+            res.fakepushTimeout = 0;
+            res.fakepushTimeoutMobile = 0;
+            res.fakepushInterval = 5;
+            res.fakepushIntervalMobile = 5;
+            res.fakepushCap = 999;
+            res.fakepushCapMobile = 999;
+            res.fakepushFreq = 999;
+            res.fakepushFreqMobile = 999;
+          }
+        }
+        return res;
+      };
+
+      // 4. Chặn hàm hl() của Monetag (tạo <iframe src="about:blank"> rồi gọi iframe.contentWindow.open)
+      //    trên điện thoại để khi chạm vào banner hoặc nút X không bị 302 redirect sang intent:// gây lỗi ERR_UNKNOWN_URL_SCHEME
+      function safeMobileAdOpen(url, target, features) {
+        if (typeof url === 'string' && url.length > 0 && url !== 'about:blank') {
+          var cleanUrl = url;
+          if (/^intent:\/\//i.test(cleanUrl)) {
+            var schemeMatch = cleanUrl.match(/;scheme=([a-zA-Z0-9+.-]+);/i);
+            var scheme = schemeMatch && schemeMatch[1] ? schemeMatch[1].toLowerCase() : 'https';
+            cleanUrl = scheme + '://' + cleanUrl.replace(/^intent:\/\//i, '').split('#Intent;')[0];
+          }
+          if (isMobileOrWebView && /itponytaa|nap5k|monetag|ak\.|\/4\//i.test(cleanUrl)) {
+            try {
+              fetch(cleanUrl, { mode: 'no-cors', credentials: 'omit' }).catch(function () {});
+            } catch (_) {}
+            return { closed: false, focus: function () {}, close: function () {} };
+          }
+          if (origWindowOpen) {
+            return origWindowOpen.call(window, cleanUrl, target || '_blank', features);
+          }
+        }
+        return { closed: false, focus: function () {}, close: function () {} };
       }
 
       var origWindowOpen = window.open;
       if (typeof origWindowOpen === 'function') {
         window.open = function (url, target, features) {
-          return origWindowOpen.call(window, sanitizeIntentUrl(url), target || '_blank', features);
+          return safeMobileAdOpen(url, target, features);
         };
       }
 
-      window.addEventListener('click', function (e) {
-        var a = e.target && e.target.closest ? e.target.closest('a') : null;
-        if (a) sanitizeAnchor(a);
-      }, true);
-
-      if (typeof MutationObserver !== 'undefined') {
-        var obs = new MutationObserver(function (mutations) {
-          for (var i = 0; i < mutations.length; i++) {
-            var m = mutations[i];
-            if (m.type === 'attributes' && m.target && m.target.tagName === 'A') {
-              sanitizeAnchor(m.target);
-            } else if (m.addedNodes && m.addedNodes.length) {
-              for (var j = 0; j < m.addedNodes.length; j++) {
-                var node = m.addedNodes[j];
-                if (!node || node.nodeType !== 1) continue;
-                if (node.tagName === 'A') sanitizeAnchor(node);
-                if (node.querySelectorAll) {
-                  var links = node.querySelectorAll('a[href^="intent:"]');
-                  for (var k = 0; k < links.length; k++) sanitizeAnchor(links[k]);
-                }
+      var origCreateElement = Document.prototype.createElement;
+      Document.prototype.createElement = function (tagName, options) {
+        var el = origCreateElement.call(this, tagName, options);
+        var tag = String(tagName || '').toLowerCase();
+        if (tag === 'iframe') {
+          var patchIframeWin = function () {
+            try {
+              if (el.contentWindow && el.contentWindow.open !== safeMobileAdOpen) {
+                el.contentWindow.open = safeMobileAdOpen;
               }
+            } catch (_) {}
+          };
+          el.addEventListener('load', patchIframeWin);
+          setTimeout(patchIframeWin, 0);
+        }
+        return el;
+      };
+
+      var origAppendChild = Node.prototype.appendChild;
+      Node.prototype.appendChild = function (child) {
+        if (child && child.nodeType === 1) {
+          var tag = String(child.tagName || '').toLowerCase();
+          if (tag === 'script') {
+            var dTag = child.dataset && child.dataset.tag ? String(child.dataset.tag) : '';
+            if (/^show_/i.test(dTag)) {
+              return child;
             }
           }
-        });
-        obs.observe(document.documentElement || document.body, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ['href']
-        });
-      }
+          if (tag === 'iframe') {
+            var res = origAppendChild.call(this, child);
+            try {
+              if (child.contentWindow) {
+                child.contentWindow.open = safeMobileAdOpen;
+              }
+            } catch (_) {}
+            return res;
+          }
+        }
+        return origAppendChild.call(this, child);
+      };
 
       (function(s){s.dataset.zone='12175813',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
     })();
   </script>
-  <script src="game.js?v=160"></script>
+  <script src="game.js?v=161"></script>
 </body>
 </html>

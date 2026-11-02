@@ -9563,15 +9563,20 @@ class TienLenGame {
     const sponsorBox = document.getElementById('ad-real-sponsor-box');
     const networkSlot = document.getElementById('ad-real-network-slot');
 
-    // Kích hoạt Banner Vignette chính chủ Monetag (Zone #12175793) có sẵn nút ✕ Đóng và không bị chặn Verify AdEx
+    // Kích hoạt 2 Zone Banner chính chủ Monetag (Vignette #12175793 & In-Page Push #12175813) có sẵn nút ✕ Đóng
     try {
-      const oldVig = document.getElementById('monetag-vignette-script');
-      if (oldVig) oldVig.remove();
-      const s = document.createElement('script');
-      s.id = 'monetag-vignette-script';
-      s.dataset.zone = '12175793';
-      s.src = `https://n6wxm.com/vignette.min.js?t=${Date.now()}`;
-      (document.body || document.documentElement).appendChild(s);
+      [
+        { id: 'monetag-vignette-script', zone: '12175793', src: 'https://n6wxm.com/vignette.min.js' },
+        { id: 'monetag-ipp-script', zone: '12175813', src: 'https://nap5k.com/tag.min.js' },
+      ].forEach((item) => {
+        const oldEl = document.getElementById(item.id);
+        if (oldEl) oldEl.remove();
+        const s = document.createElement('script');
+        s.id = item.id;
+        s.dataset.zone = item.zone;
+        s.src = item.src;
+        [document.documentElement, document.body].filter(Boolean).pop().appendChild(s);
+      });
     } catch (_) {}
 
     if (sponsorBox) {
@@ -9579,25 +9584,11 @@ class TienLenGame {
       if (networkSlot) {
         networkSlot.innerHTML =
           adCfg.bannerHtml ||
-          `
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;text-align:center;width:100%;">
-              <div style="display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;">
-                <img src="icon-192.png" alt="Tiến Lên 5★" style="width:56px;height:56px;border-radius:14px;border:2px solid #facc15;box-shadow:0 0 16px rgba(250,204,21,0.5);" />
-                <div style="text-align:left;">
-                  <div style="font-size:15px;font-weight:900;color:#fef08a;">🌟 NHÀ TÀI TRỢ CẦU NGUYỆN 5★ (MONETAG BANNER #12175793)</div>
-                  <div style="font-size:12.5px;color:#cbd5e1;margin-top:3px;">Đang hiển thị Quảng Cáo Tài Trợ • Đợi hết 15 giây để nhận tự động <strong style="color:#4ade80;">+1 Roll (1,600 Xu)</strong>!</div>
-                </div>
-              </div>
-              ${
-                adCfg.sponsorUrl
-                  ? `<a href="${adCfg.sponsorUrl}" target="_blank" rel="noopener noreferrer" onclick="window.tienLenGame.onClickSponsorAdLink(true)" style="display:inline-block;padding:10px 20px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#eab308);color:#0f172a;font-weight:900;font-size:13.5px;text-decoration:none;border:2px solid #fef08a;box-shadow:0 4px 15px rgba(245,158,11,0.45);">
-                      🎁 Xem Ưu Đãi Nhà Tài Trợ (Tùy chọn) ▸
-                    </a>`
-                  : ''
-              }
-            </div>
-          `;
+          (adCfg.sponsorUrl
+            ? `<iframe src="${adCfg.sponsorUrl}" style="width:100%;height:260px;border:none;border-radius:10px;background:#0f172a;" sandbox="allow-scripts allow-same-origin allow-forms" referrerpolicy="no-referrer-when-downgrade" loading="eager"></iframe>`
+            : '');
       }
+      this.recordAdMonetizationEvent('click');
     }
 
     overlay.classList.remove('hidden');
@@ -25891,7 +25882,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=151', { updateViaCache: 'none' })
+        .register('sw.js?v=152', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

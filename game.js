@@ -6345,42 +6345,11 @@ class TienLenGame {
             </label>
             <textarea id="admin-input-banner-html" rows="2" placeholder="Dán mã <iframe> hoặc <script> banner quảng cáo vào đây (nếu có)..." style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#cbd5e1;font-size:11.5px;resize:vertical;">${curBannerHtml}</textarea>
           </div>
-          <div style="padding-top:6px;border-top:1px dashed rgba(148,163,184,0.3);">
-            <label style="display:block;font-weight:800;color:#fde047;margin-bottom:4px;">
-              4️⃣ Cài Đặt Ngân Hàng Tự Tạo Mã VietQR Ủng Hộ Dev (Hiện trong mục 🎁 Giftcode / VIP):
-            </label>
-            <div style="display:grid;grid-template-columns:1fr 1.4fr 1.4fr;gap:6px;">
-              <input type="text" id="admin-input-bank-code" value="${curBankCode}" placeholder="Mã NH (VD: MB, VCB, TCB, ACB)" style="padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:11.5px;" />
-              <input type="text" id="admin-input-bank-account" value="${curBankAccount}" placeholder="Số tài khoản nhận tiền..." style="padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:11.5px;" />
-              <input type="text" id="admin-input-bank-owner" value="${curBankOwner}" placeholder="Tên chủ TK (VD: DINH VIET THANG)" style="padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:11.5px;" />
-            </div>
-            <input type="url" id="admin-input-contact-url" value="${curContactUrl}" placeholder="Link Facebook / Zalo nhận ảnh chụp chuyển khoản để gửi Giftcode..." style="width:100%;margin-top:5px;padding:6px 8px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:11.5px;" />
-          </div>
           <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:2px;">
             <span style="font-size:11px;color:#94a3b8;">💡 Lấy Direct Link duyệt ngay trong 1 phút tại <strong>monetag.com</strong> hoặc <strong>adsterra.com</strong></span>
             <button type="button" class="primary-btn" id="btn-save-admin-ad-config" onclick="window.tienLenGame.saveAdminAdMonetizationConfig()" style="padding:6px 14px;font-size:12px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
-              💾 Lưu Cấu Hình Kiếm Tiền &amp; VietQR Toàn Server
+              💾 Lưu &amp; Áp Dụng Quảng Cáo Toàn Server
             </button>
-          </div>
-          <div style="padding-top:8px;margin-top:4px;border-top:1px dashed rgba(250,204,21,0.35);">
-            <label style="display:block;font-weight:900;color:#fde047;margin-bottom:4px;">
-              🎁 5️⃣ Tạo Mã Giftcode / Thẻ Tháng Nguyệt Chúc Cho Người Chơi Ủng Hộ:
-            </label>
-            <div style="display:grid;grid-template-columns:1.2fr 0.9fr 1.2fr 0.8fr auto;gap:5px;align-items:center;">
-              <input type="text" id="admin-new-giftcode-str" placeholder="Mã (VD: VIP999)" style="padding:6px 8px;border-radius:7px;border:1px solid rgba(250,204,21,0.45);background:rgba(15,23,42,0.95);color:#fde047;font-weight:800;font-size:11.5px;text-transform:uppercase;" />
-              <input type="number" id="admin-new-giftcode-rolls" value="10" min="1" max="500" title="Số Roll thưởng ngay" placeholder="Số Roll" style="padding:6px 8px;border-radius:7px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.95);color:#fff;font-size:11.5px;" />
-              <select id="admin-new-giftcode-welkin" style="padding:6px 6px;border-radius:7px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.95);color:#c4b5fd;font-size:11px;font-weight:700;">
-                <option value="30">🌙 Kèm Nguyệt Chúc 30 ngày</option>
-                <option value="0">Chỉ cộng Roll ngay</option>
-              </select>
-              <input type="number" id="admin-new-giftcode-maxuses" value="1" min="1" max="1000" title="Số lượt nhập tối đa" placeholder="Số lượt" style="padding:6px 6px;border-radius:7px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.95);color:#fff;font-size:11.5px;" />
-              <button type="button" class="primary-btn" onclick="window.tienLenGame.adminCreateCloudGiftcode()" style="padding:6px 10px;font-size:11.5px;font-weight:900;white-space:nowrap;">
-                ➕ Tạo Code
-              </button>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;max-height:95px;overflow-y:auto;">
-              ${giftcodesListHtml}
-            </div>
           </div>
         </div>
       </div>

@@ -4289,6 +4289,16 @@ class TienLenGame {
     ).padStart(2, '0')}`;
   }
 
+  readCookieValue(name) {
+    try {
+      const escaped = String(name || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${escaped}=([^;]*)`));
+      return match && match[1] ? decodeURIComponent(match[1]) : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   readBackupPayloads() {
     const list = [];
     try {
@@ -4547,11 +4557,28 @@ class TienLenGame {
     this.accountModalTab = 'register';
 
     try {
-      const activeUser = (localStorage.getItem('tlmn_active_account_v1') || '').trim().toLowerCase();
+      let activeUser = (localStorage.getItem('tlmn_active_account_v1') || '').trim().toLowerCase();
       const accountsDb = this.loadAccountsDb();
       const candidates = [];
 
       const backups = this.readBackupPayloads();
+      if (!activeUser) {
+        const cookieActiveUser = (this.readCookieValue('tlmn_active_account_v1') || '').trim().toLowerCase();
+        const backupCookieUser = (
+          backups.find((b) => b && typeof b === 'object' && b.accountUsername)?.accountUsername || ''
+        )
+          .trim()
+          .toLowerCase();
+        const recoveredUser = cookieActiveUser || backupCookieUser;
+        if (recoveredUser) {
+          activeUser = recoveredUser;
+          try {
+            localStorage.setItem('tlmn_active_account_v1', activeUser);
+            localStorage.setItem(`tlmn_v28_migrated_${activeUser}`, '1');
+          } catch (_) {}
+        }
+      }
+
       backups.forEach((data, idx) => {
         if (!data || typeof data !== 'object') return;
         // Nếu đang đăng nhập tài khoản cụ thể, CHỈ nhận backup có đúng accountUsername === activeUser (không lấy backup khách của máy khác!)
@@ -4568,6 +4595,26 @@ class TienLenGame {
           updatedAtMs: Number(data.updatedAtMs) || fallbackTime,
         });
       });
+
+      if (activeUser && !accountsDb[activeUser]) {
+        const cookiePassHash = (this.readCookieValue('tlmn_active_passhash_v1') || '').trim();
+        const bestCandidate =
+          candidates.length > 0 ? candidates[candidates.length - 1] : null;
+        if (bestCandidate || cookiePassHash) {
+          const nowStr = new Date().toLocaleString('vi-VN');
+          accountsDb[activeUser] = {
+            username: activeUser,
+            displayName: this.resolveCleanPlayerName(bestCandidate?.playerName || activeUser, activeUser),
+            passwordHash: cookiePassHash || '',
+            createdAt: nowStr,
+            updatedAt: nowStr,
+            updatedAtMs: Number(bestCandidate?.updatedAtMs) || 1,
+            syncRev: Number(bestCandidate?.syncRev) || 1,
+            profile: bestCandidate || null,
+          };
+          this.saveAccountsDb(accountsDb);
+        }
+      }
 
       if (activeUser && accountsDb[activeUser]) {
         this.currentAccountUsername = activeUser;
@@ -5241,6 +5288,8 @@ class TienLenGame {
 
       const cProf = cloudAcc.profile || {};
       const hasNewCloudUnlock =
+        (!localAcc?.passwordHash && !!cloudAcc.passwordHash) ||
+        (cProf.gachaHistory || []).length > (this.gachaHistory || []).length ||
         (cProf.unlockedBursts || []).some((id) => !this.unlockedBursts.has(id)) ||
         (cProf.unlockedSkins || []).some((id) => !this.unlockedSkins.has(id)) ||
         (cProf.unlockedAvatars || []).some((id) => !this.unlockedAvatars.has(id));
@@ -5519,6 +5568,9 @@ class TienLenGame {
       // Bỏ gachaHistory trong cookie để dung lượng cookie luôn < 1.2KB (không bao giờ vượt giới hạn 4KB của trình duyệt!)
       const cookiePayload = { ...payload, gachaHistory: [] };
       document.cookie = `tlmn_vault_v9=${encodeURIComponent(JSON.stringify(cookiePayload))}; path=/; max-age=31536000; SameSite=Lax`;
+      if (this.currentAccountUsername) {
+        document.cookie = `tlmn_active_account_v1=${encodeURIComponent(this.currentAccountUsername)}; path=/; max-age=31536000; SameSite=Lax`;
+      }
       window.name = `TLMN_VAULT_V9:${jsonStr}`;
 
       if (this.currentAccountUsername) {
@@ -5529,6 +5581,9 @@ class TienLenGame {
           accountsDb[this.currentAccountUsername].updatedAtMs = nowMs;
           accountsDb[this.currentAccountUsername].syncRev = nextRev;
           accountsDb[this.currentAccountUsername].profile = payload;
+          if (accountsDb[this.currentAccountUsername].passwordHash) {
+            document.cookie = `tlmn_active_passhash_v1=${encodeURIComponent(accountsDb[this.currentAccountUsername].passwordHash)}; path=/; max-age=31536000; SameSite=Lax`;
+          }
           this.saveAccountsDb(accountsDb);
           if (syncCloud && bumpTimestamp) {
             this.scheduleCloudAccountSync();
@@ -5704,6 +5759,8 @@ class TienLenGame {
     this.currentAccountUsername = usernameKey;
     localStorage.setItem('tlmn_active_account_v1', usernameKey);
     localStorage.setItem(`tlmn_v28_migrated_${usernameKey}`, '1');
+    document.cookie = `tlmn_active_account_v1=${encodeURIComponent(usernameKey)}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `tlmn_active_passhash_v1=${encodeURIComponent(inputHash)}; path=/; max-age=31536000; SameSite=Lax`;
 
     const nowStr = new Date().toLocaleString('vi-VN');
     accountsDb[usernameKey] = {
@@ -5843,6 +5900,8 @@ class TienLenGame {
     this.resetProfileMemoryToDefaults();
     this.currentAccountUsername = usernameKey;
     localStorage.setItem('tlmn_active_account_v1', usernameKey);
+    document.cookie = `tlmn_active_account_v1=${encodeURIComponent(usernameKey)}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `tlmn_active_passhash_v1=${encodeURIComponent(inputHash)}; path=/; max-age=31536000; SameSite=Lax`;
 
     if (finalProfile) {
       const jsonStr = JSON.stringify({
@@ -5941,6 +6000,8 @@ class TienLenGame {
     try {
       localStorage.removeItem('tlmn_active_account_v1');
       localStorage.removeItem('tlmn_genshin_vault_v9');
+      document.cookie = 'tlmn_active_account_v1=; path=/; max-age=0; SameSite=Lax';
+      document.cookie = 'tlmn_active_passhash_v1=; path=/; max-age=0; SameSite=Lax';
       document.cookie = 'tlmn_vault_v9=; path=/; max-age=0; SameSite=Lax';
       window.name = '';
     } catch (_) {}

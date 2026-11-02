@@ -505,8 +505,8 @@
                 <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-toggle-auto-random-bot" onclick="window.tienLenGame.toggleAutoRandomBots()" title="Bật/Tắt tự động đổi ngẫu nhiên Nhân Vật Bot sau mỗi ván bài">
                   🔄 Tự Động Random: BẬT
                 </button>
-                <button type="button" class="primary-btn" onclick="window.tienLenGame.openBotReplayLearningModal()" title="Cho Bot xem lại lối đánh của bạn ở mấy trận trước để học theo" style="padding:8px 14px;font-size:13px;border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
-                  🧠 Học Lối Đánh Của Bạn
+                <button type="button" class="primary-btn hidden" id="btn-admin-replay-learn-lobby" onclick="window.tienLenGame.openBotReplayLearningModal()" title="Chỉ Admin (@thang.dinhbkp): Xem lại & huấn luyện Bot học lối đánh từ tất cả người chơi (ưu tiên x4 lối đánh của bạn)" style="padding:8px 14px;font-size:13px;border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
+                  🧠 Xem Lại &amp; Học Lối Đánh
                 </button>
               </div>
             </div>
@@ -853,7 +853,7 @@
                 <button type="button" class="tool-btn auto-random-bot-toggle-btn" id="btn-summary-auto-random-bot-2" onclick="window.tienLenGame.toggleAutoRandomBots()" style="padding:8px 12px;font-size:12.5px;font-weight:800;border-radius:10px;">
                   🔄 Tự Động Random: BẬT
                 </button>
-                <button type="button" class="primary-btn" onclick="window.tienLenGame.openBotReplayLearningModal()" title="Cho Bot xem lại lối đánh của bạn mấy trận trước để học theo" style="padding:8px 14px;font-size:12.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
+                <button type="button" class="primary-btn hidden" id="btn-admin-replay-learn-summary" onclick="window.tienLenGame.openBotReplayLearningModal()" title="Chỉ Admin (@thang.dinhbkp): Xem lại & huấn luyện Bot học lối đánh từ tất cả người chơi (ưu tiên x4 lối đánh của bạn)" style="padding:8px 14px;font-size:12.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
                   🧠 Xem Lại &amp; Học Lối Đánh
                 </button>
                 <button type="button" class="icon-btn" onclick="window.tienLenGame.resetSummaryBotPrompt()" style="padding:6px 10px;font-size:12px;">
@@ -1480,6 +1480,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=138"></script>
+  <script src="game.js?v=139"></script>
 </body>
 </html>

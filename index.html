@@ -54,7 +54,7 @@
     }
   }
   </script>
-  <link rel="stylesheet" href="styles.css?v=136" />
+  <link rel="stylesheet" href="styles.css?v=142" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -1204,15 +1204,15 @@
     <div class="gacha-wish-overlay hidden" id="gacha-wish-overlay">
       <!-- Stage 1: Official Genshin Impact Shooting Meteor Video Cutscene -->
       <div class="gacha-meteor-stage" id="gacha-meteor-stage">
-        <video class="gacha-meteor-video" id="gacha-meteor-video" playsinline preload="auto"></video>
+        <video class="gacha-meteor-video" id="gacha-meteor-video" playsinline webkit-playsinline="true" x5-playsinline="true" preload="auto" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></video>
         <button class="gacha-skip-btn" id="btn-always-skip-gacha" onclick="window.tienLenGame.toggleSkipGachaAnimations(true)" style="right:140px;background:rgba(220,38,38,0.85);border-color:#fca5a5;">⏭️ Tắt Luôn Hoạt Ảnh Gacha</button>
         <button class="gacha-skip-btn" id="btn-skip-gacha-meteor">Skip ▸</button>
       </div>
 
       <!-- Stage 2: Official Genshin Impact Character Splash Art Reveal Stage -->
       <div class="gacha-splash-stage hidden" id="gacha-splash-stage">
-        <video class="gacha-splashlight-video" id="gacha-splashlight-in" muted playsinline preload="auto"></video>
-        <video class="gacha-splashlight-video hidden" id="gacha-splashlight-out" muted playsinline preload="auto"></video>
+        <video class="gacha-splashlight-video" id="gacha-splashlight-in" muted playsinline webkit-playsinline="true" x5-playsinline="true" preload="auto" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></video>
+        <video class="gacha-splashlight-video hidden" id="gacha-splashlight-out" muted playsinline webkit-playsinline="true" x5-playsinline="true" preload="auto" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></video>
 
         <button class="gacha-skip-btn" id="btn-skip-gacha-splash">Skip ▸</button>
 
@@ -1455,7 +1455,7 @@
       <div class="burst-bg-fx" id="burst-bg-fx"></div>
       <div class="burst-chakra-ring" id="burst-chakra-ring"></div>
       <div class="burst-character-wrap">
-        <video class="burst-video" id="burst-video" autoplay playsinline preload="auto"></video>
+        <video class="burst-video" id="burst-video" autoplay playsinline webkit-playsinline="true" x5-playsinline="true" preload="auto" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></video>
         <audio id="burst-audio" preload="auto"></audio>
       </div>
       <div class="burst-slash-container" id="burst-slash-container"></div>
@@ -1522,6 +1522,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=141"></script>
+  <script src="game.js?v=142"></script>
 </body>
 </html>

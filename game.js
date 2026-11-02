@@ -4035,8 +4035,17 @@ class TienLenGame {
       freshVideo.id = 'burst-video';
       freshVideo.className = 'burst-video';
       freshVideo.autoplay = true;
+      freshVideo.controls = false;
       freshVideo.playsInline = true;
+      freshVideo.disablePictureInPicture = true;
+      freshVideo.disableRemotePlayback = true;
+      freshVideo.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       freshVideo.setAttribute('playsinline', '');
+      freshVideo.setAttribute('webkit-playsinline', 'true');
+      freshVideo.setAttribute('x5-playsinline', 'true');
+      freshVideo.setAttribute('disablepictureinpicture', '');
+      freshVideo.setAttribute('disableremoteplayback', '');
+      freshVideo.setAttribute('controlslist', 'nodownload nofullscreen noremoteplayback');
       freshVideo.preload = 'auto';
       freshVideo.style.transition = 'none';
       freshVideo.style.display = 'none';
@@ -7670,7 +7679,11 @@ class TienLenGame {
     [vIn, vOut].forEach((v) => {
       if (v) {
         try {
+          v.onplaying = null;
+          v.ontimeupdate = null;
           v.pause();
+          v.style.opacity = '0';
+          v.style.visibility = 'hidden';
           v.removeAttribute('src');
         } catch (_) {}
       }
@@ -7762,23 +7775,62 @@ class TienLenGame {
 
       const vIn = document.getElementById('gacha-splashlight-in');
       const vOut = document.getElementById('gacha-splashlight-out');
+      const emptyPoster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       if (vIn) {
+        vIn.controls = false;
+        vIn.disablePictureInPicture = true;
+        vIn.disableRemotePlayback = true;
+        vIn.poster = emptyPoster;
+        vIn.style.opacity = '0';
+        vIn.style.visibility = 'hidden';
         vIn.classList.remove('hidden');
+        const revealVIn = () => {
+          vIn.style.opacity = '1';
+          vIn.style.visibility = 'visible';
+        };
+        vIn.onplaying = revealVIn;
+        vIn.ontimeupdate = () => {
+          if (vIn.currentTime > 0.01) revealVIn();
+        };
+        if (typeof vIn.requestVideoFrameCallback === 'function') {
+          vIn.requestVideoFrameCallback(revealVIn);
+        }
         vIn.src = this.getGachaCachedMediaUrl(`assets/${starRarity}star-splashout.webm`);
         vIn.currentTime = 0;
         const p1 = vIn.play();
         if (p1 && typeof p1.catch === 'function') p1.catch(() => {});
       }
       if (vOut) {
+        vOut.controls = false;
+        vOut.disablePictureInPicture = true;
+        vOut.disableRemotePlayback = true;
+        vOut.poster = emptyPoster;
+        vOut.style.opacity = '0';
+        vOut.style.visibility = 'hidden';
         vOut.classList.add('hidden');
         vOut.src = this.getGachaCachedMediaUrl(`assets/${starRarity}star-splashout2.webm`);
         vOut.currentTime = 0;
       }
       this.gachaSplashLightTimer = setTimeout(() => {
         if (this.gachaSplashLoadToken !== myToken) return;
-        if (vIn) vIn.classList.add('hidden');
+        if (vIn) {
+          vIn.style.opacity = '0';
+          vIn.style.visibility = 'hidden';
+          vIn.classList.add('hidden');
+        }
         if (vOut) {
           vOut.classList.remove('hidden');
+          const revealVOut = () => {
+            vOut.style.opacity = '1';
+            vOut.style.visibility = 'visible';
+          };
+          vOut.onplaying = revealVOut;
+          vOut.ontimeupdate = () => {
+            if (vOut.currentTime > 0.01) revealVOut();
+          };
+          if (typeof vOut.requestVideoFrameCallback === 'function') {
+            vOut.requestVideoFrameCallback(revealVOut);
+          }
           const p2 = vOut.play();
           if (p2 && typeof p2.catch === 'function') p2.catch(() => {});
         }
@@ -7937,8 +7989,12 @@ class TienLenGame {
       document.body.classList.remove('gacha-playing-gpu-lock');
       clearTimeout(this.gachaMeteorTimer);
       if (meteorVideo) {
+        meteorVideo.onplaying = null;
+        meteorVideo.ontimeupdate = null;
         meteorVideo.onended = null;
         meteorVideo.onerror = null;
+        meteorVideo.style.opacity = '0';
+        meteorVideo.style.visibility = 'hidden';
         try {
           meteorVideo.pause();
         } catch (_) {}
@@ -7973,8 +8029,12 @@ class TienLenGame {
       meteorFinished = true;
       clearTimeout(this.gachaMeteorTimer);
       if (meteorVideo) {
+        meteorVideo.onplaying = null;
+        meteorVideo.ontimeupdate = null;
         meteorVideo.onended = null;
         meteorVideo.onerror = null;
+        meteorVideo.style.opacity = '0';
+        meteorVideo.style.visibility = 'hidden';
         try {
           meteorVideo.pause();
         } catch (_) {}
@@ -8005,6 +8065,35 @@ class TienLenGame {
         : 'assets/wish_3star_1.mp4';
 
     if (meteorVideo) {
+      meteorVideo.controls = false;
+      meteorVideo.playsInline = true;
+      meteorVideo.disablePictureInPicture = true;
+      meteorVideo.disableRemotePlayback = true;
+      meteorVideo.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+      meteorVideo.setAttribute('playsinline', '');
+      meteorVideo.setAttribute('webkit-playsinline', 'true');
+      meteorVideo.setAttribute('x5-playsinline', 'true');
+      meteorVideo.setAttribute('disablepictureinpicture', '');
+      meteorVideo.setAttribute('disableremoteplayback', '');
+      meteorVideo.setAttribute('controlslist', 'nodownload nofullscreen noremoteplayback');
+      meteorVideo.style.opacity = '0';
+      meteorVideo.style.visibility = 'hidden';
+
+      let meteorRevealed = false;
+      const revealMeteorFrame = () => {
+        if (meteorRevealed || meteorFinished) return;
+        meteorRevealed = true;
+        meteorVideo.style.opacity = '1';
+        meteorVideo.style.visibility = 'visible';
+      };
+      if (typeof meteorVideo.requestVideoFrameCallback === 'function') {
+        meteorVideo.requestVideoFrameCallback(revealMeteorFrame);
+      }
+      meteorVideo.onplaying = revealMeteorFrame;
+      meteorVideo.ontimeupdate = () => {
+        if (meteorVideo.currentTime > 0.01) revealMeteorFrame();
+      };
+
       meteorVideo.src = this.getGachaCachedMediaUrl(wishVideoFile);
       meteorVideo.currentTime = 0;
       meteorVideo.muted = !sfx.enabled;
@@ -8015,6 +8104,7 @@ class TienLenGame {
       if (playPromise && typeof playPromise.then === 'function') {
         playPromise
           .then(() => {
+            revealMeteorFrame();
             clearTimeout(this.gachaMeteorTimer);
             this.gachaMeteorTimer = setTimeout(finishMeteorStage, 6800);
           })
@@ -8024,6 +8114,7 @@ class TienLenGame {
             if (mutedPlay && typeof mutedPlay.then === 'function') {
               mutedPlay
                 .then(() => {
+                  revealMeteorFrame();
                   clearTimeout(this.gachaMeteorTimer);
                   this.gachaMeteorTimer = setTimeout(finishMeteorStage, 6800);
                 })
@@ -8033,6 +8124,7 @@ class TienLenGame {
             }
           });
       } else {
+        revealMeteorFrame();
         this.gachaMeteorTimer = setTimeout(finishMeteorStage, 6500);
       }
     } else {

@@ -11,54 +11,53 @@ const RANKS = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2']
 const SUITS = ['♠', '♣', '♦', '♥']; // Bích < Chuồn < Rô < Cơ
 const AVATARS = ['😎', '🐯', '🦊', '🐼'];
 
-// Vốn cấp sẵn: 20,000 xu (~100 ván thắng thua) & Hồi phục mỗi ngày: +5,000 xu
-const INITIAL_COINS = 20000;
-const DAILY_RECOVERY_COINS = 5000;
+// Vốn cấp sẵn: 17,000 xu (Đủ 16,000 xu roll Banner Tân Thủ ×10 + dư 1,000 xu vốn đánh bài) & Hồi phục mỗi ngày: +1,000 xu
+const INITIAL_COINS = 17000;
+const DAILY_RECOVERY_COINS = 1000;
 const MAX_DAILY_RELIEF_CLAIMS = 3;
+const MIN_BET_PER_CARD = 10;
+const MAX_BET_PER_CARD = 100;
+
+function clampBetPerCard(val) {
+  const n = Math.round(Number(val) || 10);
+  return Math.min(MAX_BET_PER_CARD, Math.max(MIN_BET_PER_CARD, n));
+}
 
 // ============================================================================
-// 5 MỨC CƯỢC BÀN BÀI (ÁP DỤNG CHO CẢ CHẾ ĐỘ ĐẤU VỚI BOT & ĐẤU VỚI NGƯỜI)
+// 4 MỨC CƯỢC BÀN BÀI (10 • 20 • 50 • 100 XU/LÁ — ÁP DỤNG CHO CẢ ĐẤU BOT & ĐẤU NGƯỜI)
 // ============================================================================
 const BET_TIERS = [
   {
     id: 'tap_su',
     name: 'Bàn Tập Sự',
     icon: '🌱',
-    betPerCard: 100,
+    betPerCard: 10,
     minCoins: 0,
-    desc: 'Cóng: 2,600 • Heo đỏ: 500',
+    desc: 'Cóng: 260 • Heo đỏ: 50',
   },
   {
     id: 'tinh_anh',
     name: 'Bàn Tinh Anh',
     icon: '⚔️',
-    betPerCard: 500,
-    minCoins: 5000,
-    desc: 'Cóng: 13,000 • Heo đỏ: 2,500',
+    betPerCard: 20,
+    minCoins: 600,
+    desc: 'Cóng: 520 • Heo đỏ: 100',
   },
   {
     id: 'cao_thu',
     name: 'Bàn Cao Thủ',
     icon: '💎',
-    betPerCard: 2000,
-    minCoins: 15000,
-    desc: 'Cóng: 52,000 • Heo đỏ: 10,000',
+    betPerCard: 50,
+    minCoins: 1500,
+    desc: 'Cóng: 1,300 • Heo đỏ: 250',
   },
   {
     id: 'dai_gia',
     name: 'Bàn Đại Gia',
     icon: '👑',
-    betPerCard: 10000,
-    minCoins: 50000,
-    desc: 'Cóng: 260,000 • Heo đỏ: 50,000',
-  },
-  {
-    id: 'than_thoai',
-    name: 'Bàn Thần Thoại',
-    icon: '🌌',
-    betPerCard: 50000,
-    minCoins: 200000,
-    desc: 'Cóng: 1,300,000 • Heo đỏ: 250,000',
+    betPerCard: 100,
+    minCoins: 3000,
+    desc: 'Cóng: 2,600 • Heo đỏ: 500',
   },
 ];
 
@@ -72,8 +71,8 @@ const BET_TIERS = [
 const WISH_COST_SINGLE = 1600; // 1,600 Xu / 1 Lượt Cầu Nguyện (tương ứng 160 Nguyên Thạch)
 const WISH_COST_TEN = 16000;   // 16,000 Xu / 10 Lượt Cầu Nguyện
 const AD_REWARD_COINS = 1600;  // Xem Quảng Cáo Rick Roll nhận đúng 1 Roll (= 1,600 Xu)
-const DAILY_QUEST_REWARD_ROLLS = 2.5; // Mỗi nhiệm vụ hàng ngày nhận 2.5 Roll
-const DAILY_QUEST_REWARD_COINS = 4000; // 2.5 Roll × 1,600 Xu = 4,000 Xu / nhiệm vụ (4 NV = 10 Roll = 16,000 Xu)
+const DAILY_QUEST_REWARD_ROLLS = 0.5; // Mỗi nhiệm vụ hàng ngày nhận 0.5 Roll
+const DAILY_QUEST_REWARD_COINS = 800; // 0.5 Roll × 1,600 Xu = 800 Xu / nhiệm vụ (4 NV = 2 Roll = 3,200 Xu)
 
 // 4 Nhiệm Vụ Ủy Thác Hàng Ngày (Hiệp Hội Nhà Mạo Hiểm Genshin Impact)
 const DAILY_QUESTS_CONFIG = [
@@ -3419,8 +3418,8 @@ function getValidMoves(
   });
 }
 
-function analyzeLoserHand(hand, wonBy3Spade = false, betPerCard = 100) {
-  const b = Math.max(20, Math.round(Number(betPerCard) || 100));
+function analyzeLoserHand(hand, wonBy3Spade = false, betPerCard = 10) {
+  const b = clampBetPerCard(betPerCard);
   const sorted = sortCardsAsc(hand);
   const penaltyCardIds = new Set();
   const breakdown = [];
@@ -3540,7 +3539,7 @@ class TienLenGame {
     // Chế độ ở Màn Hình Chờ ('bot' | 'human'), Số người bàn Bot (2, 3, 4) & Mức cược hiện tại (Xu / lá)
     this.selectedLobbyMode = 'bot';
     this.soloPlayerCount = this.savedSoloPlayerCount || 4;
-    this.betPerCard = this.savedBetPerCard || 100;
+    this.betPerCard = clampBetPerCard(this.savedBetPerCard || 10);
 
     const botBankroll = Math.max(INITIAL_COINS, this.betPerCard * 500);
     this.players = [
@@ -4511,8 +4510,8 @@ class TienLenGame {
     if (data.playerName && isNewerOrEqual) {
       this.savedPlayerName = this.resolveCleanPlayerName(data.playerName, data.accountUsername || this.currentAccountUsername);
     }
-    if (typeof data.betPerCard === 'number' && data.betPerCard >= 20 && isNewerOrEqual) {
-      this.savedBetPerCard = data.betPerCard;
+    if (typeof data.betPerCard === 'number' && data.betPerCard >= MIN_BET_PER_CARD && isNewerOrEqual) {
+      this.savedBetPerCard = clampBetPerCard(data.betPerCard);
     }
     if ([2, 3, 4].includes(Number(data.soloPlayerCount)) && isNewerOrEqual) {
       this.savedSoloPlayerCount = Number(data.soloPlayerCount);
@@ -4625,7 +4624,7 @@ class TienLenGame {
     const today = this.getTodayKey();
     this.savedCoins = INITIAL_COINS;
     this.savedPlayerName = 'Nhà Lữ Hành';
-    this.savedBetPerCard = 100;
+    this.savedBetPerCard = 10;
     this.savedSoloPlayerCount = 4;
     this.unlockedSkins = new Set(['classic']);
     this.equippedSkin = 'classic';
@@ -7550,7 +7549,7 @@ class TienLenGame {
 
     if (me.coins < cost) {
       alert(
-        `⚠️ Bạn chưa đủ Xu để Cầu Nguyện ×${pullCount} (Cần ${cost.toLocaleString()} Xu, hiện có ${me.coins.toLocaleString()} Xu)!\n💡 Hãy làm 4 Nhiệm Vụ Hàng Ngày (mỗi nhiệm vụ nhận 2.5 Roll = +4,000 Xu) hoặc Xem Quảng Cáo (+1 Roll = +1,600 Xu) nhé!`
+        `⚠️ Bạn chưa đủ Xu để Cầu Nguyện ×${pullCount} (Cần ${cost.toLocaleString()} Xu, hiện có ${me.coins.toLocaleString()} Xu)!\n💡 Hãy đánh bài tích Xu, làm 4 Nhiệm Vụ Hàng Ngày (mỗi nhiệm vụ nhận 0.5 Roll = +800 Xu) hoặc Xem Quảng Cáo (+1 Roll = +1,600 Xu) nhé!`
       );
       return;
     }
@@ -9250,7 +9249,7 @@ class TienLenGame {
       tabQuestsBtn.textContent =
         readyToClaimCount > 0
           ? `🧭 Nhiệm Vụ Ngày (🎁 Nhận ${readyToClaimCount}!)`
-          : `🧭 Nhiệm Vụ Ngày (${claimedCount}/4 • 10 Roll)`;
+          : `🧭 Nhiệm Vụ Ngày (${claimedCount}/4 • 2 Roll)`;
     }
 
     const bonusBtn = document.getElementById('btn-claim-bonus');
@@ -9258,8 +9257,8 @@ class TienLenGame {
       bonusBtn.classList.toggle('has-claimable', readyToClaimCount > 0);
       bonusBtn.textContent =
         readyToClaimCount > 0
-          ? `🎁 Nhận Thưởng Nhiệm Vụ Ngày (${readyToClaimCount} NV × 2.5 Roll chờ nhận!)`
-          : `🧭 Nhiệm Vụ Hàng Ngày (${claimedCount}/4 hoàn tất • Tổng 10 Roll / ngày)`;
+          ? `🎁 Nhận Thưởng Nhiệm Vụ Ngày (${readyToClaimCount} NV × 0.5 Roll chờ nhận!)`
+          : `🧭 Nhiệm Vụ Hàng Ngày (${claimedCount}/4 hoàn tất • Tổng 2 Roll / ngày)`;
     }
 
     const questsBal = document.getElementById('quests-modal-balance');
@@ -9275,7 +9274,7 @@ class TienLenGame {
         claimAllBtn.textContent = `🎁 Nhận Tất Cả (+${rollsReady} Roll / +${coinsReady.toLocaleString()} Xu)`;
         claimAllBtn.disabled = false;
       } else if (claimedCount === 4) {
-        claimAllBtn.textContent = `✅ Đã Nhận Trọn 10 Roll (+16,000 Xu) Hôm Nay`;
+        claimAllBtn.textContent = `✅ Đã Nhận Trọn 2 Roll (+3,200 Xu) Hôm Nay`;
         claimAllBtn.disabled = true;
       } else {
         claimAllBtn.textContent = `⏳ Hoàn thành nhiệm vụ để nhận thưởng`;
@@ -9301,11 +9300,11 @@ class TienLenGame {
       if (isClaimed) {
         statusLabel = '✅ Đã nhận thưởng hôm nay';
         btnClass = 'btn-claimed';
-        btnLabel = '✅ Đã nhận 2.5 Roll';
+        btnLabel = '✅ Đã nhận 0.5 Roll';
       } else if (isReady) {
         statusLabel = '🌟 Đã hoàn thành! Có thể nhận ngay!';
         btnClass = 'btn-claim-ready';
-        btnLabel = `🎁 Nhận +2.5 Roll (+4,000 Xu)`;
+        btnLabel = `🎁 Nhận +0.5 Roll (+800 Xu)`;
       }
 
       return `
@@ -9335,7 +9334,7 @@ class TienLenGame {
 
           <div class="daily-quest-bottom">
             <span class="daily-quest-status-text">
-              💎 Phần thưởng: <strong style="color:#fde68a;">2.5 Lượt Cầu Nguyện (+4,000 Xu)</strong>
+              💎 Phần thưởng: <strong style="color:#fde68a;">0.5 Lượt Cầu Nguyện (+800 Xu)</strong>
             </span>
             <button class="daily-quest-btn ${btnClass}" onclick="window.tienLenGame.claimDailyQuest('${cfg.id}')">
               ${btnLabel}
@@ -9349,15 +9348,15 @@ class TienLenGame {
       <div class="daily-quests-banner">
         <div class="daily-quests-banner-left">
           <div class="daily-quests-banner-title">
-            🧭 SỔ TAY ỦY THÁC HÀNG NGÀY (4 NHIỆM VỤ × 2.5 ROLL = 10 ROLL / NGÀY)
+            🧭 SỔ TAY ỦY THÁC HÀNG NGÀY (4 NHIỆM VỤ × 0.5 ROLL = 2 ROLL / NGÀY)
           </div>
           <div class="daily-quests-banner-sub">
-            Mỗi nhiệm vụ hoàn thành thưởng <strong>2.5 Roll (+4,000 Xu)</strong>. Làm đủ 4 nhiệm vụ nhận trọn <strong>10 Roll (+16,000 Xu = 1 lần Cầu Nguyện ×10)</strong>! Tự động làm mới mỗi ngày.
+            Mỗi nhiệm vụ hoàn thành thưởng <strong>0.5 Roll (+800 Xu)</strong>. Làm đủ 4 nhiệm vụ nhận trọn <strong>2 Roll (+3,200 Xu)</strong>! Tự động làm mới mỗi ngày.
           </div>
         </div>
         <div class="daily-quests-summary-pill">
           Đã nhận hôm nay: <strong>${claimedCount}/4 NV</strong><br/>
-          🌠 <strong>${earnedRolls} / 10 Roll</strong> (+${earnedCoins.toLocaleString()} / 16,000 Xu)
+          🌠 <strong>${earnedRolls} / 2 Roll</strong> (+${earnedCoins.toLocaleString()} / 3,200 Xu)
         </div>
       </div>
       <div class="daily-quests-grid">
@@ -9459,7 +9458,12 @@ class TienLenGame {
     document.getElementById('btn-apply-custom-bet')?.addEventListener('click', () => {
       const inp = document.getElementById('input-custom-bet');
       if (!inp) return;
-      const raw = Math.max(20, Math.round(Number(inp.value) || 100));
+      const entered = Math.round(Number(inp.value) || 10);
+      if (entered > MAX_BET_PER_CARD) {
+        alert(`⚠️ Mức cược tối đa cho phép là ${MAX_BET_PER_CARD} Xu/lá! Hệ thống đã đặt về ${MAX_BET_PER_CARD} Xu/lá.`);
+      }
+      const raw = clampBetPerCard(entered);
+      inp.value = raw;
       this.selectBetTier(raw, true);
     });
 
@@ -15600,18 +15604,29 @@ class TienLenGame {
       alert('⛔ Ván bài đang diễn ra! Bạn phải đánh xong ván hiện tại mới được đổi mức cược.');
       return;
     }
+    const clampedBet = clampBetPerCard(betVal);
     const me = this.getLocalPlayer();
     const myCoins = me ? me.coins : this.savedCoins;
-    const tier = BET_TIERS.find((t) => t.betPerCard === betVal);
+    const tier = BET_TIERS.find((t) => t.betPerCard === clampedBet);
+    const reqCoins = tier
+      ? tier.minCoins
+      : clampedBet >= 100
+      ? 3000
+      : clampedBet >= 50
+      ? 1500
+      : clampedBet >= 20
+      ? 600
+      : 0;
 
-    if (!isCustom && tier && tier.minCoins > myCoins) {
+    if (reqCoins > myCoins) {
+      const labelName = tier ? tier.name : 'Bàn Tự Chọn';
       alert(
-        `🔒 "${tier.name} (${tier.betPerCard.toLocaleString()} Xu/lá)" yêu cầu tối thiểu ${tier.minCoins.toLocaleString()} Xu trong ví!\n💡 Hiện bạn đang có ${myCoins.toLocaleString()} Xu — hãy đánh thắng ở các bàn thấp hơn trước để tích lũy vốn nhé!`
+        `🔒 "${labelName} (${clampedBet.toLocaleString()} Xu/lá)" yêu cầu tối thiểu ${reqCoins.toLocaleString()} Xu trong ví!\n💡 Hiện bạn đang có ${myCoins.toLocaleString()} Xu — hãy đánh thắng ở các bàn thấp hơn trước để tích lũy vốn nhé!`
       );
       return;
     }
 
-    this.betPerCard = Math.max(20, Math.round(Number(betVal) || 100));
+    this.betPerCard = clampedBet;
     this.savedBetPerCard = this.betPerCard;
     const customInput = document.getElementById('input-custom-bet');
     if (customInput) customInput.value = this.betPerCard;
@@ -16540,8 +16555,8 @@ class TienLenGame {
 
   applyRestoredRoomStateOnHost(state, myName) {
     if (!state) return;
-    if (typeof state.betPerCard === 'number' && state.betPerCard >= 20) {
-      this.betPerCard = state.betPerCard;
+    if (typeof state.betPerCard === 'number' && state.betPerCard >= MIN_BET_PER_CARD) {
+      this.betPerCard = clampBetPerCard(state.betPerCard);
     }
     this.matchCount = typeof state.matchCount === 'number' ? state.matchCount : 0;
     this.lastWinnerId = state.lastWinnerId ?? null;
@@ -17727,8 +17742,8 @@ class TienLenGame {
       return;
     }
 
-    if (typeof state.betPerCard === 'number' && state.betPerCard >= 20) {
-      this.betPerCard = state.betPerCard;
+    if (typeof state.betPerCard === 'number' && state.betPerCard >= MIN_BET_PER_CARD) {
+      this.betPerCard = clampBetPerCard(state.betPerCard);
       this.updateBetBadges();
     this.tighnariBonusByPlayer = {};
     }
@@ -24415,7 +24430,7 @@ class TienLenGame {
     this.soloPlayerCount = 4;
     this.savedSoloPlayerCount = 4;
     this.activeCount = 4;
-    this.betPerCard = 100;
+    this.betPerCard = 10;
     this.matchCount = 0;
     this.queuedNextMatchBots = null;
     this._manualBotChangedAfterMatch = true;
@@ -24568,7 +24583,7 @@ class TienLenGame {
     this.soloPlayerCount = 4;
     this.savedSoloPlayerCount = 4;
     this.activeCount = 4;
-    this.betPerCard = 100;
+    this.betPerCard = 10;
     this.matchCount = 0;
     this.queuedNextMatchBots = null;
     this._manualBotChangedAfterMatch = true;

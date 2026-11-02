@@ -1,21 +1,44 @@
 {
-  "hosting": {
-    "public": ".",
-    "ignore": [
-      "firebase.json",
-      ".firebaserc",
-      "**/.*",
-      "**/node_modules/**",
-      "Launcher.cs",
-      "**/*.cs",
-      "**/*.exe",
-      "**/*.dll",
-      "**/*.bat",
-      "**/*.cmd",
-      "**/*.ps1",
-      "**/*.msi",
-      "**/*.zip"
-    ],
-    "cleanUrls": true
-  }
+  "hosting": [
+    {
+      "site": "tienlenmiennamgenshin",
+      "public": ".",
+      "ignore": [
+        "firebase.json",
+        ".firebaserc",
+        "**/.*",
+        "**/node_modules/**",
+        "Launcher.cs",
+        "**/*.cs",
+        "**/*.exe",
+        "**/*.dll",
+        "**/*.bat",
+        "**/*.cmd",
+        "**/*.ps1",
+        "**/*.msi",
+        "**/*.zip"
+      ],
+      "cleanUrls": true
+    },
+    {
+      "site": "tienlengenshin",
+      "public": ".",
+      "ignore": [
+        "firebase.json",
+        ".firebaserc",
+        "**/.*",
+        "**/node_modules/**",
+        "Launcher.cs",
+        "**/*.cs",
+        "**/*.exe",
+        "**/*.dll",
+        "**/*.bat",
+        "**/*.cmd",
+        "**/*.ps1",
+        "**/*.msi",
+        "**/*.zip"
+      ],
+      "cleanUrls": true
+    }
+  ]
 }

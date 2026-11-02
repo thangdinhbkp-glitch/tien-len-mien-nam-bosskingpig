@@ -434,7 +434,7 @@
             <span class="dock-icon">🌠</span>
             <span class="dock-label">Cầu Nguyện</span>
           </button>
-          <button class="app-dock-btn dock-quests" id="btn-lobby-quests" title="Hệ thống Nhiệm Vụ Hàng Ngày (4 Nhiệm Vụ • Nhận 10 Roll)">
+          <button class="app-dock-btn dock-quests" id="btn-lobby-quests" title="Hệ thống Nhiệm Vụ Hàng Ngày (4 Nhiệm Vụ • Nhận 2 Roll)">
             <span class="dock-icon">🧭</span>
             <span class="dock-label">Nhiệm Vụ (<span id="lobby-quest-badge">0/4</span>)</span>
           </button>
@@ -710,8 +710,8 @@
             <div class="lobby-section-header compact-bet-header">
               <span>💰 MỨC CƯỢC (<strong id="selected-mode-label">Đấu Với Bot</strong>)</span>
               <div class="custom-bet-inline">
-                <label for="input-custom-bet">Tự nhập (Xu/lá):</label>
-                <input type="number" id="input-custom-bet" min="20" step="20" value="100" />
+                <label for="input-custom-bet">Tự nhập (10–100 Xu/lá):</label>
+                <input type="number" id="input-custom-bet" min="10" max="100" step="10" value="10" />
                 <button class="tool-btn" id="btn-apply-custom-bet">Áp dụng</button>
               </div>
             </div>
@@ -728,7 +728,7 @@
 
         <div class="modal-footer mode-setup-footer" id="mode-setup-bot-footer">
           <button class="primary-btn btn-lg lobby-big-cta" id="btn-solo-bot-mode" style="width:100%;">
-            ⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (4 Người • Cược: 100 Xu/lá)
+            ⚔️ VÀO BÀN ĐẤU VỚI BOT NGAY (4 Người • Cược: 10 Xu/lá)
           </button>
         </div>
       </div>
@@ -1015,7 +1015,7 @@
               • <strong>Giá Cầu Nguyện:</strong> <strong>1,600 Xu = 1 Lượt Roll</strong> (<strong>16,000 Xu = 10 Lượt Roll</strong>).<br/>
               • <strong>2 Banner Limited / Ngày (Đồng Bộ Toàn Server):</strong> Mỗi ngày toàn bộ người chơi trên Server có chung <strong>2 Nhân Vật 5★ Giới Hạn (UP)</strong>, tự động làm mới vào <strong>00:00 mỗi ngày</strong>. Trong <strong>1 chu kỳ 25 ngày (50 nhân vật Limited)</strong> cam kết <strong>không lặp lại bất kỳ nhân vật nào</strong>!<br/>
               • <strong>Bảo Hiểm Pity chuẩn Genshin:</strong> Tối đa <strong>10 Roll</strong> chắc chắn nổ <strong>4★ trở lên</strong> (Decor Bài 4★). Tối đa <strong>90 Roll</strong> chắc chắn nổ <strong>Nhân Vật 5★</strong> (Bắt đầu tăng mạnh tỷ lệ Soft Pity từ Roll thứ 74). Nếu lần nổ 5★ trước lệch Rate ra Thường Trực, lần nổ 5★ tiếp theo <strong>Bảo Hiểm 100% trúng Nhân Vật 5★ UP</strong> của Banner đang chọn!<br/>
-              • <strong>Ủy Thác Hàng Ngày &amp; Lưu Đám Mây:</strong> Hoàn thành 4 nhiệm vụ mỗi ngày nhận miễn phí <strong>10 Roll (+16,000 Xu)</strong>. Hãy bấm <strong>🔐 Tài Khoản</strong> ở Sảnh Chờ để đăng ký tài khoản lưu trữ Đám Mây giữ nguyên 100% vật phẩm!
+              • <strong>Ủy Thác Hàng Ngày &amp; Lưu Đám Mây:</strong> Hoàn thành 4 nhiệm vụ mỗi ngày nhận miễn phí <strong>2 Roll (+3,200 Xu)</strong>. Hãy bấm <strong>🔐 Tài Khoản</strong> ở Sảnh Chờ để đăng ký tài khoản lưu trữ Đám Mây giữ nguyên 100% vật phẩm!
             </p>
           </div>
         </div>
@@ -1056,7 +1056,7 @@
               📜 Lịch Sử Roll &amp; Tỷ Lệ Bảo Hiểm
             </button>
             <button class="shop-tab" id="tab-btn-quests">
-              🧭 Nhiệm Vụ Ngày (4 NV • 10 Roll)
+              🧭 Nhiệm Vụ Ngày (4 NV • 2 Roll)
             </button>
           </div>
 
@@ -1075,8 +1075,8 @@
             <button class="inventory-top-btn" onclick="window.tienLenGame.openInventoryModal()">
               🎒 Vào Kho Đồ Trang Bị
             </button>
-            <button class="quest-top-btn" id="btn-claim-bonus" title="Mở 4 Nhiệm Vụ Hàng Ngày — Mỗi nhiệm vụ nhận 2.5 Roll (+4,000 Xu)">
-              🧭 Làm 4 Nhiệm Vụ Ngày (+10 Roll / 16,000 Xu)
+            <button class="quest-top-btn" id="btn-claim-bonus" title="Mở 4 Nhiệm Vụ Hàng Ngày — Mỗi nhiệm vụ nhận 0.5 Roll (+800 Xu)">
+              🧭 Làm 4 Nhiệm Vụ Ngày (+2 Roll / 3,200 Xu)
             </button>
             <button class="ad-reward-btn" id="btn-shop-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) nhận ngay +1,600 Xu (= 1 Lượt Cầu Nguyện!)">
               📺 Xem Quảng Cáo Nhận +1 Roll (1,600 Xu)
@@ -1153,7 +1153,7 @@
               🌠 Sang Sảnh Cầu Nguyện (Săn Thêm Đồ Mới)
             </button>
             <button class="quest-top-btn" onclick="window.tienLenGame.closeInventoryModal(); window.tienLenGame.openDailyQuestsModal();">
-              🧭 Làm Nhiệm Vụ Ngày (+10 Roll)
+              🧭 Làm Nhiệm Vụ Ngày (+2 Roll)
             </button>
           </div>
           <button class="primary-btn" id="btn-ok-inventory" onclick="window.tienLenGame.closeInventoryModal()">✅ Xong &amp; Đóng Kho Đồ</button>
@@ -1161,13 +1161,13 @@
       </div>
     </div>
 
-    <!-- MODAL HỆ THỐNG NHIỆM VỤ HÀNG NGÀY (ỦY THÁC HIỆP HỘI NHÀ MẠO HIỂM: 4 NHIỆM VỤ × 2.5 ROLL) -->
+    <!-- MODAL HỆ THỐNG NHIỆM VỤ HÀNG NGÀY (ỦY THÁC HIỆP HỘI NHÀ MẠO HIỂM: 4 NHIỆM VỤ × 0.5 ROLL) -->
     <div class="modal-backdrop hidden" id="quests-modal">
       <div class="modal-card quests-modal-card">
         <div class="modal-header">
           <div>
             <h2>🧭 ỦY THÁC HÀNG NGÀY • HIỆP HỘI NHÀ MẠO HIỂM</h2>
-            <p>“Hướng Tới Vì Sao Và Vực Sâu!” • Hoàn thành 4 nhiệm vụ mỗi ngày — Mỗi nhiệm vụ nhận <strong>2.5 Roll (+4,000 Xu)</strong>, tổng <strong>10 Roll (+16,000 Xu)</strong>/ngày!</p>
+            <p>“Hướng Tới Vì Sao Và Vực Sâu!” • Hoàn thành 4 nhiệm vụ mỗi ngày — Mỗi nhiệm vụ nhận <strong>0.5 Roll (+800 Xu)</strong>, tổng <strong>2 Roll (+3,200 Xu)</strong>/ngày!</p>
           </div>
           <div class="shop-header-right">
             <div class="shop-balance-pill">
@@ -1522,6 +1522,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=139"></script>
+  <script src="game.js?v=141"></script>
 </body>
 </html>

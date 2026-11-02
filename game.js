@@ -1453,7 +1453,7 @@ const CHARACTER_SKILLS = {
     charName: 'Skirk',
     icon: '🌌',
     name: 'Khe Nứt Vực Sâu',
-    shortDesc: 'Tráo đổi 1 lá bài đang chọn (hoặc 1 lá ngẫu nhiên) với 1 lá bài ngẫu nhiên của 1 đối thủ ngẫu nhiên',
+    shortDesc: 'Tự chọn 1 lá bài trên tay bạn và tự chọn 1 đối thủ mục tiêu để tráo đổi lấy 1 lá bài của họ!',
   },
   mavuika: {
     id: 'mavuika',
@@ -1474,21 +1474,21 @@ const CHARACTER_SKILLS = {
     charName: 'Yelan',
     icon: '🎲',
     name: 'Sòng Bạc Dạ Lan',
-    shortDesc: 'Mở Sòng Bạc Xúc Xắc trong vòng này: Khóa Luật Đồng Chẵn/Lẻ (mọi đối thủ đè bài bắt buộc phải đánh bộ có lá cao nhất CÙNG BẬC CHẴN hoặc CÙNG BẬC LẺ với bộ trên bàn) & thấu thị 2 lá bài đối thủ!',
+    shortDesc: 'Mở Sòng Bạc Xúc Xắc trong vòng này: Khóa Luật Đồng Chẵn/Lẻ (mọi đối thủ đè bài bắt buộc phải đánh bộ có lá cao nhất CÙNG BẬC CHẴN hoặc CÙNG BẬC LẺ với bộ trên bàn) & tự chọn 1 đối thủ để thấu thị 2 lá bài!',
   },
   clorinde: {
     id: 'clorinde',
     charName: 'Clorinde',
     icon: '⚡',
     name: 'Thách Đấu Danh Dự',
-    shortDesc: 'Khóa vòng hiện tại thành Quyết Đấu 1v1 với 1 đối thủ (các nhà khác đứng ngoài vòng này)',
+    shortDesc: 'Tự chọn 1 đối thủ mục tiêu để khóa vòng hiện tại thành Quyết Đấu 1v1 (các nhà khác đứng ngoài vòng này)',
   },
   ayaka: {
     id: 'ayaka',
     charName: 'Kamisato Ayaka',
     icon: '❄️',
     name: 'Sương Hoa Phong Ấn',
-    shortDesc: 'Đóng băng 1 đối thủ khiến họ bị Băng Phong mất 1 lượt trong vòng hiện tại',
+    shortDesc: 'Tự chọn 1 đối thủ mục tiêu để đóng băng khiến họ bị Băng Phong mất 1 lượt trong vòng hiện tại',
   },
   hutao: {
     id: 'hutao',
@@ -1551,7 +1551,7 @@ const CHARACTER_SKILLS = {
     charName: 'Citlali',
     icon: '❄️',
     name: 'Gối Ôm Ký Sinh',
-    shortDesc: 'Gắn Gối Citlalin ký sinh lên đối thủ đang ít bài nhất trong vòng này: Hễ đối thủ đó đánh ra bao nhiêu lá bài, Citlali tự động được vứt bỏ theo bấy nhiêu lá bài rác nhỏ nhất trên tay mình!',
+    shortDesc: 'Tự chọn 1 đối thủ mục tiêu để gắn Gối Citlalin ký sinh trong vòng này: Hễ đối thủ đó đánh ra bao nhiêu lá bài, Citlali tự động được vứt bỏ theo bấy nhiêu lá bài rác nhỏ nhất trên tay mình!',
   },
   mualani: {
     id: 'mualani',
@@ -1579,7 +1579,7 @@ const CHARACTER_SKILLS = {
     charName: 'Zibai',
     icon: '🐎',
     name: 'Bạch Mã Vượt Tuyến',
-    shortDesc: 'Chỉ định thẳng đối thủ NHIỀU BÀI NHẤT phải đỡ bài kế tiếp (lướt qua các nhà ít bài ngồi giữa) & ép mọi đối thủ muốn đè bài trong vòng này phải lớn hơn tối thiểu +2 bậc số (cấm đè đồng số hoặc +1 bậc)!',
+    shortDesc: 'Tự chọn chỉ định thẳng 1 đối thủ mục tiêu phải đỡ bài kế tiếp (lướt qua các nhà ngồi giữa) & ép mọi đối thủ muốn đè bài trong vòng này phải lớn hơn tối thiểu +2 bậc số (cấm đè đồng số hoặc +1 bậc)!',
   },
   lauma: {
     id: 'lauma',
@@ -1748,7 +1748,7 @@ const CHARACTER_SKILLS = {
     charName: 'Klee',
     icon: '💣',
     name: 'Bom Nảy Jumpy Dumpty',
-    shortDesc: 'Ném Bom Nảy vào tay đối thủ đang ít bài nhất, nổ tung 1 bộ bài ghép (Đôi/Sám Cô/Sảnh) của họ thành các lá bài lẻ rời rạc bậc thấp (3→8)!',
+    shortDesc: 'Tự chọn 1 đối thủ mục tiêu để ném Bom Nảy vào tay họ, nổ tung 1 bộ bài ghép (Đôi/Sám Cô/Sảnh) của họ thành các lá bài lẻ rời rạc bậc thấp (3→8)!',
   },
   albedo: {
     id: 'albedo',
@@ -1797,7 +1797,7 @@ const CHARACTER_SKILLS = {
     charName: 'Kaedehara Kazuha',
     icon: '🍁',
     name: 'Vạn Diệp Phong Vực',
-    shortDesc: 'Cuốn lá phong đỏ nhuộm TOÀN BỘ bài trên tay Kazuha lên chất Đỏ cao nhất (Cơ ♥ / Rô ♦), đồng thời thổi bạc màu TOÀN BỘ bài của đối thủ ít bài nhất xuống chất Bích ♠!',
+    shortDesc: 'Cuốn lá phong đỏ nhuộm TOÀN BỘ bài trên tay Kazuha lên chất Đỏ cao nhất (Cơ ♥ / Rô ♦), đồng thời tự chọn 1 đối thủ mục tiêu để thổi bạc màu TOÀN BỘ bài của họ xuống chất Đen (♠/♣)!',
   },
   itto: {
     id: 'itto',
@@ -1846,7 +1846,7 @@ const CHARACTER_SKILLS = {
     charName: 'Neuvillette',
     icon: '⚖️',
     name: 'Cán Cân Tuyệt Đối',
-    shortDesc: 'Gõ trượng Cán Cân Công Lý chuyển thẳng các lá bài rác nhỏ nhất từ tay Neuvillette sang tay đối thủ đang ít bài nhất cho đến khi số lá bài của hai bên bằng nhau (tối đa chuyển 3 lá)!',
+    shortDesc: 'Gõ trượng Cán Cân Công Lý tự chọn 1 đối thủ mục tiêu để chuyển thẳng các lá bài rác nhỏ nhất từ tay Neuvillette sang tay đối thủ đó (tối đa chuyển 3 lá)!',
   },
   wriothesley: {
     id: 'wriothesley',
@@ -13215,12 +13215,20 @@ class TienLenGame {
       }
     }
     if (charId === 'neuvillette') {
-      const minOppCards = Math.min(...activeOpponents.map((p) => p.hand.length));
-      if (player.hand.length <= minOppCards) {
+      if (player.hand.length < 2) {
         return {
           ok: false,
-          reason: `Cán Cân Tuyệt Đối chỉ kích hoạt khi số bài trên tay bạn (${player.hand.length} lá) nhiều hơn đối thủ ít bài nhất (${minOppCards} lá)!`,
+          reason: 'Cần còn ít nhất 2 lá bài trên tay để kích hoạt Cán Cân Tuyệt Đối!',
         };
+      }
+      if (player.isBot) {
+        const minOppCards = Math.min(...activeOpponents.map((p) => p.hand.length));
+        if (player.hand.length <= minOppCards) {
+          return {
+            ok: false,
+            reason: `Cán Cân Tuyệt Đối chỉ kích hoạt khi số bài trên tay (${player.hand.length} lá) nhiều hơn đối thủ ít bài nhất (${minOppCards} lá)!`,
+          };
+        }
       }
     }
     if (charId === 'wriothesley') {
@@ -13280,28 +13288,27 @@ class TienLenGame {
     const activeOpponents = this.players.filter(
       (p) => p.active && p.id !== player.id && p.finishRank === null && p.hand.length > 0
     );
-    const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-    const unpassedOrAll = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
 
     const singleTargetMap = {
+      skirk: {
+        title: '🌌 Khe Nứt Vực Sâu — Chọn Lá Bài & Chọn Đối Thủ Đổi Bài:',
+        desc: 'Chọn 1 lá bài trên tay bạn rồi bấm vào đối thủ bạn muốn tráo đổi bài!',
+        candidates: activeOpponents,
+        allowPickOwnCard: true,
+      },
       citlali: {
         title: '🛏️ Gối Ôm Ký Sinh — Chọn đối thủ để gắn Gối Citlalin:',
         desc: 'Hễ mục tiêu này đánh ra bao nhiêu lá bài trong vòng, bạn được vứt bỏ theo bấy nhiêu lá bài rác nhỏ nhất!',
-        candidates: unpassedOrAll,
+        candidates: activeOpponents,
       },
       ayaka: {
         title: '❄️ Sương Hoa Phong Ấn — Chọn đối thủ để Đóng Băng:',
         desc: 'Đối thủ bị chọn sẽ bị đóng băng mất lượt kế tiếp trong vòng này!',
-        candidates: unpassedOrAll,
+        candidates: activeOpponents,
       },
       clorinde: {
         title: '⚡ Thách Đấu Danh Dự — Chọn đối thủ Quyết Đấu 1v1:',
         desc: 'Khóa vòng đấu hiện tại thành Quyết Đấu 1v1 giữa bạn và đối thủ được chọn (các nhà khác tự bỏ lượt)!',
-        candidates: unpassedOrAll,
-      },
-      skirk: {
-        title: '🌌 Khe Nứt Vực Sâu — Chọn đối thủ để tráo 1 lá bài:',
-        desc: 'Tráo đổi 1 lá bài đang chọn trên tay bạn lấy 1 lá bài ngẫu nhiên của đối thủ này!',
         candidates: activeOpponents,
       },
       yelan: {
@@ -13312,17 +13319,22 @@ class TienLenGame {
       zibai: {
         title: '🐎 Bạch Mã Vượt Tuyến — Chọn đối thủ bắt buộc phải đỡ bài:',
         desc: 'Bỏ qua các nhà ngồi giữa, chỉ định thẳng đối thủ này phải đỡ bài kế tiếp với luật +2 bậc!',
-        candidates: unpassedOrAll,
+        candidates: activeOpponents,
       },
       kazuha: {
         title: '🍁 Vạn Diệp Phong Vực — Chọn đối thủ bị hạ bài xuống chất Đen:',
         desc: 'Nhuộm Đỏ toàn bộ bài của bạn (♥/♦) và tước sắc hạ toàn bộ bài của đối thủ được chọn xuống chất Đen (♠/♣)!',
         candidates: activeOpponents,
       },
+      klee: {
+        title: '💣 Bom Nảy Jumpy Dumpty — Chọn đối thủ bị ném Bom Nảy:',
+        desc: 'Ném Bom Nảy vào tay đối thủ được chọn, nổ tung 1 bộ bài ghép (Đôi/Sám/Sảnh) của họ thành các lá lẻ bậc thấp!',
+        candidates: activeOpponents,
+      },
       neuvillette: {
         title: '⚖️ Cán Cân Tuyệt Đối — Chọn đối thủ nhận bài rác:',
-        desc: 'Chuyển thẳng tối đa 3 lá bài rác nhỏ nhất từ tay bạn sang tay đối thủ đang ít bài hơn này!',
-        candidates: activeOpponents.filter((p) => p.hand.length < player.hand.length),
+        desc: 'Chuyển thẳng tối đa 3 lá bài rác nhỏ nhất từ tay bạn sang tay đối thủ được chọn!',
+        candidates: activeOpponents,
       },
     };
     return singleTargetMap[charId] || null;
@@ -13331,6 +13343,87 @@ class TienLenGame {
   closeSkillTargetPickerModal() {
     this._pendingSkillTargetCharId = null;
     document.getElementById('skill-target-picker-modal')?.classList.add('hidden');
+  }
+
+  selectSkirkSwapCardInModal(cardId) {
+    if (!cardId) return;
+    this.selectedCardIds = new Set([cardId]);
+    this.companionCardIds.clear();
+    this.renderHand();
+    this.renderSkillTargetPickerModalContent();
+    sfx.click();
+  }
+
+  renderSkillTargetPickerModalContent() {
+    const human = this.getLocalPlayer();
+    const check = this.canUseCharacterSkill(human);
+    if (!check.ok) return;
+    const targetSpec = this.getSkillTargetSelectionSpec(human, check.charId);
+    if (!targetSpec) return;
+
+    const titleEl = document.getElementById('skill-target-picker-title');
+    const bodyEl = document.getElementById('skill-target-picker-body');
+    if (!titleEl || !bodyEl) return;
+
+    titleEl.textContent = targetSpec.title;
+    const posNames = { 1: '➡️ Cánh Phải (Kế tiếp)', 2: '⬆️ Đối Diện', 3: '⬅️ Cánh Trái' };
+
+    let ownCardSectionHtml = '';
+    if (targetSpec.allowPickOwnCard && human && human.hand.length > 0) {
+      let chosenCard = human.hand.find((c) => this.selectedCardIds.has(c.id));
+      if (!chosenCard) {
+        chosenCard = sortCardsAsc(human.hand)[0];
+        if (chosenCard) {
+          this.selectedCardIds = new Set([chosenCard.id]);
+        }
+      }
+      ownCardSectionHtml = `
+        <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(167,139,250,0.45);border-radius:10px;padding:8px 10px;margin-bottom:4px;">
+          <div style="font-size:11.5px;font-weight:800;color:#e9d5ff;margin-bottom:6px;">
+            🃏 Bước 1 — Chọn 1 lá bài trên tay bạn để đưa cho đối thủ (Đang chọn: <strong style="color:#fde047;">${chosenCard ? `${chosenCard.rank}${chosenCard.suit}` : ''}</strong>):
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            ${human.hand
+              .map((c) => {
+                const isSel = chosenCard && c.id === chosenCard.id;
+                const color = c.isRed ? '#f87171' : '#f8fafc';
+                return `
+                  <button type="button" onclick="window.tienLenGame.selectSkirkSwapCardInModal('${c.id}')" style="padding:5px 8px;border-radius:7px;font-weight:900;font-size:12.5px;cursor:pointer;border:${isSel ? '2px solid #facc15' : '1px solid rgba(148,163,184,0.4)'};background:${isSel ? 'rgba(234,179,8,0.28)' : 'rgba(30,41,59,0.9)'};color:${color};transform:${isSel ? 'translateY(-2px)' : 'none'};">
+                    ${c.rank}${c.suit}
+                  </button>
+                `;
+              })
+              .join('')}
+          </div>
+        </div>
+        <div style="font-size:11.5px;font-weight:800;color:#fef08a;margin-top:2px;">🎯 Bước 2 — Bấm chọn đối thủ muốn tráo đổi bài:</div>
+      `;
+    }
+
+    bodyEl.innerHTML = `
+      <div style="font-size:12px;color:#cbd5e1;margin-bottom:4px;line-height:1.4;">${targetSpec.desc}</div>
+      ${ownCardSectionHtml}
+      ${targetSpec.candidates
+        .map((opp) => {
+          const relSlot = (opp.id - this.mySeatId + 4) % 4;
+          const posLabel = posNames[relSlot] || `Ghế #${opp.id + 1}`;
+          const statusBadge = opp.passed
+            ? '<span style="color:#94a3b8;font-size:11px;">(Đã bỏ lượt vòng này)</span>'
+            : '<span style="color:#4ade80;font-size:11px;">(Đang trong vòng)</span>';
+          return `
+            <button type="button" onclick="window.tienLenGame.confirmHumanSkillTarget(${opp.id})" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(250,204,21,0.55);background:linear-gradient(135deg,rgba(30,41,59,0.95),rgba(15,23,42,0.98));color:#f8fafc;cursor:pointer;text-align:left;transition:transform 0.12s;">
+              <div>
+                <div style="font-size:14px;font-weight:900;color:#fef08a;">🎯 ${opp.name}</div>
+                <div style="font-size:11.5px;color:#cbd5e1;margin-top:2px;">${posLabel} • ${statusBadge}</div>
+              </div>
+              <div style="padding:4px 10px;border-radius:999px;background:rgba(234,179,8,0.2);border:1px solid #facc15;font-weight:900;font-size:13px;color:#fde047;">
+                🃏 ${opp.hand.length} lá
+              </div>
+            </button>
+          `;
+        })
+        .join('')}
+    `;
   }
 
   confirmHumanSkillTarget(targetSeatId) {
@@ -13370,36 +13463,10 @@ class TienLenGame {
     }
 
     const targetSpec = this.getSkillTargetSelectionSpec(human, check.charId);
-    if (targetSpec && targetSpec.candidates.length >= 2) {
+    if (targetSpec && targetSpec.candidates.length >= 1) {
       const modal = document.getElementById('skill-target-picker-modal');
-      const titleEl = document.getElementById('skill-target-picker-title');
-      const bodyEl = document.getElementById('skill-target-picker-body');
-      if (modal && titleEl && bodyEl) {
-        titleEl.textContent = targetSpec.title;
-        const posNames = { 1: '➡️ Cánh Phải (Kế tiếp)', 2: '⬆️ Đối Diện', 3: '⬅️ Cánh Trái' };
-        bodyEl.innerHTML = `
-          <div style="font-size:12px;color:#cbd5e1;margin-bottom:4px;line-height:1.4;">${targetSpec.desc}</div>
-          ${targetSpec.candidates
-            .map((opp) => {
-              const relSlot = (opp.id - this.mySeatId + 4) % 4;
-              const posLabel = posNames[relSlot] || `Ghế #${opp.id + 1}`;
-              const statusBadge = opp.passed
-                ? '<span style="color:#94a3b8;font-size:11px;">(Đã bỏ lượt vòng này)</span>'
-                : '<span style="color:#4ade80;font-size:11px;">(Đang trong vòng)</span>';
-              return `
-                <button type="button" onclick="window.tienLenGame.confirmHumanSkillTarget(${opp.id})" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(250,204,21,0.55);background:linear-gradient(135deg,rgba(30,41,59,0.95),rgba(15,23,42,0.98));color:#f8fafc;cursor:pointer;text-align:left;transition:transform 0.12s;">
-                  <div>
-                    <div style="font-size:14px;font-weight:900;color:#fef08a;">🎯 ${opp.name}</div>
-                    <div style="font-size:11.5px;color:#cbd5e1;margin-top:2px;">${posLabel} • ${statusBadge}</div>
-                  </div>
-                  <div style="padding:4px 10px;border-radius:999px;background:rgba(234,179,8,0.2);border:1px solid #facc15;font-weight:900;font-size:13px;color:#fde047;">
-                    🃏 ${opp.hand.length} lá
-                  </div>
-                </button>
-              `;
-            })
-            .join('')}
-        `;
+      if (modal) {
+        this.renderSkillTargetPickerModalContent();
         modal.classList.remove('hidden');
         sfx.click();
         return;
@@ -13657,6 +13724,7 @@ class TienLenGame {
         (opps) => pickRandomItem(opps)
       );
       if (target) {
+        target.passed = false;
         this.clorindeDuelPair = [player.id, target.id];
         this.players.forEach((p) => {
           if (p.active && p.id !== player.id && p.id !== target.id) {
@@ -13874,6 +13942,7 @@ class TienLenGame {
       );
       let redirectNote = '';
       if (maxCardOpp) {
+        maxCardOpp.passed = false;
         this.zibaiRedirectTargetId = maxCardOpp.id;
         // Các đối thủ ngồi chen giữa Zibai và người nhiều bài nhất bị Bạch Mã phóng vọt qua đầu
         const dir = this.turnDirection === -1 ? -1 : 1;
@@ -14280,7 +14349,10 @@ class TienLenGame {
         skillSummary = `🌪️ [Hố Đen Phong Thần] ${player.name} hút lá bài lớn nhất của ${oppTargets.length} đối thủ vào tâm bão, thu về (${gainedStr}) và thổi trả toàn bộ lá bài rác cho các đối thủ!`;
       }
     } else if (charId === 'klee') {
-      const target = [...activeOpponents].sort((a, b) => a.hand.length - b.hand.length)[0];
+      const target = resolveTargetOpponent(
+        activeOpponents,
+        (opps) => [...opps].sort((a, b) => a.hand.length - b.hand.length)[0]
+      );
       if (target && target.hand.length > 0) {
         const oppRC = new Array(13).fill(0);
         target.hand.forEach((c) => oppRC[c.rankIndex]++);
@@ -14616,10 +14688,10 @@ class TienLenGame {
               (a.passed ? 1 : 0) - (b.passed ? 1 : 0)
           )[0]
       );
-      if (target && player.hand.length > target.hand.length) {
+      if (target && player.hand.length >= 2) {
         const diff = player.hand.length - target.hand.length;
-        // Chuyển thẳng các lá bài rác nhỏ nhất từ tay Neuvillette sang tay đối thủ cho đến khi số bài 2 bên bằng nhau (tối đa chuyển 3 lá)
-        const transferCount = Math.min(3, Math.ceil(diff / 2), Math.max(1, player.hand.length - 1));
+        // Chuyển thẳng các lá bài rác nhỏ nhất từ tay Neuvillette sang tay đối thủ (tối đa chuyển 3 lá)
+        const transferCount = Math.min(3, Math.max(1, diff > 0 ? Math.ceil(diff / 2) : 2), Math.max(1, player.hand.length - 1));
         const struct = this.analyzeBotHandStructure(player.hand);
         const sorted = sortCardsAsc(player.hand);
         const isolatedTrash = sorted.filter(
@@ -17092,18 +17164,20 @@ class TienLenGame {
       .map((r) => {
         const tierMeta = this.getCurrentBetTierMeta(r.betPerCard || 100);
         const isMyRoom = this.isMultiplayer && this.roomId === r.roomId;
-        const isFull = (r.playerCount || 1) >= (r.maxPlayers || 4) && !isMyRoom;
+        const humanCnt = Number(r.humanCount) || Number(r.playerCount) || 1;
+        const emptySlots = Math.max(0, (r.maxPlayers || 4) - humanCnt);
+        const isFull = humanCnt >= (r.maxPlayers || 4) && !isMyRoom;
         const passBadge = r.hasPassword
           ? `<span class="mp-table-pass-badge locked">🔒 Có Pass</span>`
-          : `<span class="mp-table-pass-badge open">🔓 Tự Do</span>`;
+          : `<span class="mp-table-pass-badge open">🔓 Tự Do • Còn ${emptySlots} chỗ</span>`;
         const statusText = r.inMatch
-          ? `⚔️ Đang đánh Ván #${r.matchCount || 1}`
-          : `🟢 Đang chờ (${r.playerCount || 1}/4 người)`;
+          ? `⚔️ Đang đánh Ván #${r.matchCount || 1} (${emptySlots > 0 ? `Còn ${emptySlots} chỗ trống — Vào chơi luôn!` : 'Đủ 4/4 người'})`
+          : `🟢 Đang chờ (${humanCnt}/4 người — Vào là chia bài luôn!)`;
         const seatChips = Array.from({ length: 4 }, (_, idx) => {
           const pName = r.seatNames?.[idx];
           return pName
             ? `<span class="mp-seat-dot occupied">👤 ${pName}</span>`
-            : `<span class="mp-seat-dot">Ghế #${idx + 1} trống</span>`;
+            : `<span class="mp-seat-dot">🟢 Ghế #${idx + 1} trống (Vào ngay)</span>`;
         }).join('');
         const hostAvatarHtml = getAvatarHtml(r.hostAvatar || 'default_player').replace(
           '<img ',
@@ -17132,14 +17206,41 @@ class TienLenGame {
                   : isFull
                   ? '🔒 Đủ 4/4 (Vào lại nếu cùng bàn)'
                   : r.hasPassword
-                  ? '🔑 Nhập Pass & Vào'
-                  : '⚡ Bấm Vào Bàn Ngay'
+                  ? '🔑 Nhập Pass & Nhảy Vào Chơi'
+                  : '⚡ Nhảy Vào Chơi Luôn'
               }</span>
             </div>
           </div>
         `;
       })
       .join('');
+  }
+
+  async quickJoinAvailableMultiplayerRoom() {
+    if (!this.isMultiplayer && this.isMidMatch()) {
+      alert('⛔ Bạn đang đánh dở ván bài với Bot! Không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
+      return;
+    }
+    if (this.isMultiplayer && this.roomId && this.isMidMatch()) {
+      this.modalWifi?.classList.add('hidden');
+      return;
+    }
+    sfx.click();
+    await this.refreshMultiplayerRoomsDirectory(false);
+    const rooms = Array.isArray(this.multiplayerRoomsList) ? this.multiplayerRoomsList : [];
+    const candidate = rooms.find(
+      (r) =>
+        r &&
+        !r.closed &&
+        !r.hasPassword &&
+        r.roomId !== this.roomId &&
+        (Number(r.humanCount) || Number(r.playerCount) || 1) < (Number(r.maxPlayers) || 4)
+    );
+    if (candidate) {
+      await this.onClickTableCard(candidate.roomId);
+      return;
+    }
+    await this.createWifiRoom();
   }
 
   async onClickTableCard(roomId) {
@@ -17801,12 +17902,13 @@ class TienLenGame {
       this.applySyncedStateOnGuest(cloudRoom.state);
     }
 
-    // Đảm bảo Khách mới vào bàn được xếp ngay vào Ghế trống (#2, #3, #4 — tuyệt đối không đè vào Ghế #1 của Chủ phòng!)
+    // Đảm bảo Khách mới vào bàn được xếp ngay vào Ghế trống hoặc thay thế Ghế Bot (#2, #3, #4 — tuyệt đối không đè vào Ghế #1 của Chủ phòng!)
     let myExistingSeat = this.players.find((p) => p.clientId === this.myClientId);
     if (!myExistingSeat) {
       myExistingSeat =
         this.players.find((p, idx) => idx > 0 && !p.active) ||
-        this.players.find((p) => !p.active && p.clientId !== this.hostClientId);
+        this.players.find((p, idx) => idx > 0 && p.isBot) ||
+        this.players.find((p) => (!p.active || p.isBot) && p.clientId !== this.hostClientId);
       if (myExistingSeat) {
         this.mySeatId = myExistingSeat.id;
         myExistingSeat.name = myName;
@@ -17850,6 +17952,11 @@ class TienLenGame {
 
     this.initGuestPeer(cleanCode, myName);
     this.pollTimer = setInterval(() => this.pollRoomAsGuest(), 850);
+    if (!isAutoRestore) {
+      this.inInitialLobby = false;
+      this.modalWifi?.classList.add('hidden');
+      this.showComboBanner(`⚡ ĐÃ NHẢY VÀO BÀN #${cleanCode} — THAM CHIẾN NGAY!`);
+    }
     this.renderLobbyModal();
     this.renderMultiplayerTablesList();
     this.renderAll();
@@ -18446,6 +18553,55 @@ class TienLenGame {
     this._pollingGuest = false;
   }
 
+  dealDropInHandForMidMatchSeat(seat) {
+    if (!seat) return [];
+    const usedValues = new Set();
+    this.players.forEach((p) => {
+      if (p && p.active && p.id !== seat.id && Array.isArray(p.hand)) {
+        p.hand.forEach((c) => usedValues.add(c.value));
+      }
+    });
+    if (this.currentCombo && Array.isArray(this.currentCombo.cards)) {
+      this.currentCombo.cards.forEach((c) => usedValues.add(c.value));
+    }
+    if (Array.isArray(this.matchGraveyardCards)) {
+      this.matchGraveyardCards.forEach((c) => usedValues.add(c.value));
+    }
+
+    const activeOtherHands = this.players.filter(
+      (p) => p && p.active && p.id !== seat.id && p.finishRank === null && Array.isArray(p.hand) && p.hand.length > 0
+    );
+    const avgCount =
+      activeOtherHands.length > 0
+        ? Math.round(activeOtherHands.reduce((s, p) => s + p.hand.length, 0) / activeOtherHands.length)
+        : 8;
+    const targetCardCount = Math.max(3, Math.min(13, avgCount));
+
+    const freshDeck = shuffleDeck(createDeck());
+    let unusedPool = freshDeck.filter((c) => !usedValues.has(c.value));
+    if (unusedPool.length < targetCardCount) {
+      const handAndTableValues = new Set();
+      this.players.forEach((p) => {
+        if (p && p.active && p.id !== seat.id && Array.isArray(p.hand)) {
+          p.hand.forEach((c) => handAndTableValues.add(c.value));
+        }
+      });
+      if (this.currentCombo && Array.isArray(this.currentCombo.cards)) {
+        this.currentCombo.cards.forEach((c) => handAndTableValues.add(c.value));
+      }
+      const extraPool = freshDeck.filter(
+        (c) => !handAndTableValues.has(c.value) && !unusedPool.some((u) => u.value === c.value)
+      );
+      unusedPool = [...unusedPool, ...extraPool];
+    }
+
+    const dealt = sortCardsAsc(unusedPool.slice(0, targetCardCount)).map((c, idx) => ({
+      ...c,
+      id: `${c.rank}${c.suit}_dropin_${seat.id}_${Date.now()}_${idx}`,
+    }));
+    return dealt;
+  }
+
   handleClientEventOnHost(evt) {
     if (!evt || !evt.type) return;
     if (evt.id) {
@@ -18462,23 +18618,25 @@ class TienLenGame {
       }
       // Tìm ghế theo đúng clientId của thiết bị đó (tuyệt đối không lấy ghế của Chủ phòng dù 2 máy đăng nhập cùng 1 tài khoản!)
       let seat = this.players.find((p) => p.clientId === evt.clientId);
-      const isRejoin = !!seat && seat.active;
+      const isRejoin = !!seat && seat.active && !seat.isBot;
       if (!seat) {
         if (
           typeof evt.preferredSeatId === 'number' &&
           evt.preferredSeatId > 0 &&
           evt.preferredSeatId < 4 &&
           this.players[evt.preferredSeatId] &&
-          !this.players[evt.preferredSeatId].active
+          (!this.players[evt.preferredSeatId].active || this.players[evt.preferredSeatId].isBot)
         ) {
           seat = this.players[evt.preferredSeatId];
         } else {
           seat =
             this.players.find((p, idx) => idx > 0 && !p.active) ||
-            this.players.find((p) => !p.active && p.id !== this.mySeatId);
+            this.players.find((p, idx) => idx > 0 && p.isBot) ||
+            this.players.find((p) => (!p.active || p.isBot) && p.id !== this.mySeatId);
         }
       }
       if (seat && seat.id !== this.mySeatId) {
+        const wasBotSeat = !!seat.isBot && seat.active;
         seat.name = evt.name || `Người chơi ${seat.id + 1}`;
         seat.avatar = evt.avatar || 'default_player';
         seat.cardSkin = evt.cardSkin || 'classic';
@@ -18500,19 +18658,45 @@ class TienLenGame {
         if (!isRejoin) {
           seat.finishRank = null;
           seat.passed = false;
-          seat.readyForNextMatch = false;
+          seat.readyForNextMatch = true;
           seat.manualActionsInMatch = 0;
           seat.afkAutoTurns = 0;
+          if (this.matchCount >= 1 && !this.isGameOver) {
+            // Bàn đang đánh dở nhưng còn chỗ trống hoặc thế chỗ Bot ➔ Cho nhảy vào chơi luôn!
+            if (wasBotSeat && Array.isArray(seat.hand) && seat.hand.length > 0) {
+              seat.hand = sortCardsAsc(seat.hand);
+              if (this.currentTurn === seat.id) {
+                clearTimeout(this.botTimer);
+                this.promptCurrentTurn();
+              }
+            } else {
+              seat.hand = this.dealDropInHandForMidMatchSeat(seat);
+              seat.skillUsed = false;
+            }
+            this.showComboBanner(`⚡ ${seat.name.toUpperCase()} VỪA NHẢY VÀO BÀN (GHẾ #${seat.id + 1}) CHƠI LUÔN!`);
+            this.addLog(
+              `⚡ <strong>${seat.name}</strong> vừa nhảy vào <strong>Ghế #${seat.id + 1}</strong> (${seat.hand.length} lá bài) và tham gia đánh ngay lập tức!`,
+              'log-win'
+            );
+          } else {
+            this.addLog(`👋 <strong>${seat.name}</strong> đã vào bàn (Ghế #${seat.id + 1})!`, 'log-win');
+          }
+          sfx.win();
         }
         seat.clientId = evt.clientId;
-        if (!isRejoin) {
-          sfx.win();
-          this.addLog(`👋 <strong>${seat.name}</strong> đã vào bàn (Ghế #${seat.id + 1})!`, 'log-win');
-        }
         this.preloadActiveBurstVideos();
         this.renderLobbyModal();
         this.renderSummaryReadyStateUI();
         this.renderAll();
+
+        // Nếu bàn đang chờ ở Ván #0 (chưa chia bài) và vừa có người nhảy vào ➔ Tự động đóng bảng chờ & chia bài chơi luôn!
+        if (!isRejoin && this.matchCount === 0 && this.players.filter((p) => p.active).length >= 2) {
+          this.inInitialLobby = false;
+          this.modalWifi?.classList.add('hidden');
+          this.startNewMatch(true);
+          return;
+        }
+
         this.broadcastState();
         this.publishRoomToDirectory(false);
       }

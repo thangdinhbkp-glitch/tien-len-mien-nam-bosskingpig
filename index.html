@@ -565,8 +565,12 @@
           <div class="lobby-action-panel compact-mode-panel hidden" id="lobby-human-panel">
             <!-- Khu vực Danh Sách Bàn & Thanh Công Cụ (Ẩn khi đang ngồi trong 1 phòng chờ cụ thể) -->
             <div class="mp-lobby-browser-wrap" id="human-create-join-row">
-              <!-- Thanh Công Cụ Đầu Sảnh: Nút Tạo Phòng Mới + Thanh Tìm Bàn Theo ID -->
+              <!-- Thanh Công Cụ Đầu Sảnh: Nút Ghép Bàn Nhanh + Tạo Phòng Mới + Thanh Tìm Bàn Theo ID -->
               <div class="mp-browser-toolbar">
+                <button class="primary-btn mp-open-create-btn" id="btn-quick-join-room" onclick="window.tienLenGame.quickJoinAvailableMultiplayerRoom()" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;box-shadow:0 0 14px rgba(16,185,129,0.5);">
+                  ⚡ Vào Bàn Nhanh (Còn Chỗ Nhảy Vào Chơi Luôn)
+                </button>
+
                 <button class="primary-btn mp-open-create-btn" id="btn-toggle-create-room" onclick="window.tienLenGame.toggleCreateRoomSetupBox()">
                   ➕ Tạo Phòng Mới (Set Pass / Không Pass)
                 </button>
@@ -1537,8 +1541,23 @@
     </div>
   </div>
 
-  <!-- BANNER QUẢNG CÁO MONETAG GÓC PHẢI LUÔN TỰ ĐỘNG HIỂN THỊ KHI VÀO TRANG -->
-  <script>(function(s){s.dataset.zone='12175813',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-  <script src="game.js?v=158"></script>
+  <!-- BANNER QUẢNG CÁO MONETAG GÓC PHẢI (CHỈ BẬT TRÊN MÁY TÍNH ĐỂ TRÁNH LỖI INTENT:// ERR_UNKNOWN_URL_SCHEME TRÊN ĐIỆN THOẠI ANDROID/WEBVIEW) -->
+  <script>
+    (function () {
+      window.addEventListener('click', function (e) {
+        var a = e.target && e.target.closest ? e.target.closest('a') : null;
+        if (a && a.href && /^intent:/i.test(a.href)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+      var ua = navigator.userAgent || '';
+      var isMobileOrWebView = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|wv/i.test(ua) || Boolean(window.Capacitor) || window.innerWidth <= 900;
+      if (!isMobileOrWebView) {
+        (function(s){s.dataset.zone='12175813',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+      }
+    })();
+  </script>
+  <script src="game.js?v=159"></script>
 </body>
 </html>

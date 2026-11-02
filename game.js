@@ -16,7 +16,7 @@ const INITIAL_COINS = 17000;
 const DAILY_RECOVERY_COINS = 1000;
 const MAX_DAILY_RELIEF_CLAIMS = 3;
 const MIN_BET_PER_CARD = 10;
-const MAX_BET_PER_CARD = 100;
+const MAX_BET_PER_CARD = 200;
 
 function clampBetPerCard(val) {
   const n = Math.round(Number(val) || 10);
@@ -24,7 +24,7 @@ function clampBetPerCard(val) {
 }
 
 // ============================================================================
-// 4 MỨC CƯỢC BÀN BÀI (10 • 20 • 50 • 100 XU/LÁ — ÁP DỤNG CHO CẢ ĐẤU BOT & ĐẤU NGƯỜI)
+// 5 MỨC CƯỢC BÀN BÀI (10 • 20 • 50 • 100 • 200 XU/LÁ — ÁP DỤNG CHO CẢ ĐẤU BOT & ĐẤU NGƯỜI)
 // ============================================================================
 const BET_TIERS = [
   {
@@ -58,6 +58,14 @@ const BET_TIERS = [
     betPerCard: 100,
     minCoins: 3000,
     desc: 'Cóng: 2,600 • Heo đỏ: 500',
+  },
+  {
+    id: 'than_thoai',
+    name: 'Bàn Thần Thoại',
+    icon: '🔥',
+    betPerCard: 200,
+    minCoins: 6000,
+    desc: 'Cóng: 5,200 • Heo đỏ: 1,000',
   },
 ];
 
@@ -15702,6 +15710,8 @@ class TienLenGame {
     const tier = BET_TIERS.find((t) => t.betPerCard === clampedBet);
     const reqCoins = tier
       ? tier.minCoins
+      : clampedBet >= 200
+      ? 6000
       : clampedBet >= 100
       ? 3000
       : clampedBet >= 50

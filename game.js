@@ -6060,11 +6060,24 @@ class TienLenGame {
         });
       }
 
+      const localAd = localReg.adMonetization || {};
+      const remoteAd = remoteReg?.adMonetization || {};
+      const newerAdCfg = (Number(remoteAd.cfgUpdatedAtMs) || 0) >= (Number(localAd.cfgUpdatedAtMs) || 0) ? remoteAd : localAd;
+      const mergedAdMonetization = {
+        sponsorUrl: String(newerAdCfg.sponsorUrl || '').trim(),
+        bannerHtml: String(newerAdCfg.bannerHtml || '').trim(),
+        adMode: newerAdCfg.adMode || 'auto_open',
+        cfgUpdatedAtMs: Math.max(Number(localAd.cfgUpdatedAtMs) || 0, Number(remoteAd.cfgUpdatedAtMs) || 0),
+        totalViews: Math.max(Number(localAd.totalViews) || 0, Number(remoteAd.totalViews) || 0),
+        totalClicks: Math.max(Number(localAd.totalClicks) || 0, Number(remoteAd.totalClicks) || 0),
+      };
+
       const finalReg = {
         v: 1,
         updatedAtMs: now,
         devices: mergedDevices,
         accounts: mergedAccounts,
+        adMonetization: mergedAdMonetization,
       };
       this.globalRegistryCache = finalReg;
       this._lastGlobalRegistrySyncMs = now;
@@ -6238,8 +6251,69 @@ class TienLenGame {
       return myAccountDevicesHtml;
     }
 
+    const adCfg = globalReg.adMonetization || {};
+    const curSponsorUrl = String(adCfg.sponsorUrl || '').replace(/"/g, '&quot;');
+    const curBannerHtml = String(adCfg.bannerHtml || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const curAdMode = adCfg.adMode || 'auto_open';
+    const totalAdViews = Number(adCfg.totalViews) || 0;
+    const totalAdClicks = Number(adCfg.totalClicks) || 0;
+
     return `
       ${myAccountDevicesHtml}
+      <div class="account-form-box" style="margin-top:8px;border:1.5px solid rgba(16,185,129,0.55);background:linear-gradient(135deg,rgba(6,78,59,0.42),rgba(15,23,42,0.92));">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="font-size:13px;font-weight:900;color:#6ee7b7;">
+            💰 Kiếm Tiền Quảng Cáo Toàn Server (Monetag / Adsterra / AdSense)
+          </div>
+          <span style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:${curSponsorUrl ? 'rgba(16,185,129,0.25);color:#6ee7b7;border:1px solid #34d399;' : 'rgba(245,158,11,0.2);color:#fde047;border:1px solid #fbbf24;'}">
+            ${curSponsorUrl ? '🟢 Đang Bật Kiếm Tiền' : '🟡 Chưa gắn Link QC'}
+          </span>
+        </div>
+        <div class="account-stats-grid" style="margin-top:6px;grid-template-columns:repeat(2,1fr);">
+          <div class="account-stat-item">
+            <span class="account-stat-label">📺 Tổng Lượt Mở Xem QC</span>
+            <span class="account-stat-val" style="color:#fde047;">${totalAdViews.toLocaleString()} lượt</span>
+          </div>
+          <div class="account-stat-item">
+            <span class="account-stat-label">🔗 Lượt Click Link Kiếm Tiền</span>
+            <span class="account-stat-val" style="color:#34d399;">${totalAdClicks.toLocaleString()} click</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:12px;">
+          <div>
+            <label style="display:block;font-weight:800;color:#e2e8f0;margin-bottom:3px;">
+              1️⃣ Link Quảng Cáo Trực Tiếp (Direct Link / Smartlink Monetag, Adsterra, Shopee...):
+            </label>
+            <input type="url" id="admin-input-sponsor-url" value="${curSponsorUrl}" placeholder="Dán link Direct Link (VD: https://otieu.com/4/xxxxxxx) vào đây..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:12px;" />
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;color:#e2e8f0;margin-bottom:3px;">
+              2️⃣ Cơ chế mở Quảng Cáo khi người chơi bấm "📺 Xem QC (+1 Roll / 1,600 Xu)":
+            </label>
+            <select id="admin-select-ad-mode" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fde047;font-weight:700;font-size:12px;">
+              <option value="auto_open" ${curAdMode === 'auto_open' ? 'selected' : ''}>🚀 Tự động mở tab Link QC ngay khi bấm Xem QC + Hiện nút trong 15s (Khuyên dùng)</option>
+              <option value="require_click" ${curAdMode === 'require_click' ? 'selected' : ''}>🔒 Bắt buộc người chơi bấm nút Mở Link Nhà Tài Trợ mới nhận được +1 Roll</option>
+              <option value="optional" ${curAdMode === 'optional' ? 'selected' : ''}>💡 Chỉ hiện nút Mở Link Nhà Tài Trợ bên trong màn hình QC 15s</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;color:#e2e8f0;margin-bottom:3px;">
+              3️⃣ Mã HTML/Iframe Banner Quảng Cáo (300x250 / 728x90 — Không bắt buộc):
+            </label>
+            <textarea id="admin-input-banner-html" rows="2" placeholder="Dán mã <iframe> hoặc <script> banner quảng cáo vào đây (nếu có)..." style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#cbd5e1;font-size:11.5px;resize:vertical;">${curBannerHtml}</textarea>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:2px;">
+            <span style="font-size:11px;color:#94a3b8;">💡 Lấy Direct Link duyệt ngay trong 1 phút tại <strong>monetag.com</strong> hoặc <strong>adsterra.com</strong></span>
+            <button type="button" class="primary-btn" id="btn-save-admin-ad-config" onclick="window.tienLenGame.saveAdminAdMonetizationConfig()" style="padding:6px 14px;font-size:12px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
+              💾 Lưu &amp; Áp Dụng Quảng Cáo Toàn Server
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="account-form-box" style="margin-top:8px;border:1px solid rgba(250,204,21,0.32);background:rgba(15,23,42,0.82);">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
           <div style="font-size:13px;font-weight:900;color:#fde047;">
@@ -9057,6 +9131,108 @@ class TienLenGame {
     this.applyAdMusicTrack();
   }
 
+  getAdMonetizationConfig() {
+    const reg = this.loadGlobalRegistryCache();
+    const ad = reg.adMonetization || {};
+    return {
+      sponsorUrl: String(ad.sponsorUrl || '').trim(),
+      bannerHtml: String(ad.bannerHtml || '').trim(),
+      adMode: ad.adMode || 'auto_open',
+      cfgUpdatedAtMs: Number(ad.cfgUpdatedAtMs) || 0,
+      totalViews: Number(ad.totalViews) || 0,
+      totalClicks: Number(ad.totalClicks) || 0,
+    };
+  }
+
+  async saveAdminAdMonetizationConfig() {
+    if (!this.isAdminAccount()) return;
+    const urlInput = document.getElementById('admin-input-sponsor-url');
+    const modeSelect = document.getElementById('admin-select-ad-mode');
+    const bannerInput = document.getElementById('admin-input-banner-html');
+    const btn = document.getElementById('btn-save-admin-ad-config');
+
+    const sponsorUrl = String(urlInput ? urlInput.value : '').trim();
+    const adMode = String(modeSelect ? modeSelect.value : 'auto_open').trim();
+    const bannerHtml = String(bannerInput ? bannerInput.value : '').trim();
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang lưu lên Đám Mây...';
+    }
+
+    const reg = this.loadGlobalRegistryCache();
+    const prevAd = reg.adMonetization || {};
+    reg.adMonetization = {
+      ...prevAd,
+      sponsorUrl,
+      bannerHtml,
+      adMode,
+      cfgUpdatedAtMs: Date.now(),
+    };
+    this.globalRegistryCache = reg;
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+
+    await this.syncGlobalDeviceRegistry(true);
+    sfx.win();
+    alert(
+      sponsorUrl
+        ? `✅ Đã bật Kiếm Tiền Quảng Cáo toàn Server!\n🔗 Link QC: ${sponsorUrl}\n⚙️ Chế độ: ${adMode}`
+        : '✅ Đã cập nhật cấu hình Quảng Cáo toàn Server!'
+    );
+    const statsContainer = document.getElementById('account-device-stats-container');
+    if (statsContainer) {
+      statsContainer.innerHTML = this.renderDeviceTrackerSectionHtml();
+    }
+  }
+
+  recordAdMonetizationEvent(type = 'view') {
+    const reg = this.loadGlobalRegistryCache();
+    if (!reg.adMonetization) {
+      reg.adMonetization = {
+        sponsorUrl: '',
+        bannerHtml: '',
+        adMode: 'auto_open',
+        cfgUpdatedAtMs: 0,
+        totalViews: 0,
+        totalClicks: 0,
+      };
+    }
+    if (type === 'click') {
+      reg.adMonetization.totalClicks = (Number(reg.adMonetization.totalClicks) || 0) + 1;
+    } else {
+      reg.adMonetization.totalViews = (Number(reg.adMonetization.totalViews) || 0) + 1;
+    }
+    this.globalRegistryCache = reg;
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+    this.syncGlobalDeviceRegistry(true);
+  }
+
+  onClickSponsorAdLink(isAutoTrigger = false) {
+    const cfg = this.getAdMonetizationConfig();
+    if (!cfg.sponsorUrl) return;
+    this.adSponsorClickedThisSession = true;
+    this.recordAdMonetizationEvent('click');
+    if (!isAutoTrigger) {
+      try {
+        window.open(cfg.sponsorUrl, '_blank', 'noopener,noreferrer');
+      } catch (_) {}
+    }
+    const btn = document.getElementById('btn-ad-open-sponsor-link');
+    const sub = document.getElementById('ad-real-sponsor-sub');
+    if (btn) {
+      btn.textContent = '✅ Đã Mở Trang Nhà Tài Trợ (Đã Mở Khóa +1 Roll!)';
+      btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
+      btn.style.color = '#ffffff';
+    }
+    if (sub) {
+      sub.textContent = '🎉 Cảm ơn bạn đã xem Nhà Tài Trợ! Đợi hết đếm ngược để nhận ngay +1,600 Xu nhé!';
+    }
+  }
+
   startRickRollAd() {
     const overlay = document.getElementById('rickroll-ad-overlay');
     const countdownPill = document.getElementById('ad-countdown-pill');
@@ -9075,7 +9251,48 @@ class TienLenGame {
     const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
     this.adRemainingSec = AD_DURATION;
     this.adRewardClaimed = false;
+    this.adSponsorClickedThisSession = false;
     clearInterval(this.adIntervalTimer);
+
+    const adCfg = this.getAdMonetizationConfig();
+    this.recordAdMonetizationEvent('view');
+
+    const sponsorBox = document.getElementById('ad-real-sponsor-box');
+    const networkSlot = document.getElementById('ad-real-network-slot');
+    const sponsorBtn = document.getElementById('btn-ad-open-sponsor-link');
+    const sponsorSub = document.getElementById('ad-real-sponsor-sub');
+
+    if (sponsorBox) {
+      if (adCfg.sponsorUrl || adCfg.bannerHtml) {
+        sponsorBox.classList.remove('hidden');
+        if (networkSlot) {
+          networkSlot.innerHTML = adCfg.bannerHtml || '';
+        }
+        if (sponsorBtn) {
+          sponsorBtn.classList.toggle('hidden', !adCfg.sponsorUrl);
+          sponsorBtn.textContent = '🔗 Mở Trang Nhà Tài Trợ Để Nhận +1 Roll (1,600 Xu) ▸';
+          sponsorBtn.style.background = 'linear-gradient(135deg,#f59e0b,#eab308)';
+          sponsorBtn.style.color = '#0f172a';
+        }
+        if (sponsorSub) {
+          sponsorSub.textContent =
+            adCfg.adMode === 'require_click' && adCfg.sponsorUrl
+              ? '⚠️ Bấm nút vàng phía trên để mở trang Nhà Tài Trợ & mở khóa phần thưởng +1 Roll (1,600 Xu)!'
+              : '💡 Bấm xem trang Nhà Tài Trợ để ủng hộ Server duy trì miễn phí & nhận ngay +1,600 Xu!';
+        }
+        // Nếu chế độ auto_open: mở ngay tab Quảng Cáo kiếm tiền trong luồng click của người chơi!
+        if (adCfg.sponsorUrl && adCfg.adMode === 'auto_open') {
+          try {
+            const w = window.open(adCfg.sponsorUrl, '_blank', 'noopener,noreferrer');
+            if (w) {
+              this.onClickSponsorAdLink(true);
+            }
+          } catch (_) {}
+        }
+      } else {
+        sponsorBox.classList.add('hidden');
+      }
+    }
 
     sfx.bgmPausedForAd = true;
     sfx.stopBGM();
@@ -9633,10 +9850,14 @@ class TienLenGame {
       if (this.adRemainingSec > 0 && !this.adRewardClaimed) {
         const toastMsg = document.getElementById('ad-toast-msg');
         if (toastMsg) {
-          toastMsg.innerHTML = `<span style="color:#fde047;font-weight:800;">😂 Không bỏ qua được đâu! Bạn vừa bị RICK ROLL — hãy nghe Rick Astley hát thêm ${this.adRemainingSec} giây nữa để nhận +1 Roll (+1,600 Xu) nhé!</span>`;
+          toastMsg.innerHTML = `<span style="color:#fde047;font-weight:800;">⏳ Hãy chờ thêm ${this.adRemainingSec} giây nữa để nhận đủ +1 Roll (+1,600 Xu) nhé!</span>`;
         }
         sfx.pass();
         return;
+      }
+      const adCfg = this.getAdMonetizationConfig();
+      if (adCfg.sponsorUrl && adCfg.adMode === 'require_click' && !this.adSponsorClickedThisSession) {
+        this.onClickSponsorAdLink(false);
       }
       this.stopRickRollAd();
     });

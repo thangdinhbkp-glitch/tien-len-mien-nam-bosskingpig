@@ -10259,8 +10259,11 @@ class TienLenGame {
     const canOpenExtDirectly = hasNativeBridge || !window.__tlmnIsInAppOrStandalone;
     const oldApkNotice =
       window.__tlmnIsInAppOrStandalone && !hasNativeBridge
-        ? `<div style="padding:8px 10px;border-radius:9px;background:rgba(234,179,8,0.18);border:1px solid #facc15;font-size:11.5px;color:#fef08a;line-height:1.4;">
-            📲 <strong>Gợi ý cho App APK:</strong> Hãy tải <strong>Bản APK Mới (v1.7.3)</strong> để mỗi khi bấm nút <strong>+2 Roll</strong>, điện thoại sẽ <strong>tự động bung thẳng App Shopee &amp; Chrome thật</strong> (gắn Cookie Shopee 7 ngày &amp; Monetag không hỏi Verify)!
+        ? `<div style="padding:10px 12px;border-radius:10px;background:rgba(220,38,38,0.28);border:1.5px solid #f87171;font-size:12px;color:#fef08a;line-height:1.45;text-align:left;">
+            ⚠️ <strong>BẠN ĐANG DÙNG BẢN CÀI ĐẶT APK CŨ (v1.2.7) TRÊN MÁY!</strong><br/>
+            File APK cũ trên máy bạn chưa có quyền mở ứng dụng ngoài. Để bấm nút <strong>+2 Roll</strong> tự động nhảy thẳng sang <strong>App Shopee thật &amp; Chrome thật</strong> (không hiện bảng này nữa):<br/>
+            👉 <strong>Bước 1:</strong> Xóa (Gỡ cài đặt) app <strong>Tiến Lên 5★</strong> cũ khỏi điện thoại.<br/>
+            👉 <strong>Bước 2:</strong> Tải &amp; cài đặt file <strong>TienLenGenshin.apk (v1.7.3 mới)</strong>!
           </div>`
         : '';
 
@@ -10372,18 +10375,23 @@ class TienLenGame {
     this.recordSponsor2RollClaimTimestamp();
     this.recordAdMonetizationEvent('click');
 
-    // Luôn bật Cửa Sổ Nhà Tài Trợ (Shopee / Monetag) trực tiếp trên màn hình để trên App điện thoại luôn thấy rõ 100%!
-    if (window.__tlmnIsInAppOrStandalone) {
+    // Trên App APK mới (v1.7.3 có AndroidBridge) hoặc trên Trình duyệt Web:
+    // Mở thẳng App Shopee thật / Trình duyệt Chrome thật ở ngoài (KHÔNG hiện hộp Verify iframe trong game)!
+    const hasNativeBridge = Boolean(window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function');
+    if (hasNativeBridge) {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
       }
-      if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
-        try {
-          window.AndroidBridge.openExternalUrl(sponsorUrl);
-        } catch (_) {}
+      try {
+        window.AndroidBridge.openExternalUrl(sponsorUrl);
+      } catch (_) {}
+    } else if (window.__tlmnIsInAppOrStandalone) {
+      // Nếu người chơi vẫn đang mở bản APK cũ (v1.2.7 chưa gỡ cài lại bản v1.7.3):
+      if (evt && typeof evt.preventDefault === 'function') {
+        evt.preventDefault();
       }
+      this.openInAppSponsorModal(partner);
     }
-    this.openInAppSponsorModal(partner);
 
     const AD_REWARD = AD_REWARD_COINS * 2; // +2 Roll = 3,200 Xu
     const me = this.getLocalPlayer();
@@ -10451,18 +10459,23 @@ class TienLenGame {
     this.recordAdMonetizationEvent('click');
 
     // Trên App APK / WebView: Hiện bảng Cửa Sổ Nhà Tài Trợ trực tiếp trên màn hình và cộng thưởng +2 Roll!
-    // Luôn bật Cửa Sổ Nhà Tài Trợ (Shopee / Monetag) trực tiếp trên màn hình để trên App điện thoại luôn thấy rõ 100%!
-    if (window.__tlmnIsInAppOrStandalone) {
+    // Trên App APK mới (v1.7.3 có AndroidBridge) hoặc trên Trình duyệt Web:
+    // Mở thẳng App Shopee thật / Trình duyệt Chrome thật ở ngoài (KHÔNG hiện hộp Verify iframe trong game)!
+    const hasNativeBridge = Boolean(window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function');
+    if (hasNativeBridge) {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
       }
-      if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
-        try {
-          window.AndroidBridge.openExternalUrl(sponsorUrl);
-        } catch (_) {}
+      try {
+        window.AndroidBridge.openExternalUrl(sponsorUrl);
+      } catch (_) {}
+    } else if (window.__tlmnIsInAppOrStandalone) {
+      // Nếu người chơi vẫn đang mở bản APK cũ (v1.2.7 chưa gỡ cài lại bản v1.7.3):
+      if (evt && typeof evt.preventDefault === 'function') {
+        evt.preventDefault();
       }
+      this.openInAppSponsorModal(partner);
     }
-    this.openInAppSponsorModal(partner);
 
     const sub = document.getElementById('ad-real-sponsor-sub');
     if (btn) {
@@ -27461,7 +27474,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 173;
+const CLIENT_BUILD_VERSION = 174;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -27478,7 +27491,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=173', { updateViaCache: 'none' })
+        .register('sw.js?v=174', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

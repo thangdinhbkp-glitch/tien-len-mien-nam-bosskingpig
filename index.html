@@ -1288,57 +1288,71 @@
       </div>
     </div>
 
-    <!-- SPONSOR WEB AD & RICK ROLL REWARDED OVERLAY (VÔ TRANG WEB TÀI TRỢ NHẬN XU - AN TOÀN 100% TRÊN APP & WEB) -->
+    <!-- RICK ROLL REWARDED VIDEO AD OVERLAY + MONETAG REAL REVENUE TRIGGER -->
     <div class="rickroll-ad-overlay hidden" id="rickroll-ad-overlay">
       <div class="rickroll-ad-card">
         <!-- Top Ad HUD Bar -->
         <div class="ad-top-bar">
           <div class="ad-sponsor-badge" id="ad-sponsor-badge">
-            🌐 TRANG WEB NHÀ TÀI TRỢ • XEM 5 GIÂY NHẬN NGAY +1 ROLL (1,600 XU)
+            📢 QUẢNG CÁO NHẬN THƯỞNG • XEM NHẠC HOẶC BẤM TÀI TRỢ NHẬN NGAY +1 ROLL
           </div>
           <div class="ad-top-right" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <button type="button" class="ad-skip-btn" id="btn-ad-open-sponsor-link" onclick="window.tienLenGame.onClickSponsorAdLink(false)" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);border-color:#93c5fd;color:#ffffff;cursor:pointer;font-weight:800;" title="Mở trang Nhà Tài Trợ để nhận ngay +1 Roll (1,600 Xu)">
-              🌐 Mở Web Tài Trợ (+1 Roll Ngay) ↗
+            <button type="button" class="ad-skip-btn" id="btn-ad-switch-music" onclick="window.tienLenGame.toggleAdMusicTrack()" style="background:rgba(250,204,21,0.18);border-color:#fde047;color:#fef08a;cursor:pointer;" title="Đổi nhạc quảng cáo giữa Rick Roll và Verity">
+              🎬 Video: Rick Roll (Đổi ⇄)
             </button>
             <div class="ad-countdown-pill" id="ad-countdown-pill">
-              ⏳ Nhận +1 Roll (1,600 Xu) sau: <strong>5s</strong>
+              ⏳ Nhận +1 Roll (1,600 Xu) sau: <strong>10s</strong>
             </div>
             <button class="ad-skip-btn" id="btn-ad-skip-or-claim">
-              🔒 Chờ 5s...
+              🔒 Chờ 10s...
             </button>
           </div>
         </div>
 
-        <!-- Sponsor Web Stage (Sandboxed Iframe chống 100% lỗi intent:// và chống nhảy trang trên App APK) -->
-        <div class="ad-video-stage" style="position:relative;display:flex;flex-direction:column;background:#0f172a;">
-          <div id="ad-sponsor-web-Notice" style="padding:8px 14px;background:linear-gradient(90deg,rgba(30,58,138,0.92),rgba(15,23,42,0.95));border-bottom:1px solid rgba(96,165,250,0.4);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;z-index:5;">
-            <div style="font-size:12.5px;color:#e0f2fe;line-height:1.4;" id="ad-real-sponsor-sub">
-              🎁 <strong>Đang mở trang Nhà Tài Trợ...</strong> Chờ hết 5 giây hoặc bấm nút bên phải để nhận ngay <strong>+1 Roll (+1,600 Xu)</strong>!
+        <!-- Thanh Nhà Tài Trợ: Bấm mở Tab thật (không bị Verify you are human của iframe) để bỏ qua chờ 10s & nhận +1 Roll ngay lập tức -->
+        <div style="padding:8px 14px;background:linear-gradient(90deg,rgba(30,58,138,0.95),rgba(15,23,42,0.98));border-bottom:1px solid rgba(96,165,250,0.45);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;z-index:5;">
+          <div style="font-size:12.5px;color:#e0f2fe;line-height:1.4;" id="ad-real-sponsor-sub">
+            ⚡ <strong>Muốn nhận ngay không cần chờ 10s?</strong> Bấm nút bên phải hoặc bấm vào <strong>Banner Quảng Cáo ở góc dưới màn hình</strong> để cộng ngay <strong>+1 Roll (+1,600 Xu)</strong>!
+          </div>
+          <a
+            id="btn-ad-open-sponsor-link"
+            href="https://uplcm.com/4/12175425"
+            target="_blank"
+            rel="noopener noreferrer"
+            onclick="return window.tienLenGame.onClickSponsorAdLink(event)"
+            style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);border:1.5px solid #fde047;color:#fff;font-weight:900;font-size:12.5px;cursor:pointer;white-space:nowrap;text-decoration:none;box-shadow:0 4px 12px rgba(16,185,129,0.45);"
+          >
+            🚀 Mở Trang Tài Trợ (Nhận Ngay +1 Roll 0s!) ↗
+          </a>
+        </div>
+
+        <!-- Video Stage -->
+        <div class="ad-video-stage">
+          <video class="rickroll-video hidden" id="verity-video" src="verity.mp4" playsinline loop preload="auto"></video>
+          <video class="rickroll-video" id="rickroll-video" src="rickroll.mp4" playsinline></video>
+          <img class="rickroll-gif-fallback hidden" id="rickroll-gif-fallback" src="rickroll.gif" alt="Rick Astley Dancing" />
+          <div class="verity-ad-stage hidden" id="verity-ad-stage">
+            <div class="verity-smiley-orb">
+              <div class="verity-eyes">
+                <span></span>
+                <span></span>
+              </div>
+              <div class="verity-mouth"></div>
             </div>
-            <button type="button" onclick="window.tienLenGame.onClickSponsorAdLink(false)" style="padding:6px 12px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#d97706);border:1.5px solid #fde047;color:#fff;font-weight:900;font-size:12px;cursor:pointer;white-space:nowrap;">
-              🚀 Nhận Nhanh +1 Roll (Mở Trang)
-            </button>
+            <div class="verity-eq-bars">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+          <audio id="rickroll-audio" src="rickroll.mp3" preload="auto"></audio>
+          <audio id="verity-audio" src="verity.mp3" loop preload="auto"></audio>
+
+          <div class="ad-rickroll-banner" id="ad-rickroll-banner">
+            🕺 <strong>QUẢNG CÁO NHẬN THƯỞNG!</strong> Xem 10 giây hoặc bấm vào <em>Banner Quảng Cáo góc dưới bên phải</em> để nhận ngay <strong>+1 Roll (+1,600 Xu)</strong>! 🎤
           </div>
 
-          <!-- Khung Web Nhà Tài Trợ được khóa sandbox: chặn 100% intent:// và chặn tự chuyển trang của App -->
-          <iframe
-            id="ad-sponsor-web-iframe"
-            title="Trang Web Nhà Tài Trợ"
-            sandbox="allow-scripts allow-same-origin allow-forms"
-            referrerpolicy="no-referrer-when-downgrade"
-            style="width:100%;flex:1;min-height:320px;border:none;background:#1e293b;"
-            src="about:blank"
-          ></iframe>
-
-          <video class="rickroll-video hidden" id="verity-video" src="verity.mp4" playsinline loop preload="none"></video>
-          <video class="rickroll-video hidden" id="rickroll-video" src="rickroll.mp4" playsinline preload="none"></video>
-          <img class="rickroll-gif-fallback hidden" id="rickroll-gif-fallback" src="rickroll.gif" alt="Rick Astley Dancing" />
-          <div class="verity-ad-stage hidden" id="verity-ad-stage"></div>
-          <audio id="rickroll-audio" src="rickroll.mp3" preload="none"></audio>
-          <audio id="verity-audio" src="verity.mp3" loop preload="none"></audio>
-
-          <div class="ad-rickroll-banner hidden" id="ad-rickroll-banner"></div>
-          <div class="ad-lyrics-sub hidden" id="ad-lyrics-sub"></div>
+          <div class="ad-lyrics-sub" id="ad-lyrics-sub">
+            🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵
+          </div>
         </div>
 
         <!-- Ad Progress Bar & Footer -->
@@ -1348,10 +1362,10 @@
 
         <div class="ad-bottom-bar">
           <div class="ad-toast-msg" id="ad-toast-msg">
-            💡 Chỉ cần mở trang Nhà Tài Trợ <strong>5 giây</strong> là bạn được cộng tự động <strong>+1,600 Xu (+1 Lượt Cầu Nguyện)</strong>!
+            💡 Xem hết 10 giây hoặc bấm vào Banner Quảng Cáo góc phải sẽ được cộng ngay <strong>+1,600 Xu (+1 Lượt Cầu Nguyện)</strong>!
           </div>
           <button class="clear-log-btn" id="btn-ad-force-abandon" title="Tắt quảng cáo sớm sẽ mất phần thưởng +1,600 Xu!">
-            ✕ Đóng sớm
+            ✕ Tắt sớm (Không nhận thưởng)
           </button>
         </div>
       </div>
@@ -1600,8 +1614,8 @@
             res.fakepushReloadScript = false;
             res.fakepushVignetteFirst = false;
             res.fakepushPositionX = 'right';
-            res.fakepushPositionY = 'top';
-            res.fakepushPositionYMobile = 'top';
+            res.fakepushPositionY = 'bottom';
+            res.fakepushPositionYMobile = 'bottom';
             res.fakepushTimeout = 0;
             res.fakepushTimeoutMobile = 0;
             res.fakepushInterval = 5;
@@ -1749,6 +1763,6 @@
       }, 45000);
     })();
   </script>
-  <script src="game.js?v=164"></script>
+  <script src="game.js?v=165"></script>
 </body>
 </html>

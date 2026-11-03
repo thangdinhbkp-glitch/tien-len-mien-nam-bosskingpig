@@ -10034,19 +10034,27 @@ class TienLenGame {
     this.syncGlobalDeviceRegistry(true);
   }
 
-  onClickSponsorAdLink(isAutoTrigger = false) {
+  onClickSponsorAdLink(evt = null) {
     const cfg = this.getAdMonetizationConfig();
     const sponsorUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
-    if (!sponsorUrl) return;
     this.adSponsorClickedThisSession = true;
     this.recordAdMonetizationEvent('click');
-    if (typeof window.__tlmnOpenSponsorWebSafe === 'function') {
-      window.__tlmnOpenSponsorWebSafe(sponsorUrl, !isAutoTrigger);
-    } else if (!isAutoTrigger && !window.__tlmnIsInAppOrStandalone) {
-      try {
-        window.open(sponsorUrl, '_blank', 'noopener,noreferrer');
-      } catch (_) {}
+
+    // Trên App APK / WebView / PWA Standalone: Chặn mở trang đè lên App, gửi ping ngầm và cộng thưởng ngay lập tức!
+    if (window.__tlmnIsInAppOrStandalone) {
+      if (evt && typeof evt.preventDefault === 'function') {
+        evt.preventDefault();
+      }
+      if (sponsorUrl) {
+        try {
+          fetch(sponsorUrl, { mode: 'no-cors', credentials: 'include' }).catch(() => {});
+        } catch (_) {}
+      }
+      if (typeof window.__tlmnRefreshCornerAdBanner === 'function') {
+        window.__tlmnRefreshCornerAdBanner();
+      }
     }
+
     const btn = document.getElementById('btn-ad-open-sponsor-link');
     const sub = document.getElementById('ad-real-sponsor-sub');
     if (btn) {
@@ -10055,12 +10063,13 @@ class TienLenGame {
       btn.style.color = '#ffffff';
     }
     if (sub) {
-      sub.innerHTML = '🎉 <strong>Đã mở trang Nhà Tài Trợ!</strong> Đã mở khóa ngay <strong>+1 Roll (+1,600 Xu)</strong> cho bạn!';
+      sub.innerHTML = '🎉 <strong>Đã mở khóa thưởng!</strong> Đã cộng ngay <strong>+1 Roll (+1,600 Xu)</strong> vào túi của bạn!';
     }
-    if (!isAutoTrigger && !this.adRewardClaimed) {
+    if (!this.adRewardClaimed) {
       this.adRemainingSec = 0;
       this.claimRewardedAdCoinsNow();
     }
+    return !window.__tlmnIsInAppOrStandalone;
   }
 
   claimRewardedAdCoinsNow() {
@@ -10088,7 +10097,7 @@ class TienLenGame {
     const resBal = document.getElementById('gacha-results-balance');
     if (resBal && me) resBal.textContent = me.coins.toLocaleString();
     this.addLog(
-      `🌐 <strong>Trang Web Nhà Tài Trợ:</strong> Bạn đã xem trang tài trợ và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
+      `🎁 <strong>Quảng Cáo Nhận Thưởng:</strong> Bạn đã nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
       'log-win'
     );
     this.syncCosmeticsInRoom();
@@ -10111,6 +10120,11 @@ class TienLenGame {
       return;
     }
     this._lastCornerBannerRewardMs = now;
+    const overlay = document.getElementById('rickroll-ad-overlay');
+    if (overlay && !overlay.classList.contains('hidden') && !this.adRewardClaimed) {
+      this.adRemainingSec = 0;
+      this.claimRewardedAdCoinsNow();
+    }
     const reward = AD_REWARD_COINS; // +1,600 Xu (= 1 Roll)
     const me = this.getLocalPlayer();
     if (me) {
@@ -10139,16 +10153,21 @@ class TienLenGame {
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');
     const progressFill = document.getElementById('ad-progress-fill');
+    const lyricsSub = document.getElementById('ad-lyrics-sub');
     const toastMsg = document.getElementById('ad-toast-msg');
     const btnSponsor = document.getElementById('btn-ad-open-sponsor-link');
     const subSponsor = document.getElementById('ad-real-sponsor-sub');
 
     if (!overlay) return;
 
+    if (!this.adMusicTrack) {
+      this.adMusicTrack = 'rickroll';
+    }
+
     const cfg = this.getAdMonetizationConfig();
     const sponsorUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
 
-    const AD_DURATION = this.isWelkinActive() ? 1 : 5;
+    const AD_DURATION = this.isWelkinActive() ? 1 : 10;
     const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
     this.adRemainingSec = AD_DURATION;
     this.adRewardClaimed = false;
@@ -10156,29 +10175,23 @@ class TienLenGame {
     clearInterval(this.adIntervalTimer);
 
     this.recordAdMonetizationEvent('view');
-    this.recordAdMonetizationEvent('click');
 
     sfx.bgmPausedForAd = true;
     sfx.stopBGM();
     overlay.classList.remove('hidden');
 
     if (btnSponsor) {
-      btnSponsor.textContent = '🌐 Mở Web Tài Trợ (+1 Roll Ngay) ↗';
-      btnSponsor.style.background = 'linear-gradient(135deg,#2563eb,#1d4ed8)';
+      btnSponsor.href = sponsorUrl || 'https://uplcm.com/4/12175425';
+      btnSponsor.textContent = '🚀 Mở Trang Tài Trợ (Nhận Ngay +1 Roll 0s!) ↗';
+      btnSponsor.style.background = 'linear-gradient(135deg,#10b981,#059669)';
       btnSponsor.style.color = '#ffffff';
     }
     if (subSponsor) {
-      subSponsor.innerHTML = window.__tlmnIsInAppOrStandalone
-        ? `🎁 <strong>Đang hiển thị Trang Nhà Tài Trợ an toàn trong App...</strong> Chờ <strong>${AD_DURATION}s</strong> hoặc bấm nút bên phải để nhận ngay <strong>+1 Roll (+1,600 Xu)</strong>!`
-        : `🎁 <strong>Đã mở Trang Nhà Tài Trợ!</strong> Chờ <strong>${AD_DURATION}s</strong> hoặc bấm nút bên phải để nhận ngay <strong>+1 Roll (+1,600 Xu)</strong>!`;
+      subSponsor.innerHTML =
+        '⚡ <strong>Muốn nhận ngay không cần chờ 10s?</strong> Bấm nút bên phải hoặc bấm vào <strong>Banner Quảng Cáo ở góc dưới màn hình</strong> để cộng ngay <strong>+1 Roll (+1,600 Xu)</strong>!';
     }
 
-    // Tự động mở trang Web Nhà Tài Trợ:
-    // - Trên Web Browser: Mở tab _blank + nạp vào khung iframe sandbox
-    // - Trên App APK / WebView: Chỉ nạp trong khung iframe sandbox (chặn 100% lỗi intent:// và không làm văng App)
-    if (typeof window.__tlmnOpenSponsorWebSafe === 'function') {
-      window.__tlmnOpenSponsorWebSafe(sponsorUrl, true);
-    }
+    // Tự động làm mới Banner Quảng Cáo Góc Dưới Phải (Zone 12175813) để Monetag cộng tiền Impression ($) ngay lập tức mà không bị dính "Verify you are human"!
     if (typeof window.__tlmnRefreshCornerAdBanner === 'function') {
       window.__tlmnRefreshCornerAdBanner();
     }
@@ -10194,8 +10207,26 @@ class TienLenGame {
       progressFill.style.width = '0%';
     }
     if (toastMsg) {
-      toastMsg.innerHTML = `💡 Xem trang Nhà Tài Trợ <strong>${AD_DURATION} giây</strong> sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
+      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> hoặc bấm vào Banner Quảng Cáo góc phải sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
     }
+
+    const verityLyricsTimeline = [
+      { at: 0, text: "🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵" },
+      { at: 5, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
+      { at: 8, text: "🗼🥖 “What's the capital of France? ~ Oh, oui oui oui, it is Paris!” 🎵" },
+    ];
+    const rickLyricsTimeline = [
+      { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
+      { at: 3, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
+      { at: 6, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
+      { at: 8, text: '🔥 “Never gonna make you cry ~ Never gonna say goodbye!” 👑' },
+    ];
+    if (lyricsSub) {
+      lyricsSub.textContent =
+        this.adMusicTrack === 'verity' ? verityLyricsTimeline[0].text : rickLyricsTimeline[0].text;
+    }
+
+    this.applyAdMusicTrack();
 
     let elapsed = 0;
     this.adIntervalTimer = setInterval(() => {
@@ -10203,6 +10234,12 @@ class TienLenGame {
       this.adRemainingSec = Math.max(0, AD_DURATION - elapsed);
       const pct = Math.min(100, Math.round((elapsed / AD_DURATION) * 100));
       if (progressFill) progressFill.style.width = `${pct}%`;
+
+      const activeTimeline = this.adMusicTrack === 'verity' ? verityLyricsTimeline : rickLyricsTimeline;
+      const curLyric = [...activeTimeline].reverse().find((l) => elapsed >= l.at);
+      if (curLyric && lyricsSub) {
+        lyricsSub.textContent = curLyric.text;
+      }
 
       if (this.adRemainingSec > 0) {
         if (countdownPill) {

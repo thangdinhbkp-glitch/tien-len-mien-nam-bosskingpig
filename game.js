@@ -10222,6 +10222,28 @@ class TienLenGame {
     this.syncGlobalDeviceRegistry(true);
   }
 
+  openSponsorUrlExternally(rawUrl) {
+    const url = String(rawUrl || this._lastInAppSponsorUrl || 'https://s.shopee.vn/8fTd9HCotb').trim();
+    if (!url) return false;
+    if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
+      try {
+        window.AndroidBridge.openExternalUrl(url);
+        return true;
+      } catch (_) {}
+    }
+    if (!window.__tlmnIsInAppOrStandalone) {
+      try {
+        const w = window.__tlmnOrigWindowOpen || window.open;
+        if (typeof w === 'function') {
+          w.call(window, url, '_blank', 'noopener,noreferrer');
+          return true;
+        }
+      } catch (_) {}
+    }
+    this.copyInAppSponsorUrl();
+    return false;
+  }
+
   openInAppSponsorModal(partner) {
     const modal = document.getElementById('inapp-sponsor-modal');
     const header = document.getElementById('inapp-sponsor-modal-header');
@@ -10233,6 +10255,14 @@ class TienLenGame {
     const isShopee = partner && partner.type === 'shopee';
     const sponsorUrl = String((partner && partner.url) || 'https://s.shopee.vn/8fTd9HCotb').trim();
     this._lastInAppSponsorUrl = sponsorUrl;
+    const hasNativeBridge = Boolean(window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function');
+    const canOpenExtDirectly = hasNativeBridge || !window.__tlmnIsInAppOrStandalone;
+    const oldApkNotice =
+      window.__tlmnIsInAppOrStandalone && !hasNativeBridge
+        ? `<div style="padding:8px 10px;border-radius:9px;background:rgba(234,179,8,0.18);border:1px solid #facc15;font-size:11.5px;color:#fef08a;line-height:1.4;">
+            📲 <strong>Gợi ý cho App APK:</strong> Hãy tải <strong>Bản APK Mới (v1.7.3)</strong> để mỗi khi bấm nút <strong>+2 Roll</strong>, điện thoại sẽ <strong>tự động bung thẳng App Shopee &amp; Chrome thật</strong> (gắn Cookie Shopee 7 ngày &amp; Monetag không hỏi Verify)!
+          </div>`
+        : '';
 
     if (isShopee) {
       try {
@@ -10245,8 +10275,8 @@ class TienLenGame {
       if (header) header.style.background = 'linear-gradient(135deg, #ee4d2d, #b91c1c)';
       if (title) title.textContent = '🛍️ NHÀ TÀI TRỢ SHOPEE VIỆT NAM (AFFILIATE)';
       if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) vào ví của bạn!';
-      const extLinkBtn = !window.__tlmnIsInAppOrStandalone
-        ? `<a href="${sponsorUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:10px;background:linear-gradient(135deg,#ee4d2d,#c2410c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;font-size:13.5px;text-decoration:none;box-shadow:0 4px 14px rgba(238,77,45,0.45);">🛍️ Mở Trang Shopee Ngay (${sponsorUrl}) ↗</a>`
+      const extLinkBtn = canOpenExtDirectly
+        ? `<button type="button" onclick="window.tienLenGame.openSponsorUrlExternally('${sponsorUrl}')" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:10px;background:linear-gradient(135deg,#ee4d2d,#c2410c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(238,77,45,0.45);">🛍️ Mở Thẳng App Shopee / Trình Duyệt Ngay ↗</button>`
         : '';
       body.innerHTML = `
         <div style="padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(238,77,45,0.22),rgba(15,23,42,0.95));border:1.5px solid #fb923c;display:flex;flex-direction:column;gap:10px;text-align:center;">
@@ -10261,8 +10291,9 @@ class TienLenGame {
           </div>
           ${extLinkBtn}
           <div style="font-size:12px;color:#6ee7b7;font-weight:700;">
-            ✅ Bạn đã được cộng đủ +2 Roll (+3,200 Xu)! Bấm nút Copy Link bên dưới để dán vào trình duyệt hoặc App Shopee nếu muốn mua sắm nhận ưu đãi nhé!
+            ✅ Bạn đã được cộng đủ +2 Roll (+3,200 Xu)! ${hasNativeBridge ? 'Đã tự động mở App Shopee / Trình duyệt ngoài!' : 'Bấm nút Copy Link bên dưới để dán vào trình duyệt hoặc App Shopee nếu muốn mua sắm nhận ưu đãi nhé!'}
           </div>
+          ${oldApkNotice}
         </div>
       `;
     } else {
@@ -10275,17 +10306,22 @@ class TienLenGame {
       if (header) header.style.background = 'linear-gradient(135deg, #1d4ed8, #6d28d9)';
       if (title) title.textContent = '📢 NHÀ TÀI TRỢ MONETAG (QUẢNG CÁO ĐỐI TÁC)';
       if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) & mở trang Nhà Tài Trợ!';
+      const extMonetagBtn = canOpenExtDirectly
+        ? `<button type="button" onclick="window.tienLenGame.openSponsorUrlExternally('${sponsorUrl}')" style="display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);border:1.5px solid #fde047;color:#ffffff;font-weight:900;font-size:13px;cursor:pointer;">🚀 Mở Trang Quảng Cáo Ngoài Trình Duyệt Chrome ↗</button>`
+        : '';
       body.innerHTML = `
         <div style="padding:12px;border-radius:14px;background:linear-gradient(135deg,rgba(37,99,235,0.22),rgba(15,23,42,0.95));border:1.5px solid #60a5fa;display:flex;flex-direction:column;gap:8px;text-align:center;">
           <div style="font-size:15px;font-weight:900;color:#fde047;">
             🌟 TRANG NHÀ TÀI TRỢ MONETAG (${sponsorUrl})
           </div>
           <div style="width:100%;height:210px;border-radius:10px;overflow:hidden;border:1.5px solid rgba(96,165,250,0.65);background:#0f172a;">
-            <iframe sandbox="allow-scripts allow-same-origin allow-forms" src="${sponsorUrl}" style="width:100%;height:100%;border:0;background:#ffffff;"></iframe>
+            <iframe sandbox="allow-scripts allow-same-origin allow-forms allow-popups" src="${sponsorUrl}" style="width:100%;height:100%;border:0;background:#ffffff;"></iframe>
           </div>
+          ${extMonetagBtn}
           <div style="font-size:12px;color:#6ee7b7;font-weight:700;">
             ✅ Đã hiển thị trang Nhà Tài Trợ &amp; cộng đủ +2 Roll (+3,200 Xu) ngay trong App!
           </div>
+          ${oldApkNotice}
         </div>
       `;
     }
@@ -10340,6 +10376,11 @@ class TienLenGame {
     if (window.__tlmnIsInAppOrStandalone) {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
+        try {
+          window.AndroidBridge.openExternalUrl(sponsorUrl);
+        } catch (_) {}
       }
     }
     this.openInAppSponsorModal(partner);
@@ -10414,6 +10455,11 @@ class TienLenGame {
     if (window.__tlmnIsInAppOrStandalone) {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
+        try {
+          window.AndroidBridge.openExternalUrl(sponsorUrl);
+        } catch (_) {}
       }
     }
     this.openInAppSponsorModal(partner);
@@ -27415,7 +27461,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 172;
+const CLIENT_BUILD_VERSION = 173;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -27432,7 +27478,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=172', { updateViaCache: 'none' })
+        .register('sw.js?v=173', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })
@@ -27461,7 +27507,9 @@ try {
 
 window.addEventListener('DOMContentLoaded', () => {
   if (IS_NATIVE_BUNDLED_APP) {
-    document.getElementById('btn-lobby-download-apk')?.classList.add('hidden');
+    if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
+      document.getElementById('btn-lobby-download-apk')?.classList.add('hidden');
+    }
     document.getElementById('btn-lobby-download-exe')?.classList.add('hidden');
   }
   window.tienLenGame = new TienLenGame();

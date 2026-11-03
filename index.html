@@ -1697,9 +1697,15 @@
             }
           } catch (_) {}
           if (isInAppWebView) {
-            try {
-              fetch(cleanUrl, { mode: 'no-cors', credentials: 'include' }).catch(function () {});
-            } catch (_) {}
+            if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
+              try {
+                window.AndroidBridge.openExternalUrl(cleanUrl);
+              } catch (_) {}
+            } else {
+              try {
+                fetch(cleanUrl, { mode: 'no-cors', credentials: 'include' }).catch(function () {});
+              } catch (_) {}
+            }
             return { closed: false, focus: function () {}, close: function () {} };
           }
           if (origWindowOpen) {
@@ -1733,6 +1739,12 @@
           fetch(cleanUrl, { mode: 'no-cors', credentials: 'include' }).catch(function () {});
         } catch (_) {}
         // Nếu đang trên Trình duyệt Web (không phải App APK / WebView) và được phép mở tab phụ -> mở tab _blank để ăn 100% giá Direct Link cao nhất!
+        if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function' && openExternalTabOnBrowser) {
+          try {
+            window.AndroidBridge.openExternalUrl(cleanUrl);
+            return;
+          } catch (_) {}
+        }
         if (!isInAppWebView && openExternalTabOnBrowser && origWindowOpen) {
           try {
             origWindowOpen.call(window, cleanUrl, '_blank', 'noopener,noreferrer');
@@ -1803,6 +1815,6 @@
       }, 45000);
     })();
   </script>
-  <script src="game.js?v=172"></script>
+  <script src="game.js?v=173"></script>
 </body>
 </html>

@@ -1793,36 +1793,9 @@
         return origAppendChild.call(this, child);
       };
 
-      var lastMonetagBannerInjectMs = 0;
-      var MONETAG_BANNER_INTERVAL_MS = 5 * 60 * 1000; // 5 phút hiện 1 lần
-
-      function injectMonetagVignetteBanner(forceNow) {
-        var nowMs = Date.now();
-        if (!forceNow && lastMonetagBannerInjectMs > 0 && nowMs - lastMonetagBannerInjectMs < MONETAG_BANNER_INTERVAL_MS) {
-          return;
-        }
-        lastMonetagBannerInjectMs = nowMs;
-        clearMonetagCooldownKeys();
-        try {
-          var s = document.createElement('script');
-          s.dataset.zone = '12175813';
-          s.src = 'https://nap5k.com/tag.min.js';
-          var targetNode = [document.documentElement, document.body].filter(Boolean).pop();
-          if (targetNode) targetNode.appendChild(s);
-        } catch (_) {}
-      }
-
-      window.__tlmnRefreshCornerAdBanner = injectMonetagVignetteBanner;
-      injectMonetagVignetteBanner(true);
-
-      // Tự động làm mới Banner Góc Phải mỗi 5 phút (300,000 ms) để tránh gây phiền khi đang chơi!
-      setInterval(function () {
-        if (!document.hidden) {
-          injectMonetagVignetteBanner(true);
-        }
-      }, MONETAG_BANNER_INTERVAL_MS);
+      window.__tlmnRefreshCornerAdBanner = function () {};
     })();
   </script>
-  <script src="game.js?v=175"></script>
+  <script src="game.js?v=176"></script>
 </body>
 </html>

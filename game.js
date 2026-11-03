@@ -27488,7 +27488,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 175;
+const CLIENT_BUILD_VERSION = 176;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -27505,7 +27505,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=175', { updateViaCache: 'none' })
+        .register('sw.js?v=176', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

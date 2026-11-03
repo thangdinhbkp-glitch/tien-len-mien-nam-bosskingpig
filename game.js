@@ -11124,6 +11124,8 @@ class TienLenGame {
     this.renderTopupModal();
     modal.classList.remove('hidden');
     sfx.click();
+    // Tự động bật luồng lắng nghe SePay 24/24 ngay khi mở bảng QR — người chơi chỉ cần quét QR chuyển khoản trên App Ngân Hàng là game tự nổ quà không cần bấm nút!
+    this.startWelkinOrderAutoPoller();
     await this.checkSePayAutoTransactions();
     const reg = await this.syncGlobalDeviceRegistry(true);
     this.checkAndAutoDeliverApprovedWelkinOrder(reg);
@@ -29034,7 +29036,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 182;
+const CLIENT_BUILD_VERSION = 183;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -29051,7 +29053,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=182', { updateViaCache: 'none' })
+        .register('sw.js?v=183', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

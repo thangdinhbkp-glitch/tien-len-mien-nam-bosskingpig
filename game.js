@@ -4101,9 +4101,9 @@ class TienLenGame {
       freshVideo.setAttribute('controlslist', 'nodownload nofullscreen noremoteplayback');
       freshVideo.preload = 'auto';
       freshVideo.style.transition = 'none';
-      freshVideo.style.display = 'none';
+      freshVideo.style.display = 'block';
       freshVideo.style.opacity = '0';
-      freshVideo.style.visibility = 'hidden';
+      freshVideo.style.visibility = 'visible';
       charWrapEl.appendChild(freshVideo);
       videoEl = freshVideo;
     }
@@ -4247,21 +4247,30 @@ class TienLenGame {
         frameRevealed = true;
         videoEl.ontimeupdate = null;
         videoEl.onloadeddata = null;
+        videoEl.oncanplay = null;
         videoEl.style.display = 'block';
         videoEl.style.visibility = 'visible';
         videoEl.style.opacity = '1';
         triggerSyncedBurstAudio();
       };
 
-      // Chỉ hiển thị thẻ <video> mới tạo và phát tiếng Nộ ngay khi decoder THỰC SỰ đã vẽ khung hình đầu tiên của video mới (tránh tuyệt đối nháy frame cũ trên phần cứng điện thoại/máy khác!)
+      // Hiển thị thẻ <video> mới tạo và phát tiếng Nộ ngay khi khung hình đầu tiên sẵn sàng (tương thích 100% cả PC và trình duyệt Điện thoại iOS/Android)
       if (typeof videoEl.requestVideoFrameCallback === 'function') {
         videoEl.requestVideoFrameCallback(() => {
           revealVideoFrame();
         });
       }
+      videoEl.onloadeddata = () => {
+        if (seqId !== this._burstSeqId) return;
+        revealVideoFrame();
+      };
+      videoEl.oncanplay = () => {
+        if (seqId !== this._burstSeqId) return;
+        revealVideoFrame();
+      };
       videoEl.ontimeupdate = () => {
         if (seqId !== this._burstSeqId) return;
-        if (videoEl.currentTime > 0.02) {
+        if (videoEl.currentTime > 0.01) {
           revealVideoFrame();
         }
       };
@@ -4269,11 +4278,7 @@ class TienLenGame {
         if (seqId !== this._burstSeqId) return;
         videoEl.onplaying = null;
         startDurationCountdown();
-        setTimeout(() => {
-          if (seqId === this._burstSeqId && !videoEl.paused) {
-            revealVideoFrame();
-          }
-        }, 75);
+        revealVideoFrame();
       };
       this.burstTimeout = setTimeout(finishBurst, 4600);
 
@@ -4282,8 +4287,10 @@ class TienLenGame {
         playPromise.catch(() => {
           if (seqId !== this._burstSeqId) return;
           videoEl.muted = true;
+          revealVideoFrame();
+          startDurationCountdown();
           videoEl.play().catch(() => {
-            triggerSyncedBurstAudio();
+            revealVideoFrame();
             startDurationCountdown();
           });
         });
@@ -13551,6 +13558,7 @@ class TienLenGame {
     });
 
     document.getElementById('btn-close-summary').addEventListener('click', () => {
+      this._userPeekedSummaryMatch = this.matchCount;
       this.modalSummary.classList.add('hidden');
       this.btnShowSummary.classList.remove('hidden');
       document.getElementById('peek-return-summary-bar')?.classList.remove('hidden');
@@ -13564,6 +13572,7 @@ class TienLenGame {
     });
 
     document.getElementById('btn-peek-table').addEventListener('click', () => {
+      this._userPeekedSummaryMatch = this.matchCount;
       this.modalSummary.classList.add('hidden');
       this.btnShowSummary.classList.remove('hidden');
       document.getElementById('peek-return-summary-bar')?.classList.remove('hidden');
@@ -18061,7 +18070,7 @@ class TienLenGame {
     }
 
     this.lastBurstEffect = {
-      id: Date.now(),
+      id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       type: charId,
       burstId: charId,
       isWin: false,
@@ -20567,6 +20576,9 @@ class TienLenGame {
     this.lastSyncedVersion = Number(cloudRoom.version) || 0;
     this._lastObservedHostBeatVal = Number(cloudRoom.hostHeartbeatMs) || 0;
     this._lastObservedHostBeatLocalMs = Date.now();
+    if (cloudRoom.state?.lastBurstEffect?.id) {
+      this.lastShownBurstId = cloudRoom.state.lastBurstEffect.id;
+    }
     this.applySyncedStateOnGuest(cloudRoom.state);
     this.initGuestPeer(this.roomId, this.getLocalPlayer()?.name || this.savedPlayerName || 'Người chơi');
     if (this.pollTimer) clearInterval(this.pollTimer);
@@ -21014,6 +21026,9 @@ class TienLenGame {
     this.btnShowSummary?.classList.add('hidden');
 
     if (cloudRoom && cloudRoom.state && Array.isArray(cloudRoom.state.players)) {
+      if (cloudRoom.state.lastBurstEffect?.id) {
+        this.lastShownBurstId = cloudRoom.state.lastBurstEffect.id;
+      }
       this.applySyncedStateOnGuest(cloudRoom.state);
     }
 
@@ -21534,9 +21549,8 @@ class TienLenGame {
     }
     if (this.roomId) {
       try {
-        const now = Date.now();
         const existingEvts = await this.fetchCloudRoomEvents(this.roomId);
-        const recentEvts = existingEvts.filter((e) => e && e.id && now - (Number(e.sentAtMs) || now) < 60000);
+        const recentEvts = existingEvts.filter((e) => e && e.id).slice(-19);
         if (!recentEvts.some((e) => e.id === evt.id)) {
           recentEvts.push(evt);
         }
@@ -22143,11 +22157,16 @@ class TienLenGame {
         .join('');
     }
 
+    if (state.lastSummaryData) {
+      this.lastSummaryData = state.lastSummaryData;
+    }
+
+    let winBurstScheduledSummary = false;
     if (
       this.matchCount >= 1 &&
       state.lastBurstEffect &&
-      state.lastBurstEffect.id !== this.lastShownBurstId &&
-      Math.abs(Date.now() - Number(state.lastBurstEffect.id || 0)) < 12000
+      state.lastBurstEffect.id &&
+      state.lastBurstEffect.id !== this.lastShownBurstId
     ) {
       this.lastShownBurstId = state.lastBurstEffect.id;
       const burst = state.lastBurstEffect;
@@ -22155,17 +22174,19 @@ class TienLenGame {
       if (!burst.isWin) {
         this.triggerGenshinBurst(bId, burst.detail, null, !!burst.lockGameplay);
       } else {
+        winBurstScheduledSummary = true;
         sfx.win();
-        const summarySnapshot = state.lastSummaryData;
+        const summarySnapshot = state.lastSummaryData || this.lastSummaryData;
         clearTimeout(this.endMatchDelayTimer);
         this.endMatchDelayTimer = setTimeout(() => {
           if (!this.isGameOver) return;
           this.triggerGenshinBurst(bId, burst.detail, () => {
-            if (this.isGameOver && summarySnapshot) {
+            const latestSummary = this.lastSummaryData || summarySnapshot;
+            if (this.isGameOver && latestSummary) {
               this.showSummaryModal(
-                summarySnapshot.coinChanges,
-                summarySnapshot.detailsByPlayer,
-                summarySnapshot.bannerTitle
+                latestSummary.coinChanges,
+                latestSummary.detailsByPlayer,
+                latestSummary.bannerTitle
               );
             }
           });
@@ -22173,7 +22194,8 @@ class TienLenGame {
       }
     }
 
-    if (this.isGameOver && this.matchCount >= 1 && state.lastSummaryData) {
+    if (this.isGameOver && this.matchCount >= 1 && (state.lastSummaryData || this.lastSummaryData)) {
+      const summarySnapshot = state.lastSummaryData || this.lastSummaryData;
       this.btnShowSummary.classList.remove('hidden');
       if (!wasGameOver) {
         this.incrementDailyQuest('play_matches', 1);
@@ -22181,21 +22203,47 @@ class TienLenGame {
           this.incrementDailyQuest('win_matches', 1);
         }
       }
-      if (!wasGameOver && (!state.lastBurstEffect || !state.lastBurstEffect.isWin)) {
+      if (!wasGameOver && !winBurstScheduledSummary) {
         sfx.win();
-        const summarySnapshot = state.lastSummaryData;
         clearTimeout(this.endMatchDelayTimer);
         this.endMatchDelayTimer = setTimeout(() => {
-          if (!this.isGameOver || !summarySnapshot) return;
+          const latestSummary = this.lastSummaryData || summarySnapshot;
+          if (!this.isGameOver || !latestSummary) return;
           this.showSummaryModal(
-            summarySnapshot.coinChanges,
-            summarySnapshot.detailsByPlayer,
-            summarySnapshot.bannerTitle
+            latestSummary.coinChanges,
+            latestSummary.detailsByPlayer,
+            latestSummary.bannerTitle
           );
         }, 1350);
       }
+      // Failsafe: đảm bảo bảng tổng kết / nút Sẵn Sàng Ván Tiếp luôn hiện sau khi kết thúc ván trên điện thoại
+      if (!wasGameOver) {
+        clearTimeout(this.summaryFailsafeTimer);
+        this.summaryFailsafeTimer = setTimeout(() => {
+          const latestSummary = this.lastSummaryData || summarySnapshot;
+          if (
+            this.isGameOver &&
+            latestSummary &&
+            this.modalSummary.classList.contains('hidden') &&
+            this._userPeekedSummaryMatch !== this.matchCount
+          ) {
+            if (this.isBurstPlaying && typeof this._activeFinishBurstFn === 'function') {
+              this._activeFinishBurstFn();
+            }
+            if (this.modalSummary.classList.contains('hidden')) {
+              this.showSummaryModal(
+                latestSummary.coinChanges,
+                latestSummary.detailsByPlayer,
+                latestSummary.bannerTitle
+              );
+            }
+          }
+        }, 5600);
+      }
     } else if (!this.isGameOver) {
+      this._userPeekedSummaryMatch = 0;
       clearTimeout(this.endMatchDelayTimer);
+      clearTimeout(this.summaryFailsafeTimer);
       this.modalSummary.classList.add('hidden');
       this.btnShowSummary.classList.add('hidden');
       document.getElementById('peek-return-summary-bar')?.classList.add('hidden');
@@ -22802,7 +22850,7 @@ class TienLenGame {
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon.toLocaleString()} Xu!`;
     const winBurstId = this.getPlayerActiveCharId(winner);
-    this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: burstDetail };
+    this.lastBurstEffect = { id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, type: winBurstId, burstId: winBurstId, isWin: true, detail: burstDetail };
     this.incrementDailyQuest('play_matches', 1);
     if (winnerId === this.mySeatId) {
       this.incrementDailyQuest('win_matches', 1);
@@ -23591,7 +23639,7 @@ class TienLenGame {
         : `💥 ${player.name} tung ${combo.label} ${chopTitleUpper.toLowerCase()} ${targetDisplayLabel} của ${victim.name} (+${totalChopValue.toLocaleString()} xu)!`;
       const chopBurstId = this.getPlayerActiveCharId(player);
       if (player.hand.length > 0) {
-        this.lastBurstEffect = { id: Date.now(), type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
+        this.lastBurstEffect = { id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, type: chopBurstId, burstId: chopBurstId, isWin: false, detail: chopBurstDetail };
         this.triggerGenshinBurst(chopBurstId, chopBurstDetail);
       } else if (rx) {
         this.triggerArenaReactionFlash(rx);
@@ -27836,7 +27884,7 @@ class TienLenGame {
       ? `👑 ${winner.name} Đút 3♠ Về Nhất • +${totalWinnerGain.toLocaleString()} Xu!`
       : `🏆 ${winner.name} Về Nhất Ăn Tất • +${totalWinnerGain.toLocaleString()} Xu!`;
     const winBurstId = this.getPlayerActiveCharId(winner);
-    this.lastBurstEffect = { id: Date.now(), type: winBurstId, burstId: winBurstId, isWin: true, detail: winBurstDetail };
+    this.lastBurstEffect = { id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, type: winBurstId, burstId: winBurstId, isWin: true, detail: winBurstDetail };
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     this.incrementDailyQuest('play_matches', 1);
     if (winnerId === this.mySeatId) {
@@ -27867,9 +27915,18 @@ class TienLenGame {
   }
 
   reopenSummaryFromPeek() {
+    this._userPeekedSummaryMatch = 0;
     document.getElementById('peek-return-summary-bar')?.classList.add('hidden');
-    this.renderSummaryReadyStateUI();
-    this.modalSummary.classList.remove('hidden');
+    if (this.lastSummaryData) {
+      this.showSummaryModal(
+        this.lastSummaryData.coinChanges,
+        this.lastSummaryData.detailsByPlayer,
+        this.lastSummaryData.bannerTitle
+      );
+    } else {
+      this.renderSummaryReadyStateUI();
+      this.modalSummary.classList.remove('hidden');
+    }
     sfx.click();
     if (!this.tutorialCompleted) {
       this.renderTravelerGuide();

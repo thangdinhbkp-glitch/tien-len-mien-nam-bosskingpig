@@ -4649,6 +4649,12 @@ class TienLenGame {
     }
     if (data.lastDailyDate) this.lastDailyDate = data.lastDailyDate;
     if (typeof data.dailyReliefUsed === 'number') this.dailyReliefUsed = data.dailyReliefUsed;
+    if (typeof data.lastSponsor2RollClaimMs === 'number') {
+      this.lastSponsor2RollClaimMs = Math.max(
+        Number(this.lastSponsor2RollClaimMs) || 0,
+        Number(data.lastSponsor2RollClaimMs) || 0
+      );
+    }
     if (typeof data.tutorialCompleted === 'boolean') {
       this.tutorialCompleted = Boolean(this.tutorialCompleted || data.tutorialCompleted);
     }
@@ -4712,6 +4718,7 @@ class TienLenGame {
     this.tutorialStep = 0;
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
+    this.lastSponsor2RollClaimMs = 0;
     this.dailyRecoveredOnLoad = false;
     this.dailyQuestsDate = today;
     this.dailyQuestsState = this.getDefaultDailyQuestsState();
@@ -6122,6 +6129,7 @@ class TienLenGame {
         tutorialStep: this.tutorialStep || 0,
         lastDailyDate: this.lastDailyDate || today,
         dailyReliefUsed: this.dailyReliefUsed || 0,
+        lastSponsor2RollClaimMs: Number(this.lastSponsor2RollClaimMs) || 0,
         dailyQuestsDate: this.dailyQuestsDate || today,
         dailyQuestsState: this.dailyQuestsState,
       };
@@ -9007,6 +9015,7 @@ class TienLenGame {
       `;
 
       // Giữ nguyên vị trí cuộn của thanh danh sách Banner (không bị giật/thụt về banner đầu tiên)
+      this.syncSponsor2RollButtonsHref();
       const newRosterEl = gachaPanel.querySelector('.gacha-up-Roster');
       if (newRosterEl) {
         newRosterEl.scrollLeft = savedRosterScrollLeft;
@@ -9697,13 +9706,6 @@ class TienLenGame {
     const monetagUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
     const shopeeUrl = String(cfg.shopeeUrl || 'https://s.shopee.vn/8fTd9HCotb').trim();
     const pool = [];
-    if (monetagUrl) {
-      pool.push({
-        type: 'monetag',
-        url: monetagUrl,
-        name: 'Nhà Tài Trợ Monetag',
-      });
-    }
     if (shopeeUrl) {
       pool.push({
         type: 'shopee',
@@ -9711,34 +9713,126 @@ class TienLenGame {
         name: 'Nhà Tài Trợ Shopee',
       });
     }
+    if (monetagUrl) {
+      pool.push({
+        type: 'monetag',
+        url: monetagUrl,
+        name: 'Nhà Tài Trợ Monetag',
+      });
+    }
     if (pool.length === 0) {
       return {
-        type: 'monetag',
-        url: 'https://uplcm.com/4/12175425',
-        name: 'Nhà Tài Trợ Monetag',
+        type: 'shopee',
+        url: 'https://s.shopee.vn/8fTd9HCotb',
+        name: 'Nhà Tài Trợ Shopee',
       };
     }
     let turnIdx = 0;
     try {
-      turnIdx = Math.max(0, parseInt(localStorage.getItem('tlmn_sponsor_turn_idx_v1') || '0', 10) || 0);
+      const rawIdx = localStorage.getItem('tlmn_sponsor_turn_idx_v2');
+      if (rawIdx === null) {
+        turnIdx = Math.random() < 0.5 ? 0 : 1;
+        localStorage.setItem('tlmn_sponsor_turn_idx_v2', String(turnIdx));
+      } else {
+        turnIdx = Math.max(0, parseInt(rawIdx, 10) || 0);
+      }
       if (advanceTurn) {
         turnIdx = (turnIdx + 1) % pool.length;
-        localStorage.setItem('tlmn_sponsor_turn_idx_v1', String(turnIdx));
+        localStorage.setItem('tlmn_sponsor_turn_idx_v2', String(turnIdx));
       }
     } catch (_) {
-      turnIdx = 0;
+      turnIdx = Math.floor(Math.random() * pool.length);
     }
     return pool[turnIdx % pool.length];
+  }
+
+  getSponsor2RollCooldownRemainingMs() {
+    let lastMs = Number(this.lastSponsor2RollClaimMs) || 0;
+    try {
+      const lsGlobal = Number(localStorage.getItem('tlmn_last_sponsor_2roll_ms_v1')) || 0;
+      const lsUser = this.currentAccountUsername
+        ? Number(localStorage.getItem(`tlmn_last_sponsor_2roll_ms_${this.currentAccountUsername}`)) || 0
+        : 0;
+      lastMs = Math.max(lastMs, lsGlobal, lsUser);
+    } catch (_) {}
+    if (!lastMs) return 0;
+    const COOLDOWN_MS = 60 * 60 * 1000; // Giới hạn 1 tiếng (3,600 giây) bấm được 1 lần
+    return Math.max(0, lastMs + COOLDOWN_MS - Date.now());
+  }
+
+  recordSponsor2RollClaimTimestamp() {
+    const nowMs = Date.now();
+    this.lastSponsor2RollClaimMs = nowMs;
+    try {
+      localStorage.setItem('tlmn_last_sponsor_2roll_ms_v1', String(nowMs));
+      if (this.currentAccountUsername) {
+        localStorage.setItem(`tlmn_last_sponsor_2roll_ms_${this.currentAccountUsername}`, String(nowMs));
+      }
+    } catch (_) {}
+    this.startSponsorCooldownTicker();
+  }
+
+  startSponsorCooldownTicker() {
+    if (this._sponsorCooldownTimer) {
+      clearInterval(this._sponsorCooldownTimer);
+      this._sponsorCooldownTimer = null;
+    }
+    this.syncSponsor2RollButtonsHref();
+    if (this.getSponsor2RollCooldownRemainingMs() > 0) {
+      this._sponsorCooldownTimer = setInterval(() => {
+        const rem = this.getSponsor2RollCooldownRemainingMs();
+        this.syncSponsor2RollButtonsHref();
+        if (rem <= 0 && this._sponsorCooldownTimer) {
+          clearInterval(this._sponsorCooldownTimer);
+          this._sponsorCooldownTimer = null;
+        }
+      }, 1000);
+    }
   }
 
   syncSponsor2RollButtonsHref() {
     if (!this.currentSponsorOffer) {
       this.currentSponsorOffer = this.pickRandomSponsorPartner(false);
     }
-    const url = String(this.currentSponsorOffer.url || 'https://uplcm.com/4/12175425').trim();
+    const url = String(this.currentSponsorOffer.url || 'https://s.shopee.vn/8fTd9HCotb').trim();
+    const remMs = this.getSponsor2RollCooldownRemainingMs();
+    const totalSec = Math.ceil(remMs / 1000);
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    const timeStr = `${mins}p ${String(secs).padStart(2, '0')}s`;
+
     document.querySelectorAll('.sponsor-2roll-direct-link, #btn-ad-open-sponsor-link').forEach((el) => {
-      if (el && el.tagName === 'A') {
-        el.href = url;
+      if (!el) return;
+      if (remMs > 0) {
+        if (el.tagName === 'A') {
+          el.href = 'javascript:void(0)';
+          el.removeAttribute('target');
+        }
+        el.style.opacity = '0.72';
+        el.style.filter = 'grayscale(0.35)';
+        if (el.id === 'btn-lobby-sponsor-2roll') {
+          el.innerHTML = `<span class="dock-icon">⏳</span><span class="dock-label" style="color:#fde68a;font-weight:800;">Chờ ${mins}p${String(secs).padStart(2, '0')}s</span>`;
+        } else if (el.id === 'btn-ad-open-sponsor-link') {
+          el.textContent = `⏳ Đã Nhận +2 Roll (Mở Lại Sau ${timeStr})`;
+        } else {
+          el.textContent = `⏳ Mở Web +2 Roll (Chờ ${timeStr})`;
+        }
+      } else {
+        if (el.tagName === 'A') {
+          el.href = url;
+          el.setAttribute('target', '_blank');
+        }
+        el.style.opacity = '1';
+        el.style.filter = 'none';
+        if (el.id === 'btn-lobby-sponsor-2roll') {
+          el.innerHTML = `<span class="dock-icon">🎁</span><span class="dock-label" style="color:#fef08a;font-weight:800;">Mở Web (+2 Roll)</span>`;
+        } else if (el.id === 'btn-ad-open-sponsor-link') {
+          el.textContent = `🎁 Mở Trang Nhà Tài Trợ (Nhận Ngay +2 ROLL = 3,200 Xu!) ↗`;
+          el.style.background = 'linear-gradient(135deg,#f59e0b,#ea580c)';
+          el.style.color = '#ffffff';
+        } else {
+          el.textContent = `🎁 Mở Web Tài Trợ (+2 Roll = 3,200 Xu) ↗`;
+        }
       }
     });
   }
@@ -10124,11 +10218,32 @@ class TienLenGame {
   }
 
   onClickDirectSponsor2Roll(evt = null) {
+    const remMs = this.getSponsor2RollCooldownRemainingMs();
+    if (remMs > 0) {
+      if (evt && typeof evt.preventDefault === 'function') {
+        evt.preventDefault();
+      }
+      const totalSec = Math.ceil(remMs / 1000);
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      sfx.pass();
+      this.showCenterToast(
+        `⏳ Nút Mở Web (+2 Roll) giới hạn 1 tiếng / 1 lần! Còn ${mins} phút ${secs} giây nữa (hoặc bấm Xem QC 30s +1 Roll)!`
+      );
+      this.syncSponsor2RollButtonsHref();
+      return false;
+    }
+
     const partner = this.currentSponsorOffer || this.pickRandomSponsorPartner(false);
-    const sponsorUrl = String(partner.url || 'https://uplcm.com/4/12175425').trim();
+    const sponsorUrl = String(partner.url || 'https://s.shopee.vn/8fTd9HCotb').trim();
     if (evt && evt.currentTarget && evt.currentTarget.tagName === 'A' && sponsorUrl) {
       evt.currentTarget.href = sponsorUrl;
+      evt.currentTarget.setAttribute('target', '_blank');
     }
+
+    // Đổi luân phiên 1-1 sang đối tác tiếp theo (Shopee <-> Monetag) NGAY LẬP TỨC trong localStorage!
+    this.currentSponsorOffer = this.pickRandomSponsorPartner(true);
+    this.recordSponsor2RollClaimTimestamp();
     this.recordAdMonetizationEvent('click');
 
     if (window.__tlmnIsInAppOrStandalone) {
@@ -10154,39 +10269,61 @@ class TienLenGame {
     }
     sfx.win();
     this.saveShopProfile();
-    this.renderShopModal();
     this.renderSeats();
     this.renderBetTiers();
+    const shopBal = document.getElementById('shop-balance');
+    if (shopBal && me) shopBal.textContent = me.coins.toLocaleString();
     const resBal = document.getElementById('gacha-results-balance');
     if (resBal && me) resBal.textContent = me.coins.toLocaleString();
     const qBal = document.getElementById('quests-modal-balance');
     if (qBal && me) qBal.textContent = me.coins.toLocaleString();
     this.showCenterToast(`🎉 Đã mở ${partner.name} • Cộng ngay +2 Roll (+${AD_REWARD.toLocaleString()} Xu)!`);
     this.addLog(
-      `🎁 <strong>Mở Trang Nhà Tài Trợ (${partner.name}):</strong> Bạn vừa nhận thưởng <strong>+2 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`,
+      `🎁 <strong>Mở Trang Nhà Tài Trợ (${partner.name}):</strong> Bạn vừa nhận thưởng <strong>+2 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong> (Hồi chiêu: 1 tiếng)!`,
       'log-win'
     );
     this.syncCosmeticsInRoom();
 
-    // Đổi luân phiên 1-1 sang đối tác tiếp theo (Monetag <-> Shopee) SAU khi trình duyệt đã mở tab hiện tại
+    // Cập nhật lại giao diện nút sang trạng thái đếm ngược 60 phút SAU khi trình duyệt đã mở tab mới (60ms)
     setTimeout(() => {
-      this.currentSponsorOffer = this.pickRandomSponsorPartner(true);
+      this.renderShopModal();
       this.syncSponsor2RollButtonsHref();
-    }, 150);
+    }, 60);
 
     return !window.__tlmnIsInAppOrStandalone;
   }
 
   onClickSponsorAdLink(evt = null) {
+    const remMs = this.getSponsor2RollCooldownRemainingMs();
+    if (remMs > 0) {
+      if (evt && typeof evt.preventDefault === 'function') {
+        evt.preventDefault();
+      }
+      const totalSec = Math.ceil(remMs / 1000);
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      sfx.pass();
+      this.showCenterToast(
+        `⏳ Bạn đã nhận +2 Roll từ Nhà Tài Trợ rồi! Chờ ${mins} phút ${secs} giây nữa hoặc đợi hết 30s nhận +1 Roll nhé!`
+      );
+      this.syncSponsor2RollButtonsHref();
+      return false;
+    }
+
     const partner = this.currentSponsorOffer || this.pickRandomSponsorPartner(false);
-    const sponsorUrl = String(partner.url || 'https://uplcm.com/4/12175425').trim();
+    const sponsorUrl = String(partner.url || 'https://s.shopee.vn/8fTd9HCotb').trim();
     this.adSponsorClickedThisSession = true;
-    this.recordAdMonetizationEvent('click');
 
     const btn = document.getElementById('btn-ad-open-sponsor-link');
     if (btn && sponsorUrl) {
       btn.href = sponsorUrl;
+      btn.setAttribute('target', '_blank');
     }
+
+    // Đổi luân phiên 1-1 sang đối tác tiếp theo (Shopee <-> Monetag) NGAY LẬP TỨC trong localStorage!
+    this.currentSponsorOffer = this.pickRandomSponsorPartner(true);
+    this.recordSponsor2RollClaimTimestamp();
+    this.recordAdMonetizationEvent('click');
 
     // Trên App APK / WebView / PWA Standalone: Chặn mở trang đè lên App, gửi ping ngầm và cộng thưởng +2 Roll ngay lập tức!
     if (window.__tlmnIsInAppOrStandalone) {
@@ -10216,11 +10353,9 @@ class TienLenGame {
       this.adRemainingSec = 0;
       this.claimRewardedAdCoinsNow(2, partner.name);
     }
-    // Chuẩn bị luân phiên 1-1 sang đối tác tiếp theo cho lần bấm sau (SAU khi trình duyệt mở xong tab)
     setTimeout(() => {
-      this.currentSponsorOffer = this.pickRandomSponsorPartner(true);
       this.syncSponsor2RollButtonsHref();
-    }, 150);
+    }, 60);
     return !window.__tlmnIsInAppOrStandalone;
   }
 
@@ -10346,8 +10481,9 @@ class TienLenGame {
       btnSponsor.style.color = '#ffffff';
     }
     if (subSponsor) {
-      subSponsor.innerHTML = `🔥 <strong>ƯU ĐÃI X2 THƯỞNG:</strong> Ngồi xem hết ${AD_DURATION}s nhận <strong>+1 Roll (${AD_REWARD.toLocaleString()} Xu)</strong> — Hoặc bấm <strong>Mở Trang Nhà Tài Trợ</strong> bên phải để bỏ qua ${AD_DURATION}s và nhận ngay <strong>+2 ROLL (+${SPONSOR_REWARD.toLocaleString()} Xu)!</strong>`;
+      subSponsor.innerHTML = `🔥 <strong>ƯU ĐÃI X2 THƯỞNG (1 TIẾNG / 1 LẦN):</strong> Ngồi xem hết ${AD_DURATION}s nhận <strong>+1 Roll (${AD_REWARD.toLocaleString()} Xu)</strong> — Hoặc bấm <strong>Mở Trang Nhà Tài Trợ</strong> bên phải để bỏ qua ${AD_DURATION}s và nhận ngay <strong>+2 ROLL (+${SPONSOR_REWARD.toLocaleString()} Xu)!</strong>`;
     }
+    this.syncSponsor2RollButtonsHref();
 
     // Tự động làm mới Banner Quảng Cáo Góc Dưới Phải (Zone 12175813) để Monetag cộng tiền Impression ($) ngay lập tức!
     if (typeof window.__tlmnRefreshCornerAdBanner === 'function') {
@@ -10859,7 +10995,7 @@ class TienLenGame {
     });
     document.getElementById('btn-lobby-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
     document.getElementById('btn-shop-watch-ad')?.addEventListener('click', () => this.startRickRollAd());
-    this.syncSponsor2RollButtonsHref();
+    this.startSponsorCooldownTicker();
 
     document.getElementById('btn-top-quests')?.addEventListener('click', () => {
       document.getElementById('pause-modal')?.classList.add('hidden');

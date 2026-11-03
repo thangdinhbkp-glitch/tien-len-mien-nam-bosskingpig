@@ -7839,6 +7839,7 @@ class TienLenGame {
     const me = this.getLocalPlayer();
     if (!me) return;
     sfx.click();
+    this._lastRoomHumanActivityLocalMs = Date.now();
     me.readyForNextMatch = !me.readyForNextMatch;
     if (this.isMultiplayer) {
       if (this.isHost) {
@@ -19755,7 +19756,10 @@ class TienLenGame {
       h.endsWith('github.io') ||
       h.endsWith('netlify.app') ||
       h.endsWith('vercel.app') ||
-      h.endsWith('web.app')
+      h.endsWith('web.app') ||
+      h.endsWith('firebaseapp.com') ||
+      h.endsWith('itch.zone') ||
+      h.endsWith('itch.io')
     );
   }
 
@@ -20095,6 +20099,51 @@ class TienLenGame {
   async refreshMultiplayerRoomsDirectory(manual = false) {
     if (manual) sfx.click();
     await this.fetchCloudRoomsDirectory();
+    if (!this._dirRoomBeatTracker) {
+      this._dirRoomBeatTracker = new Map();
+    }
+    const currentList = Array.isArray(this.multiplayerRoomsList) ? [...this.multiplayerRoomsList] : [];
+    if (currentList.length > 0) {
+      const nowLocal = Date.now();
+      const verifiedRooms = [];
+      const deadRoomIds = [];
+      await Promise.all(
+        currentList.slice(0, 12).map(async (r) => {
+          if (!r || !r.roomId) return;
+          const cleanId = String(r.roomId).toUpperCase();
+          if (this.isMultiplayer && this.roomId === cleanId) {
+            verifiedRooms.push(r);
+            return;
+          }
+          const cloudRoom = await this.fetchRoomStateFromCloud(cleanId);
+          const card = this.convertCloudRoomToDirectoryCard(cloudRoom);
+          if (!cloudRoom || cloudRoom.closed || !card) {
+            deadRoomIds.push(cleanId);
+            return;
+          }
+          const beatVal = Number(cloudRoom.hostHeartbeatMs) || 0;
+          const prevTrack = this._dirRoomBeatTracker.get(cleanId);
+          if (!prevTrack || prevTrack.beat !== beatVal) {
+            this._dirRoomBeatTracker.set(cleanId, { beat: beatVal, seenAtLocalMs: nowLocal });
+            verifiedRooms.push(card);
+          } else if (nowLocal - prevTrack.seenAtLocalMs > 12000) {
+            // Phòng không còn ai online phát nhịp tim quá 12 giây -> Tự động xóa khỏi Sảnh
+            deadRoomIds.push(cleanId);
+          } else {
+            verifiedRooms.push(card);
+          }
+        })
+      );
+      if (deadRoomIds.length > 0) {
+        this.multiplayerRoomsList = verifiedRooms;
+        deadRoomIds.forEach((deadId) => {
+          this._dirRoomBeatTracker.delete(deadId);
+          this.removeRoomFromDirectory(deadId);
+        });
+      } else {
+        this.multiplayerRoomsList = verifiedRooms;
+      }
+    }
     if (this.searchedRoomIdFilter) {
       const directRoom = await this.fetchRoomStateFromCloud(this.searchedRoomIdFilter);
       const card = this.convertCloudRoomToDirectoryCard(directRoom);
@@ -20496,6 +20545,82 @@ class TienLenGame {
         this.reconcileRoomSingleTableOnWake();
       }
     });
+
+    const handleTabUnloadRoomCleanup = () => {
+      if (!this.isMultiplayer || !this.roomId) return;
+      const code = String(this.roomId).trim().toUpperCase();
+      if (this.isHost) {
+        const mySeat = this.players?.[this.mySeatId];
+        if (mySeat) {
+          mySeat.active = false;
+          mySeat.isBot = false;
+          mySeat.name = `Ghế trống ${mySeat.id + 1}`;
+          mySeat.clientId = null;
+          mySeat.hand = [];
+          mySeat.passed = true;
+          mySeat.readyForNextMatch = false;
+        }
+        const remainingHuman = (this.players || []).find(
+          (p) => p && p.active && !p.isBot && p.id !== this.mySeatId && p.clientId
+        );
+        if (remainingHuman) {
+          this.hostClientId = remainingHuman.clientId;
+          this.roomTitle = `Bàn của ${remainingHuman.name}`;
+          this.hostClaimEpoch = (Number(this.hostClaimEpoch) || 1) + 1;
+          this.hostPeerId = `tlmn-bkp-room-${code}-${this.hostClaimEpoch}`;
+          this.roomStateVersion = (Number(this.roomStateVersion) || 1) + 1;
+          const payload = {
+            roomId: code,
+            title: this.roomTitle,
+            hasPassword: !!this.roomPasswordHash,
+            passwordHash: this.roomPasswordHash || '',
+            hostClientId: this.hostClientId,
+            hostPeerId: this.hostPeerId,
+            hostClaimEpoch: this.hostClaimEpoch,
+            hostHeartbeatMs: Date.now(),
+            hostPaused: false,
+            version: this.roomStateVersion,
+            updatedAtMs: Date.now(),
+            closed: false,
+            state: this.serializeRoomState(),
+            events: [],
+          };
+          try {
+            fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${code}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: this.encodeCloudPayload(payload),
+              keepalive: true,
+            }).catch(() => {});
+          } catch (_) {}
+        } else {
+          const payload = {
+            roomId: code,
+            closed: true,
+            updatedAtMs: Date.now(),
+            state: { players: [] },
+          };
+          try {
+            fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${code}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: this.encodeCloudPayload(payload),
+              keepalive: true,
+            }).catch(() => {});
+            const filteredDir = (this.multiplayerRoomsList || []).filter((r) => r && r.roomId !== code);
+            fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: this.encodeCloudPayload(filteredDir),
+              keepalive: true,
+            }).catch(() => {});
+          } catch (_) {}
+        }
+      }
+    };
+
+    window.addEventListener('pagehide', handleTabUnloadRoomCleanup);
+    window.addEventListener('beforeunload', handleTabUnloadRoomCleanup);
   }
 
   async reconcileRoomSingleTableOnWake() {
@@ -20589,6 +20714,7 @@ class TienLenGame {
 
   async promoteGuestToHost(cloudRoom) {
     if (!cloudRoom || !cloudRoom.state) return;
+    const previousHostClientId = cloudRoom.hostClientId;
     if (this.peer) {
       try {
         this.peer.destroy();
@@ -20601,17 +20727,55 @@ class TienLenGame {
     this.hostClaimEpoch = (Number(cloudRoom.hostClaimEpoch) || 1) + 1;
     this.hostPeerId = `tlmn-bkp-room-${this.roomId}-${this.hostClaimEpoch}`;
     this.roomStateVersion = (Number(cloudRoom.version) || 1) + 1;
+    this._lastRoomHumanActivityLocalMs = Date.now();
 
     this.applyRestoredRoomStateOnHost(
       cloudRoom.state,
       this.getLocalPlayer()?.name || this.savedPlayerName || 'Người chơi'
     );
+
+    // Giải phóng ghế của Chủ phòng cũ đã thoát / AFK để không làm kẹt bàn hoặc kẹt nút Sẵn Sàng
+    if (previousHostClientId && previousHostClientId !== this.myClientId && Array.isArray(this.players)) {
+      const oldHostSeat = this.players.find(
+        (p) => p && p.id !== this.mySeatId && p.clientId === previousHostClientId
+      );
+      if (oldHostSeat && oldHostSeat.active && !oldHostSeat.isBot) {
+        const oldHostName = oldHostSeat.name || 'Chủ phòng cũ';
+        if (!this.kickedAfkClientIds) this.kickedAfkClientIds = new Set();
+        if (this.kickedAfkClientIds instanceof Set) {
+          this.kickedAfkClientIds.add(previousHostClientId);
+        } else if (Array.isArray(this.kickedAfkClientIds) && !this.kickedAfkClientIds.includes(previousHostClientId)) {
+          this.kickedAfkClientIds.push(previousHostClientId);
+        }
+        oldHostSeat.active = false;
+        oldHostSeat.isBot = false;
+        oldHostSeat.name = `Ghế trống ${oldHostSeat.id + 1}`;
+        oldHostSeat.clientId = null;
+        oldHostSeat.hand = [];
+        oldHostSeat.passed = true;
+        oldHostSeat.readyForNextMatch = false;
+        this.addLog(
+          `👑 <strong>${oldHostName}</strong> đã rời bàn / AFK — Quyền Chủ phòng đã chuyển cho <strong>${this.getLocalPlayer()?.name || 'Bạn'}</strong>!`,
+          'log-win'
+        );
+        if (this.matchCount >= 1 && !this.isGameOver && this.currentTurn === oldHostSeat.id) {
+          this.advanceTurn();
+        }
+      }
+    }
+
+    const me = this.getLocalPlayer();
+    if (me && me.name) {
+      this.roomTitle = `Bàn của ${me.name}`;
+    }
+    this.showComboBanner('👑 BẠN ĐÃ TRỞ THÀNH CHỦ PHÒNG MỚI!');
     this.initHostPeer(this.roomId);
     if (this.pollTimer) clearInterval(this.pollTimer);
     this.pollTimer = setInterval(() => this.pollRoomAsHost(), 850);
     await this.pushRoomStateToCloud([]);
     this.publishRoomToDirectory(false);
     this.renderLobbyModal();
+    this.renderSummaryReadyStateUI();
     this.renderAll();
     if (!this.isGameOver && this.matchCount >= 1) {
       this.hideAllLobbyModalsForActiveMatch();
@@ -21101,8 +21265,19 @@ class TienLenGame {
     sfx.click();
   }
 
+  async closeAndDeleteAbandonedRoom(reasonBanner = '🧹 Bàn đã tự động xóa khỏi Sảnh do không còn ai chơi tiếp!') {
+    if (!this.isMultiplayer || !this.roomId) return;
+    const oldRoomId = this.roomId;
+    try {
+      await this.pushRoomStateToCloud([], true);
+      await this.removeRoomFromDirectory(oldRoomId);
+    } catch (_) {}
+    await this.leaveWifiRoom(true, reasonBanner);
+  }
+
   async leaveWifiRoom(isAutoAfkKick = false, customBannerMsg = '') {
     clearTimeout(this.afkAutoLeaveTimer);
+    clearTimeout(this.postMatchIdleTimer);
     const oldRoomId = this.roomId;
     const wasHost = this.isHost;
 
@@ -21115,7 +21290,7 @@ class TienLenGame {
           reason: isAutoAfkKick ? 'afk' : 'manual',
         });
       } else {
-        // Nếu Chủ phòng rời bàn: giải phóng ghế của Chủ phòng. Nếu còn người chơi khác trong bàn thì nhường quyền Chủ phòng cho họ!
+        // Nếu Chủ phòng rời bàn (hoặc AFK bị đá): giải phóng ghế của Chủ phòng. Nếu còn người chơi khác online trong bàn thì nhường quyền Chủ phòng cho họ!
         const mySeat = this.players[this.mySeatId];
         if (mySeat) {
           mySeat.active = false;
@@ -21123,13 +21298,29 @@ class TienLenGame {
           mySeat.name = `Ghế trống ${mySeat.id + 1}`;
           mySeat.clientId = null;
           mySeat.hand = [];
+          mySeat.passed = true;
+          mySeat.readyForNextMatch = false;
         }
-        const remainingHuman = this.players.find((p) => p.active && !p.isBot && p.clientId);
+        const remainingHuman = this.players.find(
+          (p) => p && p.active && !p.isBot && p.id !== this.mySeatId && p.clientId && (p.afkAutoTurns || 0) < 2
+        );
         if (remainingHuman) {
+          if (this.matchCount >= 1 && !this.isGameOver && this.currentTurn === this.mySeatId) {
+            this.advanceTurn();
+          }
           this.hostClientId = remainingHuman.clientId;
+          this.roomTitle = `Bàn của ${remainingHuman.name}`;
           this.hostClaimEpoch = (Number(this.hostClaimEpoch) || 1) + 1;
           this.hostPeerId = `tlmn-bkp-room-${oldRoomId}-${this.hostClaimEpoch}`;
           this.roomStateVersion = (Number(this.roomStateVersion) || 1) + 1;
+          const nextState = this.serializeRoomState();
+          this.peerConnections.forEach((conn) => {
+            if (conn && conn.open) {
+              try {
+                conn.send(nextState);
+              } catch (_) {}
+            }
+          });
           await this.pushRoomStateToCloud([], false);
           await this.publishRoomToDirectory(false);
         } else {
@@ -21628,9 +21819,42 @@ class TienLenGame {
       });
 
       const now = Date.now();
+      const activeHumans = (this.players || []).filter((p) => p && p.active && !p.isBot);
+      if (activeHumans.length === 0) {
+        this._pollingHost = false;
+        await this.closeAndDeleteAbandonedRoom('🏠 Phòng đã tự động xóa do không còn người chơi online!');
+        return;
+      }
+
+      // Nếu bàn đã chơi được từ 1 ván trở lên rồi dừng lại không ai chơi nữa -> Tự động xóa bàn luôn!
+      if (this.matchCount >= 1) {
+        const lastActMs = this._lastRoomHumanActivityLocalMs || now;
+        const idleElapsedMs = now - lastActMs;
+        const allHumansAfkInMatch =
+          !this.isGameOver && activeHumans.length > 0 && activeHumans.every((p) => (p.afkAutoTurns || 0) >= 2);
+        if (
+          (this.isGameOver && idleElapsedMs > 60000) ||
+          (!this.isGameOver && (allHumansAfkInMatch || idleElapsedMs > 75000))
+        ) {
+          this._pollingHost = false;
+          await this.closeAndDeleteAbandonedRoom(
+            '🧹 Bàn #' +
+              this.roomId +
+              ' đã chơi được ' +
+              this.matchCount +
+              ' ván nhưng dừng lại không ai chơi nữa nên đã tự động xóa khỏi Sảnh!'
+          );
+          return;
+        }
+      }
+
       if (hadNewEvt || !this._lastHostHeartbeatPushMs || now - this._lastHostHeartbeatPushMs > 2800) {
         this._lastHostHeartbeatPushMs = now;
         await this.pushRoomStateToCloud([]);
+      }
+      if (!this._lastDirectoryHeartbeatPushMs || now - this._lastDirectoryHeartbeatPushMs > 12000) {
+        this._lastDirectoryHeartbeatPushMs = now;
+        this.publishRoomToDirectory(false);
       }
 
       // 2. Local server (nếu chạy LAN)
@@ -21655,7 +21879,7 @@ class TienLenGame {
       if (cloudRoom) {
         if (cloudRoom.closed) {
           this._pollingGuest = false;
-          await this.leaveWifiRoom(false, '🏠 Bàn chơi đã đóng do toàn bộ người chơi rời bàn.');
+          await this.leaveWifiRoom(false, '🏠 Bàn chơi đã đóng và tự động xóa khỏi Sảnh.');
           return;
         }
 
@@ -21668,12 +21892,12 @@ class TienLenGame {
         }
 
         const silenceDurationOnMyClock = Date.now() - (this._lastObservedHostBeatLocalMs || Date.now());
-        const takeoverThresholdMs = this._autoRestoreTakeoverCheck ? 5000 : 25000;
+        const takeoverThresholdMs = this._autoRestoreTakeoverCheck ? 4000 : 10000;
 
-        // Chỉ tiếp quản làm Chủ phòng nếu Chủ phòng thực sự đã đóng trình duyệt (nhịp tim đứng yên suốt 25s, hoặc 5s khi tự khôi phục sau khi cả 2 thoát game)
+        // Tiếp quản làm Chủ phòng ngay nếu Chủ phòng cũ nhường quyền (hostClientId === myClientId) hoặc thoát/AFK (nhịp tim đứng yên 10s)
         if (
-          !document.hidden &&
-          (cloudRoom.hostClientId === this.myClientId || silenceDurationOnMyClock > takeoverThresholdMs)
+          cloudRoom.hostClientId === this.myClientId ||
+          (!document.hidden && silenceDurationOnMyClock > takeoverThresholdMs)
         ) {
           this._autoRestoreTakeoverCheck = false;
           await this.promoteGuestToHost(cloudRoom);
@@ -21766,6 +21990,9 @@ class TienLenGame {
     }
     if (evt.clientId) {
       this.playerHeartbeats[evt.clientId] = Date.now();
+    }
+    if (evt.type !== 'GUEST_TIMEOUT') {
+      this._lastRoomHumanActivityLocalMs = Date.now();
     }
 
     if (evt.type === 'JOIN') {
@@ -21993,12 +22220,26 @@ class TienLenGame {
 
   applySyncedStateOnGuest(state) {
     if (!state) return;
+    if (state.closed) {
+      this.leaveWifiRoom(false, '🏠 Bàn chơi đã tự động đóng và xóa khỏi Sảnh.');
+      return;
+    }
     if (state.displacedClientIds && state.displacedClientIds[this.myClientId]) {
       this.forceLogoutDueToOtherDevice();
       return;
     }
     if (Array.isArray(state.kickedAfkClientIds) && state.kickedAfkClientIds.includes(this.myClientId)) {
-      this.leaveWifiRoom(true, '💤 Bạn đã AFK (treo máy) suốt cả trận nên tự động rời bàn ở ván tiếp theo!');
+      this.leaveWifiRoom(true, '💤 Bạn đã AFK (treo máy) nên tự động rời bàn!');
+      return;
+    }
+    if (!this.isHost && state.hostClientId && state.hostClientId === this.myClientId) {
+      this.promoteGuestToHost({
+        roomId: this.roomId,
+        hostClientId: state.hostClientId,
+        hostClaimEpoch: state.hostClaimEpoch || (this.hostClaimEpoch || 1) + 1,
+        version: state.version || (this.lastSyncedVersion || 1) + 1,
+        state,
+      });
       return;
     }
 
@@ -22531,6 +22772,7 @@ class TienLenGame {
   }
 
   startNewMatch(resetHistory = false) {
+    this._lastRoomHumanActivityLocalMs = Date.now();
     clearTimeout(this.botTimer);
     clearTimeout(this._tutorialFurinaTimer);
     clearTimeout(this.endMatchDelayTimer);
@@ -23063,6 +23305,25 @@ class TienLenGame {
     if (this.currentTurn === this.mySeatId) {
       currentPlayer.afkAutoTurns = (currentPlayer.afkAutoTurns || 0) + 1;
       this.autoPlayForHuman(true);
+      if (this.isMultiplayer && this.isHost && (currentPlayer.afkAutoTurns || 0) >= 2) {
+        const remainingHuman = (this.players || []).find(
+          (p) => p && p.active && !p.isBot && p.id !== this.mySeatId && p.clientId && (p.afkAutoTurns || 0) < 2
+        );
+        setTimeout(() => {
+          if (!this.isMultiplayer || !this.isHost) return;
+          if (remainingHuman) {
+            this.leaveWifiRoom(
+              true,
+              `💤 Bạn đã AFK 2 lượt liên tiếp — Quyền Chủ phòng đã chuyển cho ${remainingHuman.name}!`
+            );
+          } else {
+            this.closeAndDeleteAbandonedRoom(
+              `🧹 Bàn #${this.roomId} đã tự động xóa khỏi Sảnh do Chủ phòng AFK và không còn ai chơi!`
+            );
+          }
+        }, 250);
+        return;
+      }
     } else if (currentPlayer.isBot && (!this.isMultiplayer || this.isHost)) {
       this.executeBotTurn(currentPlayer);
     } else if (this.isMultiplayer && this.isHost && !currentPlayer.isBot) {
@@ -27634,6 +27895,7 @@ class TienLenGame {
 
     const human = this.getLocalPlayer();
     if (!isAutoTimeout && human) {
+      this._lastRoomHumanActivityLocalMs = Date.now();
       human.manualActionsInMatch = (human.manualActionsInMatch || 0) + 1;
       human.afkAutoTurns = 0;
     }
@@ -27684,6 +27946,7 @@ class TienLenGame {
     }
     const human = this.getLocalPlayer();
     if (!isAutoTimeout && human) {
+      this._lastRoomHumanActivityLocalMs = Date.now();
       human.manualActionsInMatch = (human.manualActionsInMatch || 0) + 1;
       human.afkAutoTurns = 0;
     }

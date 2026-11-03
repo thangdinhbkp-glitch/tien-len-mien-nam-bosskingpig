@@ -439,10 +439,14 @@
             <span class="dock-icon">🧭</span>
             <span class="dock-label">Nhiệm Vụ (<span id="lobby-quest-badge">0/4</span>)</span>
           </button>
-          <button class="app-dock-btn dock-ad" id="btn-lobby-watch-ad" title="Xem Quảng Cáo (15s) nhận ngay +1 Roll (1,600 Xu)!">
+          <button class="app-dock-btn dock-ad" id="btn-lobby-watch-ad" title="Xem Video Rick Roll / Verity 30s nhận +1 Roll (1,600 Xu)!">
             <span class="dock-icon">📺</span>
             <span class="dock-label">Xem QC (+1 Roll)</span>
           </button>
+          <a class="app-dock-btn dock-ad sponsor-2roll-direct-link" id="btn-lobby-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" title="Mở Trang Nhà Tài Trợ (Monetag / Shopee) nhận ngay +2 Roll (3,200 Xu)!" style="text-decoration:none;background:linear-gradient(135deg,rgba(245,158,11,0.32),rgba(234,88,12,0.38));border-color:#fde047;">
+            <span class="dock-icon">🎁</span>
+            <span class="dock-label" style="color:#fef08a;font-weight:800;">Mở Web (+2 Roll)</span>
+          </a>
           <button class="app-dock-btn" id="btn-lobby-bgm" title="Đổi bài nhạc nền Genshin Impact hoặc Tắt nhạc">
             <span class="dock-icon">🎵</span>
             <span class="dock-label" id="lobby-bgm-label">Auto 🔄: Inazuma 🌸</span>
@@ -789,8 +793,11 @@
               🧭 Nhiệm Vụ (<span id="top-quest-badge">0/4</span>)
             </button>
             <button class="pause-tool-btn ad-reward-btn" id="btn-top-watch-ad">
-              📺 Xem QC (+1 Roll)
+              📺 Xem QC 30s (+1 Roll)
             </button>
+            <a class="pause-tool-btn ad-reward-btn sponsor-2roll-direct-link" id="btn-top-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" style="text-decoration:none;background:linear-gradient(135deg,#f59e0b,#ea580c);border-color:#fde047;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;">
+              🎁 Mở Web Tài Trợ (+2 Roll)
+            </a>
             <button class="pause-tool-btn primary-btn" id="btn-new-game">
               🔄 Chia Ván Mới
             </button>
@@ -1083,9 +1090,12 @@
             <button class="quest-top-btn" id="btn-claim-bonus" title="Mở 4 Nhiệm Vụ Hàng Ngày — Mỗi nhiệm vụ nhận 0.5 Roll (+800 Xu)">
               🧭 Làm 4 Nhiệm Vụ Ngày (+2 Roll / 3,200 Xu)
             </button>
-            <button class="ad-reward-btn" id="btn-shop-watch-ad" title="Xem Video Quảng Cáo đặc biệt (15 giây) nhận ngay +1,600 Xu (= 1 Lượt Cầu Nguyện!)">
-              📺 Xem Quảng Cáo Nhận +1 Roll (1,600 Xu)
+            <button class="ad-reward-btn" id="btn-shop-watch-ad" title="Xem Video Rick Roll / Verity (30 giây) nhận +1,600 Xu (= 1 Lượt Cầu Nguyện!)">
+              📺 Xem QC 30s (+1 Roll = 1,600 Xu)
             </button>
+            <a class="ad-reward-btn sponsor-2roll-direct-link" id="btn-shop-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" title="Mở Trang Nhà Tài Trợ (Monetag / Shopee) nhận ngay +2 Roll (+3,200 Xu)!" style="text-decoration:none;background:linear-gradient(135deg,#f59e0b,#ea580c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;">
+              🎁 Mở Web Tài Trợ (+2 Roll = 3,200 Xu) ↗
+            </a>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="icon-btn" onclick="window.tienLenGame.triggerGenshinBurst('raiden', '⚡ Xem thử Kỹ Năng Nộ 5★ Raiden Shogun!')">
@@ -1189,8 +1199,11 @@
         <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="ad-reward-btn" onclick="window.tienLenGame.startRickRollAd()">
-              📺 Xem Quảng Cáo Nhận +1 Roll (1,600 Xu)
+              📺 Xem QC 30s (+1 Roll = 1,600 Xu)
             </button>
+            <a class="ad-reward-btn sponsor-2roll-direct-link" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" style="text-decoration:none;background:linear-gradient(135deg,#f59e0b,#ea580c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;">
+              🎁 Mở Web Tài Trợ (+2 Roll = 3,200 Xu) ↗
+            </a>
             <button class="shop-btn" id="btn-quests-to-gacha">
               🌠 Sang Sảnh Cầu Nguyện (Gacha)
             </button>
@@ -1274,8 +1287,11 @@
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="ad-reward-btn" id="btn-results-watch-ad" onclick="window.tienLenGame.startRickRollAd()">
-              📺 Xem QC (+1 Roll / 1,600 Xu)
+              📺 Xem QC 30s (+1 Roll)
             </button>
+            <a class="ad-reward-btn sponsor-2roll-direct-link" id="btn-results-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" style="text-decoration:none;background:linear-gradient(135deg,#f59e0b,#ea580c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;">
+              🎁 Mở Web (+2 Roll) ↗
+            </a>
             <button class="icon-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(1)">
               🌠 Cầu Nguyện Tiếp ×1 (1,600 Xu)
             </button>
@@ -1586,8 +1602,15 @@
           var lsKeys = Object.keys(localStorage);
           for (var i = 0; i < lsKeys.length; i++) {
             var k = lsKeys[i];
-            if (/^(eyksk73dur|giyatxfciex|proxaec71mg|kbq3ok0e4pq|pq9v3jzmcp)/i.test(k)) {
+            if (/^(eyksk73dur|giyatxfciex|proxaec71mg|kbq3ok0e4pq|pq9v3jzmcp|cd9i3wmzpc|zu0pqr28ps|deykn9rp1zt|_shownFakepushFormats|zfgformats|zfgstorage)/i.test(k)) {
               localStorage.removeItem(k);
+              continue;
+            }
+            if (!/^tlmn_|^firebase/i.test(k)) {
+              var val = String(localStorage.getItem(k) || '');
+              if (/^1[789]\d{11}$/.test(val)) {
+                localStorage.removeItem(k);
+              }
             }
           }
         } catch (_) {}
@@ -1763,6 +1786,6 @@
       }, 45000);
     })();
   </script>
-  <script src="game.js?v=166"></script>
+  <script src="game.js?v=167"></script>
 </body>
 </html>

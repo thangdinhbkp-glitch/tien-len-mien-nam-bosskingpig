@@ -6501,6 +6501,20 @@ class TienLenGame {
         }
       });
 
+      const mergedWelkinOrders = { ...(localAd.welkinOrders || {}), ...(remoteAd.welkinOrders || {}) };
+      Object.keys(mergedWelkinOrders).forEach((ordKey) => {
+        const lo = localAd.welkinOrders?.[ordKey];
+        const ro = remoteAd.welkinOrders?.[ordKey];
+        if (lo && ro) {
+          const newerOrd = (Number(ro.updatedAtMs) || 0) >= (Number(lo.updatedAtMs) || 0) ? ro : lo;
+          mergedWelkinOrders[ordKey] = {
+            ...newerOrd,
+            approvedCount: Math.max(Number(lo.approvedCount) || 0, Number(ro.approvedCount) || 0),
+            claimedCount: Math.max(Number(lo.claimedCount) || 0, Number(ro.claimedCount) || 0),
+          };
+        }
+      });
+
       const rawShopee = String(newerAdCfg.shopeeUrl || localAd.shopeeUrl || remoteAd.shopeeUrl || '').trim();
       const rawGcShort = String(
         newerAdCfg.giftcodeShortUrl ||
@@ -6514,14 +6528,15 @@ class TienLenGame {
         giftcodeShortUrl: rawGcShort,
         bannerHtml: String(newerAdCfg.bannerHtml || '').trim(),
         adMode: newerAdCfg.adMode || 'auto_open',
-        bankCode: String(newerAdCfg.bankCode || '').trim().toUpperCase(),
-        bankAccount: String(newerAdCfg.bankAccount || '').trim(),
-        bankOwner: String(newerAdCfg.bankOwner || '').trim(),
+        bankCode: String(newerAdCfg.bankCode || localAd.bankCode || remoteAd.bankCode || 'MB').trim().toUpperCase(),
+        bankAccount: String(newerAdCfg.bankAccount || localAd.bankAccount || remoteAd.bankAccount || '0946432236').trim(),
+        bankOwner: String(newerAdCfg.bankOwner || localAd.bankOwner || remoteAd.bankOwner || 'DINH NGUYEN VIET THANG').trim(),
         contactUrl: String(newerAdCfg.contactUrl || '').trim(),
         cfgUpdatedAtMs: Math.max(Number(localAd.cfgUpdatedAtMs) || 0, Number(remoteAd.cfgUpdatedAtMs) || 0),
         totalViews: Math.max(Number(localAd.totalViews) || 0, Number(remoteAd.totalViews) || 0),
         totalClicks: Math.max(Number(localAd.totalClicks) || 0, Number(remoteAd.totalClicks) || 0),
         giftcodes: mergedGiftcodes,
+        welkinOrders: mergedWelkinOrders,
       };
 
       const finalReg = {
@@ -6550,6 +6565,7 @@ class TienLenGame {
       if (statsContainer && !document.getElementById('account-modal')?.classList.contains('hidden')) {
         statsContainer.innerHTML = this.renderDeviceTrackerSectionHtml();
       }
+      this.checkAndAutoDeliverApprovedWelkinOrder(finalReg);
       return finalReg;
     } catch (_) {
       return this.loadGlobalRegistryCache();
@@ -6718,8 +6734,8 @@ class TienLenGame {
       .replace(/>/g, '&gt;');
     const curAdMode = adCfg.adMode || 'auto_open';
     const curBankCode = String(adCfg.bankCode || 'MB').replace(/"/g, '&quot;');
-    const curBankAccount = String(adCfg.bankAccount || '').replace(/"/g, '&quot;');
-    const curBankOwner = String(adCfg.bankOwner || '').replace(/"/g, '&quot;');
+    const curBankAccount = String(adCfg.bankAccount || '0946432236').replace(/"/g, '&quot;');
+    const curBankOwner = String(adCfg.bankOwner || 'DINH NGUYEN VIET THANG').replace(/"/g, '&quot;');
     const curContactUrl = String(adCfg.contactUrl || 'https://www.facebook.com/groups/teyvatvn/posts/1533270325387216/').replace(/"/g, '&quot;');
     const totalAdViews = Number(adCfg.totalViews) || 0;
     const totalAdClicks = Number(adCfg.totalClicks) || 0;
@@ -9736,13 +9752,14 @@ class TienLenGame {
       bannerHtml: String(ad.bannerHtml || '').trim(),
       adMode: ad.adMode || 'auto_open',
       bankCode: String(ad.bankCode || 'MB').trim().toUpperCase(),
-      bankAccount: String(ad.bankAccount || '').trim(),
-      bankOwner: String(ad.bankOwner || '').trim(),
+      bankAccount: String(ad.bankAccount || '0946432236').trim(),
+      bankOwner: String(ad.bankOwner || 'DINH NGUYEN VIET THANG').trim(),
       contactUrl: String(ad.contactUrl || 'https://www.facebook.com/groups/teyvatvn/posts/1533270325387216/').trim(),
       cfgUpdatedAtMs: Number(ad.cfgUpdatedAtMs) || 0,
       totalViews: Number(ad.totalViews) || 0,
       totalClicks: Number(ad.totalClicks) || 0,
       giftcodes: ad.giftcodes || {},
+      welkinOrders: ad.welkinOrders || {},
     };
   }
 
@@ -10117,9 +10134,9 @@ class TienLenGame {
       : String(prevCfg.giftcodeShortUrl || '').trim();
     const adMode = String(modeSelect ? modeSelect.value : 'auto_open').trim();
     const bannerHtml = String(bannerInput ? bannerInput.value : '').trim();
-    const bankCode = String(bankCodeInput ? bankCodeInput.value : 'MB').trim().toUpperCase();
-    const bankAccount = String(bankAccInput ? bankAccInput.value : '').trim();
-    const bankOwner = String(bankOwnerInput ? bankOwnerInput.value : '').trim();
+    const bankCode = String(bankCodeInput ? bankCodeInput.value : prevCfg.bankCode || 'MB').trim().toUpperCase();
+    const bankAccount = String(bankAccInput ? bankAccInput.value : prevCfg.bankAccount || '0946432236').trim();
+    const bankOwner = String(bankOwnerInput ? bankOwnerInput.value : prevCfg.bankOwner || 'DINH NGUYEN VIET THANG').trim();
     const contactUrl = String(contactUrlInput ? contactUrlInput.value : '').trim();
 
     if (btn) {
@@ -10527,13 +10544,200 @@ class TienLenGame {
     );
   }
 
+  // ============================================================================
+  // HỆ THỐNG BÁO CHUYỂN KHOẢN VIETQR MB BANK & DUYỆT / BƠM QUÀ TỰ ĐỘNG TỪ XA
+  // ============================================================================
+  checkAndAutoDeliverApprovedWelkinOrder(regObj) {
+    try {
+      const reg = regObj || this.loadGlobalRegistryCache();
+      const orders = reg?.adMonetization?.welkinOrders || {};
+      const myId = this.getPersonalGiftcodeIdentityKey();
+      const myUser = this.normalizeGiftcodeIdentity(this.currentAccountUsername || '');
+      const ord = orders[myId] || (myUser ? orders[myUser] : null);
+      if (!ord) return false;
+
+      const appCnt = Number(ord.approvedCount) || 0;
+      const localClaimedKey = `tlmn_welkin_ord_claimed_${ord.id}`;
+      const localClaimedCnt = Number(localStorage.getItem(localClaimedKey)) || 0;
+      const claimedCnt = Math.max(Number(ord.claimedCount) || 0, localClaimedCnt);
+
+      if (appCnt > claimedCnt) {
+        ord.claimedCount = appCnt;
+        ord.status = 'claimed';
+        ord.updatedAtMs = Date.now();
+        localStorage.setItem(localClaimedKey, String(appCnt));
+        try {
+          localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+        } catch (_) {}
+
+        const rewardRolls = 10;
+        const rewardCoins = rewardRolls * WISH_COST_SINGLE; // 16,000 Xu
+        const me = this.getLocalPlayer();
+        if (me) me.coins += rewardCoins;
+        const curExp = Math.max(Date.now(), Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0);
+        const newExp = curExp + 30 * 24 * 3600 * 1000;
+        localStorage.setItem('tlmn_welkin_expire_ms_v1', String(newExp));
+
+        clearInterval(this._welkinOrderPollTimer);
+        this._welkinOrderPollTimer = null;
+
+        sfx.win();
+        this.saveShopProfile();
+        this.renderSeats();
+        this.renderShopModal();
+        this.renderGiftcodeModal();
+        this.syncGlobalDeviceRegistry(true);
+        this.showComboBanner('🌙 ĐÃ KÍCH HOẠT THẺ THÁNG NGUYỆT CHÚC (30 NGÀY) + NHẬN +10 ROLL (16,000 XU)!');
+        alert(
+          `🎉 GIAO DỊCH THÀNH CÔNG!\n\n🌙 Tài khoản @${ord.id} đã được kích hoạt:\n• +10 Roll ngay lập tức (+${rewardCoins.toLocaleString()} Xu)\n• +30 Ngày Không Không Nguyệt Chúc (Nhận +2 Roll mỗi ngày & Bỏ qua chờ 15s Quảng Cáo)!\n\nCảm ơn bạn đã ủng hộ game!`
+        );
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  startWelkinOrderAutoPoller() {
+    clearInterval(this._welkinOrderPollTimer);
+    this._welkinOrderPollTimer = setInterval(async () => {
+      const reg = await this.syncGlobalDeviceRegistry(true);
+      if (this.checkAndAutoDeliverApprovedWelkinOrder(reg)) {
+        clearInterval(this._welkinOrderPollTimer);
+        this._welkinOrderPollTimer = null;
+      }
+    }, 4500);
+  }
+
+  async submitWelkinTransferRequest() {
+    sfx.click();
+    const myId = this.getPersonalGiftcodeIdentityKey();
+    const transferMemo = `TLMN ${myId}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
+    const btn = document.getElementById('btn-submit-welkin-transfer');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang gửi xác nhận lên Đám Mây...';
+    }
+
+    await this.syncGlobalDeviceRegistry(true);
+    const reg = this.loadGlobalRegistryCache();
+    if (!reg.adMonetization) reg.adMonetization = {};
+    if (!reg.adMonetization.welkinOrders) reg.adMonetization.welkinOrders = {};
+
+    const prev = reg.adMonetization.welkinOrders[myId] || {};
+    if (this.checkAndAutoDeliverApprovedWelkinOrder(reg)) {
+      return;
+    }
+
+    reg.adMonetization.welkinOrders[myId] = {
+      id: myId,
+      username: this.currentAccountUsername || '',
+      displayName: this.savedPlayerName || myId,
+      memo: transferMemo,
+      amount: 20000,
+      status: 'pending',
+      requestedAtMs: Date.now(),
+      requestedAtStr: new Date().toLocaleString('vi-VN'),
+      updatedAtMs: Date.now(),
+      approvedCount: Number(prev.approvedCount) || 0,
+      claimedCount: Number(prev.claimedCount) || 0,
+    };
+    reg.adMonetization.cfgUpdatedAtMs = Date.now();
+    this.globalRegistryCache = reg;
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+
+    await this.syncGlobalDeviceRegistry(true);
+    this.startWelkinOrderAutoPoller();
+    this.renderGiftcodeModal();
+    alert(
+      `✅ Đã gửi thông báo xác nhận chuyển khoản của tài khoản @${myId} (Nội dung CK: ${transferMemo})!\n\n⚡ Hệ thống đang tự động kiểm tra với Admin — ngay khi xác nhận giao dịch 20.000đ trên MB Bank, gói 🌙 Không Không Nguyệt Chúc (30 ngày + 10 Roll) sẽ TỰ ĐỘNG mở khóa trên máy của bạn mà không cần nhập mã!`
+    );
+  }
+
+  async adminApproveWelkinOrder(targetRawId) {
+    if (!this.isAdminAccount()) return;
+    const cleanId = this.normalizeGiftcodeIdentity(targetRawId);
+    if (!cleanId) {
+      alert('⚠️ Vui lòng nhập tên tài khoản (@username) hoặc ID cần bơm quà!');
+      return;
+    }
+    sfx.click();
+    await this.syncGlobalDeviceRegistry(true);
+    const reg = this.loadGlobalRegistryCache();
+    if (!reg.adMonetization) reg.adMonetization = {};
+    if (!reg.adMonetization.welkinOrders) reg.adMonetization.welkinOrders = {};
+
+    const prev = reg.adMonetization.welkinOrders[cleanId] || {
+      id: cleanId,
+      username: cleanId,
+      displayName: cleanId,
+      memo: `TLMN ${cleanId}`,
+      amount: 20000,
+      approvedCount: 0,
+      claimedCount: 0,
+    };
+    const nextApproved = Math.max((Number(prev.approvedCount) || 0) + 1, (Number(prev.claimedCount) || 0) + 1);
+    reg.adMonetization.welkinOrders[cleanId] = {
+      ...prev,
+      status: 'approved',
+      approvedCount: nextApproved,
+      updatedAtMs: Date.now(),
+      approvedAtStr: new Date().toLocaleString('vi-VN'),
+    };
+    reg.adMonetization.cfgUpdatedAtMs = Date.now();
+    this.globalRegistryCache = reg;
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+
+    await this.syncGlobalDeviceRegistry(true);
+    sfx.win();
+    this.renderGiftcodeModal();
+    alert(
+      `🎉 ĐÃ BƠM QUÀ TỪ XA THÀNH CÔNG CHO @${cleanId}!\n\n🌟 Máy của người chơi @${cleanId} sẽ tự động nổ thông báo nhận ngay:\n• +10 Roll (+16,000 Xu)\n• +30 Ngày Thẻ Tháng Không Không Nguyệt Chúc!`
+    );
+  }
+
+  async adminRejectWelkinOrder(targetRawId) {
+    if (!this.isAdminAccount()) return;
+    const cleanId = this.normalizeGiftcodeIdentity(targetRawId);
+    if (!cleanId) return;
+    const reg = this.loadGlobalRegistryCache();
+    if (reg.adMonetization?.welkinOrders?.[cleanId]) {
+      reg.adMonetization.welkinOrders[cleanId].status = 'rejected';
+      reg.adMonetization.welkinOrders[cleanId].updatedAtMs = Date.now();
+      reg.adMonetization.cfgUpdatedAtMs = Date.now();
+      this.globalRegistryCache = reg;
+      try {
+        localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+      } catch (_) {}
+      await this.syncGlobalDeviceRegistry(true);
+      this.renderGiftcodeModal();
+    }
+  }
+
+  async adminDirectGrantWelkinToUser() {
+    if (!this.isAdminAccount()) return;
+    const inp = document.getElementById('admin-direct-welkin-target');
+    const rawTarget = String(inp ? inp.value : '').trim();
+    if (!rawTarget) {
+      alert('⚠️ Hãy nhập tên tài khoản (@username) hoặc ID trong nội dung chuyển khoản (VD: hung123)!');
+      return;
+    }
+    const cleanTarget = this.normalizeGiftcodeIdentity(rawTarget.replace(/^tlmn\s+/i, ''));
+    await this.adminApproveWelkinOrder(cleanTarget);
+    if (inp) inp.value = '';
+  }
+
   async openGiftcodeModal() {
     const modal = document.getElementById('giftcode-modal');
     if (!modal) return;
     this.renderGiftcodeModal();
     modal.classList.remove('hidden');
     sfx.click();
-    await this.syncGlobalDeviceRegistry(true);
+    const reg = await this.syncGlobalDeviceRegistry(true);
+    this.checkAndAutoDeliverApprovedWelkinOrder(reg);
     this.renderGiftcodeModal();
   }
 
@@ -10551,9 +10755,8 @@ class TienLenGame {
     const welkinDays = this.getWelkinDaysRemaining();
     const today = this.getTodayKey();
     const welkinClaimedToday = (localStorage.getItem('tlmn_welkin_last_claim_v1') || '') === today;
-    const myUser = this.currentAccountUsername || this.savedPlayerName || 'Khach';
     const myIdentity = this.getPersonalGiftcodeIdentityKey();
-    const transferMemo = `TLMN ${myUser}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
+    const transferMemo = `TLMN ${myIdentity}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
     const hasBank = Boolean(cfg.bankCode && cfg.bankAccount);
     const vietQrUrl = hasBank
       ? `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
@@ -10562,6 +10765,17 @@ class TienLenGame {
           cfg.bankOwner || ''
         )}`
       : '';
+
+    const ordersMap = cfg.welkinOrders || {};
+    const myOrder = ordersMap[myIdentity] || null;
+    const isMyOrderPending = Boolean(myOrder && myOrder.status === 'pending');
+    if (isMyOrderPending && !this._welkinOrderPollTimer) {
+      this.startWelkinOrderAutoPoller();
+    }
+
+    const pendingOrdersList = Object.values(ordersMap)
+      .filter((o) => o && o.status === 'pending')
+      .sort((a, b) => (Number(b.requestedAtMs) || 0) - (Number(a.requestedAtMs) || 0));
 
     const remCooldownMs = this.getPersonalGiftcodeCooldownRemainingMs();
     const cooldownMins = Math.ceil(remCooldownMs / 60000);
@@ -10623,6 +10837,55 @@ class TienLenGame {
 
     const adminQuickBoxHtml = this.isAdminAccount()
       ? `
+        <div style="padding:12px 14px;border-radius:12px;background:rgba(6,78,59,0.38);border:1.5px solid #34d399;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <strong style="color:#6ee7b7;font-size:13.5px;">🔔 DUYỆT ĐƠN CHUYỂN KHOẢN MB BANK &amp; BƠM QUÀ TỪ XA (ADMIN @thang.dinhbkp)</strong>
+            <span style="padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;background:${
+              pendingOrdersList.length > 0 ? '#dc2626;color:#fff;' : 'rgba(16,185,129,0.25);color:#6ee7b7;'
+            }">
+              ${pendingOrdersList.length > 0 ? `🔥 ${pendingOrdersList.length} đơn đang chờ duyệt` : '✅ Không có đơn chờ'}
+            </span>
+          </div>
+          ${
+            pendingOrdersList.length > 0
+              ? `
+                <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+                  ${pendingOrdersList
+                    .map(
+                      (ord) => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:9px;background:rgba(15,23,42,0.92);border:1px solid #fde047;">
+                          <div>
+                            <div style="font-weight:900;color:#fde047;font-size:12.5px;">
+                              👤 Tài khoản: <span style="color:#38bdf8;">@${ord.id}</span> • 💵 ${(Number(ord.amount) || 20000).toLocaleString()}đ
+                            </div>
+                            <div style="font-size:11px;color:#cbd5e1;">
+                              📝 Nội dung CK: <strong style="color:#6ee7b7;">${ord.memo || `TLMN ${ord.id}`}</strong> • 🕒 ${ord.requestedAtStr || 'Vừa xong'}
+                            </div>
+                          </div>
+                          <div style="display:flex;gap:6px;">
+                            <button type="button" class="primary-btn" onclick="window.tienLenGame.adminApproveWelkinOrder('${ord.id}')" style="padding:6px 12px;font-size:11.5px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
+                              ✅ Duyệt &amp; Bơm Quà Ngay
+                            </button>
+                            <button type="button" class="tool-btn" onclick="window.tienLenGame.adminRejectWelkinOrder('${ord.id}')" style="padding:6px 10px;font-size:11.5px;color:#fca5a5;border-color:rgba(248,113,113,0.4);">
+                              ✕ Xóa
+                            </button>
+                          </div>
+                        </div>
+                      `
+                    )
+                    .join('')}
+                </div>
+              `
+              : ''
+          }
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <input type="text" id="admin-direct-welkin-target" placeholder="Nhập @username trên nội dung CK (VD: hung123) để bơm thẳng..." style="flex:1;min-width:190px;padding:7px 10px;border-radius:8px;border:1px solid rgba(52,211,153,0.55);background:rgba(15,23,42,0.92);color:#fff;font-size:12px;" />
+            <button type="button" class="primary-btn" onclick="window.tienLenGame.adminDirectGrantWelkinToUser()" style="padding:7px 14px;font-size:12px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
+              🚀 Bơm Thẳng +10 Roll &amp; 30 Ngày Nguyệt Chúc
+            </button>
+          </div>
+        </div>
+
         <div style="padding:11px 14px;border-radius:12px;background:rgba(88,28,135,0.28);border:1.5px solid rgba(244,114,182,0.55);font-size:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
             <strong style="color:#f472b6;font-size:13px;">👑 CẤU HÌNH LINK RÚT GỌN KIẾM TIỀN (CHỈ ADMIN @thang.dinhbkp)</strong>
@@ -10632,13 +10895,8 @@ class TienLenGame {
               ${cfg.giftcodeShortUrl ? '🟢 Đang dùng Link Rút Gọn' : '🟡 Chế độ Mặc định (15s Tài Trợ)'}
             </span>
           </div>
-          <div style="color:#cbd5e1;line-height:1.45;margin-bottom:6px;">
-            1️⃣ Copy <strong>Link Đích</strong> này đem rút gọn trên <strong>Link4m.com</strong> hoặc <strong>Yeumoney.com</strong>:
-            <code style="display:inline-block;padding:2px 6px;border-radius:5px;background:rgba(15,23,42,0.9);color:#38bdf8;font-weight:800;margin:0 4px;">https://tienlenmiennamgenshin.web.app/?getcode=1</code>
-            <button type="button" class="tool-btn" onclick="navigator.clipboard?.writeText('https://tienlenmiennamgenshin.web.app/?getcode=1'); alert('📋 Đã copy Link Đích: https://tienlenmiennamgenshin.web.app/?getcode=1\nHãy dán link này vào Link4m / Yeumoney để tạo link rút gọn!');" style="padding:2px 8px;font-size:11px;font-weight:800;">📋 Copy Link Đích</button>
-          </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <input type="url" id="admin-quick-giftcode-short-url" value="${String(cfg.giftcodeShortUrl || '').replace(/"/g, '&quot;')}" placeholder="2️⃣ Dán link rút gọn (VD: https://link4m.com/xxxx) vào đây..." style="flex:1;min-width:200px;padding:7px 10px;border-radius:8px;border:1px solid rgba(244,114,182,0.55);background:rgba(15,23,42,0.92);color:#fff;font-size:12px;" />
+            <input type="url" id="admin-quick-giftcode-short-url" value="${String(cfg.giftcodeShortUrl || '').replace(/"/g, '&quot;')}" placeholder="Dán link rút gọn (VD: https://link4m.net/dJKEkCE) vào đây..." style="flex:1;min-width:200px;padding:7px 10px;border-radius:8px;border:1px solid rgba(244,114,182,0.55);background:rgba(15,23,42,0.92);color:#fff;font-size:12px;" />
             <button type="button" class="primary-btn" onclick="window.tienLenGame.saveAdminQuickGiftcodeShortUrl()" style="padding:7px 14px;font-size:12px;font-weight:900;background:linear-gradient(135deg,#db2777,#9333ea);">
               💾 Lưu Link Rút Gọn
             </button>
@@ -10732,43 +10990,40 @@ class TienLenGame {
         </div>
       </div>
 
-      <!-- Khung 3: Ủng Hộ Dev / Nhận Giftcode Tri Ân -->
-      <div style="padding:12px 14px;border-radius:12px;background:rgba(15,23,42,0.88);border:1px solid rgba(52,211,153,0.45);">
-        <div style="font-size:13.5px;font-weight:900;color:#6ee7b7;margin-bottom:6px;">
-          ☕ ỦNG HỘ DEV DUY TRÌ SERVER &amp; NHẬN MÃ GIFTCODE TRI ÂN
+      <!-- Khung 3: Quét Mã VietQR MB Bank Kích Hoạt Gói Nguyệt Chúc 30 Ngày (+10 Roll Ngay) -->
+      <div style="padding:12px 14px;border-radius:12px;background:rgba(15,23,42,0.92);border:1.5px solid rgba(52,211,153,0.55);">
+        <div style="font-size:14px;font-weight:900;color:#6ee7b7;margin-bottom:8px;">
+          🏦 QUÉT VIETQR MB BANK — MỞ KHÓA GÓI NGUYỆT CHÚC 30 NGÀY (+10 ROLL NGAY)
         </div>
-        ${
-          hasBank
-            ? `
-              <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-                <img src="${vietQrUrl}" alt="VietQR Ủng Hộ Dev" style="width:155px;height:auto;border-radius:10px;border:2px solid #fde047;background:#fff;padding:4px;" />
-                <div style="flex:1;min-width:210px;font-size:12px;color:#e2e8f0;line-height:1.5;">
-                  <div>🏦 Ngân hàng: <strong style="color:#fde047;">${cfg.bankCode}</strong></div>
-                  <div>💳 Số TK: <strong style="color:#38bdf8;">${cfg.bankAccount}</strong></div>
-                  ${cfg.bankOwner ? `<div>👤 Chủ TK: <strong>${cfg.bankOwner}</strong></div>` : ''}
-                  <div>📝 Nội dung CK: <strong style="color:#6ee7b7;">${transferMemo}</strong></div>
-                  <div style="margin-top:6px;color:#fde68a;">
-                    🎁 Quét mã ủng hộ Dev tùy tâm (từ <strong>20.000đ</strong> nhận ngay <strong>Mã Giftcode Gói Nguyệt Chúc 30 ngày + 10 Roll</strong>)!
-                  </div>
-                  ${
-                    cfg.contactUrl
-                      ? `<a href="${cfg.contactUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;padding:6px 12px;border-radius:8px;background:#2563eb;color:#fff;font-weight:800;text-decoration:none;font-size:12px;">💬 Nhắn cho Dev nhận Mã Giftcode ▸</a>`
-                      : ''
-                  }
-                </div>
-              </div>
-            `
-            : `
-              <div style="font-size:12px;color:#cbd5e1;line-height:1.5;">
-                💬 Liên hệ Admin <strong>@thang.dinhbkp</strong> trên bài viết nhóm Facebook để nhận mã Giftcode sự kiện hoặc ủng hộ gói Không Không Nguyệt Chúc!
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+          <img src="${vietQrUrl}" alt="VietQR MB Bank 0946432236" style="width:160px;height:auto;border-radius:10px;border:2px solid #fde047;background:#fff;padding:4px;" />
+          <div style="flex:1;min-width:220px;font-size:12.5px;color:#e2e8f0;line-height:1.55;">
+            <div>🏦 Ngân hàng: <strong style="color:#fde047;">${cfg.bankCode} (MB Bank)</strong></div>
+            <div>
+              💳 Số TK: <strong style="color:#38bdf8;font-size:13.5px;">${cfg.bankAccount}</strong>
+              <button type="button" class="tool-btn" onclick="navigator.clipboard?.writeText('${cfg.bankAccount}'); alert('📋 Đã copy Số Tài Khoản MB Bank: ${cfg.bankAccount}');" style="padding:1px 7px;font-size:10.5px;margin-left:4px;">📋 Copy STK</button>
+            </div>
+            <div>👤 Chủ TK: <strong>${cfg.bankOwner}</strong></div>
+            <div>💵 Số tiền: <strong style="color:#fde047;">20.000đ</strong></div>
+            <div>
+              📝 Nội dung CK (Bắt buộc): <strong style="color:#6ee7b7;background:rgba(6,78,59,0.65);padding:1px 6px;border-radius:5px;">${transferMemo}</strong>
+              <button type="button" class="tool-btn" onclick="navigator.clipboard?.writeText('${transferMemo}'); alert('📋 Đã copy Nội dung CK: ${transferMemo}');" style="padding:1px 7px;font-size:10.5px;margin-left:4px;">📋 Copy ND</button>
+            </div>
+            <div style="margin-top:8px;">
+              <button type="button" id="btn-submit-welkin-transfer" class="primary-btn" onclick="window.tienLenGame.submitWelkinTransferRequest()" style="width:100%;padding:9px 14px;font-weight:900;font-size:12.5px;background:${
+                isMyOrderPending
+                  ? 'linear-gradient(135deg,#d97706,#ea580c)'
+                  : 'linear-gradient(135deg,#059669,#10b981)'
+              };border:1.5px solid #6ee7b7;">
                 ${
-                  cfg.contactUrl
-                    ? `<div style="margin-top:8px;"><a href="${cfg.contactUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:800;text-decoration:none;font-size:12px;">🌐 Mở Bài Viết Nhóm Genshin Để Nhận Giftcode ▸</a></div>`
-                    : ''
+                  isMyOrderPending
+                    ? `⏳ Đang Chờ Xác Nhận CK Cho @${myIdentity} (Bấm Để Kiểm Tra Ngay)`
+                    : `✅ Tôi Đã Chuyển Khoản 20.000đ (Bấm Để Nhận +10 Roll & 30 Ngày Nguyệt Chúc)`
                 }
-              </div>
-            `
-        }
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -28204,7 +28459,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 179;
+const CLIENT_BUILD_VERSION = 180;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -28221,7 +28476,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=179', { updateViaCache: 'none' })
+        .register('sw.js?v=180', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

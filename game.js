@@ -6515,6 +6515,10 @@ class TienLenGame {
         }
       });
 
+      const mergedProcessedSePayTxIds = Array.from(
+        new Set([...(localAd.processedSePayTxIds || []), ...(remoteAd.processedSePayTxIds || [])])
+      ).slice(-200);
+
       const rawShopee = String(newerAdCfg.shopeeUrl || localAd.shopeeUrl || remoteAd.shopeeUrl || '').trim();
       const rawGcShort = String(
         newerAdCfg.giftcodeShortUrl ||
@@ -6537,6 +6541,7 @@ class TienLenGame {
         totalClicks: Math.max(Number(localAd.totalClicks) || 0, Number(remoteAd.totalClicks) || 0),
         giftcodes: mergedGiftcodes,
         welkinOrders: mergedWelkinOrders,
+        processedSePayTxIds: mergedProcessedSePayTxIds,
       };
 
       const finalReg = {
@@ -10545,8 +10550,124 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // HỆ THỐNG BÁO CHUYỂN KHOẢN VIETQR MB BANK & DUYỆT / BƠM QUÀ TỰ ĐỘNG TỪ XA
+  // HỆ THỐNG BÁO CHUYỂN KHOẢN VIETQR MB BANK & TỰ ĐỘNG KIỂM TRA SEPAY 24/24
   // ============================================================================
+  async checkSePayAutoTransactions() {
+    if (this._isCheckingSePayTx) return false;
+    this._isCheckingSePayTx = true;
+    try {
+      const txList = [];
+      // 1. Đọc tín hiệu Webhook SePay tức thì đẩy về Đám Mây (textdb.dev)
+      try {
+        const whResp = await fetch(`https://textdb.dev/api/data/tlmn_bkp_sepay_webhook_v1?_cb=${Date.now()}`, {
+          cache: 'no-store',
+        });
+        if (whResp && whResp.ok) {
+          const whText = (await whResp.text()).trim();
+          if (whText && whText.startsWith('{')) {
+            const whJson = JSON.parse(whText);
+            if (whJson && (whJson.id || whJson.transferAmount || whJson.amount_in)) {
+              txList.push(whJson);
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 2. Dự phòng: Quét danh sách 15 giao dịch gần nhất từ SePay UserAPI (nếu trình duyệt/proxy cho phép)
+      try {
+        const sepayToken = 'AOSWKGIMRBM2YQR8MT49DXN5BJHVSM9E8G2TDOSUHA0HDQ41HOA3RZZCQLJT7WUS';
+        const apiUrl = 'https://my.sepay.vn/userapi/transactions/list?account_number=0946432236&limit=15';
+        const proxyResp = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, {
+          headers: { Authorization: `Bearer ${sepayToken}` },
+          cache: 'no-store',
+        });
+        if (proxyResp && proxyResp.ok) {
+          const data = await proxyResp.json();
+          if (Array.isArray(data?.transactions)) {
+            txList.push(...data.transactions);
+          }
+        }
+      } catch (_) {}
+
+      if (txList.length === 0) return false;
+
+      const reg = this.loadGlobalRegistryCache();
+      if (!reg.adMonetization) reg.adMonetization = {};
+      if (!reg.adMonetization.welkinOrders) reg.adMonetization.welkinOrders = {};
+      if (!Array.isArray(reg.adMonetization.processedSePayTxIds)) {
+        reg.adMonetization.processedSePayTxIds = [];
+      }
+      const processedSet = new Set(reg.adMonetization.processedSePayTxIds.map(String));
+      let anyMatched = false;
+
+      for (const tx of txList) {
+        if (!tx) continue;
+        const txId = String(tx.id || tx.referenceCode || tx.reference_number || '').trim();
+        if (!txId || txId === '99999' || processedSet.has(txId)) continue;
+
+        const isIncoming =
+          String(tx.transferType || 'in').toLowerCase() === 'in' || Number(tx.amount_in || 0) > 0;
+        const amount = Math.max(Number(tx.transferAmount) || 0, Number(tx.amount_in) || 0);
+        if (!isIncoming || amount < 20000) continue;
+
+        const rawContent = String(tx.content || tx.transaction_content || '').toUpperCase();
+        // Tìm mã tài khoản đứng sau chữ TLMN (VD: "TLMN HUNG123" hoặc "TLMN_HUNG123")
+        const m = rawContent.match(/TLMN[\s._-]*([A-Z0-9_.-]{2,24})/i);
+        let matchedTargetId = m && m[1] ? this.normalizeGiftcodeIdentity(m[1]) : '';
+
+        if (!matchedTargetId) {
+          const myId = this.getPersonalGiftcodeIdentityKey();
+          const myCompact = myId.replace(/[^a-z0-9]/g, '').toUpperCase();
+          const contentCompact = rawContent.replace(/[^A-Z0-9]/g, '');
+          if (myCompact.length >= 3 && contentCompact.includes(myCompact)) {
+            matchedTargetId = myId;
+          }
+        }
+
+        if (!matchedTargetId) continue;
+
+        processedSet.add(txId);
+        reg.adMonetization.processedSePayTxIds = Array.from(processedSet).slice(-200);
+        const prevOrd = reg.adMonetization.welkinOrders[matchedTargetId] || {
+          id: matchedTargetId,
+          username: matchedTargetId,
+          displayName: matchedTargetId,
+          memo: `TLMN ${matchedTargetId}`,
+          amount,
+          approvedCount: 0,
+          claimedCount: 0,
+        };
+        const nextApproved = Math.max(
+          (Number(prevOrd.approvedCount) || 0) + 1,
+          (Number(prevOrd.claimedCount) || 0) + 1
+        );
+        reg.adMonetization.welkinOrders[matchedTargetId] = {
+          ...prevOrd,
+          status: 'approved',
+          approvedCount: nextApproved,
+          lastSePayTxId: txId,
+          updatedAtMs: Date.now(),
+          approvedAtStr: new Date().toLocaleString('vi-VN'),
+        };
+        reg.adMonetization.cfgUpdatedAtMs = Date.now();
+        anyMatched = true;
+      }
+
+      if (anyMatched) {
+        this.globalRegistryCache = reg;
+        try {
+          localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+        } catch (_) {}
+        await this.syncGlobalDeviceRegistry(true);
+        return this.checkAndAutoDeliverApprovedWelkinOrder(reg);
+      }
+    } catch (_) {
+    } finally {
+      this._isCheckingSePayTx = false;
+    }
+    return false;
+  }
+
   checkAndAutoDeliverApprovedWelkinOrder(regObj) {
     try {
       const reg = regObj || this.loadGlobalRegistryCache();
@@ -10600,6 +10721,7 @@ class TienLenGame {
   startWelkinOrderAutoPoller() {
     clearInterval(this._welkinOrderPollTimer);
     this._welkinOrderPollTimer = setInterval(async () => {
+      await this.checkSePayAutoTransactions();
       const reg = await this.syncGlobalDeviceRegistry(true);
       if (this.checkAndAutoDeliverApprovedWelkinOrder(reg)) {
         clearInterval(this._welkinOrderPollTimer);
@@ -10615,9 +10737,12 @@ class TienLenGame {
     const btn = document.getElementById('btn-submit-welkin-transfer');
     if (btn) {
       btn.disabled = true;
-      btn.textContent = '⏳ Đang gửi xác nhận lên Đám Mây...';
+      btn.textContent = '⏳ Đang kiểm tra giao dịch MB Bank (SePay 24/24)...';
     }
 
+    if (await this.checkSePayAutoTransactions()) {
+      return;
+    }
     await this.syncGlobalDeviceRegistry(true);
     const reg = this.loadGlobalRegistryCache();
     if (!reg.adMonetization) reg.adMonetization = {};
@@ -28459,7 +28584,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 180;
+const CLIENT_BUILD_VERSION = 181;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -28476,7 +28601,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=180', { updateViaCache: 'none' })
+        .register('sw.js?v=181', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

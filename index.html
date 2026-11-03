@@ -1387,6 +1387,30 @@
       </div>
     </div>
 
+    <!-- CỬA SỔ HIỂN THỊ NHÀ TÀI TRỢ TRỰC TIẾP TRÊN APP ĐIỆN THOẠI (SHOPEE AFFILIATE & MONETAG — KHÔNG BAO GIỜ LỖI INTENT://) -->
+    <div class="modal-backdrop hidden" id="inapp-sponsor-modal" style="z-index: 10050;">
+      <div class="modal-card" style="max-width: 560px; width: 94vw; border: 2px solid #fde047; box-shadow: 0 0 35px rgba(245,158,11,0.55);">
+        <div class="modal-header" id="inapp-sponsor-modal-header" style="background: linear-gradient(135deg, #ea580c, #b91c1c);">
+          <div>
+            <h2 id="inapp-sponsor-modal-title" style="color:#ffffff;">🛍️ NHÀ TÀI TRỢ SHOPEE VIỆT NAM</h2>
+            <p id="inapp-sponsor-modal-sub" style="font-size:12px;color:#fef08a;margin:2px 0 0;font-weight:700;">
+              🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) vào tài khoản của bạn!
+            </p>
+          </div>
+          <button type="button" class="close-modal-btn" onclick="window.tienLenGame.closeInAppSponsorModal()">✕</button>
+        </div>
+        <div class="modal-body" id="inapp-sponsor-modal-body" style="padding:16px;display:flex;flex-direction:column;gap:12px;"></div>
+        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="tool-btn" id="btn-inapp-sponsor-copy" onclick="window.tienLenGame.copyInAppSponsorUrl()" style="padding:9px 14px;font-weight:800;">
+            📋 Copy Link Nhà Tài Trợ
+          </button>
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.closeInAppSponsorModal()" style="padding:10px 20px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
+            ✅ Đã Nhận +2 Roll (3,200 Xu) • Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL HỆ THỐNG TÀI KHOẢN & MẬT KHẨU (GIỮ NGUYÊN 100% DỮ LIỆU ĐANG CHƠI) -->
     <div class="modal-backdrop hidden" id="account-modal">
       <div class="modal-card account-modal-card" style="max-width: 660px;">
@@ -1578,19 +1602,11 @@
   <script>
     (function () {
       var ua = navigator.userAgent || '';
-      var isStandalonePwa = false;
-      try {
-        isStandalonePwa = Boolean(
-          (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-          (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) ||
-          window.navigator.standalone === true
-        );
-      } catch (_) {}
-      var isInAppWebView =
+      var isApkOrEmbeddedWebView =
         /;\s*wv\b|FBAV|FBAN|FBIOS|Line\/|Zalo|Instagram|TikTok|BytedanceWebview|MicroMessenger|wv\)/i.test(ua) ||
         Boolean(window.Capacitor) ||
-        isStandalonePwa;
-      window.__tlmnIsInAppOrStandalone = isInAppWebView;
+        /[?&]source=apk\b/i.test(window.location.search || '');
+      window.__tlmnIsInAppOrStandalone = isApkOrEmbeddedWebView;
 
       // 1. Khóa biến __vST để hàm af() của Monetag không bao giờ tải script phụ 'in-app' (Zone 5434422 gây lỗi intent://)
       try {
@@ -1786,6 +1802,6 @@
       }, 45000);
     })();
   </script>
-  <script src="game.js?v=170"></script>
+  <script src="game.js?v=171"></script>
 </body>
 </html>

@@ -10222,6 +10222,90 @@ class TienLenGame {
     this.syncGlobalDeviceRegistry(true);
   }
 
+  openInAppSponsorModal(partner) {
+    const modal = document.getElementById('inapp-sponsor-modal');
+    const header = document.getElementById('inapp-sponsor-modal-header');
+    const title = document.getElementById('inapp-sponsor-modal-title');
+    const sub = document.getElementById('inapp-sponsor-modal-sub');
+    const body = document.getElementById('inapp-sponsor-modal-body');
+    if (!modal || !body) return;
+
+    const isShopee = partner && partner.type === 'shopee';
+    const sponsorUrl = String((partner && partner.url) || 'https://s.shopee.vn/8fTd9HCotb').trim();
+    this._lastInAppSponsorUrl = sponsorUrl;
+
+    if (isShopee) {
+      try {
+        fetch('https://s.shopee.vn/8fTd9HCotb', { mode: 'no-cors', credentials: 'include' }).catch(() => {});
+        fetch(
+          'https://shopee.vn/?mmp_pid=an_17333740662&utm_campaign=id_5l01fbZuIVx&utm_content=tienlengenshin----&utm_medium=affiliates&utm_source=an_17333740662',
+          { mode: 'no-cors', credentials: 'include' }
+        ).catch(() => {});
+      } catch (_) {}
+      if (header) header.style.background = 'linear-gradient(135deg, #ee4d2d, #b91c1c)';
+      if (title) title.textContent = '🛍️ NHÀ TÀI TRỢ SHOPEE VIỆT NAM (AFFILIATE)';
+      if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) vào ví của bạn!';
+      body.innerHTML = `
+        <div style="padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(238,77,45,0.22),rgba(15,23,42,0.95));border:1.5px solid #fb923c;display:flex;flex-direction:column;gap:10px;text-align:center;">
+          <div style="font-size:16px;font-weight:900;color:#fde047;">
+            🔥 ƯU ĐÃI ĐỘC QUYỀN SHOPEE × TIẾN LÊN GENSHIN 5★
+          </div>
+          <div style="font-size:13px;color:#f8fafc;line-height:1.45;">
+            Săn Voucher Freeship Xtra &amp; Giảm Giá tới 50% tại <strong>Shopee Việt Nam</strong> qua liên kết tài trợ chính thức của Game:
+          </div>
+          <div style="padding:8px 12px;border-radius:10px;background:rgba(0,0,0,0.45);border:1px dashed #fdba74;color:#fef08a;font-family:monospace;font-size:13.5px;font-weight:800;word-break:break-all;">
+            ${sponsorUrl}
+          </div>
+          <div style="font-size:12px;color:#6ee7b7;font-weight:700;">
+            ✅ Bạn đã được cộng đủ +2 Roll (+3,200 Xu)! Bấm nút Copy Link bên dưới để dán vào trình duyệt hoặc App Shopee nếu muốn mua sắm nhận ưu đãi nhé!
+          </div>
+        </div>
+      `;
+    } else {
+      try {
+        fetch(sponsorUrl, { mode: 'no-cors', credentials: 'include' }).catch(() => {});
+      } catch (_) {}
+      if (typeof window.__tlmnRefreshCornerAdBanner === 'function') {
+        window.__tlmnRefreshCornerAdBanner();
+      }
+      if (header) header.style.background = 'linear-gradient(135deg, #1d4ed8, #6d28d9)';
+      if (title) title.textContent = '📢 NHÀ TÀI TRỢ MONETAG (QUẢNG CÁO ĐỐI TÁC)';
+      if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) & hiển thị Banner Quảng Cáo!';
+      body.innerHTML = `
+        <div style="padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(37,99,235,0.22),rgba(15,23,42,0.95));border:1.5px solid #60a5fa;display:flex;flex-direction:column;gap:10px;text-align:center;">
+          <div style="font-size:16px;font-weight:900;color:#fde047;">
+            🌟 CẢM ƠN BẠN ĐÃ ỦNG HỘ NHÀ TÀI TRỢ MONETAG!
+          </div>
+          <div style="font-size:13px;color:#f8fafc;line-height:1.45;">
+            Hệ thống đã kích hoạt <strong>Banner Quảng Cáo Nhà Tài Trợ</strong> ở góc trên bên phải màn hình và ghi nhận lượt tài trợ của bạn:
+          </div>
+          <div style="padding:8px 12px;border-radius:10px;background:rgba(0,0,0,0.45);border:1px dashed #93c5fd;color:#fef08a;font-family:monospace;font-size:13.5px;font-weight:800;word-break:break-all;">
+            ${sponsorUrl}
+          </div>
+          <div style="font-size:12px;color:#6ee7b7;font-weight:700;">
+            ✅ Bạn đã được cộng đủ +2 Roll (+3,200 Xu) ngay trong App mà không bị văng khỏi bàn chơi!
+          </div>
+        </div>
+      `;
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  closeInAppSponsorModal() {
+    document.getElementById('inapp-sponsor-modal')?.classList.add('hidden');
+    sfx.click();
+  }
+
+  copyInAppSponsorUrl() {
+    const url = this._lastInAppSponsorUrl || 'https://s.shopee.vn/8fTd9HCotb';
+    try {
+      navigator.clipboard.writeText(url);
+    } catch (_) {}
+    this.showCenterToast(`📋 Đã sao chép link Nhà Tài Trợ: ${url}`);
+    sfx.click();
+  }
+
   onClickDirectSponsor2Roll(evt = null) {
     const remMs = this.getSponsor2RollCooldownRemainingMs();
     if (remMs > 0) {
@@ -10255,14 +10339,7 @@ class TienLenGame {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
       }
-      if (sponsorUrl) {
-        try {
-          fetch(sponsorUrl, { mode: 'no-cors', credentials: 'include' }).catch(() => {});
-        } catch (_) {}
-      }
-      if (typeof window.__tlmnRefreshCornerAdBanner === 'function') {
-        window.__tlmnRefreshCornerAdBanner();
-      }
+      this.openInAppSponsorModal(partner);
     }
 
     const AD_REWARD = AD_REWARD_COINS * 2; // +2 Roll = 3,200 Xu
@@ -10330,19 +10407,12 @@ class TienLenGame {
     this.recordSponsor2RollClaimTimestamp();
     this.recordAdMonetizationEvent('click');
 
-    // Trên App APK / WebView / PWA Standalone: Chặn mở trang đè lên App, gửi ping ngầm và cộng thưởng +2 Roll ngay lập tức!
+    // Trên App APK / WebView: Hiện bảng Cửa Sổ Nhà Tài Trợ trực tiếp trên màn hình và cộng thưởng +2 Roll!
     if (window.__tlmnIsInAppOrStandalone) {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
       }
-      if (sponsorUrl) {
-        try {
-          fetch(sponsorUrl, { mode: 'no-cors', credentials: 'include' }).catch(() => {});
-        } catch (_) {}
-      }
-      if (typeof window.__tlmnRefreshCornerAdBanner === 'function') {
-        window.__tlmnRefreshCornerAdBanner();
-      }
+      this.openInAppSponsorModal(partner);
     }
 
     const sub = document.getElementById('ad-real-sponsor-sub');

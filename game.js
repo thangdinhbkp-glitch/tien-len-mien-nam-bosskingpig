@@ -7642,15 +7642,24 @@ class TienLenGame {
       return;
     }
     this.activeShopTab = tabName;
-    const tabs = ['gacha', 'quests', 'history'];
+    const tabs = ['gacha', 'merch', 'quests', 'history'];
     tabs.forEach((t) => {
       document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tabName);
     });
     document.getElementById('shop-gacha-panel')?.classList.toggle('hidden', tabName !== 'gacha');
+    document.getElementById('shop-merch-panel')?.classList.toggle('hidden', tabName !== 'merch');
     document.getElementById('shop-quests-panel')?.classList.toggle('hidden', tabName !== 'quests');
     document.getElementById('shop-history-panel')?.classList.toggle('hidden', tabName !== 'history');
     sfx.click();
     this.renderShopModal();
+  }
+
+  openShopeeMerchShelfModal() {
+    if (!this.requireAccountLogin()) return;
+    document.getElementById('inventory-modal')?.classList.add('hidden');
+    document.getElementById('pause-modal')?.classList.add('hidden');
+    this.modalShop?.classList.remove('hidden');
+    this.switchShopTab('merch');
   }
 
   openGachaForCharacter(charId) {
@@ -9026,6 +9035,7 @@ class TienLenGame {
             </div>
           </div>
         </div>
+        ${this.buildShopeeMerchShelfHtml(true)}
       `;
 
       // Giữ nguyên vị trí cuộn của thanh danh sách Banner (không bị giật/thụt về banner đầu tiên)
@@ -9051,6 +9061,12 @@ class TienLenGame {
           }
         }
       }
+    }
+
+    // 4.5 RENDER TAB KỆ HÀNG VẬT PHẨM GENSHIN & BỘ BÀI GIÁ RẺ (SHOPEE AFFILIATE)
+    const merchPanel = document.getElementById('shop-merch-panel');
+    if (merchPanel && activeTab === 'merch') {
+      merchPanel.innerHTML = this.buildShopeeMerchShelfHtml(false);
     }
 
     // 5. RENDER TAB TOÀN BỘ LỊCH SỬ CẦU NGUYỆN & BẢNG TỶ LỆ TĂNG DẦN THEO SỐ ROLL
@@ -9758,6 +9774,215 @@ class TienLenGame {
       turnIdx = Math.floor(Math.random() * pool.length);
     }
     return pool[turnIdx % pool.length];
+  }
+
+  getShopeeMerchItems() {
+    return [
+      {
+        id: 'keychain_genshin',
+        name: 'Móc Khóa Genshin Impact & Vũ Khí 2 Mặt Acrylic',
+        price: '14.900₫',
+        sold: 'Đã bán 20.000+',
+        badge: '🔥 Bán Chạy #1',
+        desc: 'Đủ bộ Nhân Vật 5★ (Raiden, Furina, Hu Tao, Zhongli, Nahida...) & Vũ Khí Trấn 2 mặt nhựa Mica cực nét.',
+        imgUrl: 'https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-lff8wzomoq6c65',
+        fallbackImg: 'fanart/raiden.jpg?v=66',
+        url: 'https://s.shopee.vn/7fb6AFMIRz',
+      },
+      {
+        id: 'pvc_cards',
+        name: 'Bộ Bài Tây Tiến Lên Nhựa PVC Chống Thấm Nước',
+        price: '56.000₫',
+        sold: 'Đã bán 30.000+',
+        badge: '🃏 Bền Gấp 10 Lần',
+        desc: 'Chất liệu nhựa PVC dẻo cao cấp bẻ không gãy, ngâm nước rửa sạch thoải mái, cầm cực đầm tay khi chặt Heo!',
+        imgUrl: 'https://down-vn.img.susercontent.com/file/42f2b3f13dab34737ec6b0d05863c884',
+        fallbackImg: 'fanart/arle.jpg?v=66',
+        url: 'https://s.shopee.vn/40hnnYGYFw',
+      },
+      {
+        id: 'mousepad_raiden',
+        name: 'Lót Chuột Gaming Raiden Shogun × Genshin Impact',
+        price: '57.850₫',
+        sold: 'Đã bán 200+',
+        badge: '⚡ Bề Mặt Speed HD',
+        desc: 'Bề mặt vải Speed di chuột siêu mượt, đế cao su chống trượt, bo viền dày dặn in hình Lôi Thần Raiden Shogun.',
+        imgUrl: 'https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mr4ifchioa9wa0',
+        fallbackImg: 'fanart/furina.jpg?v=66',
+        url: 'https://s.shopee.vn/3g4xOyejGx',
+      },
+      {
+        id: 'standee_genshin',
+        name: 'Mô Hình Standee Genshin Impact Để Bàn (Furina / Neuvillette)',
+        price: '14.500₫',
+        sold: 'Đã bán 900+',
+        badge: '✨ Giá Sinh Viên',
+        desc: 'Mô hình Standee Acrylic trưng bày góc học tập & bàn máy tính cực đẹp chuẩn phong cách Teyvat.',
+        imgUrl: 'https://down-vn.img.susercontent.com/file/sg-11134201-7rdw0-mcbk080lioyod9',
+        fallbackImg: 'fanart/skirk.jpg?v=66',
+        url: 'https://s.shopee.vn/6AmINc2z0c',
+      },
+    ];
+  }
+
+  getShopeeMerchCooldownRemainingMs() {
+    if (this.isAdminAccount()) return 0; // Admin (@thang.dinhbkp) được bấm test liên tục
+    let lastMs = Number(this.lastShopeeMerchClaimMs) || 0;
+    try {
+      const lsGlobal = Number(localStorage.getItem('tlmn_last_shopee_merch_ms_v1')) || 0;
+      const lsUser = this.currentAccountUsername
+        ? Number(localStorage.getItem(`tlmn_last_shopee_merch_ms_${this.currentAccountUsername}`)) || 0
+        : 0;
+      lastMs = Math.max(lastMs, lsGlobal, lsUser);
+    } catch (_) {}
+    if (!lastMs) return 0;
+    const COOLDOWN_MS = 60 * 60 * 1000; // 1 tiếng nhận thưởng +1 Roll từ kệ hàng 1 lần (vẫn xem hàng tự do mọi lúc)
+    return Math.max(0, lastMs + COOLDOWN_MS - Date.now());
+  }
+
+  buildShopeeMerchShelfHtml(compact = false) {
+    const items = this.getShopeeMerchItems();
+    const remMs = this.getShopeeMerchCooldownRemainingMs();
+    const totalSec = Math.ceil(remMs / 1000);
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    const rewardStatusHtml =
+      remMs > 0
+        ? `<span style="color:#fde68a;font-weight:800;">⏳ Đã nhận +1 Roll (Nhận lại sau ${mins}p ${String(secs).padStart(2, '0')}s • Vẫn xem &amp; mua hàng tự do!)</span>`
+        : `<span style="color:#4ade80;font-weight:900;">🎁 Bấm xem bất kỳ món nào bên dưới để nhận ngay +1 ROLL (+1,600 Xu) miễn phí!</span>`;
+
+    const cardsHtml = items
+      .map((item) => {
+        const btnText =
+          remMs > 0 ? `🛒 Xem Giá Ưu Đãi Shopee ↗` : `🛒 Xem Trên Shopee (+1 Roll = 1,600 Xu) ↗`;
+        return `
+          <div style="background:linear-gradient(145deg,rgba(15,23,42,0.95),rgba(30,41,59,0.92));border:1.5px solid rgba(249,115,22,0.5);border-radius:14px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,0.45);">
+            <div>
+              <div style="position:relative;width:100%;height:${compact ? '118px' : '145px'};border-radius:10px;overflow:hidden;background:#0f172a;border:1px solid rgba(251,146,60,0.35);">
+                <img src="${item.imgUrl}" alt="${item.name}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${item.fallbackImg}';" style="width:100%;height:100%;object-fit:cover;" />
+                <span style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#ee4d2d,#f97316);color:#fff;font-size:10.5px;font-weight:900;padding:2px 8px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,0.5);">
+                  ${item.badge}
+                </span>
+                <span style="position:absolute;bottom:6px;right:6px;background:rgba(15,23,42,0.88);color:#fde047;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;border:1px solid rgba(250,204,21,0.4);">
+                  ${item.sold}
+                </span>
+              </div>
+              <div style="font-size:13px;font-weight:900;color:#f8fafc;margin-top:8px;line-height:1.35;">
+                ${item.name}
+              </div>
+              <div style="font-size:11.5px;color:#cbd5e1;margin-top:3px;line-height:1.35;">
+                ${item.desc}
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:11px;color:#94a3b8;">Giá ưu đãi Shopee:</span>
+                <strong style="font-size:16px;color:#fb923c;font-weight:900;">${item.price}</strong>
+              </div>
+              <a
+                href="${item.url}"
+                target="_blank"
+                rel="noopener noreferrer"
+                onclick="return window.tienLenGame.onClickShopeeMerchItem(event, '${item.id}')"
+                style="width:100%;padding:9px 10px;border-radius:10px;background:linear-gradient(135deg,#ee4d2d,#f97316);border:1.5px solid #fed7aa;color:#ffffff;font-weight:900;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;box-shadow:0 4px 12px rgba(238,77,45,0.4);cursor:pointer;"
+              >
+                ${btnText}
+              </a>
+            </div>
+          </div>
+        `;
+      })
+      .join('');
+
+    return `
+      <div style="margin-top:${compact ? '12px' : '0'};background:linear-gradient(135deg,rgba(30,27,75,0.92),rgba(67,20,7,0.88));border:2px solid rgba(249,115,22,0.65);border-radius:16px;padding:12px 14px;box-shadow:0 8px 24px rgba(238,77,45,0.22);">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <div>
+            <div style="font-size:15px;font-weight:900;color:#fed7aa;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span>🛒 KỆ HÀNG VẬT PHẨM GENSHIN &amp; BỘ BÀI TÂY NHỰA PVC GIÁ RẺ (SHOPEE CHÍNH HÃNG)</span>
+            </div>
+            <div style="font-size:12px;margin-top:2px;">
+              ${rewardStatusHtml}
+            </div>
+          </div>
+          <a
+            href="https://s.shopee.vn/8fTd9HCotb"
+            target="_blank"
+            rel="noopener noreferrer"
+            onclick="return window.tienLenGame.onClickShopeeMerchItem(event, 'general_shopee')"
+            style="padding:7px 12px;border-radius:10px;background:rgba(238,77,45,0.28);border:1.5px solid #fb923c;color:#fed7aa;font-size:12px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:4px;"
+          >
+            🛍️ Mở Trang Chủ Săn Sale Shopee ↗
+          </a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  onClickShopeeMerchItem(e, itemId) {
+    const items = this.getShopeeMerchItems();
+    const found = items.find((it) => it.id === itemId);
+    const targetUrl = found ? found.url : 'https://s.shopee.vn/8fTd9HCotb';
+    const itemName = found ? found.name : 'Săn Sale Shopee';
+
+    if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
+      if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+      try {
+        window.AndroidBridge.openExternalUrl(targetUrl);
+      } catch (_) {}
+    } else if (window.__tlmnIsInAppOrStandalone) {
+      if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+      if (typeof window.__tlmnOpenSponsorWebSafe === 'function') {
+        window.__tlmnOpenSponsorWebSafe(targetUrl, true);
+      }
+    } else {
+      if (typeof window.__tlmnOpenSponsorWebSafe === 'function') {
+        window.__tlmnOpenSponsorWebSafe(targetUrl, false);
+      }
+    }
+
+    const remMs = this.getShopeeMerchCooldownRemainingMs();
+    if (remMs <= 0) {
+      if (!this.isAdminAccount()) {
+        const nowMs = Date.now();
+        this.lastShopeeMerchClaimMs = nowMs;
+        try {
+          localStorage.setItem('tlmn_last_shopee_merch_ms_v1', String(nowMs));
+          if (this.currentAccountUsername) {
+            localStorage.setItem(`tlmn_last_shopee_merch_ms_${this.currentAccountUsername}`, String(nowMs));
+          }
+        } catch (_) {}
+      }
+      const rewardCoins = AD_REWARD_COINS; // +1 Roll = +1,600 Xu
+      const me = this.getLocalPlayer();
+      if (me) {
+        me.coins += rewardCoins;
+        this.savedCoins = me.coins;
+      } else {
+        this.savedCoins = (this.savedCoins || 0) + rewardCoins;
+      }
+      this.recordAdMonetizationEvent('click');
+      sfx.win();
+      sfx.coin();
+      this.showComboBanner(`🛒 GHÉ KỆ HÀNG SHOPEE: +${rewardCoins.toLocaleString()} XU (+1 ROLL)!`);
+      this.addLog(
+        `🛒 <strong>Kệ Hàng Genshin & Bộ Bài Shopee:</strong> Cảm ơn bạn đã xem <strong>${itemName}</strong>! Hệ thống tặng nóng <strong>+${rewardCoins.toLocaleString()} Xu (+1 Lượt Cầu Nguyện)</strong>!`,
+        'log-win'
+      );
+      this.saveShopProfile();
+      this.renderShopModal();
+      this.renderLobbyModal();
+      this.renderAll();
+      this.syncCosmeticsInRoom();
+    }
+    return true;
   }
 
   getSponsor2RollCooldownRemainingMs() {
@@ -11233,6 +11458,7 @@ class TienLenGame {
       });
 
       document.getElementById('tab-btn-gacha')?.addEventListener('click', () => this.switchShopTab('gacha'));
+      document.getElementById('tab-btn-merch')?.addEventListener('click', () => this.switchShopTab('merch'));
       document.getElementById('tab-btn-quests')?.addEventListener('click', () => this.switchShopTab('quests'));
       document.getElementById('tab-btn-history')?.addEventListener('click', () => this.switchShopTab('history'));
 
@@ -27488,7 +27714,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 176;
+const CLIENT_BUILD_VERSION = 177;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -27505,7 +27731,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=176', { updateViaCache: 'none' })
+        .register('sw.js?v=177', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

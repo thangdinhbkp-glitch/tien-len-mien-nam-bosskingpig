@@ -447,6 +447,10 @@
             <span class="dock-icon">🎁</span>
             <span class="dock-label" style="color:#fef08a;font-weight:800;">Mở Web (+2 Roll)</span>
           </a>
+          <button class="app-dock-btn dock-ad" id="btn-lobby-shopee-merch" onclick="window.tienLenGame.openShopeeMerchShelfModal()" title="Kệ Hàng Vật Phẩm Genshin &amp; Bộ Bài Nhựa PVC Giá Rẻ (14k–56k) — Xem sản phẩm nhận thêm +1 Roll (1,600 Xu)!" style="background:linear-gradient(135deg,rgba(238,77,45,0.32),rgba(249,115,22,0.38));border-color:#fb923c;">
+            <span class="dock-icon">🛒</span>
+            <span class="dock-label" style="color:#fed7aa;font-weight:800;">Phụ Kiện 14K (+1 Roll)</span>
+          </button>
           <button class="app-dock-btn" id="btn-lobby-bgm" title="Đổi bài nhạc nền Genshin Impact hoặc Tắt nhạc">
             <span class="dock-icon">🎵</span>
             <span class="dock-label" id="lobby-bgm-label">Auto 🔄: Inazuma 🌸</span>
@@ -1064,6 +1068,9 @@
             <button class="shop-tab active" id="tab-btn-gacha">
               🌠 Banner Cầu Nguyện (Gacha)
             </button>
+            <button class="shop-tab" id="tab-btn-merch" style="border-color:rgba(249,115,22,0.55);color:#fed7aa;">
+              🛒 Kệ Hàng Genshin &amp; Bộ Bài (+1 Roll)
+            </button>
             <button class="shop-tab" id="tab-btn-history">
               📜 Lịch Sử Roll &amp; Tỷ Lệ Bảo Hiểm
             </button>
@@ -1074,6 +1081,9 @@
 
           <!-- TAB 1: SẢNH CẦU NGUYỆN GENSHIN IMPACT (CHARACTER EVENT WISH) -->
           <div class="gacha-banner-panel" id="shop-gacha-panel"></div>
+
+          <!-- TAB KỆ HÀNG VẬT PHẨM GENSHIN & BỘ BÀI GIÁ RẺ (SHOPEE AFFILIATE) -->
+          <div class="gacha-history-panel hidden" id="shop-merch-panel"></div>
 
           <!-- TAB 2: LỊCH SỬ CẦU NGUYỆN & PHÂN TÍCH TỶ LỆ BẢO HIỂM -->
           <div class="gacha-history-panel hidden" id="shop-history-panel"></div>
@@ -1796,6 +1806,6 @@
       window.__tlmnRefreshCornerAdBanner = function () {};
     })();
   </script>
-  <script src="game.js?v=176"></script>
+  <script src="game.js?v=177"></script>
 </body>
 </html>

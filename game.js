@@ -6503,9 +6503,10 @@ class TienLenGame {
 
       const rawShopee = String(newerAdCfg.shopeeUrl || localAd.shopeeUrl || remoteAd.shopeeUrl || '').trim();
       const rawGcShort = String(
-        newerAdCfg.giftcodeShortUrl !== undefined
-          ? newerAdCfg.giftcodeShortUrl
-          : localAd.giftcodeShortUrl || remoteAd.giftcodeShortUrl || ''
+        newerAdCfg.giftcodeShortUrl ||
+          localAd.giftcodeShortUrl ||
+          remoteAd.giftcodeShortUrl ||
+          'https://link4m.net/dJKEkCE'
       ).trim();
       const mergedAdMonetization = {
         sponsorUrl: String(newerAdCfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim(),
@@ -6710,7 +6711,7 @@ class TienLenGame {
         ? 'https://s.shopee.vn/8fTd9HCotb'
         : rawAdminShopee
     ).replace(/"/g, '&quot;');
-    const curGiftcodeShortUrl = String(adCfg.giftcodeShortUrl || '').replace(/"/g, '&quot;');
+    const curGiftcodeShortUrl = String(adCfg.giftcodeShortUrl || 'https://link4m.net/dJKEkCE').replace(/"/g, '&quot;');
     const curBannerHtml = String(adCfg.bannerHtml || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -9731,7 +9732,7 @@ class TienLenGame {
     return {
       sponsorUrl: String(ad.sponsorUrl || 'https://uplcm.com/4/12175425').trim(),
       shopeeUrl: cleanShopee,
-      giftcodeShortUrl: String(ad.giftcodeShortUrl || '').trim(),
+      giftcodeShortUrl: String(ad.giftcodeShortUrl || 'https://link4m.net/dJKEkCE').trim(),
       bannerHtml: String(ad.bannerHtml || '').trim(),
       adMode: ad.adMode || 'auto_open',
       bankCode: String(ad.bankCode || 'MB').trim().toUpperCase(),
@@ -10377,8 +10378,22 @@ class TienLenGame {
         this.openSponsorUrlExternally(openUrl);
       }
       const statusEl = document.getElementById('personal-gc-step1-status');
+      if (this.isAdminAccount()) {
+        try {
+          localStorage.setItem('tlmn_personal_gc_step1_ms_v1', String(Date.now() - 16000));
+        } catch (_) {}
+        const adminCode = this.generatePersonalGiftcodeForUser(myId);
+        this._lastGeneratedPersonalGiftcode = adminCode;
+        const inp = document.getElementById('input-redeem-giftcode');
+        if (inp) inp.value = adminCode;
+        if (statusEl) {
+          statusEl.innerHTML = `👑 <strong style="color:#fde047;">Đặc quyền Admin (@${myId} • 0s chờ):</strong> Đã mở Link4m (<code>${openUrl}</code>) để kiểm tra VÀ tạo sẵn mã riêng của bạn: <code style="color:#34d399;font-weight:900;">${adminCode}</code> (Bấm <strong>🎁 Đổi Mã Ngay</strong> bên dưới để nhận +5 Roll ngay lập tức!)`;
+          statusEl.classList.remove('hidden');
+        }
+        return false;
+      }
       if (statusEl) {
-        statusEl.innerHTML = `⏳ <strong style="color:#fde047;">Đã mở Link Vượt Quảng Cáo!</strong> Hãy hoàn thành các bước trên trang vừa mở để lấy mã <code>GC-...</code> của tài khoản <strong>@${myId}</strong> rồi dán vào Bước 2 bên dưới nhé!`;
+        statusEl.innerHTML = `⏳ <strong style="color:#fde047;">Đã mở Link Vượt Quảng Cáo (${openUrl})!</strong> Hãy hoàn thành các bước trên trang vừa mở để lấy mã <code>GC-...</code> của tài khoản <strong>@${myId}</strong> rồi dán vào Bước 2 bên dưới nhé!`;
         statusEl.classList.remove('hidden');
       }
       return false;
@@ -28189,7 +28204,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 178;
+const CLIENT_BUILD_VERSION = 179;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -28206,7 +28221,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=178', { updateViaCache: 'none' })
+        .register('sw.js?v=179', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

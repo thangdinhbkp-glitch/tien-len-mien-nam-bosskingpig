@@ -10036,23 +10036,72 @@ class TienLenGame {
 
   onClickSponsorAdLink(isAutoTrigger = false) {
     const cfg = this.getAdMonetizationConfig();
-    if (!cfg.sponsorUrl) return;
+    const sponsorUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
+    if (!sponsorUrl) return;
     this.adSponsorClickedThisSession = true;
     this.recordAdMonetizationEvent('click');
-    if (!isAutoTrigger) {
+    if (typeof window.__tlmnOpenSponsorWebSafe === 'function') {
+      window.__tlmnOpenSponsorWebSafe(sponsorUrl, !isAutoTrigger);
+    } else if (!isAutoTrigger && !window.__tlmnIsInAppOrStandalone) {
       try {
-        window.open(cfg.sponsorUrl, '_blank', 'noopener,noreferrer');
+        window.open(sponsorUrl, '_blank', 'noopener,noreferrer');
       } catch (_) {}
     }
     const btn = document.getElementById('btn-ad-open-sponsor-link');
     const sub = document.getElementById('ad-real-sponsor-sub');
     if (btn) {
-      btn.textContent = '✅ Đã Mở Trang Nhà Tài Trợ (Đã Mở Khóa +1 Roll!)';
+      btn.textContent = '✅ Đã Mở Trang Tài Trợ (+1 Roll!)';
       btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
       btn.style.color = '#ffffff';
     }
     if (sub) {
-      sub.textContent = '🎉 Cảm ơn bạn đã xem Nhà Tài Trợ! Đợi hết đếm ngược để nhận ngay +1,600 Xu nhé!';
+      sub.innerHTML = '🎉 <strong>Đã mở trang Nhà Tài Trợ!</strong> Đã mở khóa ngay <strong>+1 Roll (+1,600 Xu)</strong> cho bạn!';
+    }
+    if (!isAutoTrigger && !this.adRewardClaimed) {
+      this.adRemainingSec = 0;
+      this.claimRewardedAdCoinsNow();
+    }
+  }
+
+  claimRewardedAdCoinsNow() {
+    if (this.adRewardClaimed) return;
+    this.adRewardClaimed = true;
+    clearInterval(this.adIntervalTimer);
+    const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
+    const countdownPill = document.getElementById('ad-countdown-pill');
+    const skipBtn = document.getElementById('btn-ad-skip-or-claim');
+    const progressFill = document.getElementById('ad-progress-fill');
+    const toastMsg = document.getElementById('ad-toast-msg');
+
+    if (progressFill) progressFill.style.width = '100%';
+    const me = this.getLocalPlayer();
+    if (me) {
+      me.coins += AD_REWARD;
+    } else {
+      this.savedCoins = (this.savedCoins || INITIAL_COINS) + AD_REWARD;
+    }
+    sfx.win();
+    this.saveShopProfile();
+    this.renderShopModal();
+    this.renderSeats();
+    this.renderBetTiers();
+    const resBal = document.getElementById('gacha-results-balance');
+    if (resBal && me) resBal.textContent = me.coins.toLocaleString();
+    this.addLog(
+      `🌐 <strong>Trang Web Nhà Tài Trợ:</strong> Bạn đã xem trang tài trợ và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
+      'log-win'
+    );
+    this.syncCosmeticsInRoom();
+
+    if (countdownPill) {
+      countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +1 ROLL (+${AD_REWARD.toLocaleString()} XU)!</strong>`;
+    }
+    if (skipBtn) {
+      skipBtn.textContent = `✅ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) & Đóng QC`;
+      skipBtn.classList.add('ready-claim');
+    }
+    if (toastMsg) {
+      toastMsg.innerHTML = `🎁 <strong>Hoàn tất!</strong> Tài khoản của bạn đã được cộng thêm <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
     }
   }
 
@@ -10090,16 +10139,16 @@ class TienLenGame {
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');
     const progressFill = document.getElementById('ad-progress-fill');
-    const lyricsSub = document.getElementById('ad-lyrics-sub');
     const toastMsg = document.getElementById('ad-toast-msg');
+    const btnSponsor = document.getElementById('btn-ad-open-sponsor-link');
+    const subSponsor = document.getElementById('ad-real-sponsor-sub');
 
     if (!overlay) return;
 
-    if (!this.adMusicTrack) {
-      this.adMusicTrack = 'rickroll';
-    }
+    const cfg = this.getAdMonetizationConfig();
+    const sponsorUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
 
-    const AD_DURATION = this.isWelkinActive() ? 1 : 15;
+    const AD_DURATION = this.isWelkinActive() ? 1 : 5;
     const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
     this.adRemainingSec = AD_DURATION;
     this.adRewardClaimed = false;
@@ -10107,10 +10156,32 @@ class TienLenGame {
     clearInterval(this.adIntervalTimer);
 
     this.recordAdMonetizationEvent('view');
+    this.recordAdMonetizationEvent('click');
 
     sfx.bgmPausedForAd = true;
     sfx.stopBGM();
     overlay.classList.remove('hidden');
+
+    if (btnSponsor) {
+      btnSponsor.textContent = '🌐 Mở Web Tài Trợ (+1 Roll Ngay) ↗';
+      btnSponsor.style.background = 'linear-gradient(135deg,#2563eb,#1d4ed8)';
+      btnSponsor.style.color = '#ffffff';
+    }
+    if (subSponsor) {
+      subSponsor.innerHTML = window.__tlmnIsInAppOrStandalone
+        ? `🎁 <strong>Đang hiển thị Trang Nhà Tài Trợ an toàn trong App...</strong> Chờ <strong>${AD_DURATION}s</strong> hoặc bấm nút bên phải để nhận ngay <strong>+1 Roll (+1,600 Xu)</strong>!`
+        : `🎁 <strong>Đã mở Trang Nhà Tài Trợ!</strong> Chờ <strong>${AD_DURATION}s</strong> hoặc bấm nút bên phải để nhận ngay <strong>+1 Roll (+1,600 Xu)</strong>!`;
+    }
+
+    // Tự động mở trang Web Nhà Tài Trợ:
+    // - Trên Web Browser: Mở tab _blank + nạp vào khung iframe sandbox
+    // - Trên App APK / WebView: Chỉ nạp trong khung iframe sandbox (chặn 100% lỗi intent:// và không làm văng App)
+    if (typeof window.__tlmnOpenSponsorWebSafe === 'function') {
+      window.__tlmnOpenSponsorWebSafe(sponsorUrl, true);
+    }
+    if (typeof window.__tlmnRefreshCornerAdBanner === 'function') {
+      window.__tlmnRefreshCornerAdBanner();
+    }
 
     if (countdownPill) {
       countdownPill.innerHTML = `⏳ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) sau: <strong>${AD_DURATION}s</strong>`;
@@ -10123,27 +10194,8 @@ class TienLenGame {
       progressFill.style.width = '0%';
     }
     if (toastMsg) {
-      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> quảng cáo sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
+      toastMsg.innerHTML = `💡 Xem trang Nhà Tài Trợ <strong>${AD_DURATION} giây</strong> sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
     }
-
-    const verityLyricsTimeline = [
-      { at: 0, text: "🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵" },
-      { at: 7, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
-      { at: 12, text: "🗼🥖 “What's the capital of France? ~ Oh, oui oui oui, it is Paris!” 🎵" },
-    ];
-    const rickLyricsTimeline = [
-      { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
-      { at: 3, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
-      { at: 7, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
-      { at: 11, text: '🔥 “Never gonna make you cry ~ Never gonna say goodbye!” 👑' },
-    ];
-    if (lyricsSub) {
-      lyricsSub.textContent =
-        this.adMusicTrack === 'verity' ? verityLyricsTimeline[0].text : rickLyricsTimeline[0].text;
-    }
-
-    // Bật hình ảnh Video gốc + phát nhạc Rick Roll (hoặc Verity tùy chọn)
-    this.applyAdMusicTrack();
 
     let elapsed = 0;
     this.adIntervalTimer = setInterval(() => {
@@ -10151,12 +10203,6 @@ class TienLenGame {
       this.adRemainingSec = Math.max(0, AD_DURATION - elapsed);
       const pct = Math.min(100, Math.round((elapsed / AD_DURATION) * 100));
       if (progressFill) progressFill.style.width = `${pct}%`;
-
-      const activeTimeline = this.adMusicTrack === 'verity' ? verityLyricsTimeline : rickLyricsTimeline;
-      const curLyric = [...activeTimeline].reverse().find((l) => elapsed >= l.at);
-      if (curLyric && lyricsSub) {
-        lyricsSub.textContent = curLyric.text;
-      }
 
       if (this.adRemainingSec > 0) {
         if (countdownPill) {
@@ -10166,35 +10212,7 @@ class TienLenGame {
           skipBtn.textContent = `🔒 Chờ ${this.adRemainingSec}s...`;
         }
       } else {
-        clearInterval(this.adIntervalTimer);
-        if (!this.adRewardClaimed) {
-          this.adRewardClaimed = true;
-          const me = this.getLocalPlayer();
-          if (me) {
-            me.coins += AD_REWARD;
-          }
-          sfx.win();
-          this.saveShopProfile();
-          this.renderShopModal();
-          this.renderSeats();
-          const resBal = document.getElementById('gacha-results-balance');
-          if (resBal && me) resBal.textContent = me.coins.toLocaleString();
-          this.addLog(
-            `🕺 <strong>Quảng Cáo Rick Roll / Verity:</strong> Bạn đã xem quảng cáo đủ 15 giây và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
-            'log-win'
-          );
-          this.syncCosmeticsInRoom();
-        }
-        if (countdownPill) {
-          countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +1 ROLL (+${AD_REWARD.toLocaleString()} XU)!</strong>`;
-        }
-        if (skipBtn) {
-          skipBtn.textContent = `✅ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) & Đóng QC`;
-          skipBtn.classList.add('ready-claim');
-        }
-        if (toastMsg) {
-          toastMsg.innerHTML = `🎁 <strong>Hoàn tất Quảng Cáo!</strong> Tài khoản của bạn đã được cộng thêm <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
-        }
+        this.claimRewardedAdCoinsNow();
       }
     }, 1000);
   }
@@ -10202,6 +10220,12 @@ class TienLenGame {
   stopRickRollAd() {
     clearInterval(this.adIntervalTimer);
     const overlay = document.getElementById('rickroll-ad-overlay');
+    const adIframe = document.getElementById('ad-sponsor-web-iframe');
+    if (adIframe) {
+      try {
+        adIframe.src = 'about:blank';
+      } catch (_) {}
+    }
     const verityVideoEl = document.getElementById('verity-video');
     const videoEl = document.getElementById('rickroll-video');
     const audioEl = document.getElementById('rickroll-audio');

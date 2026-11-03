@@ -10237,13 +10237,28 @@ class TienLenGame {
     }
   }
 
+  getEffectiveWelkinExpireMs() {
+    let localExp = Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0;
+    try {
+      const orders = this.globalRegistryCache?.adMonetization?.welkinOrders || {};
+      const myId = this.getPersonalGiftcodeIdentityKey();
+      const myCanon = this.getCanonicalPaymentId ? this.getCanonicalPaymentId(myId) : myId;
+      const ord = orders[myId] || orders[myCanon];
+      const cloudExp = Number(ord?.welkinExpireMs) || 0;
+      if (cloudExp > localExp) {
+        localExp = cloudExp;
+        localStorage.setItem('tlmn_welkin_expire_ms_v1', String(cloudExp));
+      }
+    } catch (_) {}
+    return localExp;
+  }
+
   isWelkinActive() {
-    const expMs = Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0;
-    return expMs > Date.now();
+    return this.getEffectiveWelkinExpireMs() > Date.now();
   }
 
   getWelkinDaysRemaining() {
-    const expMs = Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0;
+    const expMs = this.getEffectiveWelkinExpireMs();
     if (expMs <= Date.now()) return 0;
     return Math.ceil((expMs - Date.now()) / (24 * 3600 * 1000));
   }
@@ -10736,6 +10751,33 @@ class TienLenGame {
   // HỆ THỐNG BÁO CHUYỂN KHOẢN VIETQR MB BANK & TỰ ĐỘNG KIỂM TRA SEPAY 24/24
   // Hỗ trợ tự động nhận diện cả 6 gói Nạp Xu & Thẻ Tháng Nguyệt Chúc (10K -> 200K)
   // ============================================================================
+  getCanonicalPaymentId(rawIdentity) {
+    // Chuẩn hóa chỉ giữ chữ cái và số (a-z0-9) vì liên ngân hàng NAPAS 247 tự động xóa dấu chấm (.), gạch dưới (_), gạch ngang (-) trong nội dung CK!
+    return String(rawIdentity || '')
+      .trim()
+      .toLowerCase()
+      .replace(/^@+/, '')
+      .replace(/^#/, '')
+      .replace(/^dev_/, '')
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 16);
+  }
+
+  findMatchingUserOrderEntry(ordersMap, rawTargetId) {
+    if (!ordersMap || typeof ordersMap !== 'object') return null;
+    const norm = this.normalizeGiftcodeIdentity(rawTargetId);
+    const canon = this.getCanonicalPaymentId(rawTargetId);
+    if (norm && ordersMap[norm]) return { key: norm, ord: ordersMap[norm] };
+    if (canon && ordersMap[canon]) return { key: canon, ord: ordersMap[canon] };
+    for (const [k, v] of Object.entries(ordersMap)) {
+      if (!v) continue;
+      if (this.getCanonicalPaymentId(k) === canon || this.getCanonicalPaymentId(v.username || '') === canon) {
+        return { key: k, ord: v };
+      }
+    }
+    return { key: canon || norm, ord: null };
+  }
+
   async checkSePayAutoTransactions() {
     if (this._isCheckingSePayTx) return false;
     this._isCheckingSePayTx = true;
@@ -10753,22 +10795,6 @@ class TienLenGame {
             if (whJson && (whJson.id || whJson.transferAmount || whJson.amount_in)) {
               txList.push(whJson);
             }
-          }
-        }
-      } catch (_) {}
-
-      // 2. Dự phòng: Quét danh sách 15 giao dịch gần nhất từ SePay UserAPI (nếu trình duyệt/proxy cho phép)
-      try {
-        const sepayToken = 'AOSWKGIMRBM2YQR8MT49DXN5BJHVSM9E8G2TDOSUHA0HDQ41HOA3RZZCQLJT7WUS';
-        const apiUrl = 'https://my.sepay.vn/userapi/transactions/list?account_number=0946432236&limit=15';
-        const proxyResp = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, {
-          headers: { Authorization: `Bearer ${sepayToken}` },
-          cache: 'no-store',
-        });
-        if (proxyResp && proxyResp.ok) {
-          const data = await proxyResp.json();
-          if (Array.isArray(data?.transactions)) {
-            txList.push(...data.transactions);
           }
         }
       } catch (_) {}
@@ -10795,41 +10821,43 @@ class TienLenGame {
         if (!isIncoming || amount < 10000) continue;
 
         const rawContent = String(tx.content || tx.transaction_content || '').toUpperCase();
-        // Nhận diện mẫu mới "TLMN <MÃ_GÓI> <TÀI_KHOẢN>" (VD: "TLMN X50 HUNG123" hoặc "TLMN W20 HUNG123")
-        // hoặc mẫu cũ "TLMN <TÀI_KHOẢN>"
+        // Dừng khớp ngay khi gặp dấu chấm (.) hoặc khoảng trắng để không bị dính đuôi ".CT TU ..." của ngân hàng NAPAS!
         const mPackAndUser = rawContent.match(
-          /TLMN[\s._-]*(W20|X10|X20|X50|X100|X200)[\s._-]*([A-Z0-9_.-]{2,24})/i
+          /TLMN[\s._-]*(W20|X10|X20|X50|X100|X200)[\s._-]*([A-Z0-9]{2,20})/i
         );
         let rawPackCode = '';
         let matchedTargetId = '';
 
         if (mPackAndUser && mPackAndUser[2]) {
           rawPackCode = String(mPackAndUser[1] || '').toUpperCase();
-          matchedTargetId = this.normalizeGiftcodeIdentity(mPackAndUser[2]);
+          matchedTargetId = this.getCanonicalPaymentId(mPackAndUser[2]);
         } else {
-          const mLegacy = rawContent.match(/TLMN[\s._-]*([A-Z0-9_.-]{2,24})/i);
+          const mLegacy = rawContent.match(/TLMN[\s._-]*([A-Z0-9]{2,20})/i);
           if (mLegacy && mLegacy[1]) {
-            matchedTargetId = this.normalizeGiftcodeIdentity(mLegacy[1]);
+            matchedTargetId = this.getCanonicalPaymentId(mLegacy[1]);
           }
         }
 
         if (!matchedTargetId) {
-          const myId = this.getPersonalGiftcodeIdentityKey();
-          const myCompact = myId.replace(/[^a-z0-9]/g, '').toUpperCase();
+          const myCanon = this.getCanonicalPaymentId(this.getPersonalGiftcodeIdentityKey());
           const contentCompact = rawContent.replace(/[^A-Z0-9]/g, '');
-          if (myCompact.length >= 3 && contentCompact.includes(myCompact)) {
-            matchedTargetId = myId;
+          if (myCanon.length >= 3 && contentCompact.includes(myCanon.toUpperCase())) {
+            matchedTargetId = myCanon;
           }
         }
 
         if (!matchedTargetId) continue;
 
-        const prevOrd = reg.adMonetization.welkinOrders[matchedTargetId] || {
-          id: matchedTargetId,
-          username: matchedTargetId,
-          displayName: matchedTargetId,
+        const found = this.findMatchingUserOrderEntry(reg.adMonetization.welkinOrders, matchedTargetId);
+        const orderKey = found?.key || matchedTargetId;
+        const prevOrd = found?.ord || {
+          id: orderKey,
+          canonId: matchedTargetId,
+          username: orderKey,
+          displayName: orderKey,
           approvedCount: 0,
           claimedCount: 0,
+          deliveries: [],
         };
         const resolvedPack = this.resolveTopupPackFromAmountAndCode(
           rawPackCode,
@@ -10838,14 +10866,31 @@ class TienLenGame {
         );
 
         processedSet.add(txId);
-        reg.adMonetization.processedSePayTxIds = Array.from(processedSet).slice(-200);
+        reg.adMonetization.processedSePayTxIds = Array.from(processedSet).slice(-250);
         const nextApproved = Math.max(
           (Number(prevOrd.approvedCount) || 0) + 1,
           (Number(prevOrd.claimedCount) || 0) + 1
         );
-        reg.adMonetization.welkinOrders[matchedTargetId] = {
+        const deliveries = Array.isArray(prevOrd.deliveries) ? [...prevOrd.deliveries] : [];
+        const deliveryId = `sepay_${txId}`;
+        if (!deliveries.some((d) => d && d.deliveryId === deliveryId)) {
+          deliveries.push({
+            deliveryId,
+            txId,
+            packId: resolvedPack.id,
+            packCode: resolvedPack.code,
+            packName: resolvedPack.name,
+            amount: amount || resolvedPack.price,
+            memo: `TLMN ${resolvedPack.code} ${matchedTargetId}`,
+            createdAtMs: Date.now(),
+            createdAtStr: new Date().toLocaleString('vi-VN'),
+          });
+        }
+
+        reg.adMonetization.welkinOrders[orderKey] = {
           ...prevOrd,
-          id: matchedTargetId,
+          id: orderKey,
+          canonId: matchedTargetId,
           packId: resolvedPack.id,
           packCode: resolvedPack.code,
           packName: resolvedPack.name,
@@ -10854,6 +10899,7 @@ class TienLenGame {
           status: 'approved',
           approvedCount: nextApproved,
           lastSePayTxId: txId,
+          deliveries: deliveries.slice(-30),
           updatedAtMs: Date.now(),
           approvedAtStr: new Date().toLocaleString('vi-VN'),
         };
@@ -10881,81 +10927,159 @@ class TienLenGame {
       const reg = regObj || this.loadGlobalRegistryCache();
       const orders = reg?.adMonetization?.welkinOrders || {};
       const myId = this.getPersonalGiftcodeIdentityKey();
+      const myCanon = this.getCanonicalPaymentId(myId);
       const myUser = this.normalizeGiftcodeIdentity(this.currentAccountUsername || '');
-      const ord = orders[myId] || (myUser ? orders[myUser] : null);
+      const myUserCanon = this.getCanonicalPaymentId(myUser);
+
+      let ord =
+        orders[myId] ||
+        orders[myCanon] ||
+        (myUser ? orders[myUser] : null) ||
+        (myUserCanon ? orders[myUserCanon] : null);
+      if (!ord) {
+        const found = this.findMatchingUserOrderEntry(orders, myCanon || myId);
+        ord = found?.ord || null;
+      }
       if (!ord) return false;
 
+      // Đồng bộ thời hạn Thẻ Tháng từ Cloud về máy (nếu có)
+      if (Number(ord.welkinExpireMs) > (Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0)) {
+        localStorage.setItem('tlmn_welkin_expire_ms_v1', String(ord.welkinExpireMs));
+      }
+
+      let claimedIdsLocal = [];
+      try {
+        claimedIdsLocal = JSON.parse(localStorage.getItem('tlmn_claimed_delivery_ids_v1') || '[]');
+        if (!Array.isArray(claimedIdsLocal)) claimedIdsLocal = [];
+      } catch (_) {
+        claimedIdsLocal = [];
+      }
+      const claimedSet = new Set([
+        ...claimedIdsLocal.map(String),
+        ...(Array.isArray(ord.claimedDeliveryIds) ? ord.claimedDeliveryIds.map(String) : []),
+      ]);
+
+      const deliveries = Array.isArray(ord.deliveries) ? ord.deliveries : [];
+      const pendingDeliveries = deliveries.filter((d) => d && d.deliveryId && !claimedSet.has(String(d.deliveryId)));
+
+      // Tương thích ngược với đơn cũ chưa có mảng deliveries
       const appCnt = Number(ord.approvedCount) || 0;
       const localClaimedKey = `tlmn_welkin_ord_claimed_${ord.id}`;
       const localClaimedCnt = Number(localStorage.getItem(localClaimedKey)) || 0;
       const claimedCnt = Math.max(Number(ord.claimedCount) || 0, localClaimedCnt);
 
-      if (appCnt > claimedCnt) {
-        ord.claimedCount = appCnt;
-        ord.status = 'claimed';
-        ord.updatedAtMs = Date.now();
-        localStorage.setItem(localClaimedKey, String(appCnt));
-        try {
-          localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
-        } catch (_) {}
+      if (pendingDeliveries.length === 0 && appCnt > claimedCnt && deliveries.length === 0) {
+        pendingDeliveries.push({
+          deliveryId: `legacy_${ord.id}_${appCnt}`,
+          packId: ord.packId || 'welkin_20k',
+          packCode: ord.packCode || 'W20',
+          amount: ord.amount || 20000,
+        });
+      }
 
+      if (pendingDeliveries.length === 0) return false;
+
+      let totalGrantedRollsAll = 0;
+      let totalGrantedCoinsAll = 0;
+      let totalGrantedWelkinDaysAll = 0;
+      const summaryLines = [];
+
+      for (const item of pendingDeliveries) {
+        claimedSet.add(String(item.deliveryId));
         const resolvedPack = this.resolveTopupPackFromAmountAndCode(
-          ord.packCode || ord.packId || '',
-          ord.amount || 20000,
-          ord.packId || 'welkin_20k'
+          item.packCode || item.packId || '',
+          item.amount || 20000,
+          item.packId || 'welkin_20k'
         );
         const grant = this.calculateTopupPackGrant(resolvedPack.id);
         if (grant.isFirst) {
           this.markTopupPackFirstBonusClaimed(resolvedPack.id);
         }
+        item.grantedRolls = grant.totalRolls;
+        item.grantedCoins = grant.totalCoins;
+        item.wasFirstX2 = grant.isFirst;
+        item.claimedAtStr = new Date().toLocaleString('vi-VN');
 
-        const me = this.getLocalPlayer();
-        if (me) me.coins += grant.totalCoins;
+        totalGrantedRollsAll += grant.totalRolls;
+        totalGrantedCoinsAll += grant.totalCoins;
+        totalGrantedWelkinDaysAll += grant.welkinDays;
 
-        if (grant.welkinDays > 0) {
-          const curExp = Math.max(Date.now(), Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0);
-          const newExp = curExp + grant.welkinDays * 24 * 3600 * 1000;
-          localStorage.setItem('tlmn_welkin_expire_ms_v1', String(newExp));
-        }
-
-        clearInterval(this._welkinOrderPollTimer);
-        this._welkinOrderPollTimer = null;
-
-        sfx.win();
-        this.saveShopProfile();
-        this.renderSeats();
-        this.renderShopModal();
-        this.renderGiftcodeModal();
-        this.renderTopupModal();
-        this.syncGlobalDeviceRegistry(true);
-
-        if (grant.welkinDays > 0) {
-          this.showComboBanner(
-            `🌙 ĐÃ KÍCH HOẠT THẺ THÁNG NGUYỆT CHÚC (${grant.welkinDays} NGÀY) + NHẬN +${grant.totalRolls} ROLL (${grant.totalCoins.toLocaleString()} XU)!`
-          );
-          alert(
-            `🎉 NẠP THẺ THÁNG THÀNH CÔNG!\n\n🌙 Tài khoản @${ord.id} đã được kích hoạt gói "${resolvedPack.name}":\n• +${grant.totalRolls} Roll ngay lập tức (+${grant.totalCoins.toLocaleString()} Xu)\n• +${grant.welkinDays} Ngày Không Không Nguyệt Chúc (Nhận +2 Roll mỗi ngày & Bỏ qua chờ 15s Quảng Cáo)!\n\nCảm ơn bạn đã ủng hộ game!`
-          );
-        } else {
-          this.showComboBanner(
-            `💎 NẠP XU THÀNH CÔNG: +${grant.totalRolls} ROLL (+${grant.totalCoins.toLocaleString()} XU)${
-              grant.isFirst ? ' • ĐÃ NHẬN X2 NẠP ĐẦU!' : '!'
-            }`
-          );
-          alert(
-            `🎉 NẠP XU THÀNH CÔNG!\n\n💎 Tài khoản @${ord.id} đã mở khóa gói "${resolvedPack.name}" (${resolvedPack.priceText}):\n• Cơ bản: +${resolvedPack.baseRolls} Roll\n• Thưởng thêm: +${grant.bonusRolls} Roll ${
-              grant.isFirst ? '(🎁 X2 Nạp Đầu!)' : '(Thưởng nạp lại)'
-            }\n👉 TỔNG NHẬN: +${grant.totalRolls} Lượt Cầu Nguyện (+${grant.totalCoins.toLocaleString()} Xu)!\n\nChúc bạn quay nổ Nhân Vật 5★ yêu thích nhé!`
-          );
-        }
-        return true;
+        summaryLines.push(
+          `• ${resolvedPack.icon} ${resolvedPack.name} (${resolvedPack.priceText}): +${grant.totalRolls} Roll (+${grant.totalCoins.toLocaleString()} Xu)${
+            grant.isFirst ? ' [🎁 X2 Nạp Đầu!]' : ''
+          }${grant.welkinDays > 0 ? ` + 🌙 ${grant.welkinDays} ngày Nguyệt Chúc` : ''}`
+        );
       }
+
+      const me = this.getLocalPlayer();
+      if (me) me.coins += totalGrantedCoinsAll;
+
+      if (totalGrantedWelkinDaysAll > 0) {
+        const curExp = Math.max(Date.now(), this.getEffectiveWelkinExpireMs());
+        const newExp = curExp + totalGrantedWelkinDaysAll * 24 * 3600 * 1000;
+        localStorage.setItem('tlmn_welkin_expire_ms_v1', String(newExp));
+        ord.welkinExpireMs = newExp;
+      }
+
+      const newClaimedList = Array.from(claimedSet).slice(-120);
+      ord.claimedDeliveryIds = newClaimedList;
+      ord.claimedCount = Math.max(appCnt, claimedCnt + pendingDeliveries.length);
+      ord.status = 'claimed';
+      ord.updatedAtMs = Date.now();
+
+      try {
+        localStorage.setItem('tlmn_claimed_delivery_ids_v1', JSON.stringify(newClaimedList));
+        localStorage.setItem(localClaimedKey, String(ord.claimedCount));
+        localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+      } catch (_) {}
+
+      clearInterval(this._welkinOrderPollTimer);
+      this._welkinOrderPollTimer = null;
+      this.closeFullscreenQrZoomModal();
+
+      sfx.win();
+      this.saveShopProfile();
+      this.renderSeats();
+      this.renderShopModal();
+      this.renderGiftcodeModal();
+      this.renderTopupModal();
+      this.syncGlobalDeviceRegistry(true);
+
+      this.showComboBanner(
+        `💎 GIAO DỊCH THÀNH CÔNG: +${totalGrantedRollsAll} ROLL (+${totalGrantedCoinsAll.toLocaleString()} XU)${
+          totalGrantedWelkinDaysAll > 0 ? ` + 🌙 ${totalGrantedWelkinDaysAll} NGÀY THẺ THÁNG!` : '!'
+        }`
+      );
+      alert(
+        `🎉 THANH TOÁN THÀNH CÔNG — ĐÃ CỘNG QUÀ TỰ ĐỘNG!\n\n👤 Tài khoản nhận: @${myId}\n${summaryLines.join(
+          '\n'
+        )}\n\n💰 Tổng cộng vừa nhận: +${totalGrantedRollsAll} Lượt Cầu Nguyện (+${totalGrantedCoinsAll.toLocaleString()} Xu)${
+          totalGrantedWelkinDaysAll > 0 ? `\n🌙 Cộng dồn +${totalGrantedWelkinDaysAll} ngày Không Không Nguyệt Chúc!` : ''
+        }\n\nCảm ơn bạn đã ủng hộ game! Chúc bạn quay nổ Nhân Vật 5★ yêu thích!`
+      );
+      return true;
     } catch (_) {}
     return false;
   }
 
   startWelkinOrderAutoPoller() {
     clearInterval(this._welkinOrderPollTimer);
+    if (!this._topupVisibilityHooked) {
+      this._topupVisibilityHooked = true;
+      const onWakeCheck = () => {
+        if (document.visibilityState === 'hidden') return;
+        const modalOpen = !document.getElementById('topup-modal')?.classList.contains('hidden');
+        if (modalOpen || this._welkinOrderPollTimer) {
+          setTimeout(async () => {
+            await this.checkSePayAutoTransactions();
+            const reg = await this.syncGlobalDeviceRegistry(true);
+            this.checkAndAutoDeliverApprovedWelkinOrder(reg);
+          }, 300);
+        }
+      };
+      document.addEventListener('visibilitychange', onWakeCheck);
+      window.addEventListener('focus', onWakeCheck);
+    }
     this._welkinOrderPollTimer = setInterval(async () => {
       await this.checkSePayAutoTransactions();
       const reg = await this.syncGlobalDeviceRegistry(true);
@@ -10963,7 +11087,7 @@ class TienLenGame {
         clearInterval(this._welkinOrderPollTimer);
         this._welkinOrderPollTimer = null;
       }
-    }, 4500);
+    }, 4000);
   }
 
   async submitWelkinTransferRequest(packIdParam) {
@@ -10971,7 +11095,8 @@ class TienLenGame {
     const selectedPack = this.getTopupPackById(packIdParam || this._selectedTopupPackId || 'welkin_20k');
     this._selectedTopupPackId = selectedPack.id;
     const myId = this.getPersonalGiftcodeIdentityKey();
-    const transferMemo = `TLMN ${selectedPack.code} ${myId}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
+    const myCanon = this.getCanonicalPaymentId(myId);
+    const transferMemo = `TLMN ${selectedPack.code} ${myCanon}`.slice(0, 24);
     const btn = document.getElementById('btn-submit-welkin-transfer');
     if (btn) {
       btn.disabled = true;
@@ -10986,13 +11111,17 @@ class TienLenGame {
     if (!reg.adMonetization) reg.adMonetization = {};
     if (!reg.adMonetization.welkinOrders) reg.adMonetization.welkinOrders = {};
 
-    const prev = reg.adMonetization.welkinOrders[myId] || {};
+    const found = this.findMatchingUserOrderEntry(reg.adMonetization.welkinOrders, myCanon);
+    const orderKey = found?.key || myId;
+    const prev = found?.ord || {};
     if (this.checkAndAutoDeliverApprovedWelkinOrder(reg)) {
       return;
     }
 
-    reg.adMonetization.welkinOrders[myId] = {
-      id: myId,
+    reg.adMonetization.welkinOrders[orderKey] = {
+      ...prev,
+      id: orderKey,
+      canonId: myCanon,
       username: this.currentAccountUsername || '',
       displayName: this.savedPlayerName || myId,
       packId: selectedPack.id,
@@ -11006,6 +11135,7 @@ class TienLenGame {
       updatedAtMs: Date.now(),
       approvedCount: Number(prev.approvedCount) || 0,
       claimedCount: Number(prev.claimedCount) || 0,
+      deliveries: Array.isArray(prev.deliveries) ? prev.deliveries : [],
     };
     reg.adMonetization.cfgUpdatedAtMs = Date.now();
     this.globalRegistryCache = reg;
@@ -11018,14 +11148,15 @@ class TienLenGame {
     this.renderTopupModal();
     this.renderGiftcodeModal();
     alert(
-      `✅ Đã gửi yêu cầu kiểm tra gói "${selectedPack.icon} ${selectedPack.name}" (${selectedPack.priceText}) cho tài khoản @${myId}!\n📝 Nội dung CK: ${transferMemo}\n\n⚡ Hệ thống SePay 24/24 đang tự động đối soát với MB Bank — ngay khi giao dịch ${selectedPack.priceText} hoàn tất, Xu & Quà sẽ TỰ ĐỘNG cộng vào tài khoản của bạn sau vài giây!`
+      `✅ Hệ thống đang trực chờ giao dịch gói "${selectedPack.icon} ${selectedPack.name}" (${selectedPack.priceText}) cho tài khoản @${myId}!\n📝 Nội dung CK chuẩn: ${transferMemo}\n\n⚡ Ngay khi bạn chuyển khoản xong trên App Ngân Hàng (đúng số tiền ${selectedPack.priceText} và nội dung ${transferMemo}), hệ thống SePay 24/24 sẽ TỰ ĐỘNG cộng Xu & Quà vào tài khoản của bạn sau 3–5 giây!`
     );
   }
 
   async adminApproveWelkinOrder(targetRawId, packIdParam) {
     if (!this.isAdminAccount()) return;
     const cleanId = this.normalizeGiftcodeIdentity(targetRawId);
-    if (!cleanId) {
+    const canonId = this.getCanonicalPaymentId(targetRawId);
+    if (!cleanId && !canonId) {
       alert('⚠️ Vui lòng nhập tên tài khoản (@username) hoặc ID cần bơm quà!');
       return;
     }
@@ -11035,25 +11166,45 @@ class TienLenGame {
     if (!reg.adMonetization) reg.adMonetization = {};
     if (!reg.adMonetization.welkinOrders) reg.adMonetization.welkinOrders = {};
 
-    const prev = reg.adMonetization.welkinOrders[cleanId] || {
-      id: cleanId,
-      username: cleanId,
-      displayName: cleanId,
+    const found = this.findMatchingUserOrderEntry(reg.adMonetization.welkinOrders, cleanId || canonId);
+    const orderKey = found?.key || cleanId || canonId;
+    const prev = found?.ord || {
+      id: orderKey,
+      canonId,
+      username: orderKey,
+      displayName: orderKey,
       approvedCount: 0,
       claimedCount: 0,
+      deliveries: [],
     };
     const pack = this.getTopupPackById(packIdParam || prev.packId || 'welkin_20k');
     const nextApproved = Math.max((Number(prev.approvedCount) || 0) + 1, (Number(prev.claimedCount) || 0) + 1);
-    reg.adMonetization.welkinOrders[cleanId] = {
-      ...prev,
-      id: cleanId,
+    const deliveries = Array.isArray(prev.deliveries) ? [...prev.deliveries] : [];
+    const deliveryId = `admin_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    deliveries.push({
+      deliveryId,
+      txId: deliveryId,
       packId: pack.id,
       packCode: pack.code,
       packName: pack.name,
       amount: pack.price,
-      memo: `TLMN ${pack.code} ${cleanId}`,
+      memo: `TLMN ${pack.code} ${canonId}`,
+      createdAtMs: Date.now(),
+      createdAtStr: new Date().toLocaleString('vi-VN'),
+    });
+
+    reg.adMonetization.welkinOrders[orderKey] = {
+      ...prev,
+      id: orderKey,
+      canonId,
+      packId: pack.id,
+      packCode: pack.code,
+      packName: pack.name,
+      amount: pack.price,
+      memo: `TLMN ${pack.code} ${canonId}`,
       status: 'approved',
       approvedCount: nextApproved,
+      deliveries: deliveries.slice(-30),
       updatedAtMs: Date.now(),
       approvedAtStr: new Date().toLocaleString('vi-VN'),
     };
@@ -11069,7 +11220,7 @@ class TienLenGame {
     this.renderTopupModal();
     this.renderGiftcodeModal();
     alert(
-      `🎉 ĐÃ DUYỆT & BƠM GÓI "${pack.icon} ${pack.name}" (${pack.priceText}) CHO @${cleanId}!\n\n🌟 Máy của người chơi @${cleanId} sẽ tự động nổ thông báo nhận đủ Xu & Quà (kèm x2 Nạp Đầu nếu là lần đầu)!`
+      `🎉 ĐÃ DUYỆT & BƠM GÓI "${pack.icon} ${pack.name}" (${pack.priceText}) CHO @${orderKey}!\n\n🌟 Máy của người chơi @${orderKey} sẽ tự động nổ thông báo nhận đủ Xu & Quà (kèm x2 Nạp Đầu nếu là lần đầu)!`
     );
   }
 
@@ -11133,8 +11284,103 @@ class TienLenGame {
   }
 
   closeTopupModal() {
+    this.closeFullscreenQrZoomModal();
     document.getElementById('topup-modal')?.classList.add('hidden');
     sfx.click();
+  }
+
+  openFullscreenQrZoomModal() {
+    sfx.click();
+    const cfg = this.getAdMonetizationConfig();
+    const selectedPack = this.getTopupPackById(this._selectedTopupPackId || 'welkin_20k');
+    const myIdentity = this.getPersonalGiftcodeIdentityKey();
+    const myCanon = this.getCanonicalPaymentId(myIdentity);
+    const transferMemo = `TLMN ${selectedPack.code} ${myCanon}`.slice(0, 24);
+    const qrOnlyUrl = `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
+      cfg.bankAccount
+    )}-qr_only.png?amount=${selectedPack.price}&addInfo=${encodeURIComponent(
+      transferMemo
+    )}&accountName=${encodeURIComponent(cfg.bankOwner || '')}`;
+
+    let zoomEl = document.getElementById('topup-qr-zoom-overlay');
+    if (!zoomEl) {
+      zoomEl = document.createElement('div');
+      zoomEl.id = 'topup-qr-zoom-overlay';
+      zoomEl.style.cssText =
+        'position:fixed;inset:0;z-index:10050;background:rgba(2,6,23,0.92);display:flex;align-items:center;justify-content:center;padding:12px;backdrop-filter:blur(6px);';
+      document.body.appendChild(zoomEl);
+    }
+    zoomEl.innerHTML = `
+      <div onclick="event.stopPropagation()" style="background:#ffffff;color:#0f172a;border-radius:18px;padding:16px 18px;max-width:420px;width:94vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.75);border:4px solid #10b981;">
+        <div style="font-size:15px;font-weight:900;color:#047857;margin-bottom:4px;">
+          🏦 QUÉT VIETQR MB BANK — ${selectedPack.priceText}
+        </div>
+        <div style="font-size:12px;color:#334155;font-weight:700;margin-bottom:8px;">
+          ${selectedPack.icon} ${selectedPack.name} • Tài khoản: <strong style="color:#0284c7;">@${myIdentity}</strong>
+        </div>
+        <div style="background:#ffffff;padding:10px;border-radius:14px;border:2px solid #cbd5e1;display:inline-block;">
+          <img src="${qrOnlyUrl}" alt="VietQR Phóng To" style="width:min(280px, 72vw);height:min(280px, 72vw);object-fit:contain;display:block;" />
+        </div>
+        <div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#f1f5f9;font-size:12.5px;line-height:1.5;text-align:left;color:#0f172a;">
+          <div>🏦 <strong>MB Bank</strong> • STK: <strong style="color:#0284c7;">${cfg.bankAccount}</strong> (${cfg.bankOwner})</div>
+          <div>💵 Số tiền: <strong style="color:#dc2626;font-size:14px;">${selectedPack.priceText}</strong></div>
+          <div>📝 Nội dung CK: <strong style="color:#047857;background:#d1fae5;padding:1px 6px;border-radius:5px;">${transferMemo}</strong></div>
+        </div>
+        <div style="font-size:11.5px;color:#475569;margin-top:6px;font-weight:700;">
+          📸 Bạn có thể <strong>Chụp màn hình này</strong> hoặc bấm <strong>Tải Ảnh QR</strong> bên dưới để mở App Ngân Hàng quét 100% nhận ngay!
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px;">
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.downloadTopupQrImage()" style="padding:9px 14px;font-weight:900;font-size:12.5px;background:linear-gradient(135deg,#0284c7,#2563eb);color:#fff;border:none;border-radius:10px;cursor:pointer;">
+            📥 Lưu Ảnh QR Về Máy
+          </button>
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.closeFullscreenQrZoomModal()" style="padding:9px 16px;font-weight:900;font-size:12.5px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;border-radius:10px;cursor:pointer;">
+            ✅ Đóng Khung Phóng To
+          </button>
+        </div>
+      </div>
+    `;
+    zoomEl.onclick = () => this.closeFullscreenQrZoomModal();
+    zoomEl.classList.remove('hidden');
+  }
+
+  closeFullscreenQrZoomModal() {
+    const zoomEl = document.getElementById('topup-qr-zoom-overlay');
+    if (zoomEl) zoomEl.remove();
+  }
+
+  async downloadTopupQrImage() {
+    sfx.click();
+    const cfg = this.getAdMonetizationConfig();
+    const selectedPack = this.getTopupPackById(this._selectedTopupPackId || 'welkin_20k');
+    const myIdentity = this.getPersonalGiftcodeIdentityKey();
+    const myCanon = this.getCanonicalPaymentId(myIdentity);
+    const transferMemo = `TLMN ${selectedPack.code} ${myCanon}`.slice(0, 24);
+    const downloadUrl = `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
+      cfg.bankAccount
+    )}-compact2.png?amount=${selectedPack.price}&addInfo=${encodeURIComponent(
+      transferMemo
+    )}&accountName=${encodeURIComponent(cfg.bankOwner || '')}`;
+    const fileName = `VietQR_MB_${selectedPack.price}_TLMN_${selectedPack.code}_${myCanon}.png`;
+
+    try {
+      const resp = await fetch(downloadUrl, { mode: 'cors', cache: 'no-store' });
+      if (resp && resp.ok) {
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 8000);
+        alert(
+          `📥 Đã tải ảnh mã QR (${fileName}) về máy!\n\n👉 Bây giờ bạn chỉ cần mở App Ngân Hàng / MoMo ➔ Chọn "Quét QR" ➔ Chọn "Tải ảnh từ Thư viện" ➔ Chọn ảnh vừa tải là tự điền sẵn 100% Số tiền & Nội dung CK!`
+        );
+        return;
+      }
+    } catch (_) {}
+    window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   }
 
   selectTopupPack(packId) {
@@ -11161,22 +11407,26 @@ class TienLenGame {
     const today = this.getTodayKey();
     const welkinClaimedToday = (localStorage.getItem('tlmn_welkin_last_claim_v1') || '') === today;
     const myIdentity = this.getPersonalGiftcodeIdentityKey();
-    const transferMemo = `TLMN ${selectedPack.code} ${myIdentity}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
+    const myCanon = this.getCanonicalPaymentId(myIdentity);
+    const transferMemo = `TLMN ${selectedPack.code} ${myCanon}`.slice(0, 24);
     const hasBank = Boolean(cfg.bankCode && cfg.bankAccount);
+    // Dùng chuẩn qr_only.png độ phân giải cao (không bị chữ nhỏ làm thu hẹp vùng mã QR) giúp điện thoại chụp màn hình hoặc quét camera nhận diện 100% tức thì!
     const vietQrUrl = hasBank
       ? `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
           cfg.bankAccount
-        )}-compact2.png?amount=${selectedPack.price}&addInfo=${encodeURIComponent(
+        )}-qr_only.png?amount=${selectedPack.price}&addInfo=${encodeURIComponent(
           transferMemo
         )}&accountName=${encodeURIComponent(cfg.bankOwner || '')}`
       : '';
 
     const ordersMap = cfg.welkinOrders || {};
-    const myOrder = ordersMap[myIdentity] || null;
+    const foundMyOrd = this.findMatchingUserOrderEntry(ordersMap, myCanon || myIdentity);
+    const myOrder = foundMyOrd?.ord || null;
     const isMyOrderPending = Boolean(myOrder && myOrder.status === 'pending');
     if (isMyOrderPending && !this._welkinOrderPollTimer) {
       this.startWelkinOrderAutoPoller();
     }
+    const myDeliveries = Array.isArray(myOrder?.deliveries) ? [...myOrder.deliveries].reverse().slice(0, 6) : [];
 
     const pendingOrdersList = Object.values(ordersMap)
       .filter((o) => o && o.status === 'pending')
@@ -11374,10 +11624,18 @@ class TienLenGame {
           </span>
         </div>
         <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-          <div style="text-align:center;">
-            <img src="${vietQrUrl}" alt="VietQR MB Bank ${cfg.bankAccount}" style="width:172px;height:auto;border-radius:12px;border:2.5px solid #fde047;background:#fff;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,0.45);" />
-            <div style="font-size:11px;color:#fef08a;font-weight:800;margin-top:4px;">
-              📱 Quét bằng mọi App Ngân Hàng / MoMo
+          <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <img src="${vietQrUrl}" onclick="window.tienLenGame.openFullscreenQrZoomModal()" title="Bấm vào ảnh để Phóng To QR Toàn Màn Hình" alt="VietQR MB Bank ${cfg.bankAccount}" style="cursor:pointer;width:215px;height:215px;object-fit:contain;border-radius:12px;border:3px solid #fde047;background:#ffffff;padding:8px;box-shadow:0 4px 18px rgba(0,0,0,0.55);" />
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+              <button type="button" class="primary-btn" onclick="window.tienLenGame.downloadTopupQrImage()" style="padding:6px 10px;font-size:11.5px;font-weight:900;background:linear-gradient(135deg,#0284c7,#2563eb);border:1px solid #7dd3fc;">
+                📥 Lưu Ảnh QR Về Máy
+              </button>
+              <button type="button" class="tool-btn" onclick="window.tienLenGame.openFullscreenQrZoomModal()" style="padding:6px 10px;font-size:11.5px;font-weight:900;color:#fef08a;border-color:#fde047;">
+                🔍 Phóng To QR
+              </button>
+            </div>
+            <div style="font-size:10.5px;color:#cbd5e1;max-width:225px;line-height:1.35;">
+              💡 Trên điện thoại: Bấm <strong>"📥 Lưu Ảnh QR Về Máy"</strong> rồi mở App Ngân Hàng chọn ảnh từ Thư viện là quét ăn 100%!
             </div>
           </div>
           <div style="flex:1;min-width:240px;font-size:12.5px;color:#e2e8f0;line-height:1.6;">
@@ -11424,6 +11682,36 @@ class TienLenGame {
           </div>
         </div>
       </div>
+
+      ${
+        myDeliveries.length > 0
+          ? `
+            <div style="padding:11px 14px;border-radius:12px;background:rgba(15,23,42,0.88);border:1px solid rgba(56,189,248,0.45);font-size:12px;">
+              <div style="font-weight:900;color:#38bdf8;margin-bottom:6px;">
+                📜 LỊCH SỬ GÓI NẠP ĐÃ NHẬN CỦA TÀI KHOẢN @${myIdentity} (${myDeliveries.length} giao dịch gần nhất)
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px;">
+                ${myDeliveries
+                  .map(
+                    (d) => `
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 10px;border-radius:8px;background:rgba(30,41,59,0.85);border:1px solid rgba(52,211,153,0.35);">
+                        <div>
+                          <strong style="color:#fde047;">${d.packName || d.packCode || 'Gói Nạp'}</strong>
+                          <span style="color:#6ee7b7;font-weight:800;"> • ${(Number(d.amount) || 20000).toLocaleString()}đ</span>
+                          ${d.grantedRolls ? `<span style="color:#38bdf8;font-weight:800;"> ➔ +${d.grantedRolls} Roll (+${Number(d.grantedCoins || 0).toLocaleString()} Xu)</span>` : ''}
+                        </div>
+                        <div style="font-size:11px;color:#94a3b8;">
+                          ✅ Đã cộng • ${d.claimedAtStr || d.createdAtStr || ''}
+                        </div>
+                      </div>
+                    `
+                  )
+                  .join('')}
+              </div>
+            </div>
+          `
+          : ''
+      }
     `;
   }
 
@@ -29036,7 +29324,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 183;
+const CLIENT_BUILD_VERSION = 184;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -29053,7 +29341,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=183', { updateViaCache: 'none' })
+        .register('sw.js?v=184', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

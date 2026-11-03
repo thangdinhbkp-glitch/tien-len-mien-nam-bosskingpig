@@ -10245,6 +10245,9 @@ class TienLenGame {
       if (header) header.style.background = 'linear-gradient(135deg, #ee4d2d, #b91c1c)';
       if (title) title.textContent = '🛍️ NHÀ TÀI TRỢ SHOPEE VIỆT NAM (AFFILIATE)';
       if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) vào ví của bạn!';
+      const extLinkBtn = !window.__tlmnIsInAppOrStandalone
+        ? `<a href="${sponsorUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:10px;background:linear-gradient(135deg,#ee4d2d,#c2410c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;font-size:13.5px;text-decoration:none;box-shadow:0 4px 14px rgba(238,77,45,0.45);">🛍️ Mở Trang Shopee Ngay (${sponsorUrl}) ↗</a>`
+        : '';
       body.innerHTML = `
         <div style="padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(238,77,45,0.22),rgba(15,23,42,0.95));border:1.5px solid #fb923c;display:flex;flex-direction:column;gap:10px;text-align:center;">
           <div style="font-size:16px;font-weight:900;color:#fde047;">
@@ -10256,6 +10259,7 @@ class TienLenGame {
           <div style="padding:8px 12px;border-radius:10px;background:rgba(0,0,0,0.45);border:1px dashed #fdba74;color:#fef08a;font-family:monospace;font-size:13.5px;font-weight:800;word-break:break-all;">
             ${sponsorUrl}
           </div>
+          ${extLinkBtn}
           <div style="font-size:12px;color:#6ee7b7;font-weight:700;">
             ✅ Bạn đã được cộng đủ +2 Roll (+3,200 Xu)! Bấm nút Copy Link bên dưới để dán vào trình duyệt hoặc App Shopee nếu muốn mua sắm nhận ưu đãi nhé!
           </div>
@@ -10270,20 +10274,17 @@ class TienLenGame {
       }
       if (header) header.style.background = 'linear-gradient(135deg, #1d4ed8, #6d28d9)';
       if (title) title.textContent = '📢 NHÀ TÀI TRỢ MONETAG (QUẢNG CÁO ĐỐI TÁC)';
-      if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) & hiển thị Banner Quảng Cáo!';
+      if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) & mở trang Nhà Tài Trợ!';
       body.innerHTML = `
-        <div style="padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(37,99,235,0.22),rgba(15,23,42,0.95));border:1.5px solid #60a5fa;display:flex;flex-direction:column;gap:10px;text-align:center;">
-          <div style="font-size:16px;font-weight:900;color:#fde047;">
-            🌟 CẢM ƠN BẠN ĐÃ ỦNG HỘ NHÀ TÀI TRỢ MONETAG!
+        <div style="padding:12px;border-radius:14px;background:linear-gradient(135deg,rgba(37,99,235,0.22),rgba(15,23,42,0.95));border:1.5px solid #60a5fa;display:flex;flex-direction:column;gap:8px;text-align:center;">
+          <div style="font-size:15px;font-weight:900;color:#fde047;">
+            🌟 TRANG NHÀ TÀI TRỢ MONETAG (${sponsorUrl})
           </div>
-          <div style="font-size:13px;color:#f8fafc;line-height:1.45;">
-            Hệ thống đã kích hoạt <strong>Banner Quảng Cáo Nhà Tài Trợ</strong> ở góc trên bên phải màn hình và ghi nhận lượt tài trợ của bạn:
-          </div>
-          <div style="padding:8px 12px;border-radius:10px;background:rgba(0,0,0,0.45);border:1px dashed #93c5fd;color:#fef08a;font-family:monospace;font-size:13.5px;font-weight:800;word-break:break-all;">
-            ${sponsorUrl}
+          <div style="width:100%;height:210px;border-radius:10px;overflow:hidden;border:1.5px solid rgba(96,165,250,0.65);background:#0f172a;">
+            <iframe sandbox="allow-scripts allow-same-origin allow-forms" src="${sponsorUrl}" style="width:100%;height:100%;border:0;background:#ffffff;"></iframe>
           </div>
           <div style="font-size:12px;color:#6ee7b7;font-weight:700;">
-            ✅ Bạn đã được cộng đủ +2 Roll (+3,200 Xu) ngay trong App mà không bị văng khỏi bàn chơi!
+            ✅ Đã hiển thị trang Nhà Tài Trợ &amp; cộng đủ +2 Roll (+3,200 Xu) ngay trong App!
           </div>
         </div>
       `;
@@ -10335,12 +10336,13 @@ class TienLenGame {
     this.recordSponsor2RollClaimTimestamp();
     this.recordAdMonetizationEvent('click');
 
+    // Luôn bật Cửa Sổ Nhà Tài Trợ (Shopee / Monetag) trực tiếp trên màn hình để trên App điện thoại luôn thấy rõ 100%!
     if (window.__tlmnIsInAppOrStandalone) {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
       }
-      this.openInAppSponsorModal(partner);
     }
+    this.openInAppSponsorModal(partner);
 
     const AD_REWARD = AD_REWARD_COINS * 2; // +2 Roll = 3,200 Xu
     const me = this.getLocalPlayer();
@@ -10408,12 +10410,13 @@ class TienLenGame {
     this.recordAdMonetizationEvent('click');
 
     // Trên App APK / WebView: Hiện bảng Cửa Sổ Nhà Tài Trợ trực tiếp trên màn hình và cộng thưởng +2 Roll!
+    // Luôn bật Cửa Sổ Nhà Tài Trợ (Shopee / Monetag) trực tiếp trên màn hình để trên App điện thoại luôn thấy rõ 100%!
     if (window.__tlmnIsInAppOrStandalone) {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
       }
-      this.openInAppSponsorModal(partner);
     }
+    this.openInAppSponsorModal(partner);
 
     const sub = document.getElementById('ad-real-sponsor-sub');
     if (btn) {
@@ -27412,6 +27415,8 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
+const CLIENT_BUILD_VERSION = 172;
+
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
     // Trong App APK / EXE đã nhúng sẵn 100% video trong máy: tắt ServiceWorker để phát trực tiếp từ bộ nhớ máy 0ms
@@ -27427,7 +27432,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=154', { updateViaCache: 'none' })
+        .register('sw.js?v=172', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })
@@ -27435,6 +27440,24 @@ if ('serviceWorker' in navigator) {
     });
   }
 }
+
+// Tự động phát hiện và tải bản mới nhất trên Server (chống kẹt cache 10 phút của GitHub Pages trên App APK / Điện thoại)
+try {
+  fetch('index.html?_cb=' + Date.now(), { cache: 'no-store' })
+    .then((r) => (r && r.ok ? r.text() : ''))
+    .then((html) => {
+      const m = html && html.match(/game\.js\?v=(\d+)/);
+      const remoteVer = m ? Number(m[1]) : 0;
+      if (remoteVer > CLIENT_BUILD_VERSION) {
+        const u = new URL(window.location.href);
+        if (u.searchParams.get('_v') !== String(remoteVer)) {
+          u.searchParams.set('_v', String(remoteVer));
+          window.location.replace(u.toString());
+        }
+      }
+    })
+    .catch(() => {});
+} catch (_) {}
 
 window.addEventListener('DOMContentLoaded', () => {
   if (IS_NATIVE_BUNDLED_APP) {

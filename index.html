@@ -1387,8 +1387,8 @@
       </div>
     </div>
 
-    <!-- CỬA SỔ HIỂN THỊ NHÀ TÀI TRỢ TRỰC TIẾP TRÊN APP ĐIỆN THOẠI (SHOPEE AFFILIATE & MONETAG — KHÔNG BAO GIỜ LỖI INTENT://) -->
-    <div class="modal-backdrop hidden" id="inapp-sponsor-modal" style="z-index: 10050;">
+    <!-- CỬA SỔ HIỂN THỊ NHÀ TÀI TRỢ TRỰC TIẾP TRÊN MÀN HÌNH (SHOPEE AFFILIATE & MONETAG — Z-INDEX 999999 LUÔN NỔI TRÊN MỌI MÀN HÌNH) -->
+    <div class="hidden" id="inapp-sponsor-modal" style="position:fixed;inset:0;background:rgba(2,6,23,0.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:999999;padding:12px;">
       <div class="modal-card" style="max-width: 560px; width: 94vw; border: 2px solid #fde047; box-shadow: 0 0 35px rgba(245,158,11,0.55);">
         <div class="modal-header" id="inapp-sponsor-modal-header" style="background: linear-gradient(135deg, #ea580c, #b91c1c);">
           <div>
@@ -1606,6 +1606,7 @@
         /;\s*wv\b|FBAV|FBAN|FBIOS|Line\/|Zalo|Instagram|TikTok|BytedanceWebview|MicroMessenger|wv\)/i.test(ua) ||
         Boolean(window.Capacitor) ||
         /[?&]source=apk\b/i.test(window.location.search || '');
+      var isInAppWebView = isApkOrEmbeddedWebView;
       window.__tlmnIsInAppOrStandalone = isApkOrEmbeddedWebView;
 
       // 1. Khóa biến __vST để hàm af() của Monetag không bao giờ tải script phụ 'in-app' (Zone 5434422 gây lỗi intent://)
@@ -1802,6 +1803,6 @@
       }, 45000);
     })();
   </script>
-  <script src="game.js?v=171"></script>
+  <script src="game.js?v=172"></script>
 </body>
 </html>

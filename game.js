@@ -1513,8 +1513,8 @@ const CHARACTER_SKILLS = {
     id: 'shenhe',
     charName: 'Shenhe',
     icon: '❄️',
-    name: 'Lục Đạo Độc Tôn',
-    shortDesc: 'Phong ấn vòng hiện tại: CẤM toàn bộ đối thủ đánh Đôi, Sám Cô và Sảnh (chỉ được đánh Bài Lẻ 1 lá)',
+    name: 'Lễ Cống Heo Tiên Nhân',
+    shortDesc: 'Nếu ván trước Shenhe Về Nhất: Khi bấm [Q], đối thủ Đứng Bét bắt buộc phải CỐNG con Heo (2) có chất cao nhất (không có Heo thì phải cống quân bài lớn nhất) cho Shenhe, sau đó Shenhe tự động trả lại quân bài rác nhất trên tay cho đối thủ đó!',
   },
   ganyu: {
     id: 'ganyu',
@@ -3607,6 +3607,7 @@ class TienLenGame {
 
     this.matchCount = 0;
     this.lastWinnerId = null;
+    this.lastLoserId = null;
     this.currentTurn = 0;
     this.currentCombo = null;
     this.previousCombo = null;
@@ -14179,6 +14180,7 @@ class TienLenGame {
         betPerCard: this.betPerCard || 100,
         soloPlayerCount: this.soloPlayerCount || 4,
         lastWinnerId: this.lastWinnerId,
+        lastLoserId: this.lastLoserId,
         currentTurn: this.currentTurn,
         currentCombo: this.currentCombo,
         previousCombo: this.previousCombo,
@@ -14273,6 +14275,7 @@ class TienLenGame {
       this.betPerCard = snap.betPerCard || this.savedBetPerCard || 100;
       this.soloPlayerCount = snap.soloPlayerCount || this.savedSoloPlayerCount || 4;
       this.lastWinnerId = snap.lastWinnerId ?? null;
+      this.lastLoserId = snap.lastLoserId ?? null;
       this.currentTurn = typeof snap.currentTurn === 'number' ? snap.currentTurn : 0;
       this.currentCombo = snap.currentCombo || null;
       this.previousCombo = snap.previousCombo || null;
@@ -16002,11 +16005,14 @@ class TienLenGame {
       }
     }
     if (charId === 'shenhe') {
-      if (this.shenheSingleOnlyRound) {
-        return { ok: false, reason: 'Lục Đạo Độc Tôn đã bật trong vòng này' };
+      if (this.lastWinnerId !== player.id) {
+        return {
+          ok: false,
+          reason: 'Cần Về Nhất ở ván trước để kích hoạt Lễ Cống Heo Tiên Nhân [Q]!',
+        };
       }
-      if (this.currentCombo && (this.currentCombo.isBomb || this.currentCombo.highRank === 12)) {
-        return { ok: false, reason: 'Không thể phong ấn khi trên bàn đang là Heo (2) hoặc Hàng (Tứ Quý / Đôi Thông)' };
+      if (player.hand.length === 0) {
+        return { ok: false, reason: 'Không còn bài trên tay để trả bài rác!' };
       }
     }
     if (charId === 'ganyu') {
@@ -16844,15 +16850,50 @@ class TienLenGame {
       }
       skillSummary = `☂️ [Pháo Dù Phỏm Pha Lê] ${player.name} khai hỏa Pháo Dù Phỏm: Mặc kệ đối thủ vừa đánh bộ bài gì trên bàn, lượt này ${player.name} được dùng Sảnh Đồng Chất hoặc Sám Cô để chặt đè trực tiếp!`;
     } else if (charId === 'shenhe') {
-      this.shenheSingleOnlyRound = true;
-      activeShenheSingleOnly = true;
-      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.type !== COMBO_TYPES.SINGLE) {
-        const oldLabel = this.currentCombo.label;
-        const singleCard = sortCardsAsc(this.currentCombo.cards)[0];
-        this.currentCombo = classifyCombo([singleCard]);
-        this.currentCombo.label = `${this.currentCombo.label} [❄️ Shenhe phong ấn ${oldLabel} về Lẻ]`;
+      const target =
+        activeOpponents.find((p) => p.id === this.lastLoserId) ||
+        [...activeOpponents].sort((a, b) => b.hand.length - a.hand.length || a.coins - b.coins)[0];
+      if (target && target.hand.length > 0 && player.hand.length > 0) {
+        const oppTwos = target.hand
+          .filter((c) => c.rankIndex === 12)
+          .sort((a, b) => b.suitIndex - a.suitIndex || b.value - a.value);
+        const oppSortedDesc = [...target.hand].sort(
+          (a, b) => b.rankIndex - a.rankIndex || b.suitIndex - a.suitIndex || b.value - a.value
+        );
+        const tributedCard = oppTwos.length > 0 ? oppTwos[0] : oppSortedDesc[0];
+
+        const struct = this.analyzeBotHandStructure(player.hand);
+        const mySorted = sortCardsAsc(player.hand);
+        const trashCard =
+          mySorted.find(
+            (c) =>
+              c.rankIndex < 12 &&
+              struct.rankCounts[c.rankIndex] === 1 &&
+              !struct.bombRanks.has(c.rankIndex) &&
+              !struct.criticalStraightRanks.has(c.rankIndex) &&
+              !(this.mustPlay3Spade && c.value === 0)
+          ) ||
+          mySorted.find(
+            (c) => c.rankIndex < 12 && !struct.bombRanks.has(c.rankIndex) && !(this.mustPlay3Spade && c.value === 0)
+          ) ||
+          mySorted.find((c) => !(this.mustPlay3Spade && c.value === 0)) ||
+          mySorted[0];
+
+        if (tributedCard && trashCard) {
+          target.hand = target.hand.filter((c) => c.id !== tributedCard.id);
+          player.hand = player.hand.filter((c) => c.id !== trashCard.id);
+          player.hand.push(tributedCard);
+          target.hand.push(trashCard);
+          player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+          target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
+          this.selectedCardIds = new Set([tributedCard.id]);
+          this.companionCardIds.clear();
+          const isPig = tributedCard.rankIndex === 12;
+          skillSummary = isPig
+            ? `❄️ [Lễ Cống Heo Tiên Nhân] Do ${player.name} Về Nhất ván trước, đối thủ đứng bét ${target.name} bắt buộc phải CỐNG Heo chất cao nhất (${tributedCard.rank}${tributedCard.suit}) cho ${player.name}, và ${player.name} tự trả lại quân bài rác (${trashCard.rank}${trashCard.suit}) cho ${target.name}!`
+            : `❄️ [Lễ Cống Heo Tiên Nhân] Do ${player.name} Về Nhất ván trước, đối thủ đứng bét ${target.name} (không có Heo) bắt buộc phải CỐNG quân bài lớn nhất (${tributedCard.rank}${tributedCard.suit}) cho ${player.name}, và ${player.name} tự trả lại quân bài rác (${trashCard.rank}${trashCard.suit}) cho ${target.name}!`;
+        }
       }
-      skillSummary = `❄️ [Lục Đạo Độc Tôn] ${player.name} phong ấn vòng đấu: CẤM toàn bộ đối thủ đánh Đôi, Sám Cô và Sảnh (chỉ được đánh Bài Lẻ 1 lá)!`;
     } else if (charId === 'ganyu') {
       this.ganyuGapStraightTurn = true;
       activeGanyuGapStraight = true;
@@ -18066,8 +18107,9 @@ class TienLenGame {
       }
     }
     if (player.id !== this.mySeatId) {
-      this.selectedCardIds = savedHumanSelectedIds;
-      this.companionCardIds = savedHumanCompanionIds;
+      const myHandIds = new Set((this.getLocalPlayer()?.hand || []).map((c) => c.id));
+      this.selectedCardIds = new Set([...savedHumanSelectedIds].filter((id) => myHandIds.has(id)));
+      this.companionCardIds = new Set([...savedHumanCompanionIds].filter((id) => myHandIds.has(id)));
     }
 
     this.lastBurstEffect = {
@@ -18510,40 +18552,7 @@ class TienLenGame {
         }
       }
     } else if (charId === 'shenhe') {
-      const wouldSpendTwoCombo = plannedMove && plannedMove.highRank === 12;
-      const expensiveCombo = plannedMove && this.evaluateMoveBreakCost(plannedMove, struct) >= 75;
-      if (
-        this.currentCombo &&
-        !this.currentCombo.isBomb &&
-        this.currentCombo.type !== COMBO_TYPES.SINGLE &&
-        (!plannedMove || wouldSpendTwoCombo || expensiveCombo)
-      ) {
-        const lowestOnTable = sortCardsAsc(this.currentCombo.cards)[0];
-        const fakeSingle = classifyCombo([lowestOnTable]);
-        const singleMoves = getValidMoves(bot.hand, fakeSingle, this.mustPlay3Spade, false).filter(
-          (m) =>
-            !m.isBomb &&
-            !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)) &&
-            (m.highRank < 12 || minOppCards <= 6)
-        );
-        if (singleMoves.length > 0) {
-          shouldCast = true;
-        }
-      }
-      const isolatedSingleCount = bot.hand.filter(
-        (c) =>
-          c.rankIndex < 12 &&
-          struct.rankCounts[c.rankIndex] === 1 &&
-          !struct.bombRanks.has(c.rankIndex) &&
-          !struct.criticalStraightRanks.has(c.rankIndex)
-      ).length;
-      if (
-        !shouldCast &&
-        plannedMove &&
-        plannedMove.type === COMBO_TYPES.SINGLE &&
-        unpassedOpps.length >= 1 &&
-        (minOppCards <= 7 || (bot.hand.length <= 8 && isolatedSingleCount >= 2 && plannedMove.highRank >= 5))
-      ) {
+      if (this.lastWinnerId === bot.id && bot.hand.length >= 1) {
         shouldCast = true;
       }
     } else if (charId === 'ganyu') {
@@ -20790,6 +20799,7 @@ class TienLenGame {
     }
     this.matchCount = typeof state.matchCount === 'number' ? state.matchCount : 0;
     this.lastWinnerId = state.lastWinnerId ?? null;
+    this.lastLoserId = state.lastLoserId ?? null;
     this.currentTurn = typeof state.currentTurn === 'number' ? state.currentTurn : 0;
     this.currentCombo = state.currentCombo || null;
     this.previousCombo = state.previousCombo || null;
@@ -20948,6 +20958,7 @@ class TienLenGame {
     this.isBurstPlaying = false;
     this.matchCount = 0;
     this.lastWinnerId = null;
+    this.lastLoserId = null;
     this.currentTurn = 0;
     this.currentCombo = null;
     this.previousCombo = null;
@@ -21605,6 +21616,7 @@ class TienLenGame {
       betPerCard: this.betPerCard || 100,
       matchCount: this.matchCount,
       lastWinnerId: this.lastWinnerId,
+      lastLoserId: this.lastLoserId,
       currentTurn: this.currentTurn,
       currentCombo: this.currentCombo,
       previousCombo: this.previousCombo,
@@ -22249,6 +22261,8 @@ class TienLenGame {
       this.tighnariBonusByPlayer = {};
     }
     this.matchCount = typeof state.matchCount === 'number' ? state.matchCount : 0;
+    this.lastWinnerId = state.lastWinnerId ?? null;
+    this.lastLoserId = state.lastLoserId ?? null;
     this.currentTurn = state.currentTurn || 0;
     this.currentCombo = state.currentCombo || null;
     this.previousCombo = state.previousCombo || null;
@@ -22823,6 +22837,7 @@ class TienLenGame {
     if (resetHistory) {
       this.matchCount = 1;
       this.lastWinnerId = null;
+      this.lastLoserId = null;
     } else {
       this.matchCount++;
     }
@@ -23088,6 +23103,22 @@ class TienLenGame {
     ];
 
     this.lastWinnerId = winnerId;
+    const toiTrangLosers = this.players.filter((p) => p.active && p.id !== winnerId);
+    if (toiTrangLosers.length > 0) {
+      toiTrangLosers.sort((a, b) => {
+        const handDiff = (b.hand?.length || 0) - (a.hand?.length || 0);
+        if (handDiff !== 0) return handDiff;
+        const lossA = -(coinChanges[a.id] || 0);
+        const lossB = -(coinChanges[b.id] || 0);
+        if (lossB !== lossA) return lossB - lossA;
+        const maxValA = a.hand?.length ? Math.max(...a.hand.map((c) => c.value || 0)) : -1;
+        const maxValB = b.hand?.length ? Math.max(...b.hand.map((c) => c.value || 0)) : -1;
+        return maxValB - maxValA;
+      });
+      this.lastLoserId = toiTrangLosers[0].id;
+    } else {
+      this.lastLoserId = null;
+    }
     const bannerTitle = `🎉 ${winner.name} TỚI TRẮNG (${reason}) - ĂN TRỌN +${totalWon.toLocaleString()} XU!`;
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon.toLocaleString()} Xu!`;
@@ -28137,6 +28168,22 @@ class TienLenGame {
     }
 
     this.lastWinnerId = winnerId;
+    const matchLosers = this.players.filter((p) => p.active && p.id !== winnerId);
+    if (matchLosers.length > 0) {
+      matchLosers.sort((a, b) => {
+        const handDiff = (b.hand?.length || 0) - (a.hand?.length || 0);
+        if (handDiff !== 0) return handDiff;
+        const lossA = -(coinChanges[a.id] || 0);
+        const lossB = -(coinChanges[b.id] || 0);
+        if (lossB !== lossA) return lossB - lossA;
+        const maxValA = a.hand?.length ? Math.max(...a.hand.map((c) => c.value || 0)) : -1;
+        const maxValB = b.hand?.length ? Math.max(...b.hand.map((c) => c.value || 0)) : -1;
+        return maxValB - maxValA;
+      });
+      this.lastLoserId = matchLosers[0].id;
+    } else {
+      this.lastLoserId = null;
+    }
     this.elTurnBanner.textContent = `🏁 ${winner.name} Về Nhất (+${totalWinnerGain.toLocaleString()} xu)! Đã lật bài toàn bàn.`;
 
     const bannerTitle = wonBy3Spade

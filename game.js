@@ -6479,9 +6479,10 @@ class TienLenGame {
         }
       });
 
+      const rawShopee = String(newerAdCfg.shopeeUrl || localAd.shopeeUrl || remoteAd.shopeeUrl || '').trim();
       const mergedAdMonetization = {
         sponsorUrl: String(newerAdCfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim(),
-        shopeeUrl: String(newerAdCfg.shopeeUrl || localAd.shopeeUrl || remoteAd.shopeeUrl || 'https://shopee.vn/').trim(),
+        shopeeUrl: !rawShopee || /^https?:\/\/(www\.)?shopee\.vn\/?$/i.test(rawShopee) ? 'https://s.shopee.vn/8fTd9HCotb' : rawShopee,
         bannerHtml: String(newerAdCfg.bannerHtml || '').trim(),
         adMode: newerAdCfg.adMode || 'auto_open',
         bankCode: String(newerAdCfg.bankCode || '').trim().toUpperCase(),
@@ -6675,7 +6676,12 @@ class TienLenGame {
 
     const adCfg = globalReg.adMonetization || {};
     const curSponsorUrl = String(adCfg.sponsorUrl || 'https://uplcm.com/4/12175425').replace(/"/g, '&quot;');
-    const curShopeeUrl = String(adCfg.shopeeUrl || 'https://shopee.vn/').replace(/"/g, '&quot;');
+    const rawAdminShopee = String(adCfg.shopeeUrl || '').trim();
+    const curShopeeUrl = (
+      !rawAdminShopee || /^https?:\/\/(www\.)?shopee\.vn\/?$/i.test(rawAdminShopee)
+        ? 'https://s.shopee.vn/8fTd9HCotb'
+        : rawAdminShopee
+    ).replace(/"/g, '&quot;');
     const curBannerHtml = String(adCfg.bannerHtml || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -9665,9 +9671,14 @@ class TienLenGame {
   getAdMonetizationConfig() {
     const reg = this.loadGlobalRegistryCache();
     const ad = reg.adMonetization || {};
+    const rawShopee = String(ad.shopeeUrl || '').trim();
+    const cleanShopee =
+      !rawShopee || /^https?:\/\/(www\.)?shopee\.vn\/?$/i.test(rawShopee)
+        ? 'https://s.shopee.vn/8fTd9HCotb'
+        : rawShopee;
     return {
       sponsorUrl: String(ad.sponsorUrl || 'https://uplcm.com/4/12175425').trim(),
-      shopeeUrl: String(ad.shopeeUrl || 'https://shopee.vn/').trim(),
+      shopeeUrl: cleanShopee,
       bannerHtml: String(ad.bannerHtml || '').trim(),
       adMode: ad.adMode || 'auto_open',
       bankCode: String(ad.bankCode || 'MB').trim().toUpperCase(),
@@ -9684,7 +9695,7 @@ class TienLenGame {
   pickRandomSponsorPartner(advanceTurn = false) {
     const cfg = this.getAdMonetizationConfig();
     const monetagUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
-    const shopeeUrl = String(cfg.shopeeUrl || 'https://shopee.vn/').trim();
+    const shopeeUrl = String(cfg.shopeeUrl || 'https://s.shopee.vn/8fTd9HCotb').trim();
     const pool = [];
     if (monetagUrl) {
       pool.push({
@@ -9745,7 +9756,7 @@ class TienLenGame {
     const btn = document.getElementById('btn-save-admin-ad-config');
 
     const sponsorUrl = String(urlInput ? urlInput.value : '').trim() || 'https://uplcm.com/4/12175425';
-    const shopeeUrl = String(shopeeInput ? shopeeInput.value : '').trim() || 'https://shopee.vn/';
+    const shopeeUrl = String(shopeeInput ? shopeeInput.value : '').trim() || 'https://s.shopee.vn/8fTd9HCotb';
     const adMode = String(modeSelect ? modeSelect.value : 'auto_open').trim();
     const bannerHtml = String(bannerInput ? bannerInput.value : '').trim();
     const bankCode = String(bankCodeInput ? bankCodeInput.value : 'MB').trim().toUpperCase();

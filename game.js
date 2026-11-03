@@ -111,9 +111,15 @@ const DAILY_QUESTS_CONFIG = [
 ];
 
 const DUPLICATE_REFUND_COINS = {
-  3: 160,  // Trùng Avatar 3★ -> Hoàn +160 Xu (= 1/10 lượt Cầu Nguyện)
-  4: 1600, // Trùng Decor Bài 4★ -> Hoàn +1,600 Xu (= 1 lượt Cầu Nguyện)
-  5: 3200, // Trùng Kỹ Năng Nộ 5★ -> Hoàn +3,200 Xu (= 2 lượt Cầu Nguyện)
+  3: 160,  // Trùng Avatar 3★ -> Hoàn +0.1 Vé Roll
+  4: 1600, // Trùng Decor Bài 4★ -> Hoàn +1 Vé Roll
+  5: 3200, // Trùng Kỹ Năng Nộ 5★ -> Hoàn +2 Vé Roll
+};
+
+const DUPLICATE_REFUND_ROLLS = {
+  3: 0.1, // Trùng Avatar 3★ -> Hoàn +0.1 Vé Roll (💫 Lượt Cầu Nguyện)
+  4: 1,   // Trùng Decor Bài 4★ -> Hoàn +1 Vé Roll (💫 Lượt Cầu Nguyện)
+  5: 2,   // Trùng Kỹ Năng Nộ 5★ -> Hoàn +2 Vé Roll (💫 Lượt Cầu Nguyện)
 };
 
 const BANNER_4STAR_RATEUPS = {
@@ -4563,6 +4569,9 @@ class TienLenGame {
         }
       }
     }
+    if (typeof data.wishes === 'number' && isNewerOrEqual) {
+      this.savedWishes = Math.max(0, Math.round(data.wishes * 10) / 10);
+    }
     if (data.playerName && isNewerOrEqual) {
       this.savedPlayerName = this.resolveCleanPlayerName(data.playerName, data.accountUsername || this.currentAccountUsername);
     }
@@ -4690,6 +4699,7 @@ class TienLenGame {
   resetProfileMemoryToDefaults() {
     const today = this.getTodayKey();
     this.savedCoins = INITIAL_COINS;
+    this.savedWishes = 0;
     this.savedPlayerName = 'Nhà Lữ Hành';
     this.savedBetPerCard = 10;
     this.savedSoloPlayerCount = 4;
@@ -4899,7 +4909,8 @@ class TienLenGame {
     const g5 = p.gachaGuaranteed5 ? 1 : 0;
     const g4 = p.gachaGuaranteed4 ? 1 : 0;
     const tw = Math.max(0, Number(p.totalWishes) || 0).toString(36);
-    const pityPack = `${p5}_${p4}_${g5}_${g4}_${tw}`;
+    const wTenths = Math.max(0, Math.round((Number(p.wishes) || 0) * 10)).toString(36);
+    const pityPack = `${p5}_${p4}_${g5}_${g4}_${tw}_${wTenths}`;
 
     const qDate = String(p.dailyQuestsDate || this.getTodayKey()).replace(/[^0-9]/g, '').slice(-6) || '0';
     const qParts = [qDate];
@@ -4996,6 +5007,7 @@ class TienLenGame {
       const gachaGuaranteed5 = pt[2] === '1';
       const gachaGuaranteed4 = verTag === 'v1' ? false : pt[3] === '1';
       const totalWishes = verTag === 'v1' ? Number(pt[3]) || 0 : parseInt(pt[4] || '0', 36) || 0;
+      const wishes = verTag === 'v1' ? 0 : Math.max(0, Math.round(((parseInt(pt[5] || '0', 36) || 0) / 10) * 10) / 10);
 
       const qp = (questsPack || '').split('_');
       const qRawDate = qp[0] || '';
@@ -5057,6 +5069,7 @@ class TienLenGame {
           sessionClaimedAtMs,
           activeActivity,
           coins: safeCoins,
+          wishes,
           playerName: displayName,
           betPerCard: 100,
           soloPlayerCount: 4,
@@ -5300,7 +5313,7 @@ class TienLenGame {
             cProf.devices || existingCloud.devices,
             usernameKey === this.currentAccountUsername
           );
-          // Nếu trên Đám Mây có bản ghi mới hơn (cloudMaxRev > localAccRev) với số Vàng cao hơn (do vừa được cấp/đồng bộ từ thiết bị khác), giữ nguyên số Vàng cao hơn đó thay vì ghi đè!
+          // Nếu trên Đám Mây có bản ghi mới hơn (cloudMaxRev > localAccRev) với số Vàng hoặc Vé Roll cao hơn (do vừa được cấp/đồng bộ từ thiết bị khác), giữ nguyên thay vì ghi đè!
           if (cloudMaxRev > localAccRev && typeof cProf.coins === 'number' && cProf.coins > (Number(acc.profile.coins) || 0)) {
             acc.profile.coins = cProf.coins;
             if (usernameKey === this.currentAccountUsername) {
@@ -5309,6 +5322,14 @@ class TienLenGame {
               if (me) me.coins = cProf.coins;
               this.renderAll();
               this.renderLobbyModal();
+              this.renderShopModal();
+            }
+          }
+          if (cloudMaxRev > localAccRev && typeof cProf.wishes === 'number' && cProf.wishes > (Number(acc.profile.wishes) || 0)) {
+            acc.profile.wishes = Math.max(0, Math.round(cProf.wishes * 10) / 10);
+            if (usernameKey === this.currentAccountUsername) {
+              this.savedWishes = acc.profile.wishes;
+              this.syncWishesBadgesUI();
               this.renderShopModal();
             }
           }
@@ -5653,6 +5674,12 @@ class TienLenGame {
       : typeof newer.coins === 'number'
         ? newer.coins
         : older.coins ?? INITIAL_COINS;
+    let resolvedWishes = takeMaxCoins
+      ? Math.max(Number(newer.wishes) || 0, Number(older.wishes) || 0)
+      : typeof newer.wishes === 'number'
+        ? newer.wishes
+        : Number(older.wishes) || 0;
+    resolvedWishes = Math.max(0, Math.round(resolvedWishes * 10) / 10);
 
     const hasPostTutorialProgress = this.hasVeteranPostTutorialProgress(mergedBursts, maxTotalWishes);
     const isTutorialDone = Boolean(
@@ -5667,6 +5694,7 @@ class TienLenGame {
       updatedAtMs: maxUpdatedAtMs,
       syncRev: maxSyncRev,
       coins: resolvedCoins,
+      wishes: resolvedWishes,
       totalWishes: maxTotalWishes,
       unlockedSkins: mergedSkins,
       equippedSkin: resolvedSkin,
@@ -5844,6 +5872,7 @@ class TienLenGame {
       const stateDiffers =
         typeof cProf.coins === 'number' &&
         (cProf.coins !== this.savedCoins ||
+          (typeof cProf.wishes === 'number' && cProf.wishes !== this.savedWishes) ||
           cProf.equippedActiveChar !== this.equippedActiveChar ||
           cProf.equippedSkin !== this.equippedSkin ||
           cProf.equippedAvatar !== this.equippedAvatar ||
@@ -5872,6 +5901,7 @@ class TienLenGame {
               updatedAtMs: localTime,
               syncRev: localRev,
               coins: this.savedCoins,
+              wishes: this.savedWishes,
               playerName: this.savedPlayerName,
               betPerCard: this.betPerCard,
               soloPlayerCount: this.soloPlayerCount,
@@ -6100,6 +6130,7 @@ class TienLenGame {
         updatedAtMs: nowMs,
         syncRev: nextRev,
         coins: this.savedCoins,
+        wishes: Math.max(0, Math.round((Number(this.savedWishes) || 0) * 10) / 10),
         playerName: this.savedPlayerName,
         betPerCard: this.betPerCard || 100,
         soloPlayerCount: this.soloPlayerCount || 4,
@@ -6160,8 +6191,29 @@ class TienLenGame {
 
       const lobbyBal = document.getElementById('lobby-balance-display');
       if (lobbyBal) lobbyBal.textContent = this.savedCoins.toLocaleString();
+      this.syncWishesBadgesUI();
       this.syncAccountButtonsUI();
     } catch (_) {}
+  }
+
+  formatWishesCount(val = this.savedWishes) {
+    const n = Math.max(0, Math.round((Number(val) || 0) * 10) / 10);
+    return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  }
+
+  addWishes(delta) {
+    const cur = Number(this.savedWishes) || 0;
+    this.savedWishes = Math.max(0, Math.round((cur + (Number(delta) || 0)) * 10) / 10);
+    this.syncWishesBadgesUI();
+    return this.savedWishes;
+  }
+
+  syncWishesBadgesUI() {
+    const wStr = this.formatWishesCount(this.savedWishes);
+    ['lobby-wishes-display', 'shop-wishes-display', 'gacha-results-wishes', 'topup-wishes-display'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = wStr;
+    });
   }
 
   hasVeteranPostTutorialProgress(burstsIter = this.unlockedBursts, wishesCount = this.totalWishes) {
@@ -7968,6 +8020,7 @@ class TienLenGame {
 
       const alreadyOwned = this.unlockedBursts.has(chosenBurst.id);
       const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[5] : 0;
+      const refundRolls = alreadyOwned ? DUPLICATE_REFUND_ROLLS[5] : 0;
       if (!alreadyOwned) {
         // Chỉ mở khóa lưu vào Kho Đồ — người chơi phải vào Kho Đồ bấm Trang Bị mới sử dụng được nhân vật!
         this.unlockedBursts.add(chosenBurst.id);
@@ -7985,6 +8038,7 @@ class TienLenGame {
         mp4Url: chosenBurst.mp4Url,
         isNew: !alreadyOwned,
         refund,
+        refundRolls,
         pityUsed: hitPity,
         rateNote,
       };
@@ -8016,6 +8070,7 @@ class TienLenGame {
 
       const alreadyOwned = this.unlockedSkins.has(chosenSkin.id);
       const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[4] : 0;
+      const refundRolls = alreadyOwned ? DUPLICATE_REFUND_ROLLS[4] : 0;
       if (!alreadyOwned) {
         this.unlockedSkins.add(chosenSkin.id);
         if (this.equippedSkin === 'classic') {
@@ -8035,6 +8090,7 @@ class TienLenGame {
         thumbUrl: chosenSkin.imgUrl,
         isNew: !alreadyOwned,
         refund,
+        refundRolls,
         pityUsed: hitPity,
         rateNote,
       };
@@ -8048,6 +8104,7 @@ class TienLenGame {
     const chosenAvatar = avatarPool[Math.floor(Math.random() * avatarPool.length)] || avatarPool[0];
     const alreadyOwned = this.unlockedAvatars.has(chosenAvatar.id);
     const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[3] : 0;
+    const refundRolls = alreadyOwned ? DUPLICATE_REFUND_ROLLS[3] : 0;
     if (!alreadyOwned) {
       this.unlockedAvatars.add(chosenAvatar.id);
       if (this.equippedAvatar === 'default_player') {
@@ -8067,6 +8124,7 @@ class TienLenGame {
       thumbUrl: chosenAvatar.imgUrl,
       isNew: !alreadyOwned,
       refund,
+      refundRolls,
       pityUsed: this.gachaPity5,
       rateNote: '3★ Tiêu chuẩn',
     };
@@ -8082,22 +8140,35 @@ class TienLenGame {
     }
     const me = this.getLocalPlayer();
     if (!me) return;
-    if (me.coins < WISH_COST_TEN) {
+    const neededRolls = 10;
+    const availWishes = Math.floor(Math.max(0, Number(this.savedWishes) || 0));
+    const useWishes = Math.min(neededRolls, availWishes);
+    const remRolls = neededRolls - useWishes;
+    const neededCoins = remRolls * WISH_COST_SINGLE;
+
+    if (me.coins < neededCoins) {
       if (this.tutorialStep === 3 || !this.tutorialCompleted) {
         me.coins = Math.max(20000, me.coins);
         this.savedCoins = me.coins;
       } else {
-        alert(`⚠️ Bạn cần ${WISH_COST_TEN.toLocaleString()} Xu để Cầu Nguyện Tân Thủ ×10!`);
+        alert(
+          `⚠️ Bạn cần 10 Vé Roll (💫) hoặc ${WISH_COST_TEN.toLocaleString()} Xu để Cầu Nguyện Tân Thủ ×10!\n(Hiện có: 💫 ${this.formatWishesCount()} Vé Roll & 🪙 ${me.coins.toLocaleString()} Xu)`
+        );
         return;
       }
     }
 
-    me.coins -= WISH_COST_TEN;
-    this.savedCoins = me.coins;
+    if (useWishes > 0) {
+      this.addWishes(-useWishes);
+    }
+    if (neededCoins > 0) {
+      me.coins -= neededCoins;
+      this.savedCoins = me.coins;
+    }
     this.beginnerBannerUsed = true;
 
     const results = [];
-    let totalRefund = 0;
+    let totalRefundRolls = 0;
 
     // 8 món 3★ Avatar + 1 món 4★ Decor Bài Raiden + 1 món 5★ Limited Chắc Chắn: Raiden Shogun (Lôi Thần)
     const pool3 = ANIME_AVATARS.filter((a) => a.id !== 'default_player');
@@ -8106,6 +8177,7 @@ class TienLenGame {
       const chosenAvatar = pool3[(i * 3 + Math.floor(Math.random() * pool3.length)) % pool3.length];
       const alreadyOwned = this.unlockedAvatars.has(chosenAvatar.id);
       const refund = alreadyOwned ? DUPLICATE_REFUND_COINS[3] : 0;
+      const refundRolls = alreadyOwned ? DUPLICATE_REFUND_ROLLS[3] : 0;
       if (!alreadyOwned) {
         this.unlockedAvatars.add(chosenAvatar.id);
         if (this.equippedAvatar === 'default_player') {
@@ -8113,7 +8185,7 @@ class TienLenGame {
           me.avatar = chosenAvatar.id;
         }
       }
-      totalRefund += refund;
+      totalRefundRolls = Math.round((totalRefundRolls + refundRolls) * 10) / 10;
       const r3 = {
         pullNo: this.totalWishes,
         time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -8125,6 +8197,7 @@ class TienLenGame {
         thumbUrl: chosenAvatar.imgUrl,
         isNew: !alreadyOwned,
         refund,
+        refundRolls,
         pityUsed: i + 1,
         rateNote: '3★ Banner Tân Thủ',
       };
@@ -8137,6 +8210,7 @@ class TienLenGame {
     const chosenSkin = getCardSkinMeta('raiden') || ANIME_CARD_SKINS.find((s) => s.id !== 'classic');
     const skinOwned = this.unlockedSkins.has(chosenSkin.id);
     const skinRefund = skinOwned ? DUPLICATE_REFUND_COINS[4] : 0;
+    const skinRefundRolls = skinOwned ? DUPLICATE_REFUND_ROLLS[4] : 0;
     if (!skinOwned) {
       this.unlockedSkins.add(chosenSkin.id);
       if (this.equippedSkin === 'classic') {
@@ -8144,7 +8218,7 @@ class TienLenGame {
         me.cardSkin = chosenSkin.id;
       }
     }
-    totalRefund += skinRefund;
+    totalRefundRolls = Math.round((totalRefundRolls + skinRefundRolls) * 10) / 10;
     const r4 = {
       pullNo: this.totalWishes,
       time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -8156,6 +8230,7 @@ class TienLenGame {
       thumbUrl: `fanart/${chosenSkin.id}.jpg?v=66`,
       isNew: !skinOwned,
       refund: skinRefund,
+      refundRolls: skinRefundRolls,
       pityUsed: 9,
       rateNote: '🔥 4★ Banner Tân Thủ',
     };
@@ -8167,6 +8242,7 @@ class TienLenGame {
     const giftBurst = getBurstMeta('raiden') || GENSHIN_BURSTS[0];
     const burstOwned = this.unlockedBursts.has(giftBurst.id);
     const burstRefund = burstOwned ? DUPLICATE_REFUND_COINS[5] : 0;
+    const burstRefundRolls = burstOwned ? DUPLICATE_REFUND_ROLLS[5] : 0;
     this.unlockedBursts.add(giftBurst.id);
     // Chỉ mở khóa lưu vào Kho Đồ, chưa tự động trang bị để Nhà Lữ Hành hướng dẫn người chơi vào Kho Đồ mặc Raiden Shogun!
     this.equippedActiveChar = 'none';
@@ -8175,7 +8251,7 @@ class TienLenGame {
     me.activeChar = 'none';
     me.chopBurst = 'none';
     me.winBurst = 'none';
-    totalRefund += burstRefund;
+    totalRefundRolls = Math.round((totalRefundRolls + burstRefundRolls) * 10) / 10;
 
     const r5 = {
       pullNo: this.totalWishes,
@@ -8189,6 +8265,7 @@ class TienLenGame {
       videoUrl: giftBurst.videoUrl,
       isNew: !burstOwned,
       refund: burstRefund,
+      refundRolls: burstRefundRolls,
       pityUsed: 10,
       rateNote: '🌟 Cam Kết 100% Nổ 5★ Limited Tân Thủ',
     };
@@ -8196,17 +8273,16 @@ class TienLenGame {
     results.push(r5);
     if (this.gachaHistory.length > 300) this.gachaHistory.length = 300;
 
-    if (totalRefund > 0) {
-      me.coins += totalRefund;
-      this.savedCoins = me.coins;
+    if (totalRefundRolls > 0) {
+      this.addWishes(totalRefundRolls);
     }
 
     this.saveShopProfile();
-    this.showGachaMeteorAndResults(results, totalRefund);
+    this.showGachaMeteorAndResults(results, totalRefundRolls);
 
     setTimeout(() => {
       this.addLog(
-        `🎁🌟 <strong>Banner Tân Thủ ×10:</strong> Chúc mừng bạn đã nổ vàng nhận <strong>Nhân Vật 5★ Limited: ⚡ Raiden Shogun (Lôi Thần)</strong> và tự động trang bị vào bàn đấu! (Banner Tân Thủ đã biến mất sau 10 lần roll duy nhất).`,
+        `🎁🌟 <strong>Banner Tân Thủ ×10:</strong> Chúc mừng bạn đã nổ vàng nhận <strong>Nhân Vật 5★ Limited: ⚡ Raiden Shogun (Lôi Thần)</strong> và lưu vào Kho Đồ! (Banner Tân Thủ đã biến mất sau 10 lần roll duy nhất).`,
         'log-win'
       );
       this.syncCosmeticsInRoom();
@@ -8215,35 +8291,45 @@ class TienLenGame {
 
   performWish(count = 1) {
     if (!this.tutorialCompleted && this.tutorialStep === 3 && !this.beginnerBannerUsed) {
-      alert('🌟 Nhà Lữ Hành: Hãy bấm vào nút "🌟 Cầu Nguyện Tân Thủ ×10 (16,000 Vàng)" trên Banner Tân Thủ đặc biệt phía trên để nhận chắc chắn Nhân Vật 5★ Limited trước nhé!');
+      alert('🌟 Nhà Lữ Hành: Hãy bấm vào nút "🌟 Cầu Nguyện Tân Thủ ×10" trên Banner Tân Thủ đặc biệt phía trên để nhận chắc chắn Nhân Vật 5★ Limited trước nhé!');
       return;
     }
     const me = this.getLocalPlayer();
     if (!me) return;
     const pullCount = count === 10 ? 10 : 1;
-    const cost = pullCount === 10 ? WISH_COST_TEN : WISH_COST_SINGLE;
+    const availWishes = Math.floor(Math.max(0, Number(this.savedWishes) || 0));
+    const useWishes = Math.min(pullCount, availWishes);
+    const remRolls = pullCount - useWishes;
+    const neededCoins = remRolls * WISH_COST_SINGLE;
 
-    if (me.coins < cost) {
+    if (me.coins < neededCoins) {
+      const fullCost = pullCount === 10 ? WISH_COST_TEN : WISH_COST_SINGLE;
       alert(
-        `⚠️ Bạn chưa đủ Xu để Cầu Nguyện ×${pullCount} (Cần ${cost.toLocaleString()} Xu, hiện có ${me.coins.toLocaleString()} Xu)!\n💡 Hãy đánh bài tích Xu, làm 4 Nhiệm Vụ Hàng Ngày (mỗi nhiệm vụ nhận 0.5 Roll = +800 Xu) hoặc Xem Quảng Cáo (+1 Roll = +1,600 Xu) nhé!`
+        `⚠️ Bạn chưa đủ Vé Roll hoặc Xu để Cầu Nguyện ×${pullCount}!\n• Cần: ${pullCount} Vé Roll (💫) hoặc ${fullCost.toLocaleString()} Xu\n• Hiện có: 💫 ${this.formatWishesCount()} Vé Roll & 🪙 ${me.coins.toLocaleString()} Xu\n\n💡 Bạn có thể đánh bài tích Xu, làm 4 Nhiệm Vụ Ngày (+2 Roll), nhập Giftcode hoặc ghé Quầy Ủng Hộ nhận Vé Roll nhé!`
       );
       return;
     }
 
-    me.coins -= cost;
+    if (useWishes > 0) {
+      this.addWishes(-useWishes);
+    }
+    if (neededCoins > 0) {
+      me.coins -= neededCoins;
+      this.savedCoins = me.coins;
+    }
     const results = [];
-    let totalRefund = 0;
+    let totalRefundRolls = 0;
 
     for (let i = 0; i < pullCount; i++) {
       const item = this.rollSingleWish();
       results.push(item);
-      if (item.refund > 0) {
-        totalRefund += item.refund;
+      if (item.refundRolls > 0) {
+        totalRefundRolls = Math.round((totalRefundRolls + item.refundRolls) * 10) / 10;
       }
     }
 
-    if (totalRefund > 0) {
-      me.coins += totalRefund;
+    if (totalRefundRolls > 0) {
+      this.addWishes(totalRefundRolls);
     }
 
     const maxStar = Math.max(...results.map((r) => r.star));
@@ -8251,12 +8337,12 @@ class TienLenGame {
 
     // Lưu dữ liệu ngay và hiển thị sao băng tức thì (hoãn render lại DOM nặng của Sảnh Cầu Nguyện cho tới khi kết thúc video sao băng để đạt 60fps tuyệt đối!)
     this.saveShopProfile();
-    this.showGachaMeteorAndResults(results, totalRefund);
+    this.showGachaMeteorAndResults(results, totalRefundRolls);
 
     setTimeout(() => {
       this.addLog(
         `🌠 <strong>Cầu Nguyện ×${pullCount}:</strong> Nổ cao nhất <strong>${maxStar}★</strong> (${newUnlocks} món mới${
-          totalRefund > 0 ? ` • Hoàn +${totalRefund.toLocaleString()} xu từ đồ trùng` : ''
+          totalRefundRolls > 0 ? ` • Hoàn +${this.formatWishesCount(totalRefundRolls)} Vé Roll (💫) từ đồ trùng` : ''
         })!`,
         maxStar === 5 ? 'log-win' : 'log-play'
       );
@@ -8597,8 +8683,8 @@ class TienLenGame {
 
     if (refundSummary) {
       if (totalRefund > 0) {
-        const eqRolls = (totalRefund / WISH_COST_SINGLE).toFixed(1).replace(/\.0$/, '');
-        refundSummary.textContent = `♻️ Tinh Huy quy đổi đồ trùng: Hoàn lại +${totalRefund.toLocaleString()} Xu (tương đương +${eqRolls} Roll)!`;
+        const eqRolls = this.formatWishesCount(totalRefund);
+        refundSummary.textContent = `♻️ Tinh Huy quy đổi đồ trùng: Hoàn lại +${eqRolls} Vé Roll (💫 Lượt Cầu Nguyện)!`;
         refundSummary.classList.remove('hidden');
       } else {
         refundSummary.textContent = '✨ Toàn bộ vật phẩm đều là Mở Khóa Mới!';
@@ -8610,16 +8696,17 @@ class TienLenGame {
     if (resultsBal && me) {
       resultsBal.textContent = me.coins.toLocaleString();
     }
+    this.syncWishesBadgesUI();
 
     if (resultsGrid) {
       resultsGrid.classList.toggle('single-pull', sorted.length === 1);
       resultsGrid.innerHTML = sorted
         .map((item, idx) => {
           const starsStr = '⭐'.repeat(item.star);
-          const dupRollLabel = item.star === 5 ? '+2 Roll' : item.star === 4 ? '+1 Roll' : '+1/10 Roll';
+          const dupRollLabel = item.star === 5 ? '+2 Vé Roll' : item.star === 4 ? '+1 Vé Roll' : '+0.1 Vé Roll';
           const statusHtml = item.isNew
             ? `<div class="gacha-result-status is-new">✨ MỚI MỞ KHÓA!</div>`
-            : `<div class="gacha-result-status is-dup">♻️ Đã có ➔ +${item.refund.toLocaleString()} Xu (${dupRollLabel})</div>`;
+            : `<div class="gacha-result-status is-dup">♻️ Đã có ➔ Hoàn 💫 ${dupRollLabel}</div>`;
 
           const quickEquipBtn =
             item.category === 'burst'
@@ -8813,6 +8900,7 @@ class TienLenGame {
     if (lobbyBal && me) {
       lobbyBal.textContent = me.coins.toLocaleString();
     }
+    this.syncWishesBadgesUI();
 
     this.renderDailyQuestsUI();
 
@@ -9025,19 +9113,20 @@ class TienLenGame {
 
             <div class="gacha-refund-rules-mini">
               ♻️ <strong>Cơ chế Tinh Huy / Tinh Trần Hoàn Trả khi quay trùng đồ đã có:</strong><br/>
-              • Trùng <strong>3★ Avatar</strong> ➔ Nhận thêm <strong>+1/10 Roll</strong> (<strong>+${DUPLICATE_REFUND_COINS[3].toLocaleString()} Xu</strong>)<br/>
-              • Trùng <strong>4★ Decor Bài</strong> ➔ Nhận thêm <strong>+1 Roll</strong> (<strong>+${DUPLICATE_REFUND_COINS[4].toLocaleString()} Xu</strong>)<br/>
-              • Trùng <strong>5★ Kỹ Năng Nộ</strong> ➔ Nhận thêm <strong>+2 Roll</strong> (<strong>+${DUPLICATE_REFUND_COINS[5].toLocaleString()} Xu</strong>)
+              • Trùng <strong>3★ Avatar</strong> ➔ Hoàn ngay <strong>💫 +0.1 Vé Roll</strong> (Đủ 10 món trùng = +1 Lượt Roll)<br/>
+              • Trùng <strong>4★ Decor Bài</strong> ➔ Hoàn ngay <strong>💫 +1 Vé Roll</strong><br/>
+              • Trùng <strong>5★ Kỹ Năng Nộ</strong> ➔ Hoàn ngay <strong>💫 +2 Vé Roll</strong><br/>
+              <span style="color:#6ee7b7;font-size:11px;">💡 Khi bấm Cầu Nguyện: Hệ thống tự động ưu tiên trừ <strong>💫 Vé Roll</strong> trước (hiện có: <strong>${this.formatWishesCount()} Vé</strong>), nếu thiếu mới dùng <strong>🪙 Xu</strong>!</span>
             </div>
 
             <div class="gacha-wish-buttons-row">
               <button class="gacha-wish-btn wish-1x" onclick="window.tienLenGame.performWish(1)">
                 <span class="gacha-wish-btn-title">🌠 Cầu Nguyện ×1</span>
-                <span class="gacha-wish-btn-cost">🪙 ${WISH_COST_SINGLE.toLocaleString()} Xu</span>
+                <span class="gacha-wish-btn-cost">${Math.floor(this.savedWishes || 0) >= 1 ? `💫 Dùng 1 Vé Roll (Đang có ${this.formatWishesCount()})` : `💫 1 Vé Roll hoặc 🪙 ${WISH_COST_SINGLE.toLocaleString()} Xu`}</span>
               </button>
               <button class="gacha-wish-btn wish-10x" onclick="window.tienLenGame.performWish(10)">
                 <span class="gacha-wish-btn-title">🌟 Cầu Nguyện ×10</span>
-                <span class="gacha-wish-btn-cost">🪙 ${WISH_COST_TEN.toLocaleString()} Xu • Đảm bảo ≥ 1 món 4★+</span>
+                <span class="gacha-wish-btn-cost">${Math.floor(this.savedWishes || 0) >= 10 ? `💫 Dùng 10 Vé Roll (Đang có ${this.formatWishesCount()})` : `💫 10 Vé Roll hoặc 🪙 ${WISH_COST_TEN.toLocaleString()} Xu`} • ≥ 1 món 4★+</span>
               </button>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
@@ -10260,20 +10349,18 @@ class TienLenGame {
     const today = this.getTodayKey();
     const lastClaim = localStorage.getItem('tlmn_welkin_last_claim_v1') || '';
     if (lastClaim === today) {
-      alert('✅ Hôm nay bạn đã nhận +2 Roll (3,200 Xu) từ Không Không Nguyệt Chúc rồi! Hãy quay lại vào ngày mai nhé.');
+      alert('✅ Hôm nay bạn đã nhận +2 Vé Roll (💫 Lượt Cầu Nguyện) từ Không Không Nguyệt Chúc rồi! Hãy quay lại vào ngày mai nhé.');
       return;
     }
     localStorage.setItem('tlmn_welkin_last_claim_v1', today);
-    const reward = WISH_COST_SINGLE * 2; // 3,200 Xu = 2 Roll
-    const me = this.getLocalPlayer();
-    if (me) me.coins += reward;
+    this.addWishes(2);
     sfx.win();
     this.saveShopProfile();
     this.renderSeats();
     this.renderShopModal();
     this.renderGiftcodeModal();
     this.renderTopupModal();
-    alert(`🌙 KHÔNG KHÔNG NGUYỆT CHÚC: Bạn đã nhận +2 Roll (+${reward.toLocaleString()} Xu) hôm nay!`);
+    alert(`🌙 KHÔNG KHÔNG NGUYỆT CHÚC: Bạn đã nhận +2 Vé Roll (💫 Lượt Cầu Nguyện) hôm nay! (Tổng: 💫 ${this.formatWishesCount()} Vé Roll)`);
   }
 
   // ============================================================================
@@ -10814,8 +10901,9 @@ class TienLenGame {
 
         const rawContent = String(tx.content || tx.transaction_content || '').toUpperCase();
         // Dừng khớp ngay khi gặp dấu chấm (.) hoặc khoảng trắng để không bị dính đuôi ".CT TU ..." của ngân hàng NAPAS!
+        // Hỗ trợ cả tiền tố CAFE (chuẩn Ủng Hộ Cafe mới), UNGHO và TLMN (tương thích ngược)
         const mPackAndUser = rawContent.match(
-          /TLMN[\s._-]*(W20|X10|X20|X50|X100|X200)[\s._-]*([A-Z0-9]{2,20})/i
+          /(?:CAFE|TLMN|UNGHO)[\s._-]*(W20|X10|X20|X50|X100|X200)[\s._-]*([A-Z0-9]{2,20})/i
         );
         let rawPackCode = '';
         let matchedTargetId = '';
@@ -10824,7 +10912,7 @@ class TienLenGame {
           rawPackCode = String(mPackAndUser[1] || '').toUpperCase();
           matchedTargetId = this.getCanonicalPaymentId(mPackAndUser[2]);
         } else {
-          const mLegacy = rawContent.match(/TLMN[\s._-]*([A-Z0-9]{2,20})/i);
+          const mLegacy = rawContent.match(/(?:CAFE|TLMN|UNGHO)[\s._-]*([A-Z0-9]{2,20})/i);
           if (mLegacy && mLegacy[1]) {
             matchedTargetId = this.getCanonicalPaymentId(mLegacy[1]);
           }
@@ -10873,7 +10961,7 @@ class TienLenGame {
             packCode: resolvedPack.code,
             packName: resolvedPack.name,
             amount: amount || resolvedPack.price,
-            memo: `TLMN ${resolvedPack.code} ${matchedTargetId}`,
+            memo: `CAFE ${resolvedPack.code} ${matchedTargetId}`,
             createdAtMs: Date.now(),
             createdAtStr: new Date().toLocaleString('vi-VN'),
           });
@@ -10887,7 +10975,7 @@ class TienLenGame {
           packCode: resolvedPack.code,
           packName: resolvedPack.name,
           amount: amount || resolvedPack.price,
-          memo: `TLMN ${resolvedPack.code} ${matchedTargetId}`,
+          memo: `CAFE ${resolvedPack.code} ${matchedTargetId}`,
           status: 'approved',
           approvedCount: nextApproved,
           lastSePayTxId: txId,
@@ -10997,14 +11085,14 @@ class TienLenGame {
         totalGrantedWelkinDaysAll += grant.welkinDays;
 
         summaryLines.push(
-          `• ${resolvedPack.icon} ${resolvedPack.name} (${resolvedPack.priceText}): +${grant.totalRolls} Roll (+${grant.totalCoins.toLocaleString()} Xu)${
-            grant.isFirst ? ' [🎁 X2 Nạp Đầu!]' : ''
+          `• ${resolvedPack.icon} ${resolvedPack.name} (${resolvedPack.priceText}): +${grant.totalRolls} Vé Roll (💫 Lượt Cầu Nguyện)${
+            grant.isFirst ? ' [🎁 X2 Ủng Hộ Đầu!]' : ''
           }${grant.welkinDays > 0 ? ` + 🌙 ${grant.welkinDays} ngày Nguyệt Chúc` : ''}`
         );
       }
 
-      const me = this.getLocalPlayer();
-      if (me) me.coins += totalGrantedCoinsAll;
+      // CỘNG TRỰC TIẾP VÀO ĐƠN VỊ VÉ ROLL (💫 LƯỢT CẦU NGUYỆN) — TÁCH BIỆT 100% VỚI XU ĐÁNH BÀI!
+      this.addWishes(totalGrantedRollsAll);
 
       if (totalGrantedWelkinDaysAll > 0) {
         const curExp = Math.max(Date.now(), this.getEffectiveWelkinExpireMs());
@@ -11038,16 +11126,16 @@ class TienLenGame {
       this.syncGlobalDeviceRegistry(true);
 
       this.showComboBanner(
-        `💎 GIAO DỊCH THÀNH CÔNG: +${totalGrantedRollsAll} ROLL (+${totalGrantedCoinsAll.toLocaleString()} XU)${
+        `💫 ĐÃ NHẬN QUÀ ỦNG HỘ: +${totalGrantedRollsAll} VÉ ROLL (LƯỢT CẦU NGUYỆN)${
           totalGrantedWelkinDaysAll > 0 ? ` + 🌙 ${totalGrantedWelkinDaysAll} NGÀY THẺ THÁNG!` : '!'
         }`
       );
       alert(
-        `🎉 THANH TOÁN THÀNH CÔNG — ĐÃ CỘNG QUÀ TỰ ĐỘNG!\n\n👤 Tài khoản nhận: @${myId}\n${summaryLines.join(
+        `🎉 ĐÃ XÁC NHẬN ỦNG HỘ — CỘNG QUÀ TỰ ĐỘNG!\n\n👤 Tài khoản nhận: @${myId}\n${summaryLines.join(
           '\n'
-        )}\n\n💰 Tổng cộng vừa nhận: +${totalGrantedRollsAll} Lượt Cầu Nguyện (+${totalGrantedCoinsAll.toLocaleString()} Xu)${
+        )}\n\n💫 Tổng cộng vừa nhận: +${totalGrantedRollsAll} Vé Roll (Hiện có: ${this.formatWishesCount()} Vé Roll)${
           totalGrantedWelkinDaysAll > 0 ? `\n🌙 Cộng dồn +${totalGrantedWelkinDaysAll} ngày Không Không Nguyệt Chúc!` : ''
-        }\n\nCảm ơn bạn đã ủng hộ game! Chúc bạn quay nổ Nhân Vật 5★ yêu thích!`
+        }\n\nCảm ơn bạn đã ủng hộ duy trì Server! Chúc bạn quay nổ Nhân Vật 5★ yêu thích!`
       );
       return true;
     } catch (_) {}
@@ -11088,7 +11176,7 @@ class TienLenGame {
     this._selectedTopupPackId = selectedPack.id;
     const myId = this.getPersonalGiftcodeIdentityKey();
     const myCanon = this.getCanonicalPaymentId(myId);
-    const transferMemo = `TLMN ${selectedPack.code} ${myCanon}`.slice(0, 24);
+    const transferMemo = `CAFE ${selectedPack.code} ${myCanon}`.slice(0, 24);
     const btn = document.getElementById('btn-submit-welkin-transfer');
     if (btn) {
       btn.disabled = true;
@@ -11140,7 +11228,7 @@ class TienLenGame {
     this.renderTopupModal();
     this.renderGiftcodeModal();
     alert(
-      `✅ Hệ thống đang trực chờ giao dịch gói "${selectedPack.icon} ${selectedPack.name}" (${selectedPack.priceText}) cho tài khoản @${myId}!\n📝 Nội dung CK chuẩn: ${transferMemo}\n\n⚡ Ngay khi bạn chuyển khoản xong trên App Ngân Hàng (đúng số tiền ${selectedPack.priceText} và nội dung ${transferMemo}), hệ thống SePay 24/24 sẽ TỰ ĐỘNG cộng Xu & Quà vào tài khoản của bạn sau 3–5 giây!`
+      `✅ Hệ thống đang trực chờ giao dịch gói "${selectedPack.icon} ${selectedPack.name}" (${selectedPack.priceText}) cho tài khoản @${myId}!\n📝 Nội dung CK chuẩn: ${transferMemo}\n\n⚡ Ngay khi bạn chuyển khoản xong trên App Ngân Hàng (đúng số tiền ${selectedPack.priceText} và nội dung ${transferMemo}), hệ thống SePay 24/24 sẽ TỰ ĐỘNG cộng Vé Roll (💫) vào tài khoản của bạn sau 3–5 giây!`
     );
   }
 
@@ -11180,7 +11268,7 @@ class TienLenGame {
       packCode: pack.code,
       packName: pack.name,
       amount: pack.price,
-      memo: `TLMN ${pack.code} ${canonId}`,
+      memo: `CAFE ${pack.code} ${canonId}`,
       createdAtMs: Date.now(),
       createdAtStr: new Date().toLocaleString('vi-VN'),
     });
@@ -11193,7 +11281,7 @@ class TienLenGame {
       packCode: pack.code,
       packName: pack.name,
       amount: pack.price,
-      memo: `TLMN ${pack.code} ${canonId}`,
+      memo: `CAFE ${pack.code} ${canonId}`,
       status: 'approved',
       approvedCount: nextApproved,
       deliveries: deliveries.slice(-30),
@@ -11212,7 +11300,7 @@ class TienLenGame {
     this.renderTopupModal();
     this.renderGiftcodeModal();
     alert(
-      `🎉 ĐÃ DUYỆT & BƠM GÓI "${pack.icon} ${pack.name}" (${pack.priceText}) CHO @${orderKey}!\n\n🌟 Máy của người chơi @${orderKey} sẽ tự động nổ thông báo nhận đủ Xu & Quà (kèm x2 Nạp Đầu nếu là lần đầu)!`
+      `🎉 ĐÃ DUYỆT & BƠM GÓI "${pack.icon} ${pack.name}" (${pack.priceText}) CHO @${orderKey}!\n\n🌟 Máy của người chơi @${orderKey} sẽ tự động nổ thông báo nhận đủ Vé Roll (💫) & Quà (kèm x2 lần đầu)!`
     );
   }
 
@@ -11246,7 +11334,7 @@ class TienLenGame {
       return;
     }
     const cleanTarget = this.normalizeGiftcodeIdentity(
-      rawTarget.replace(/^tlmn\s+(w20|x10|x20|x50|x100|x200)?\s*/i, '')
+      rawTarget.replace(/^(?:cafe|tlmn|ungho)\s+(w20|x10|x20|x50|x100|x200)?\s*/i, '')
     );
     await this.adminApproveWelkinOrder(cleanTarget, packId);
     if (inp) inp.value = '';
@@ -11287,7 +11375,7 @@ class TienLenGame {
     const selectedPack = this.getTopupPackById(this._selectedTopupPackId || 'welkin_20k');
     const myIdentity = this.getPersonalGiftcodeIdentityKey();
     const myCanon = this.getCanonicalPaymentId(myIdentity);
-    const transferMemo = `TLMN ${selectedPack.code} ${myCanon}`.slice(0, 24);
+    const transferMemo = `CAFE ${selectedPack.code} ${myCanon}`.slice(0, 24);
     const qrOnlyUrl = `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
       cfg.bankAccount
     )}-qr_only.png?amount=${selectedPack.price}&addInfo=${encodeURIComponent(
@@ -11346,13 +11434,13 @@ class TienLenGame {
     const selectedPack = this.getTopupPackById(this._selectedTopupPackId || 'welkin_20k');
     const myIdentity = this.getPersonalGiftcodeIdentityKey();
     const myCanon = this.getCanonicalPaymentId(myIdentity);
-    const transferMemo = `TLMN ${selectedPack.code} ${myCanon}`.slice(0, 24);
+    const transferMemo = `CAFE ${selectedPack.code} ${myCanon}`.slice(0, 24);
     const downloadUrl = `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
       cfg.bankAccount
     )}-compact2.png?amount=${selectedPack.price}&addInfo=${encodeURIComponent(
       transferMemo
     )}&accountName=${encodeURIComponent(cfg.bankOwner || '')}`;
-    const fileName = `VietQR_MB_${selectedPack.price}_TLMN_${selectedPack.code}_${myCanon}.png`;
+    const fileName = `VietQR_MB_${selectedPack.price}_CAFE_${selectedPack.code}_${myCanon}.png`;
 
     try {
       const resp = await fetch(downloadUrl, { mode: 'cors', cache: 'no-store' });
@@ -11400,7 +11488,7 @@ class TienLenGame {
     const welkinClaimedToday = (localStorage.getItem('tlmn_welkin_last_claim_v1') || '') === today;
     const myIdentity = this.getPersonalGiftcodeIdentityKey();
     const myCanon = this.getCanonicalPaymentId(myIdentity);
-    const transferMemo = `TLMN ${selectedPack.code} ${myCanon}`.slice(0, 24);
+    const transferMemo = `CAFE ${selectedPack.code} ${myCanon}`.slice(0, 24);
     const hasBank = Boolean(cfg.bankCode && cfg.bankAccount);
     // Dùng chuẩn qr_only.png độ phân giải cao (không bị chữ nhỏ làm thu hẹp vùng mã QR) giúp điện thoại chụp màn hình hoặc quét camera nhận diện 100% tức thì!
     const vietQrUrl = hasBank
@@ -11453,7 +11541,7 @@ class TienLenGame {
                               👤 <span style="color:#38bdf8;">@${ord.id}</span> • ${ordPack.icon} <strong>${ordPack.name}</strong> (${(Number(ord.amount) || ordPack.price).toLocaleString()}đ)
                             </div>
                             <div style="font-size:11px;color:#cbd5e1;">
-                              📝 Nội dung CK: <strong style="color:#6ee7b7;">${ord.memo || `TLMN ${ordPack.code} ${ord.id}`}</strong> • 🕒 ${ord.requestedAtStr || 'Vừa xong'}
+                              📝 Nội dung CK: <strong style="color:#6ee7b7;">${ord.memo || `CAFE ${ordPack.code} ${ord.id}`}</strong> • 🕒 ${ord.requestedAtStr || 'Vừa xong'}
                             </div>
                           </div>
                           <div style="display:flex;gap:6px;">
@@ -11490,7 +11578,24 @@ class TienLenGame {
       `
       : '';
 
+    const me = this.getLocalPlayer();
+    const curCoins = me ? me.coins : this.savedCoins;
     body.innerHTML = `
+      <!-- BANNER SỐ DƯ VÉ ROLL (💫) & CAM KẾT TÁCH BIỆT 1 CHIỀU -->
+      <div style="padding:10px 14px;border-radius:12px;background:rgba(15,23,42,0.92);border:1.5px solid #38bdf8;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="font-size:12px;color:#e2e8f0;line-height:1.45;">
+          🔒 <strong>Cơ chế Vé Cầu Nguyện 1 Chiều:</strong> Mọi gói Ủng Hộ Duy Trì Server tặng trực tiếp <strong style="color:#fde047;">💫 Vé Roll (Lượt Cầu Nguyện)</strong> dùng riêng để mở khóa Nhân Vật 5★ / Skin Bài 4★ / Avatar 3★ (không cộng thành Xu bàn bài và không quy đổi ngược).
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span style="padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#db2777);border:1.5px solid #f9a8d4;color:#fff;font-size:12.5px;font-weight:900;">
+            💫 Vé Roll: <strong id="topup-wishes-display">${this.formatWishesCount()}</strong>
+          </span>
+          <span style="padding:5px 11px;border-radius:999px;background:rgba(30,41,59,0.95);border:1px solid #fde047;color:#fef08a;font-size:12px;font-weight:800;">
+            🪙 Xu Bàn Bài: <strong>${curCoins.toLocaleString()}</strong>
+          </span>
+        </div>
+      </div>
+
       <!-- KHUNG 1: THẺ THÁNG KHÔNG KHÔNG NGUYỆT CHÚC 20.000Đ (CHUẨN GENSHIN IMPACT) -->
       <div onclick="window.tienLenGame.selectTopupPack('welkin_20k')" style="cursor:pointer;padding:14px 16px;border-radius:14px;background:${welkinPack.bgGrad};border:${
         isWelkinSelected ? '2.5px solid #fde047' : '1.5px solid rgba(167,139,250,0.55)'
@@ -11504,15 +11609,15 @@ class TienLenGame {
                 ${welkinPack.badge}
               </span>
               <span style="padding:2px 8px;border-radius:999px;background:rgba(167,139,250,0.22);border:1px solid #c4b5fd;color:#ede9fe;font-size:11px;font-weight:800;">
-                Mã gói: ${welkinPack.code} • Giá chỉ 20.000đ
+                Mã gói: ${welkinPack.code} • Ủng hộ 20.000đ
               </span>
             </div>
             <div style="font-size:16px;font-weight:900;color:#f3e8ff;display:flex;align-items:center;gap:6px;">
               🌙 THẺ THÁNG: KHÔNG KHÔNG NGUYỆT CHÚC (30 NGÀY)
             </div>
             <div style="font-size:12px;color:#e2e8f0;margin-top:4px;line-height:1.45;">
-              • <strong>Nhận ngay khi kích hoạt:</strong> <strong style="color:#fde047;">+10 Roll (+16,000 Xu)</strong><br/>
-              • <strong>Mỗi ngày đăng nhập (30 ngày):</strong> <strong style="color:#6ee7b7;">+2 Roll/ngày (+3,200 Xu)</strong> ➔ Tổng cộng <strong style="color:#fde047;">70 Lượt Cầu Nguyện (112,000 Xu)</strong>!<br/>
+              • <strong>Nhận ngay khi kích hoạt:</strong> <strong style="color:#fde047;">💫 +10 Vé Roll (Lượt Cầu Nguyện)</strong><br/>
+              • <strong>Mỗi ngày đăng nhập (30 ngày):</strong> <strong style="color:#6ee7b7;">💫 +2 Vé Roll/ngày</strong> ➔ Tổng cộng <strong style="color:#fde047;">70 Vé Cầu Nguyện (💫)</strong>!<br/>
               • ⚡ <strong>Đặc quyền VIP 30 ngày:</strong> Bấm <em>"📺 Xem QC (+1 Roll)"</em> nhận thưởng <strong>tức thì 0 giây</strong> không cần chờ!
             </div>
           </div>
@@ -11525,7 +11630,7 @@ class TienLenGame {
                 ? `<button type="button" class="primary-btn" onclick="event.stopPropagation(); window.tienLenGame.claimDailyWelkinReward();" ${
                     welkinClaimedToday ? 'disabled' : ''
                   } style="padding:8px 14px;font-weight:900;font-size:12px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
-                    ${welkinClaimedToday ? `✅ Đã nhận hôm nay (Còn ${welkinDays} ngày)` : `🌙 Nhận +2 Roll Hôm Nay (Còn ${welkinDays} ngày)`}
+                    ${welkinClaimedToday ? `✅ Đã nhận hôm nay (Còn ${welkinDays} ngày)` : `🌙 Nhận +2 Vé Roll Hôm Nay (Còn ${welkinDays} ngày)`}
                   </button>`
                 : ''
             }
@@ -11538,22 +11643,22 @@ class TienLenGame {
                 isWelkinSelected
                   ? '✅ Đang Chọn Gói Này (Quét QR Bên Dưới)'
                   : welkinDays > 0
-                  ? '➕ Mua Cộng Dồn Thêm 30 Ngày (20.000đ)'
-                  : '🌙 Chọn Mua Thẻ Tháng (20.000đ)'
+                  ? '➕ Cộng Dồn Thêm 30 Ngày (20.000đ)'
+                  : '🌙 Chọn Thẻ Tháng (20.000đ)'
               }
             </button>
           </div>
         </div>
       </div>
 
-      <!-- KHUNG 2: BẢNG 5 GÓI ĐÁ SÁNG THẾ / XU CẦU NGUYỆN (TẶNG GẤP ĐÔI X2 LẦN ĐẦU NẠP!) -->
+      <!-- KHUNG 2: BẢNG 5 GÓI ĐÁ SÁNG THẾ / VÉ CẦU NGUYỆN (TẶNG GẤP ĐÔI X2 LẦN ĐẦU!) -->
       <div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
           <div style="font-size:14px;font-weight:900;color:#fde047;">
-            💎 CÁC GÓI NẠP XU &amp; LƯỢT CẦU NGUYỆN (TẶNG GẤP ĐÔI X2 LẦN ĐẦU MỖI GÓI!)
+            ☕ CÁC GÓI ỦNG HỘ SERVER &amp; NHẬN VÉ CẦU NGUYỆN (💫 TẶNG X2 LẦN ĐẦU MỖI GÓI!)
           </div>
           <div style="font-size:11.5px;color:#cbd5e1;">
-            Quy ước chuẩn: <strong>1 Roll = 1,600 Xu</strong> • <strong>10 Roll = 16,000 Xu</strong> • Bấm vào gói bất kỳ để lấy mã VietQR
+            Tự động cộng thẳng <strong>💫 Vé Roll</strong> • Bấm vào gói bất kỳ để lấy mã VietQR
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
@@ -11572,7 +11677,7 @@ class TienLenGame {
                       <span style="padding:2px 7px;border-radius:999px;font-size:10px;font-weight:900;background:${
                         g.isFirst ? 'linear-gradient(135deg,#dc2626,#ea580c);color:#fff;' : 'rgba(16,185,129,0.28);color:#6ee7b7;'
                       }">
-                        ${g.isFirst ? `🎁 NẠP ĐẦU X2 (+${p.firstBonusRolls} ROLL)` : `✨ TẶNG THÊM +${p.repeatBonusRolls} ROLL`}
+                        ${g.isFirst ? `🎁 LẦN ĐẦU X2 (+${p.firstBonusRolls} ROLL)` : `✨ TẶNG THÊM +${p.repeatBonusRolls} ROLL`}
                       </span>
                       <span style="font-size:10.5px;color:#cbd5e1;font-weight:800;">#${p.code}</span>
                     </div>
@@ -11581,10 +11686,10 @@ class TienLenGame {
                     </div>
                     <div style="margin-top:5px;padding:6px 8px;border-radius:8px;background:rgba(15,23,42,0.78);border:1px solid rgba(250,204,21,0.35);">
                       <div style="font-size:15px;font-weight:900;color:#fde047;">
-                        🌟 Nhận ${g.totalRolls} Roll
+                        💫 Nhận ${g.totalRolls} Vé Roll
                       </div>
                       <div style="font-size:11.5px;color:#6ee7b7;font-weight:800;">
-                        = +${g.totalCoins.toLocaleString()} Xu
+                        Mở khóa Tướng 5★ &amp; Skin 4★
                       </div>
                       <div style="font-size:10.5px;color:#94a3b8;margin-top:2px;">
                         Gốc ${p.baseRolls} Roll + Thưởng ${g.bonusRolls} Roll
@@ -11594,7 +11699,7 @@ class TienLenGame {
                   <button type="button" class="primary-btn" style="width:100%;padding:7px 10px;font-weight:900;font-size:12.5px;background:${
                     isSel ? 'linear-gradient(135deg,#d97706,#ea580c)' : 'linear-gradient(135deg,#059669,#10b981)'
                   };border:1px solid #fde047;">
-                    ${isSel ? `✅ Đang Chọn (${p.priceText})` : `💳 Chọn ${p.priceText}`}
+                    ${isSel ? `✅ Đang Chọn (${p.priceText})` : `☕ Ủng Hộ ${p.priceText}`}
                   </button>
                 </div>
               `;
@@ -11609,7 +11714,7 @@ class TienLenGame {
       <div id="topup-vietqr-checkout-box" style="padding:14px 16px;border-radius:14px;background:rgba(15,23,42,0.95);border:2px solid #34d399;box-shadow:0 0 22px rgba(16,185,129,0.22);">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
           <div style="font-size:14.5px;font-weight:900;color:#6ee7b7;">
-            🏦 THANH TOÁN VIETQR MB BANK TỰ ĐỘNG 24/24 — GÓI ĐANG CHỌN: <span style="color:#fde047;">${selectedPack.icon} ${selectedPack.name.toUpperCase()} (${selectedPack.priceText})</span>
+            🏦 QUÉT VIETQR MB BANK TỰ ĐỘNG 24/24 — GÓI ĐANG CHỌN: <span style="color:#fde047;">${selectedPack.icon} ${selectedPack.name.toUpperCase()} (${selectedPack.priceText})</span>
           </div>
           <span style="padding:3px 10px;border-radius:999px;background:rgba(16,185,129,0.22);border:1px solid #34d399;color:#6ee7b7;font-size:11px;font-weight:900;">
             ⚡ SePay Auto-Webhook 24/7
@@ -11638,9 +11743,9 @@ class TienLenGame {
               <div style="color:#6ee7b7;font-weight:800;font-size:12.5px;margin-top:2px;">
                 ${
                   selectedPack.type === 'welkin'
-                    ? `• Nhận ngay +10 Roll (+16,000 Xu) + Mỗi ngày nhận +2 Roll × 30 ngày (Tổng 70 Roll = 112,000 Xu) + Miễn chờ 15s Quảng Cáo!`
-                    : `• Nhận ngay lập tức: +${selectedGrant.totalRolls} Lượt Cầu Nguyện (+${selectedGrant.totalCoins.toLocaleString()} Xu) ${
-                        selectedGrant.isFirst ? '— ĐÃ BAO GỒM THƯỞNG GẤP ĐÔI X2 LẦN ĐẦU!' : `(Gồm +${selectedGrant.bonusRolls} Roll thưởng thêm)`
+                    ? `• Nhận ngay 💫 +10 Vé Roll + Mỗi ngày nhận 💫 +2 Vé Roll × 30 ngày (Tổng 70 Vé Cầu Nguyện) + Miễn chờ 15s Quảng Cáo!`
+                    : `• Nhận ngay lập tức: 💫 +${selectedGrant.totalRolls} Vé Roll (Lượt Cầu Nguyện) ${
+                        selectedGrant.isFirst ? '— ĐÃ BAO GỒM THƯỞNG GẤP ĐÔI X2 LẦN ĐẦU!' : `(Gồm +${selectedGrant.bonusRolls} Vé Roll thưởng thêm)`
                       }`
                 }
               </div>
@@ -11651,7 +11756,7 @@ class TienLenGame {
               <button type="button" class="tool-btn" onclick="navigator.clipboard?.writeText('${cfg.bankAccount}'); alert('📋 Đã copy Số Tài Khoản MB Bank: ${cfg.bankAccount}');" style="padding:1px 8px;font-size:11px;margin-left:5px;">📋 Copy STK</button>
             </div>
             <div>
-              💵 Số tiền chuyển: <strong style="color:#fde047;font-size:15px;">${selectedPack.priceText}</strong>
+              💵 Số tiền ủng hộ: <strong style="color:#fde047;font-size:15px;">${selectedPack.priceText}</strong>
               <span style="font-size:11px;color:#94a3b8;">(Mã VietQR đã điền sẵn đúng số tiền &amp; nội dung)</span>
             </div>
             <div>
@@ -11667,7 +11772,7 @@ class TienLenGame {
                 ${
                   isMyOrderPending
                     ? `⏳ Đang Kiểm Tra Tự Động Cho @${myIdentity} — Bấm Để Kiểm Tra Ngay`
-                    : `✅ Tôi Đã Chuyển Khoản ${selectedPack.priceText} — Nhận Ngay +${selectedGrant.totalRolls} Roll (${selectedGrant.totalCoins.toLocaleString()} Xu)`
+                    : `✅ Tôi Đã Chuyển Khoản ${selectedPack.priceText} — Nhận Ngay 💫 +${selectedGrant.totalRolls} Vé Roll`
                 }
               </button>
             </div>
@@ -11680,7 +11785,7 @@ class TienLenGame {
           ? `
             <div style="padding:11px 14px;border-radius:12px;background:rgba(15,23,42,0.88);border:1px solid rgba(56,189,248,0.45);font-size:12px;">
               <div style="font-weight:900;color:#38bdf8;margin-bottom:6px;">
-                📜 LỊCH SỬ GÓI NẠP ĐÃ NHẬN CỦA TÀI KHOẢN @${myIdentity} (${myDeliveries.length} giao dịch gần nhất)
+                📜 LỊCH SỬ GÓI ỦNG HỘ ĐÃ NHẬN CỦA TÀI KHOẢN @${myIdentity} (${myDeliveries.length} giao dịch gần nhất)
               </div>
               <div style="display:flex;flex-direction:column;gap:5px;">
                 ${myDeliveries
@@ -11688,9 +11793,9 @@ class TienLenGame {
                     (d) => `
                       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 10px;border-radius:8px;background:rgba(30,41,59,0.85);border:1px solid rgba(52,211,153,0.35);">
                         <div>
-                          <strong style="color:#fde047;">${d.packName || d.packCode || 'Gói Nạp'}</strong>
+                          <strong style="color:#fde047;">${d.packName || d.packCode || 'Gói Ủng Hộ'}</strong>
                           <span style="color:#6ee7b7;font-weight:800;"> • ${(Number(d.amount) || 20000).toLocaleString()}đ</span>
-                          ${d.grantedRolls ? `<span style="color:#38bdf8;font-weight:800;"> ➔ +${d.grantedRolls} Roll (+${Number(d.grantedCoins || 0).toLocaleString()} Xu)</span>` : ''}
+                          ${d.grantedRolls ? `<span style="color:#38bdf8;font-weight:800;"> ➔ 💫 +${d.grantedRolls} Vé Roll</span>` : ''}
                         </div>
                         <div style="font-size:11px;color:#94a3b8;">
                           ✅ Đã cộng • ${d.claimedAtStr || d.createdAtStr || ''}
@@ -11862,24 +11967,27 @@ class TienLenGame {
           </button>
         </div>
         <div style="font-size:11.5px;color:#cbd5e1;margin-top:6px;">
-          💡 Mã Tân Thủ miễn phí cho mọi người chơi: <strong style="color:#fde047;cursor:pointer;text-decoration:underline;" onclick="document.getElementById('input-redeem-giftcode').value='TIENLEN5SAO'">TIENLEN5SAO</strong> (Bấm vào để điền nhanh — Nhận <strong>+1 Roll = 1,600 Xu</strong>).
+          💡 Mã Tân Thủ miễn phí (Bấm vào để điền nhanh):
+          <strong style="color:#fde047;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='RAIDEN5SAO'">RAIDEN5SAO</strong> (+5 Vé Roll) •
+          <strong style="color:#6ee7b7;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TANTHU10ROLL'">TANTHU10ROLL</strong> (+10 Vé Roll) •
+          <strong style="color:#38bdf8;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TIENLEN5SAO'">TIENLEN5SAO</strong> (+2 Vé Roll)
         </div>
       </div>
 
       ${adminShortlinkBoxHtml}
 
-      <!-- Banner chuyển nhanh sang Cửa Hàng Nạp Xu & Thẻ Tháng -->
+      <!-- Banner chuyển nhanh sang Quầy Ủng Hộ Server & Thẻ Tháng -->
       <div style="padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(6,78,59,0.65),rgba(15,23,42,0.95));border:1.5px solid #34d399;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
         <div>
           <div style="font-size:13.5px;font-weight:900;color:#6ee7b7;">
-            💎 CẦN THÊM NHIỀU LƯỢT ROLL &amp; THẺ THÁNG KHÔNG KHÔNG NGUYỆT CHÚC (20K)?
+            ☕ ỦNG HỘ DUY TRÌ SERVER &amp; NHẬN VÉ CẦU NGUYỆN (💫 ROLL) / THẺ THÁNG (20K)
           </div>
           <div style="font-size:11.5px;color:#cbd5e1;margin-top:2px;">
-            Ghé Cửa Hàng Nạp Xu: Tặng Gấp Đôi (x2) lần nạp đầu tiên cho mọi gói (10K – 200K) • Duyệt tự động 24/24!
+            Tặng Gấp Đôi (x2) Vé Roll lần đầu tiên cho mọi gói (10K – 200K) • Duyệt tự động 24/24!
           </div>
         </div>
         <button type="button" class="primary-btn" onclick="window.tienLenGame.closeGiftcodeModal(); window.tienLenGame.openTopupModal();" style="padding:8px 14px;font-weight:900;font-size:12px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;">
-          💎 Mở Cửa Hàng Nạp Xu ▸
+          ☕ Mở Quầy Ủng Hộ / Vé Roll ▸
         </button>
       </div>
     `;
@@ -11932,7 +12040,7 @@ class TienLenGame {
       if (!this.isAdminAccount() && !this.isWelkinActive()) {
         const remCooldown = this.getPersonalGiftcodeCooldownRemainingMs();
         if (remCooldown > 0) {
-          alert(`⏳ Bạn vừa nhận +5 Roll từ Giftcode Vượt Link gần đây! Vui lòng chờ ${Math.ceil(remCooldown / 60000)} phút nữa để nhập mã mới.`);
+          alert(`⏳ Bạn vừa nhận +5 Vé Roll từ Giftcode Vượt Link gần đây! Vui lòng chờ ${Math.ceil(remCooldown / 60000)} phút nữa để nhập mã mới.`);
           return;
         }
         const step1Ms = Number(localStorage.getItem('tlmn_personal_gc_step1_ms_v1')) || 0;
@@ -11953,34 +12061,38 @@ class TienLenGame {
       this._lastGeneratedPersonalGiftcode = '';
 
       const rolls = 5;
-      const reward = WISH_COST_SINGLE * rolls; // 8,000 Xu = 5 Roll
-      const me = this.getLocalPlayer();
-      if (me) me.coins += reward;
+      this.addWishes(rolls);
       sfx.win();
       this.saveShopProfile();
       this.renderSeats();
       this.renderShopModal();
       this.renderGiftcodeModal();
-      this.showComboBanner(`🎟️ ĐỔI GIFTCODE VƯỢT LINK: +5 ROLL (+${reward.toLocaleString()} XU)!`);
+      this.showComboBanner(`🎟️ ĐỔI GIFTCODE VƯỢT LINK: +5 VÉ ROLL (💫 LƯỢT CẦU NGUYỆN)!`);
       alert(
-        `🎉 Đổi Mã Giftcode Cá Nhân "${code}" thành công!\n🌟 Tài khoản @${this.getPersonalGiftcodeIdentityKey()} nhận ngay: +5 Roll (+${reward.toLocaleString()} Xu)!`
+        `🎉 Đổi Mã Giftcode Cá Nhân "${code}" thành công!\n🌟 Tài khoản @${this.getPersonalGiftcodeIdentityKey()} nhận ngay: 💫 +5 Vé Roll (Tổng: ${this.formatWishesCount()} Vé Roll)!`
       );
       return;
     }
 
-    // 1. Kiểm tra mã Tân Thủ mặc định TIENLEN5SAO / TANTHUGENSHIN
-    if (code === 'TIENLEN5SAO' || code === 'TANTHUGENSHIN') {
+    // 1. Kiểm tra bộ mã Tân Thủ & TikTok miễn phí (RAIDEN5SAO / TANTHU10ROLL / TIENLEN5SAO / TANTHUGENSHIN)
+    const starterCodesMap = {
+      RAIDEN5SAO: 5,
+      TANTHU10ROLL: 10,
+      TIENLEN5SAO: 2,
+      TANTHUGENSHIN: 2,
+    };
+    if (starterCodesMap[code]) {
       usedLocal.push(code);
       localStorage.setItem('tlmn_redeemed_codes_v1', JSON.stringify(usedLocal));
-      const me = this.getLocalPlayer();
-      const reward = WISH_COST_SINGLE; // 1,600 Xu = 1 Roll
-      if (me) me.coins += reward;
+      const bonusRolls = starterCodesMap[code];
+      this.addWishes(bonusRolls);
       sfx.win();
       this.saveShopProfile();
       this.renderSeats();
       this.renderShopModal();
       this.renderGiftcodeModal();
-      alert(`🎉 Đổi Giftcode "${code}" thành công!\n🎁 Bạn nhận được +1 Roll (+${reward.toLocaleString()} Xu)!`);
+      this.showComboBanner(`🎁 GIFTCODE ${code}: +${bonusRolls} VÉ ROLL (💫 LƯỢT CẦU NGUYỆN)!`);
+      alert(`🎉 Đổi Giftcode "${code}" thành công!\n🎁 Bạn nhận được 💫 +${bonusRolls} Vé Roll (Hiện có: ${this.formatWishesCount()} Vé Roll)!`);
       return;
     }
 
@@ -12016,16 +12128,14 @@ class TienLenGame {
     localStorage.setItem('tlmn_redeemed_codes_v1', JSON.stringify(usedLocal));
 
     const rolls = Number(entry.rolls) || 10;
-    const rewardCoins = rolls * WISH_COST_SINGLE;
-    const me = this.getLocalPlayer();
-    if (me) me.coins += rewardCoins;
+    this.addWishes(rolls);
 
     let welkinMsg = '';
     if (Number(entry.welkinDays) > 0) {
       const curExp = Math.max(Date.now(), Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0);
       const newExp = curExp + Number(entry.welkinDays) * 24 * 3600 * 1000;
       localStorage.setItem('tlmn_welkin_expire_ms_v1', String(newExp));
-      welkinMsg = `\n🌙 Đã kích hoạt Không Không Nguyệt Chúc (+${entry.welkinDays} ngày • Bỏ qua chờ 15s QC & nhận +2 Roll mỗi ngày)!`;
+      welkinMsg = `\n🌙 Đã kích hoạt Không Không Nguyệt Chúc (+${entry.welkinDays} ngày • Bỏ qua chờ 15s QC & nhận +2 Vé Roll mỗi ngày)!`;
     }
 
     sfx.win();
@@ -12035,7 +12145,7 @@ class TienLenGame {
     this.renderGiftcodeModal();
     await this.syncGlobalDeviceRegistry(true);
     alert(
-      `🎉 Chúc mừng! Bạn đã đổi mã VIP "${code}" thành công!\n🌟 Nhận ngay: +${rolls} Roll (+${rewardCoins.toLocaleString()} Xu)${welkinMsg}`
+      `🎉 Chúc mừng! Bạn đã đổi mã VIP "${code}" thành công!\n🌟 Nhận ngay: 💫 +${rolls} Vé Roll (Tổng: ${this.formatWishesCount()} Vé Roll)${welkinMsg}`
     );
   }
 

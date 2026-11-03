@@ -347,8 +347,8 @@
               <label for="input-player-name">👤 Tên nhân vật:</label>
               <input type="text" id="input-player-name" value="Nhà Lữ Hành" maxlength="18" placeholder="Nhập tên của bạn..." />
             </div>
-            <div class="lobby-coin-pill" onclick="window.tienLenGame.openTopupModal()" title="Số dư Xu hiện tại của bạn — Bấm để mở Cửa Hàng Nạp Xu &amp; Thẻ Tháng Nguyệt Chúc (Tặng x2 Nạp Đầu!)" style="cursor:pointer;">
-              🪙 <strong id="lobby-balance-display">20,000</strong> Xu <span style="margin-left:5px;padding:1px 7px;border-radius:999px;background:linear-gradient(135deg,#059669,#10b981);border:1px solid #6ee7b7;color:#fff;font-size:11px;font-weight:900;">💎 +Nạp</span>
+            <div class="lobby-coin-pill" onclick="window.tienLenGame.openTopupModal()" title="Số dư Xu &amp; Vé Roll hiện tại của bạn — Bấm để mở Quầy Ủng Hộ Server &amp; Nhận Vé Roll (Tặng x2 Lần Đầu!)" style="cursor:pointer;">
+              🪙 <strong id="lobby-balance-display">20,000</strong> Xu • 💫 <strong id="lobby-wishes-display" style="color:#f472b6;">0</strong> Roll <span style="margin-left:5px;padding:1px 7px;border-radius:999px;background:linear-gradient(135deg,#059669,#10b981);border:1px solid #6ee7b7;color:#fff;font-size:11px;font-weight:900;">☕ +Vé Roll</span>
             </div>
           </div>
 
@@ -455,9 +455,9 @@
             <span class="dock-icon">🎟️</span>
             <span class="dock-label" style="color:#fbcfe8;font-weight:800;">Giftcode (+5 Roll)</span>
           </button>
-          <button class="app-dock-btn dock-ad" id="btn-lobby-topup" onclick="window.tienLenGame.openTopupModal()" title="Cửa Hàng Nạp Xu &amp; Thẻ Tháng Không Không Nguyệt Chúc 20K (Tặng Gấp Đôi x2 Nạp Đầu • Tự Động 24/24 Qua VietQR MB Bank)" style="background:linear-gradient(135deg,rgba(5,150,105,0.42),rgba(16,185,129,0.45));border-color:#6ee7b7;box-shadow:0 0 12px rgba(16,185,129,0.35);">
-            <span class="dock-icon">💎</span>
-            <span class="dock-label" style="color:#a7f3d0;font-weight:900;">Nạp Xu / Thẻ Tháng</span>
+          <button class="app-dock-btn dock-ad" id="btn-lobby-topup" onclick="window.tienLenGame.openTopupModal()" title="Quầy Ủng Hộ Duy Trì Server &amp; Nhận Vé Cầu Nguyện (💫 Roll) / Thẻ Tháng Không Không Nguyệt Chúc 20K (Tặng Gấp Đôi x2 Lần Đầu • Tự Động 24/24)" style="background:linear-gradient(135deg,rgba(5,150,105,0.42),rgba(16,185,129,0.45));border-color:#6ee7b7;box-shadow:0 0 12px rgba(16,185,129,0.35);">
+            <span class="dock-icon">☕</span>
+            <span class="dock-label" style="color:#a7f3d0;font-weight:900;">Ủng Hộ / Vé Roll</span>
           </button>
           <button class="app-dock-btn" id="btn-lobby-bgm" title="Đổi bài nhạc nền Genshin Impact hoặc Tắt nhạc">
             <span class="dock-icon">🎵</span>
@@ -1064,8 +1064,8 @@
             <button class="inventory-top-btn" id="btn-shop-open-inventory" onclick="window.tienLenGame.openInventoryModal('bursts')" title="Chuyển sang Kho Đồ để trang bị Nhân Vật 5★, Decor Bài &amp; Avatar đã mở khóa">
               🎒 Mở Kho Đồ
             </button>
-            <div class="shop-balance-pill" onclick="window.tienLenGame.openTopupModal()" title="Bấm để mở Cửa Hàng Nạp Xu &amp; Thẻ Tháng Nguyệt Chúc (Tặng x2 Nạp Đầu!)" style="cursor:pointer;">
-              Số dư: 🪙 <strong id="shop-balance">20,000</strong> xu <span style="margin-left:5px;padding:2px 7px;border-radius:999px;background:linear-gradient(135deg,#059669,#10b981);border:1px solid #6ee7b7;color:#fff;font-size:11px;font-weight:900;">💎 +Nạp Xu</span>
+            <div class="shop-balance-pill" onclick="window.tienLenGame.openTopupModal()" title="Bấm để mở Quầy Ủng Hộ Server &amp; Nhận Vé Cầu Nguyện (Tặng x2 Lần Đầu!)" style="cursor:pointer;">
+              💫 <strong id="shop-wishes-display" style="color:#f472b6;">0</strong> Vé Roll • 🪙 <strong id="shop-balance">20,000</strong> Xu <span style="margin-left:5px;padding:2px 7px;border-radius:999px;background:linear-gradient(135deg,#059669,#10b981);border:1px solid #6ee7b7;color:#fff;font-size:11px;font-weight:900;">☕ +Vé Roll</span>
             </div>
             <button class="close-modal-btn" id="btn-close-shop">✕</button>
           </div>
@@ -1117,8 +1117,8 @@
             <button type="button" class="ad-reward-btn" id="btn-shop-giftcode" onclick="window.tienLenGame.openGiftcodeModal()" title="Vượt Link nhận Mã Giftcode Cá Nhân (+5 Roll = 8,000 Xu • Chống Share 100%) hoặc nhập Code sự kiện!" style="background:linear-gradient(135deg,#9333ea,#db2777);border:1.5px solid #f9a8d4;color:#ffffff;font-weight:900;">
               🎟️ Săn Giftcode (+5 Roll = 8,000 Xu)
             </button>
-            <button type="button" class="ad-reward-btn" id="btn-shop-topup" onclick="window.tienLenGame.openTopupModal()" title="Mở Cửa Hàng Nạp Xu &amp; Thẻ Tháng Không Không Nguyệt Chúc 20K (Tặng Gấp Đôi x2 Nạp Đầu • Duyệt Tự Động 24/24)" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;color:#ffffff;font-weight:900;box-shadow:0 0 14px rgba(16,185,129,0.45);">
-              💎 Nạp Xu / Thẻ Tháng (x2 Nạp Đầu)
+            <button type="button" class="ad-reward-btn" id="btn-shop-topup" onclick="window.tienLenGame.openTopupModal()" title="Mở Quầy Ủng Hộ Server &amp; Nhận Vé Cầu Nguyện / Thẻ Tháng Không Không Nguyệt Chúc 20K (Tặng Gấp Đôi x2 Lần Đầu • Duyệt Tự Động 24/24)" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;color:#ffffff;font-weight:900;box-shadow:0 0 14px rgba(16,185,129,0.45);">
+              ☕ Ủng Hộ / Nhận Vé Roll (x2 Đầu)
             </button>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1307,7 +1307,7 @@
 
         <div class="gacha-results-footer">
           <div class="shop-balance-pill">
-            Số dư hiện tại: 🪙 <strong id="gacha-results-balance">20,000</strong> xu
+            Số dư: 💫 <strong id="gacha-results-wishes" style="color:#f472b6;">0</strong> Vé Roll • 🪙 <strong id="gacha-results-balance">20,000</strong> Xu
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="ad-reward-btn" id="btn-results-watch-ad" onclick="window.tienLenGame.startRickRollAd()">
@@ -1317,10 +1317,10 @@
               🎁 Mở Web (+2 Roll) ↗
             </a>
             <button class="icon-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(1)">
-              🌠 Cầu Nguyện Tiếp ×1 (1,600 Xu)
+              🌠 Cầu Nguyện Tiếp ×1 (1 Vé Roll / 1,600 Xu)
             </button>
             <button class="primary-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(10)">
-              🌟 Cầu Nguyện Tiếp ×10 (16,000 Xu)
+              🌟 Cầu Nguyện Tiếp ×10 (10 Vé Roll / 16,000 Xu)
             </button>
             <button class="primary-btn" id="btn-close-gacha-results">✅ Xác Nhận & Thu Nhận</button>
           </div>
@@ -1514,7 +1514,7 @@
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="primary-btn" onclick="window.tienLenGame.closeGiftcodeModal(); window.tienLenGame.openTopupModal();" style="padding:8px 16px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;">
-              💎 Sang Cửa Hàng Nạp Xu / Thẻ Tháng
+              ☕ Quầy Ủng Hộ / Nhận Vé Roll
             </button>
             <button type="button" class="primary-btn" onclick="window.tienLenGame.closeGiftcodeModal()" style="padding:8px 20px;font-weight:800;">
               ✅ Đóng
@@ -1524,14 +1524,14 @@
       </div>
     </div>
 
-    <!-- MODAL CỬA HÀNG NẠP XU & THẺ THÁNG KHÔNG KHÔNG NGUYỆT CHÚC (CHUẨN GENSHIN • X2 NẠP ĐẦU • TỰ ĐỘNG 24/24) -->
+    <!-- MODAL QUẦY ỦNG HỘ DUY TRÌ SERVER & NHẬN VÉ CẦU NGUYỆN (💫 ROLL) -->
     <div class="modal-backdrop hidden" id="topup-modal" style="z-index: 9865;">
       <div class="modal-card" style="max-width: 900px; width: 96vw; max-height: 92vh; display: flex; flex-direction: column;">
         <div class="modal-header">
           <div>
-            <h2>💎 CỬA HÀNG NẠP XU &amp; THẺ THÁNG NGUYỆT CHÚC (X2 NẠP ĐẦU)</h2>
+            <h2>☕ ỦNG HỘ DUY TRÌ SERVER &amp; NHẬN VÉ CẦU NGUYỆN (💫 X2 LẦN ĐẦU)</h2>
             <p style="font-size:12.5px;color:#cbd5e1;margin:2px 0 0;">
-              🌙 Không Không Nguyệt Chúc 20K (Tổng 70 Roll = 112,000 Xu) • 💎 Các Gói Đá Sáng Thế Quy Đổi Xu (Tặng x2 Lần Đầu • Tự Động 24/24)
+              🌙 Không Không Nguyệt Chúc 20K (Tổng 70 Vé Roll 💫) • ☕ Các Gói Ủng Hộ Tặng Vé Cầu Nguyện Mở Khóa Tướng 5★ &amp; Skin 4★ (Tự Động 24/24)
             </p>
           </div>
           <button type="button" class="close-modal-btn" onclick="window.tienLenGame.closeTopupModal()">✕</button>
@@ -1539,7 +1539,7 @@
         <div class="modal-body" id="topup-modal-body" style="overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:14px 16px;"></div>
         <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
           <div style="font-size:12px;color:#cbd5e1;">
-            ⚡ Hệ thống <strong>VietQR MB Bank + SePay Tự Động 24/24</strong>: Quét mã chuyển khoản đúng nội dung sẽ cộng Xu &amp; Thẻ Tháng ngay lập tức!
+            ⚡ Hệ thống <strong>VietQR MB Bank + SePay Tự Động 24/24</strong>: Quét mã chuyển khoản đúng nội dung sẽ cộng <strong>💫 Vé Roll</strong> &amp; Thẻ Tháng ngay lập tức!
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="tool-btn" onclick="window.tienLenGame.closeTopupModal(); window.tienLenGame.openGiftcodeModal();" style="padding:8px 14px;font-weight:800;color:#fbcfe8;border-color:#f472b6;">
@@ -1878,6 +1878,6 @@
       window.__tlmnRefreshCornerAdBanner = function () {};
     })();
   </script>
-  <script src="game.js?v=185"></script>
+  <script src="game.js?v=186"></script>
 </body>
 </html>

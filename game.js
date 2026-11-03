@@ -10265,7 +10265,190 @@ class TienLenGame {
     this.renderSeats();
     this.renderShopModal();
     this.renderGiftcodeModal();
+    this.renderTopupModal();
     alert(`🌙 KHÔNG KHÔNG NGUYỆT CHÚC: Bạn đã nhận +2 Roll (+${reward.toLocaleString()} Xu) hôm nay!`);
+  }
+
+  // ============================================================================
+  // HỆ THỐNG CỬA HÀNG NẠP XU & THẺ THÁNG KHÔNG KHÔNG NGUYỆT CHÚC (CHUẨN GENSHIN)
+  // Quy chuẩn: Thẻ Tháng 20.000đ = 10 Roll nhận ngay + 60 Roll (30 ngày) = 70 Roll (112,000 Xu)
+  // Các gói Đá Sáng Thế / Xu: Tặng Gấp Đôi (x2) cho lần nạp đầu tiên của từng gói!
+  // ============================================================================
+  getTopupPacksConfig() {
+    return [
+      {
+        id: 'welkin_20k',
+        code: 'W20',
+        type: 'welkin',
+        price: 20000,
+        priceText: '20.000đ',
+        icon: '🌙',
+        name: 'Không Không Nguyệt Chúc (30 Ngày)',
+        shortName: '🌙 Thẻ Tháng 20K (70 Roll)',
+        baseRolls: 10,
+        firstBonusRolls: 0,
+        repeatBonusRolls: 0,
+        welkinDays: 30,
+        badge: '🔥 ĐÁNG MUA NHẤT • TỔNG 70 ROLL',
+        accent: '#a78bfa',
+        bgGrad: 'linear-gradient(135deg,rgba(76,29,149,0.82),rgba(15,23,42,0.96))',
+        desc: 'Nhận ngay +10 Roll (16,000 Xu) + Mỗi ngày nhận +2 Roll (3,200 Xu) × 30 ngày (Tổng 70 Roll = 112,000 Xu) + ⚡ Đặc quyền VIP miễn chờ 15s Quảng Cáo!',
+      },
+      {
+        id: 'xu_10k',
+        code: 'X10',
+        type: 'coins',
+        price: 10000,
+        priceText: '10.000đ',
+        icon: '💎',
+        name: 'Túi Đá Sáng Thế Khởi Đầu',
+        shortName: '💎 Gói 10K (10–20 Roll)',
+        baseRolls: 10,
+        firstBonusRolls: 10,
+        repeatBonusRolls: 2,
+        welkinDays: 0,
+        badge: '🎁 NẠP ĐẦU X2: 20 ROLL',
+        accent: '#38bdf8',
+        bgGrad: 'linear-gradient(135deg,rgba(3,105,161,0.72),rgba(15,23,42,0.96))',
+        desc: 'Gói khởi đầu nhẹ nhàng — Nạp lần đầu nhận gấp đôi 20 Roll (32,000 Xu), các lần sau nhận 12 Roll (19,200 Xu).',
+      },
+      {
+        id: 'xu_20k',
+        code: 'X20',
+        type: 'coins',
+        price: 20000,
+        priceText: '20.000đ',
+        icon: '💎',
+        name: 'Hộp Đá Sáng Thế Tinh Anh',
+        shortName: '💎 Gói 20K (25–40 Roll)',
+        baseRolls: 20,
+        firstBonusRolls: 20,
+        repeatBonusRolls: 5,
+        welkinDays: 0,
+        badge: '🎁 NẠP ĐẦU X2: 40 ROLL',
+        accent: '#34d399',
+        bgGrad: 'linear-gradient(135deg,rgba(4,120,87,0.75),rgba(15,23,42,0.96))',
+        desc: 'Nhận Xu tươi ngay lập tức không cần chờ mỗi ngày — Nạp đầu x2 nhận liền 40 Roll (64,000 Xu), lần sau 25 Roll (40,000 Xu).',
+      },
+      {
+        id: 'xu_50k',
+        code: 'X50',
+        type: 'coins',
+        price: 50000,
+        priceText: '50.000đ',
+        icon: '💠',
+        name: 'Rương Đá Sáng Thế Cao Thủ',
+        shortName: '💠 Gói 50K (70–110 Roll)',
+        baseRolls: 55,
+        firstBonusRolls: 55,
+        repeatBonusRolls: 15,
+        welkinDays: 0,
+        badge: '⚡ NẠP ĐẦU X2: 110 ROLL (NỔ 5★!)',
+        accent: '#f59e0b',
+        bgGrad: 'linear-gradient(135deg,rgba(180,83,9,0.78),rgba(15,23,42,0.96))',
+        desc: 'Vượt mốc Bảo Hiểm 90 Roll nổ chắc chắn Nhân Vật 5★ ngay lập tức! Nạp đầu x2 nhận 110 Roll (176,000 Xu), lần sau 70 Roll (112,000 Xu).',
+      },
+      {
+        id: 'xu_100k',
+        code: 'X100',
+        type: 'coins',
+        price: 100000,
+        priceText: '100.000đ',
+        icon: '👑',
+        name: 'Kho Báu Đại Gia Teyvat',
+        shortName: '👑 Gói 100K (150–240 Roll)',
+        baseRolls: 120,
+        firstBonusRolls: 120,
+        repeatBonusRolls: 30,
+        welkinDays: 0,
+        badge: '👑 NẠP ĐẦU X2: 240 ROLL (BẢO HIỂM UP)',
+        accent: '#ec4899',
+        bgGrad: 'linear-gradient(135deg,rgba(157,23,77,0.82),rgba(15,23,42,0.96))',
+        desc: 'Đủ Bảo Hiểm 180 Roll rước chắc chắn Nhân Vật 5★ Giới Hạn UP! Nạp đầu x2 nhận 240 Roll (384,000 Xu), lần sau 150 Roll (240,000 Xu).',
+      },
+      {
+        id: 'xu_200k',
+        code: 'X200',
+        type: 'coins',
+        price: 200000,
+        priceText: '200.000đ',
+        icon: '🐉',
+        name: 'Thần Khố Celestia Tối Thượng',
+        shortName: '🐉 Gói 200K (320–520 Roll)',
+        baseRolls: 260,
+        firstBonusRolls: 260,
+        repeatBonusRolls: 60,
+        welkinDays: 0,
+        badge: '🐉 NẠP ĐẦU X2: 520 ROLL (832,000 XU)',
+        accent: '#fde047',
+        bgGrad: 'linear-gradient(135deg,rgba(161,98,7,0.85),rgba(88,28,135,0.92))',
+        desc: 'Gói tối thượng sưu tầm trọn bộ Nhân Vật 5★ + Skin Bài 4★! Nạp đầu x2 nhận 520 Roll (832,000 Xu), lần sau 320 Roll (512,000 Xu).',
+      },
+    ];
+  }
+
+  getTopupPackById(packId) {
+    const packs = this.getTopupPacksConfig();
+    return packs.find((p) => p.id === packId || p.code === String(packId || '').toUpperCase()) || packs[0];
+  }
+
+  isTopupPackFirstBonusAvailable(packId) {
+    try {
+      const raw = localStorage.getItem('tlmn_topup_first_x2_claimed_v1');
+      const map = raw ? JSON.parse(raw) : {};
+      return !map || !map[packId];
+    } catch (_) {
+      return true;
+    }
+  }
+
+  markTopupPackFirstBonusClaimed(packId) {
+    try {
+      const raw = localStorage.getItem('tlmn_topup_first_x2_claimed_v1');
+      const map = raw ? JSON.parse(raw) : {};
+      map[packId] = Date.now();
+      localStorage.setItem('tlmn_topup_first_x2_claimed_v1', JSON.stringify(map));
+    } catch (_) {}
+  }
+
+  calculateTopupPackGrant(packId) {
+    const pack = this.getTopupPackById(packId);
+    const isFirst = pack.type === 'coins' && this.isTopupPackFirstBonusAvailable(pack.id);
+    const bonusRolls = isFirst ? pack.firstBonusRolls : pack.repeatBonusRolls;
+    const totalRolls = pack.baseRolls + bonusRolls;
+    const totalCoins = totalRolls * WISH_COST_SINGLE;
+    return {
+      pack,
+      isFirst,
+      bonusRolls,
+      totalRolls,
+      totalCoins,
+      welkinDays: Number(pack.welkinDays) || 0,
+    };
+  }
+
+  resolveTopupPackFromAmountAndCode(rawCode, amountNum, fallbackPackId = '') {
+    const packs = this.getTopupPacksConfig();
+    const codeUpper = String(rawCode || '').trim().toUpperCase();
+    const amount = Number(amountNum) || 0;
+
+    let matchedByCode = packs.find((p) => p.code === codeUpper || p.id === codeUpper.toLowerCase());
+    if (matchedByCode && amount > 0 && amount < matchedByCode.price) {
+      matchedByCode = null;
+    }
+    if (matchedByCode) return matchedByCode;
+
+    if (fallbackPackId) {
+      const fb = this.getTopupPackById(fallbackPackId);
+      if (fb && (amount <= 0 || amount >= fb.price)) return fb;
+    }
+
+    if (amount >= 200000) return this.getTopupPackById('xu_200k');
+    if (amount >= 100000) return this.getTopupPackById('xu_100k');
+    if (amount >= 50000) return this.getTopupPackById('xu_50k');
+    if (amount >= 20000) return this.getTopupPackById('welkin_20k');
+    if (amount >= 10000) return this.getTopupPackById('xu_10k');
+    return this.getTopupPackById('welkin_20k');
   }
 
   // ============================================================================
@@ -10551,6 +10734,7 @@ class TienLenGame {
 
   // ============================================================================
   // HỆ THỐNG BÁO CHUYỂN KHOẢN VIETQR MB BANK & TỰ ĐỘNG KIỂM TRA SEPAY 24/24
+  // Hỗ trợ tự động nhận diện cả 6 gói Nạp Xu & Thẻ Tháng Nguyệt Chúc (10K -> 200K)
   // ============================================================================
   async checkSePayAutoTransactions() {
     if (this._isCheckingSePayTx) return false;
@@ -10608,12 +10792,26 @@ class TienLenGame {
         const isIncoming =
           String(tx.transferType || 'in').toLowerCase() === 'in' || Number(tx.amount_in || 0) > 0;
         const amount = Math.max(Number(tx.transferAmount) || 0, Number(tx.amount_in) || 0);
-        if (!isIncoming || amount < 20000) continue;
+        if (!isIncoming || amount < 10000) continue;
 
         const rawContent = String(tx.content || tx.transaction_content || '').toUpperCase();
-        // Tìm mã tài khoản đứng sau chữ TLMN (VD: "TLMN HUNG123" hoặc "TLMN_HUNG123")
-        const m = rawContent.match(/TLMN[\s._-]*([A-Z0-9_.-]{2,24})/i);
-        let matchedTargetId = m && m[1] ? this.normalizeGiftcodeIdentity(m[1]) : '';
+        // Nhận diện mẫu mới "TLMN <MÃ_GÓI> <TÀI_KHOẢN>" (VD: "TLMN X50 HUNG123" hoặc "TLMN W20 HUNG123")
+        // hoặc mẫu cũ "TLMN <TÀI_KHOẢN>"
+        const mPackAndUser = rawContent.match(
+          /TLMN[\s._-]*(W20|X10|X20|X50|X100|X200)[\s._-]*([A-Z0-9_.-]{2,24})/i
+        );
+        let rawPackCode = '';
+        let matchedTargetId = '';
+
+        if (mPackAndUser && mPackAndUser[2]) {
+          rawPackCode = String(mPackAndUser[1] || '').toUpperCase();
+          matchedTargetId = this.normalizeGiftcodeIdentity(mPackAndUser[2]);
+        } else {
+          const mLegacy = rawContent.match(/TLMN[\s._-]*([A-Z0-9_.-]{2,24})/i);
+          if (mLegacy && mLegacy[1]) {
+            matchedTargetId = this.normalizeGiftcodeIdentity(mLegacy[1]);
+          }
+        }
 
         if (!matchedTargetId) {
           const myId = this.getPersonalGiftcodeIdentityKey();
@@ -10626,23 +10824,33 @@ class TienLenGame {
 
         if (!matchedTargetId) continue;
 
-        processedSet.add(txId);
-        reg.adMonetization.processedSePayTxIds = Array.from(processedSet).slice(-200);
         const prevOrd = reg.adMonetization.welkinOrders[matchedTargetId] || {
           id: matchedTargetId,
           username: matchedTargetId,
           displayName: matchedTargetId,
-          memo: `TLMN ${matchedTargetId}`,
-          amount,
           approvedCount: 0,
           claimedCount: 0,
         };
+        const resolvedPack = this.resolveTopupPackFromAmountAndCode(
+          rawPackCode,
+          amount,
+          prevOrd.packId || this._selectedTopupPackId || ''
+        );
+
+        processedSet.add(txId);
+        reg.adMonetization.processedSePayTxIds = Array.from(processedSet).slice(-200);
         const nextApproved = Math.max(
           (Number(prevOrd.approvedCount) || 0) + 1,
           (Number(prevOrd.claimedCount) || 0) + 1
         );
         reg.adMonetization.welkinOrders[matchedTargetId] = {
           ...prevOrd,
+          id: matchedTargetId,
+          packId: resolvedPack.id,
+          packCode: resolvedPack.code,
+          packName: resolvedPack.name,
+          amount: amount || resolvedPack.price,
+          memo: `TLMN ${resolvedPack.code} ${matchedTargetId}`,
           status: 'approved',
           approvedCount: nextApproved,
           lastSePayTxId: txId,
@@ -10691,13 +10899,24 @@ class TienLenGame {
           localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
         } catch (_) {}
 
-        const rewardRolls = 10;
-        const rewardCoins = rewardRolls * WISH_COST_SINGLE; // 16,000 Xu
+        const resolvedPack = this.resolveTopupPackFromAmountAndCode(
+          ord.packCode || ord.packId || '',
+          ord.amount || 20000,
+          ord.packId || 'welkin_20k'
+        );
+        const grant = this.calculateTopupPackGrant(resolvedPack.id);
+        if (grant.isFirst) {
+          this.markTopupPackFirstBonusClaimed(resolvedPack.id);
+        }
+
         const me = this.getLocalPlayer();
-        if (me) me.coins += rewardCoins;
-        const curExp = Math.max(Date.now(), Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0);
-        const newExp = curExp + 30 * 24 * 3600 * 1000;
-        localStorage.setItem('tlmn_welkin_expire_ms_v1', String(newExp));
+        if (me) me.coins += grant.totalCoins;
+
+        if (grant.welkinDays > 0) {
+          const curExp = Math.max(Date.now(), Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0);
+          const newExp = curExp + grant.welkinDays * 24 * 3600 * 1000;
+          localStorage.setItem('tlmn_welkin_expire_ms_v1', String(newExp));
+        }
 
         clearInterval(this._welkinOrderPollTimer);
         this._welkinOrderPollTimer = null;
@@ -10707,11 +10926,28 @@ class TienLenGame {
         this.renderSeats();
         this.renderShopModal();
         this.renderGiftcodeModal();
+        this.renderTopupModal();
         this.syncGlobalDeviceRegistry(true);
-        this.showComboBanner('🌙 ĐÃ KÍCH HOẠT THẺ THÁNG NGUYỆT CHÚC (30 NGÀY) + NHẬN +10 ROLL (16,000 XU)!');
-        alert(
-          `🎉 GIAO DỊCH THÀNH CÔNG!\n\n🌙 Tài khoản @${ord.id} đã được kích hoạt:\n• +10 Roll ngay lập tức (+${rewardCoins.toLocaleString()} Xu)\n• +30 Ngày Không Không Nguyệt Chúc (Nhận +2 Roll mỗi ngày & Bỏ qua chờ 15s Quảng Cáo)!\n\nCảm ơn bạn đã ủng hộ game!`
-        );
+
+        if (grant.welkinDays > 0) {
+          this.showComboBanner(
+            `🌙 ĐÃ KÍCH HOẠT THẺ THÁNG NGUYỆT CHÚC (${grant.welkinDays} NGÀY) + NHẬN +${grant.totalRolls} ROLL (${grant.totalCoins.toLocaleString()} XU)!`
+          );
+          alert(
+            `🎉 NẠP THẺ THÁNG THÀNH CÔNG!\n\n🌙 Tài khoản @${ord.id} đã được kích hoạt gói "${resolvedPack.name}":\n• +${grant.totalRolls} Roll ngay lập tức (+${grant.totalCoins.toLocaleString()} Xu)\n• +${grant.welkinDays} Ngày Không Không Nguyệt Chúc (Nhận +2 Roll mỗi ngày & Bỏ qua chờ 15s Quảng Cáo)!\n\nCảm ơn bạn đã ủng hộ game!`
+          );
+        } else {
+          this.showComboBanner(
+            `💎 NẠP XU THÀNH CÔNG: +${grant.totalRolls} ROLL (+${grant.totalCoins.toLocaleString()} XU)${
+              grant.isFirst ? ' • ĐÃ NHẬN X2 NẠP ĐẦU!' : '!'
+            }`
+          );
+          alert(
+            `🎉 NẠP XU THÀNH CÔNG!\n\n💎 Tài khoản @${ord.id} đã mở khóa gói "${resolvedPack.name}" (${resolvedPack.priceText}):\n• Cơ bản: +${resolvedPack.baseRolls} Roll\n• Thưởng thêm: +${grant.bonusRolls} Roll ${
+              grant.isFirst ? '(🎁 X2 Nạp Đầu!)' : '(Thưởng nạp lại)'
+            }\n👉 TỔNG NHẬN: +${grant.totalRolls} Lượt Cầu Nguyện (+${grant.totalCoins.toLocaleString()} Xu)!\n\nChúc bạn quay nổ Nhân Vật 5★ yêu thích nhé!`
+          );
+        }
         return true;
       }
     } catch (_) {}
@@ -10730,10 +10966,12 @@ class TienLenGame {
     }, 4500);
   }
 
-  async submitWelkinTransferRequest() {
+  async submitWelkinTransferRequest(packIdParam) {
     sfx.click();
+    const selectedPack = this.getTopupPackById(packIdParam || this._selectedTopupPackId || 'welkin_20k');
+    this._selectedTopupPackId = selectedPack.id;
     const myId = this.getPersonalGiftcodeIdentityKey();
-    const transferMemo = `TLMN ${myId}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
+    const transferMemo = `TLMN ${selectedPack.code} ${myId}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
     const btn = document.getElementById('btn-submit-welkin-transfer');
     if (btn) {
       btn.disabled = true;
@@ -10757,8 +10995,11 @@ class TienLenGame {
       id: myId,
       username: this.currentAccountUsername || '',
       displayName: this.savedPlayerName || myId,
+      packId: selectedPack.id,
+      packCode: selectedPack.code,
+      packName: selectedPack.name,
       memo: transferMemo,
-      amount: 20000,
+      amount: selectedPack.price,
       status: 'pending',
       requestedAtMs: Date.now(),
       requestedAtStr: new Date().toLocaleString('vi-VN'),
@@ -10774,13 +11015,14 @@ class TienLenGame {
 
     await this.syncGlobalDeviceRegistry(true);
     this.startWelkinOrderAutoPoller();
+    this.renderTopupModal();
     this.renderGiftcodeModal();
     alert(
-      `✅ Đã gửi thông báo xác nhận chuyển khoản của tài khoản @${myId} (Nội dung CK: ${transferMemo})!\n\n⚡ Hệ thống đang tự động kiểm tra với Admin — ngay khi xác nhận giao dịch 20.000đ trên MB Bank, gói 🌙 Không Không Nguyệt Chúc (30 ngày + 10 Roll) sẽ TỰ ĐỘNG mở khóa trên máy của bạn mà không cần nhập mã!`
+      `✅ Đã gửi yêu cầu kiểm tra gói "${selectedPack.icon} ${selectedPack.name}" (${selectedPack.priceText}) cho tài khoản @${myId}!\n📝 Nội dung CK: ${transferMemo}\n\n⚡ Hệ thống SePay 24/24 đang tự động đối soát với MB Bank — ngay khi giao dịch ${selectedPack.priceText} hoàn tất, Xu & Quà sẽ TỰ ĐỘNG cộng vào tài khoản của bạn sau vài giây!`
     );
   }
 
-  async adminApproveWelkinOrder(targetRawId) {
+  async adminApproveWelkinOrder(targetRawId, packIdParam) {
     if (!this.isAdminAccount()) return;
     const cleanId = this.normalizeGiftcodeIdentity(targetRawId);
     if (!cleanId) {
@@ -10797,14 +11039,19 @@ class TienLenGame {
       id: cleanId,
       username: cleanId,
       displayName: cleanId,
-      memo: `TLMN ${cleanId}`,
-      amount: 20000,
       approvedCount: 0,
       claimedCount: 0,
     };
+    const pack = this.getTopupPackById(packIdParam || prev.packId || 'welkin_20k');
     const nextApproved = Math.max((Number(prev.approvedCount) || 0) + 1, (Number(prev.claimedCount) || 0) + 1);
     reg.adMonetization.welkinOrders[cleanId] = {
       ...prev,
+      id: cleanId,
+      packId: pack.id,
+      packCode: pack.code,
+      packName: pack.name,
+      amount: pack.price,
+      memo: `TLMN ${pack.code} ${cleanId}`,
       status: 'approved',
       approvedCount: nextApproved,
       updatedAtMs: Date.now(),
@@ -10817,10 +11064,12 @@ class TienLenGame {
     } catch (_) {}
 
     await this.syncGlobalDeviceRegistry(true);
+    this.checkAndAutoDeliverApprovedWelkinOrder(reg);
     sfx.win();
+    this.renderTopupModal();
     this.renderGiftcodeModal();
     alert(
-      `🎉 ĐÃ BƠM QUÀ TỪ XA THÀNH CÔNG CHO @${cleanId}!\n\n🌟 Máy của người chơi @${cleanId} sẽ tự động nổ thông báo nhận ngay:\n• +10 Roll (+16,000 Xu)\n• +30 Ngày Thẻ Tháng Không Không Nguyệt Chúc!`
+      `🎉 ĐÃ DUYỆT & BƠM GÓI "${pack.icon} ${pack.name}" (${pack.priceText}) CHO @${cleanId}!\n\n🌟 Máy của người chơi @${cleanId} sẽ tự động nổ thông báo nhận đủ Xu & Quà (kèm x2 Nạp Đầu nếu là lần đầu)!`
     );
   }
 
@@ -10838,6 +11087,7 @@ class TienLenGame {
         localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
       } catch (_) {}
       await this.syncGlobalDeviceRegistry(true);
+      this.renderTopupModal();
       this.renderGiftcodeModal();
     }
   }
@@ -10845,14 +11095,334 @@ class TienLenGame {
   async adminDirectGrantWelkinToUser() {
     if (!this.isAdminAccount()) return;
     const inp = document.getElementById('admin-direct-welkin-target');
+    const sel = document.getElementById('admin-direct-topup-pack');
     const rawTarget = String(inp ? inp.value : '').trim();
+    const packId = String(sel ? sel.value : 'welkin_20k').trim();
     if (!rawTarget) {
-      alert('⚠️ Hãy nhập tên tài khoản (@username) hoặc ID trong nội dung chuyển khoản (VD: hung123)!');
+      alert('⚠️ Hãy nhập tên tài khoản (@username) hoặc ID người chơi cần bơm gói nạp (VD: hung123)!');
       return;
     }
-    const cleanTarget = this.normalizeGiftcodeIdentity(rawTarget.replace(/^tlmn\s+/i, ''));
-    await this.adminApproveWelkinOrder(cleanTarget);
+    const cleanTarget = this.normalizeGiftcodeIdentity(
+      rawTarget.replace(/^tlmn\s+(w20|x10|x20|x50|x100|x200)?\s*/i, '')
+    );
+    await this.adminApproveWelkinOrder(cleanTarget, packId);
     if (inp) inp.value = '';
+  }
+
+  // ============================================================================
+  // MODAL CỬA HÀNG NẠP XU & THẺ THÁNG KHÔNG KHÔNG NGUYỆT CHÚC (#topup-modal)
+  // Tách riêng hoàn toàn khỏi Modal Giftcode theo chuẩn Genshin Impact
+  // ============================================================================
+  async openTopupModal(defaultPackId = '') {
+    const modal = document.getElementById('topup-modal');
+    if (!modal) return;
+    if (defaultPackId) {
+      this._selectedTopupPackId = defaultPackId;
+    } else if (!this._selectedTopupPackId) {
+      this._selectedTopupPackId = 'welkin_20k';
+    }
+    this.renderTopupModal();
+    modal.classList.remove('hidden');
+    sfx.click();
+    await this.checkSePayAutoTransactions();
+    const reg = await this.syncGlobalDeviceRegistry(true);
+    this.checkAndAutoDeliverApprovedWelkinOrder(reg);
+    this.renderTopupModal();
+  }
+
+  closeTopupModal() {
+    document.getElementById('topup-modal')?.classList.add('hidden');
+    sfx.click();
+  }
+
+  selectTopupPack(packId) {
+    const pack = this.getTopupPackById(packId);
+    this._selectedTopupPackId = pack.id;
+    sfx.click();
+    this.renderTopupModal();
+    const qrBox = document.getElementById('topup-vietqr-checkout-box');
+    if (qrBox && typeof qrBox.scrollIntoView === 'function') {
+      qrBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  renderTopupModal() {
+    const body = document.getElementById('topup-modal-body');
+    if (!body) return;
+    const cfg = this.getAdMonetizationConfig();
+    const packs = this.getTopupPacksConfig();
+    const selectedPack = this.getTopupPackById(this._selectedTopupPackId || 'welkin_20k');
+    this._selectedTopupPackId = selectedPack.id;
+    const selectedGrant = this.calculateTopupPackGrant(selectedPack.id);
+
+    const welkinDays = this.getWelkinDaysRemaining();
+    const today = this.getTodayKey();
+    const welkinClaimedToday = (localStorage.getItem('tlmn_welkin_last_claim_v1') || '') === today;
+    const myIdentity = this.getPersonalGiftcodeIdentityKey();
+    const transferMemo = `TLMN ${selectedPack.code} ${myIdentity}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
+    const hasBank = Boolean(cfg.bankCode && cfg.bankAccount);
+    const vietQrUrl = hasBank
+      ? `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
+          cfg.bankAccount
+        )}-compact2.png?amount=${selectedPack.price}&addInfo=${encodeURIComponent(
+          transferMemo
+        )}&accountName=${encodeURIComponent(cfg.bankOwner || '')}`
+      : '';
+
+    const ordersMap = cfg.welkinOrders || {};
+    const myOrder = ordersMap[myIdentity] || null;
+    const isMyOrderPending = Boolean(myOrder && myOrder.status === 'pending');
+    if (isMyOrderPending && !this._welkinOrderPollTimer) {
+      this.startWelkinOrderAutoPoller();
+    }
+
+    const pendingOrdersList = Object.values(ordersMap)
+      .filter((o) => o && o.status === 'pending')
+      .sort((a, b) => (Number(b.requestedAtMs) || 0) - (Number(a.requestedAtMs) || 0));
+
+    const welkinPack = packs[0];
+    const coinPacks = packs.slice(1);
+    const isWelkinSelected = selectedPack.id === welkinPack.id;
+
+    const adminTopupBoxHtml = this.isAdminAccount()
+      ? `
+        <div style="padding:12px 14px;border-radius:12px;background:rgba(6,78,59,0.42);border:1.5px solid #34d399;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <strong style="color:#6ee7b7;font-size:13.5px;">👑 QUẢN LÝ ĐƠN NẠP MB BANK &amp; BƠM GÓI TỪ XA (ADMIN @thang.dinhbkp)</strong>
+            <span style="padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;background:${
+              pendingOrdersList.length > 0 ? '#dc2626;color:#fff;' : 'rgba(16,185,129,0.25);color:#6ee7b7;'
+            }">
+              ${pendingOrdersList.length > 0 ? `🔥 ${pendingOrdersList.length} đơn đang chờ` : '🟢 SePay Auto 24/24 Đang Chạy'}
+            </span>
+          </div>
+          ${
+            pendingOrdersList.length > 0
+              ? `
+                <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+                  ${pendingOrdersList
+                    .map((ord) => {
+                      const ordPack = this.getTopupPackById(ord.packId || ord.packCode || 'welkin_20k');
+                      return `
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:9px;background:rgba(15,23,42,0.92);border:1px solid #fde047;">
+                          <div>
+                            <div style="font-weight:900;color:#fde047;font-size:12.5px;">
+                              👤 <span style="color:#38bdf8;">@${ord.id}</span> • ${ordPack.icon} <strong>${ordPack.name}</strong> (${(Number(ord.amount) || ordPack.price).toLocaleString()}đ)
+                            </div>
+                            <div style="font-size:11px;color:#cbd5e1;">
+                              📝 Nội dung CK: <strong style="color:#6ee7b7;">${ord.memo || `TLMN ${ordPack.code} ${ord.id}`}</strong> • 🕒 ${ord.requestedAtStr || 'Vừa xong'}
+                            </div>
+                          </div>
+                          <div style="display:flex;gap:6px;">
+                            <button type="button" class="primary-btn" onclick="window.tienLenGame.adminApproveWelkinOrder('${ord.id}', '${ordPack.id}')" style="padding:6px 12px;font-size:11.5px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
+                              ✅ Duyệt &amp; Bơm Ngay
+                            </button>
+                            <button type="button" class="tool-btn" onclick="window.tienLenGame.adminRejectWelkinOrder('${ord.id}')" style="padding:6px 10px;font-size:11.5px;color:#fca5a5;border-color:rgba(248,113,113,0.4);">
+                              ✕ Xóa
+                            </button>
+                          </div>
+                        </div>
+                      `;
+                    })
+                    .join('')}
+                </div>
+              `
+              : ''
+          }
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <select id="admin-direct-topup-pack" style="padding:7px 10px;border-radius:8px;border:1px solid rgba(52,211,153,0.55);background:rgba(15,23,42,0.95);color:#fde047;font-weight:800;font-size:12px;">
+              ${packs
+                .map(
+                  (p) =>
+                    `<option value="${p.id}" ${p.id === selectedPack.id ? 'selected' : ''}>${p.shortName} — ${p.priceText}</option>`
+                )
+                .join('')}
+            </select>
+            <input type="text" id="admin-direct-welkin-target" placeholder="Nhập @username người nhận (VD: hung123)..." style="flex:1;min-width:170px;padding:7px 10px;border-radius:8px;border:1px solid rgba(52,211,153,0.55);background:rgba(15,23,42,0.92);color:#fff;font-size:12px;" />
+            <button type="button" class="primary-btn" onclick="window.tienLenGame.adminDirectGrantWelkinToUser()" style="padding:7px 14px;font-size:12px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
+              🚀 Bơm Gói Này Từ Xa
+            </button>
+          </div>
+        </div>
+      `
+      : '';
+
+    body.innerHTML = `
+      <!-- KHUNG 1: THẺ THÁNG KHÔNG KHÔNG NGUYỆT CHÚC 20.000Đ (CHUẨN GENSHIN IMPACT) -->
+      <div onclick="window.tienLenGame.selectTopupPack('welkin_20k')" style="cursor:pointer;padding:14px 16px;border-radius:14px;background:${welkinPack.bgGrad};border:${
+        isWelkinSelected ? '2.5px solid #fde047' : '1.5px solid rgba(167,139,250,0.55)'
+      };box-shadow:${
+        isWelkinSelected ? '0 0 22px rgba(250,204,21,0.38)' : '0 4px 14px rgba(0,0,0,0.35)'
+      };transition:all 0.18s ease;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:240px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+              <span style="padding:2px 9px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-size:11px;font-weight:900;">
+                ${welkinPack.badge}
+              </span>
+              <span style="padding:2px 8px;border-radius:999px;background:rgba(167,139,250,0.22);border:1px solid #c4b5fd;color:#ede9fe;font-size:11px;font-weight:800;">
+                Mã gói: ${welkinPack.code} • Giá chỉ 20.000đ
+              </span>
+            </div>
+            <div style="font-size:16px;font-weight:900;color:#f3e8ff;display:flex;align-items:center;gap:6px;">
+              🌙 THẺ THÁNG: KHÔNG KHÔNG NGUYỆT CHÚC (30 NGÀY)
+            </div>
+            <div style="font-size:12px;color:#e2e8f0;margin-top:4px;line-height:1.45;">
+              • <strong>Nhận ngay khi kích hoạt:</strong> <strong style="color:#fde047;">+10 Roll (+16,000 Xu)</strong><br/>
+              • <strong>Mỗi ngày đăng nhập (30 ngày):</strong> <strong style="color:#6ee7b7;">+2 Roll/ngày (+3,200 Xu)</strong> ➔ Tổng cộng <strong style="color:#fde047;">70 Lượt Cầu Nguyện (112,000 Xu)</strong>!<br/>
+              • ⚡ <strong>Đặc quyền VIP 30 ngày:</strong> Bấm <em>"📺 Xem QC (+1 Roll)"</em> nhận thưởng <strong>tức thì 0 giây</strong> không cần chờ!
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:190px;">
+            <div style="font-size:20px;font-weight:900;color:#fde047;text-shadow:0 2px 8px rgba(0,0,0,0.6);">
+              20.000đ <span style="font-size:11.5px;color:#cbd5e1;font-weight:700;">/ 30 ngày</span>
+            </div>
+            ${
+              welkinDays > 0
+                ? `<button type="button" class="primary-btn" onclick="event.stopPropagation(); window.tienLenGame.claimDailyWelkinReward();" ${
+                    welkinClaimedToday ? 'disabled' : ''
+                  } style="padding:8px 14px;font-weight:900;font-size:12px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
+                    ${welkinClaimedToday ? `✅ Đã nhận hôm nay (Còn ${welkinDays} ngày)` : `🌙 Nhận +2 Roll Hôm Nay (Còn ${welkinDays} ngày)`}
+                  </button>`
+                : ''
+            }
+            <button type="button" class="primary-btn" onclick="event.stopPropagation(); window.tienLenGame.selectTopupPack('welkin_20k');" style="padding:8px 16px;font-weight:900;font-size:12.5px;background:${
+              isWelkinSelected
+                ? 'linear-gradient(135deg,#d97706,#ea580c)'
+                : 'linear-gradient(135deg,#7c3aed,#6d28d9)'
+            };border:1.5px solid #fde047;">
+              ${
+                isWelkinSelected
+                  ? '✅ Đang Chọn Gói Này (Quét QR Bên Dưới)'
+                  : welkinDays > 0
+                  ? '➕ Mua Cộng Dồn Thêm 30 Ngày (20.000đ)'
+                  : '🌙 Chọn Mua Thẻ Tháng (20.000đ)'
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KHUNG 2: BẢNG 5 GÓI ĐÁ SÁNG THẾ / XU CẦU NGUYỆN (TẶNG GẤP ĐÔI X2 LẦN ĐẦU NẠP!) -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <div style="font-size:14px;font-weight:900;color:#fde047;">
+            💎 CÁC GÓI NẠP XU &amp; LƯỢT CẦU NGUYỆN (TẶNG GẤP ĐÔI X2 LẦN ĐẦU MỖI GÓI!)
+          </div>
+          <div style="font-size:11.5px;color:#cbd5e1;">
+            Quy ước chuẩn: <strong>1 Roll = 1,600 Xu</strong> • <strong>10 Roll = 16,000 Xu</strong> • Bấm vào gói bất kỳ để lấy mã VietQR
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+          ${coinPacks
+            .map((p) => {
+              const g = this.calculateTopupPackGrant(p.id);
+              const isSel = selectedPack.id === p.id;
+              return `
+                <div onclick="window.tienLenGame.selectTopupPack('${p.id}')" style="cursor:pointer;padding:11px 12px;border-radius:12px;background:${p.bgGrad};border:${
+                  isSel ? '2.5px solid #fde047' : '1.5px solid rgba(148,163,184,0.38)'
+                };box-shadow:${
+                  isSel ? '0 0 18px rgba(250,204,21,0.42)' : '0 3px 10px rgba(0,0,0,0.3)'
+                };display:flex;flex-direction:column;justify-content:space-between;gap:6px;position:relative;transition:all 0.16s ease;">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;margin-bottom:4px;">
+                      <span style="padding:2px 7px;border-radius:999px;font-size:10px;font-weight:900;background:${
+                        g.isFirst ? 'linear-gradient(135deg,#dc2626,#ea580c);color:#fff;' : 'rgba(16,185,129,0.28);color:#6ee7b7;'
+                      }">
+                        ${g.isFirst ? `🎁 NẠP ĐẦU X2 (+${p.firstBonusRolls} ROLL)` : `✨ TẶNG THÊM +${p.repeatBonusRolls} ROLL`}
+                      </span>
+                      <span style="font-size:10.5px;color:#cbd5e1;font-weight:800;">#${p.code}</span>
+                    </div>
+                    <div style="font-size:13.5px;font-weight:900;color:#fff;line-height:1.25;">
+                      ${p.icon} ${p.name}
+                    </div>
+                    <div style="margin-top:5px;padding:6px 8px;border-radius:8px;background:rgba(15,23,42,0.78);border:1px solid rgba(250,204,21,0.35);">
+                      <div style="font-size:15px;font-weight:900;color:#fde047;">
+                        🌟 Nhận ${g.totalRolls} Roll
+                      </div>
+                      <div style="font-size:11.5px;color:#6ee7b7;font-weight:800;">
+                        = +${g.totalCoins.toLocaleString()} Xu
+                      </div>
+                      <div style="font-size:10.5px;color:#94a3b8;margin-top:2px;">
+                        Gốc ${p.baseRolls} Roll + Thưởng ${g.bonusRolls} Roll
+                      </div>
+                    </div>
+                  </div>
+                  <button type="button" class="primary-btn" style="width:100%;padding:7px 10px;font-weight:900;font-size:12.5px;background:${
+                    isSel ? 'linear-gradient(135deg,#d97706,#ea580c)' : 'linear-gradient(135deg,#059669,#10b981)'
+                  };border:1px solid #fde047;">
+                    ${isSel ? `✅ Đang Chọn (${p.priceText})` : `💳 Chọn ${p.priceText}`}
+                  </button>
+                </div>
+              `;
+            })
+            .join('')}
+        </div>
+      </div>
+
+      ${adminTopupBoxHtml}
+
+      <!-- KHUNG 3: QUÉT MÃ VIETQR MB BANK TỰ ĐỘNG 24/24 CHO GÓI ĐANG CHỌN -->
+      <div id="topup-vietqr-checkout-box" style="padding:14px 16px;border-radius:14px;background:rgba(15,23,42,0.95);border:2px solid #34d399;box-shadow:0 0 22px rgba(16,185,129,0.22);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <div style="font-size:14.5px;font-weight:900;color:#6ee7b7;">
+            🏦 THANH TOÁN VIETQR MB BANK TỰ ĐỘNG 24/24 — GÓI ĐANG CHỌN: <span style="color:#fde047;">${selectedPack.icon} ${selectedPack.name.toUpperCase()} (${selectedPack.priceText})</span>
+          </div>
+          <span style="padding:3px 10px;border-radius:999px;background:rgba(16,185,129,0.22);border:1px solid #34d399;color:#6ee7b7;font-size:11px;font-weight:900;">
+            ⚡ SePay Auto-Webhook 24/7
+          </span>
+        </div>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <img src="${vietQrUrl}" alt="VietQR MB Bank ${cfg.bankAccount}" style="width:172px;height:auto;border-radius:12px;border:2.5px solid #fde047;background:#fff;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,0.45);" />
+            <div style="font-size:11px;color:#fef08a;font-weight:800;margin-top:4px;">
+              📱 Quét bằng mọi App Ngân Hàng / MoMo
+            </div>
+          </div>
+          <div style="flex:1;min-width:240px;font-size:12.5px;color:#e2e8f0;line-height:1.6;">
+            <div style="padding:8px 11px;border-radius:10px;background:rgba(30,41,59,0.9);border:1px solid rgba(250,204,21,0.4);margin-bottom:8px;">
+              <div style="font-weight:900;color:#fde047;font-size:13.5px;">
+                🎁 Quyền lợi gói "${selectedPack.icon} ${selectedPack.name}" cho tài khoản <span style="color:#38bdf8;">@${myIdentity}</span>:
+              </div>
+              <div style="color:#6ee7b7;font-weight:800;font-size:12.5px;margin-top:2px;">
+                ${
+                  selectedPack.type === 'welkin'
+                    ? `• Nhận ngay +10 Roll (+16,000 Xu) + Mỗi ngày nhận +2 Roll × 30 ngày (Tổng 70 Roll = 112,000 Xu) + Miễn chờ 15s Quảng Cáo!`
+                    : `• Nhận ngay lập tức: +${selectedGrant.totalRolls} Lượt Cầu Nguyện (+${selectedGrant.totalCoins.toLocaleString()} Xu) ${
+                        selectedGrant.isFirst ? '— ĐÃ BAO GỒM THƯỞNG GẤP ĐÔI X2 LẦN ĐẦU!' : `(Gồm +${selectedGrant.bonusRolls} Roll thưởng thêm)`
+                      }`
+                }
+              </div>
+            </div>
+            <div>🏦 Ngân hàng: <strong style="color:#fde047;">${cfg.bankCode} (MB Bank)</strong> • 👤 Chủ TK: <strong>${cfg.bankOwner}</strong></div>
+            <div>
+              💳 Số Tài Khoản: <strong style="color:#38bdf8;font-size:14px;">${cfg.bankAccount}</strong>
+              <button type="button" class="tool-btn" onclick="navigator.clipboard?.writeText('${cfg.bankAccount}'); alert('📋 Đã copy Số Tài Khoản MB Bank: ${cfg.bankAccount}');" style="padding:1px 8px;font-size:11px;margin-left:5px;">📋 Copy STK</button>
+            </div>
+            <div>
+              💵 Số tiền chuyển: <strong style="color:#fde047;font-size:15px;">${selectedPack.priceText}</strong>
+              <span style="font-size:11px;color:#94a3b8;">(Mã VietQR đã điền sẵn đúng số tiền &amp; nội dung)</span>
+            </div>
+            <div>
+              📝 Nội dung CK (Bắt buộc giữ nguyên): <strong style="color:#6ee7b7;background:rgba(6,78,59,0.75);padding:2px 8px;border-radius:6px;font-size:13.5px;border:1px solid #34d399;">${transferMemo}</strong>
+              <button type="button" class="tool-btn" onclick="navigator.clipboard?.writeText('${transferMemo}'); alert('📋 Đã copy Nội dung CK: ${transferMemo}');" style="padding:1px 8px;font-size:11px;margin-left:5px;">📋 Copy Nội Dung</button>
+            </div>
+            <div style="margin-top:10px;">
+              <button type="button" id="btn-submit-welkin-transfer" class="primary-btn" onclick="window.tienLenGame.submitWelkinTransferRequest('${selectedPack.id}')" style="width:100%;padding:10px 14px;font-weight:900;font-size:13px;background:${
+                isMyOrderPending
+                  ? 'linear-gradient(135deg,#d97706,#ea580c)'
+                  : 'linear-gradient(135deg,#059669,#10b981)'
+              };border:1.5px solid #fde047;box-shadow:0 0 16px rgba(16,185,129,0.4);">
+                ${
+                  isMyOrderPending
+                    ? `⏳ Đang Kiểm Tra Tự Động Cho @${myIdentity} — Bấm Để Kiểm Tra Ngay`
+                    : `✅ Tôi Đã Chuyển Khoản ${selectedPack.priceText} — Nhận Ngay +${selectedGrant.totalRolls} Roll (${selectedGrant.totalCoins.toLocaleString()} Xu)`
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   async openGiftcodeModal() {
@@ -10877,31 +11447,7 @@ class TienLenGame {
     const body = document.getElementById('giftcode-modal-body');
     if (!body) return;
     const cfg = this.getAdMonetizationConfig();
-    const welkinDays = this.getWelkinDaysRemaining();
-    const today = this.getTodayKey();
-    const welkinClaimedToday = (localStorage.getItem('tlmn_welkin_last_claim_v1') || '') === today;
     const myIdentity = this.getPersonalGiftcodeIdentityKey();
-    const transferMemo = `TLMN ${myIdentity}`.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 24);
-    const hasBank = Boolean(cfg.bankCode && cfg.bankAccount);
-    const vietQrUrl = hasBank
-      ? `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankCode)}-${encodeURIComponent(
-          cfg.bankAccount
-        )}-compact2.png?amount=20000&addInfo=${encodeURIComponent(transferMemo)}&accountName=${encodeURIComponent(
-          cfg.bankOwner || ''
-        )}`
-      : '';
-
-    const ordersMap = cfg.welkinOrders || {};
-    const myOrder = ordersMap[myIdentity] || null;
-    const isMyOrderPending = Boolean(myOrder && myOrder.status === 'pending');
-    if (isMyOrderPending && !this._welkinOrderPollTimer) {
-      this.startWelkinOrderAutoPoller();
-    }
-
-    const pendingOrdersList = Object.values(ordersMap)
-      .filter((o) => o && o.status === 'pending')
-      .sort((a, b) => (Number(b.requestedAtMs) || 0) - (Number(a.requestedAtMs) || 0));
-
     const remCooldownMs = this.getPersonalGiftcodeCooldownRemainingMs();
     const cooldownMins = Math.ceil(remCooldownMs / 60000);
 
@@ -10960,57 +11506,8 @@ class TienLenGame {
       `
       : '';
 
-    const adminQuickBoxHtml = this.isAdminAccount()
+    const adminShortlinkBoxHtml = this.isAdminAccount()
       ? `
-        <div style="padding:12px 14px;border-radius:12px;background:rgba(6,78,59,0.38);border:1.5px solid #34d399;font-size:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-            <strong style="color:#6ee7b7;font-size:13.5px;">🔔 DUYỆT ĐƠN CHUYỂN KHOẢN MB BANK &amp; BƠM QUÀ TỪ XA (ADMIN @thang.dinhbkp)</strong>
-            <span style="padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;background:${
-              pendingOrdersList.length > 0 ? '#dc2626;color:#fff;' : 'rgba(16,185,129,0.25);color:#6ee7b7;'
-            }">
-              ${pendingOrdersList.length > 0 ? `🔥 ${pendingOrdersList.length} đơn đang chờ duyệt` : '✅ Không có đơn chờ'}
-            </span>
-          </div>
-          ${
-            pendingOrdersList.length > 0
-              ? `
-                <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-                  ${pendingOrdersList
-                    .map(
-                      (ord) => `
-                        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:9px;background:rgba(15,23,42,0.92);border:1px solid #fde047;">
-                          <div>
-                            <div style="font-weight:900;color:#fde047;font-size:12.5px;">
-                              👤 Tài khoản: <span style="color:#38bdf8;">@${ord.id}</span> • 💵 ${(Number(ord.amount) || 20000).toLocaleString()}đ
-                            </div>
-                            <div style="font-size:11px;color:#cbd5e1;">
-                              📝 Nội dung CK: <strong style="color:#6ee7b7;">${ord.memo || `TLMN ${ord.id}`}</strong> • 🕒 ${ord.requestedAtStr || 'Vừa xong'}
-                            </div>
-                          </div>
-                          <div style="display:flex;gap:6px;">
-                            <button type="button" class="primary-btn" onclick="window.tienLenGame.adminApproveWelkinOrder('${ord.id}')" style="padding:6px 12px;font-size:11.5px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
-                              ✅ Duyệt &amp; Bơm Quà Ngay
-                            </button>
-                            <button type="button" class="tool-btn" onclick="window.tienLenGame.adminRejectWelkinOrder('${ord.id}')" style="padding:6px 10px;font-size:11.5px;color:#fca5a5;border-color:rgba(248,113,113,0.4);">
-                              ✕ Xóa
-                            </button>
-                          </div>
-                        </div>
-                      `
-                    )
-                    .join('')}
-                </div>
-              `
-              : ''
-          }
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <input type="text" id="admin-direct-welkin-target" placeholder="Nhập @username trên nội dung CK (VD: hung123) để bơm thẳng..." style="flex:1;min-width:190px;padding:7px 10px;border-radius:8px;border:1px solid rgba(52,211,153,0.55);background:rgba(15,23,42,0.92);color:#fff;font-size:12px;" />
-            <button type="button" class="primary-btn" onclick="window.tienLenGame.adminDirectGrantWelkinToUser()" style="padding:7px 14px;font-size:12px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
-              🚀 Bơm Thẳng +10 Roll &amp; 30 Ngày Nguyệt Chúc
-            </button>
-          </div>
-        </div>
-
         <div style="padding:11px 14px;border-radius:12px;background:rgba(88,28,135,0.28);border:1.5px solid rgba(244,114,182,0.55);font-size:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
             <strong style="color:#f472b6;font-size:13px;">👑 CẤU HÌNH LINK RÚT GỌN KIẾM TIỀN (CHỈ ADMIN @thang.dinhbkp)</strong>
@@ -11071,10 +11568,10 @@ class TienLenGame {
         <div id="personal-gc-step1-status" class="hidden" style="margin-top:10px;padding:9px 12px;border-radius:10px;background:rgba(15,23,42,0.9);border:1px solid rgba(250,204,21,0.5);font-size:12px;color:#fef08a;line-height:1.45;"></div>
       </div>
 
-      <!-- Khung 1: Bước 2 Nhập Giftcode Nhận Roll -->
+      <!-- Khung 2: Bước 2 Nhập Giftcode Nhận Roll -->
       <div style="padding:12px 14px;border-radius:12px;background:rgba(15,23,42,0.9);border:1.5px solid rgba(250,204,21,0.5);">
         <div style="font-size:14px;font-weight:900;color:#fde047;margin-bottom:6px;">
-          🔑 BƯỚC 2: NHẬP MÃ GIFTCODE CÁ NHÂN (GC-...) HOẶC CODE TÂN THỦ / VIP
+          🔑 BƯỚC 2: NHẬP MÃ GIFTCODE CÁ NHÂN (GC-...) HOẶC CODE TÂN THỦ / SỰ KIỆN
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <input type="text" id="input-redeem-giftcode" value="${this._lastGeneratedPersonalGiftcode || ''}" placeholder="Dán mã GC-... (+5 Roll) hoặc nhập TIENLEN5SAO (+1 Roll)..." style="flex:1;min-width:190px;padding:9px 12px;border-radius:10px;border:1.5px solid rgba(250,204,21,0.55);background:rgba(30,41,59,0.95);color:#fef08a;font-weight:900;font-size:13.5px;text-transform:uppercase;" />
@@ -11087,68 +11584,21 @@ class TienLenGame {
         </div>
       </div>
 
-      ${adminQuickBoxHtml}
+      ${adminShortlinkBoxHtml}
 
-      <!-- Khung 2: Thẻ Tháng Không Không Nguyệt Chúc (Welkin Moon) -->
-      <div style="padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(49,46,129,0.75),rgba(15,23,42,0.95));border:1.5px solid rgba(167,139,250,0.6);">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:14.5px;font-weight:900;color:#e9d5ff;">
-              🌙 THẺ THÁNG: KHÔNG KHÔNG NGUYỆT CHÚC (30 NGÀY)
-            </div>
-            <div style="font-size:12px;color:#cbd5e1;margin-top:3px;line-height:1.4;">
-              • Kích hoạt nhận ngay <strong>+10 Roll (16,000 Xu)</strong> + Mỗi ngày nhận <strong>+2 Roll (3,200 Xu)</strong> suốt 30 ngày (Tổng <strong>70 Roll = 112,000 Xu</strong>)!<br/>
-              • ⚡ <strong>Đặc quyền VIP:</strong> Bấm <em>"📺 Xem QC (+1 Roll)"</em> &amp; <em>"🎟️ Lấy Giftcode (+5 Roll)"</em> nhận thưởng <strong>tức thì 0 giây</strong>!
-            </div>
+      <!-- Banner chuyển nhanh sang Cửa Hàng Nạp Xu & Thẻ Tháng -->
+      <div style="padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(6,78,59,0.65),rgba(15,23,42,0.95));border:1.5px solid #34d399;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:13.5px;font-weight:900;color:#6ee7b7;">
+            💎 CẦN THÊM NHIỀU LƯỢT ROLL &amp; THẺ THÁNG KHÔNG KHÔNG NGUYỆT CHÚC (20K)?
           </div>
-          <div>
-            ${
-              welkinDays > 0
-                ? `<button type="button" class="primary-btn" onclick="window.tienLenGame.claimDailyWelkinReward()" ${
-                    welkinClaimedToday ? 'disabled' : ''
-                  } style="padding:8px 14px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
-                    ${welkinClaimedToday ? `✅ Đã nhận hôm nay (Còn ${welkinDays} ngày)` : `🌙 Nhận +2 Roll Hôm Nay (Còn ${welkinDays} ngày)`}
-                  </button>`
-                : `<span style="display:inline-block;padding:5px 10px;border-radius:999px;background:rgba(148,163,184,0.2);color:#cbd5e1;font-size:11.5px;font-weight:800;">Chưa kích hoạt</span>`
-            }
+          <div style="font-size:11.5px;color:#cbd5e1;margin-top:2px;">
+            Ghé Cửa Hàng Nạp Xu: Tặng Gấp Đôi (x2) lần nạp đầu tiên cho mọi gói (10K – 200K) • Duyệt tự động 24/24!
           </div>
         </div>
-      </div>
-
-      <!-- Khung 3: Quét Mã VietQR MB Bank Kích Hoạt Gói Nguyệt Chúc 30 Ngày (+10 Roll Ngay) -->
-      <div style="padding:12px 14px;border-radius:12px;background:rgba(15,23,42,0.92);border:1.5px solid rgba(52,211,153,0.55);">
-        <div style="font-size:14px;font-weight:900;color:#6ee7b7;margin-bottom:8px;">
-          🏦 QUÉT VIETQR MB BANK — MỞ KHÓA GÓI NGUYỆT CHÚC 30 NGÀY (+10 ROLL NGAY)
-        </div>
-        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-          <img src="${vietQrUrl}" alt="VietQR MB Bank 0946432236" style="width:160px;height:auto;border-radius:10px;border:2px solid #fde047;background:#fff;padding:4px;" />
-          <div style="flex:1;min-width:220px;font-size:12.5px;color:#e2e8f0;line-height:1.55;">
-            <div>🏦 Ngân hàng: <strong style="color:#fde047;">${cfg.bankCode} (MB Bank)</strong></div>
-            <div>
-              💳 Số TK: <strong style="color:#38bdf8;font-size:13.5px;">${cfg.bankAccount}</strong>
-              <button type="button" class="tool-btn" onclick="navigator.clipboard?.writeText('${cfg.bankAccount}'); alert('📋 Đã copy Số Tài Khoản MB Bank: ${cfg.bankAccount}');" style="padding:1px 7px;font-size:10.5px;margin-left:4px;">📋 Copy STK</button>
-            </div>
-            <div>👤 Chủ TK: <strong>${cfg.bankOwner}</strong></div>
-            <div>💵 Số tiền: <strong style="color:#fde047;">20.000đ</strong></div>
-            <div>
-              📝 Nội dung CK (Bắt buộc): <strong style="color:#6ee7b7;background:rgba(6,78,59,0.65);padding:1px 6px;border-radius:5px;">${transferMemo}</strong>
-              <button type="button" class="tool-btn" onclick="navigator.clipboard?.writeText('${transferMemo}'); alert('📋 Đã copy Nội dung CK: ${transferMemo}');" style="padding:1px 7px;font-size:10.5px;margin-left:4px;">📋 Copy ND</button>
-            </div>
-            <div style="margin-top:8px;">
-              <button type="button" id="btn-submit-welkin-transfer" class="primary-btn" onclick="window.tienLenGame.submitWelkinTransferRequest()" style="width:100%;padding:9px 14px;font-weight:900;font-size:12.5px;background:${
-                isMyOrderPending
-                  ? 'linear-gradient(135deg,#d97706,#ea580c)'
-                  : 'linear-gradient(135deg,#059669,#10b981)'
-              };border:1.5px solid #6ee7b7;">
-                ${
-                  isMyOrderPending
-                    ? `⏳ Đang Chờ Xác Nhận CK Cho @${myIdentity} (Bấm Để Kiểm Tra Ngay)`
-                    : `✅ Tôi Đã Chuyển Khoản 20.000đ (Bấm Để Nhận +10 Roll & 30 Ngày Nguyệt Chúc)`
-                }
-              </button>
-            </div>
-          </div>
-        </div>
+        <button type="button" class="primary-btn" onclick="window.tienLenGame.closeGiftcodeModal(); window.tienLenGame.openTopupModal();" style="padding:8px 14px;font-weight:900;font-size:12px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;">
+          💎 Mở Cửa Hàng Nạp Xu ▸
+        </button>
       </div>
     `;
   }
@@ -28584,7 +29034,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 181;
+const CLIENT_BUILD_VERSION = 182;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -28601,7 +29051,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=181', { updateViaCache: 'none' })
+        .register('sw.js?v=182', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

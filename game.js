@@ -4659,6 +4659,12 @@ class TienLenGame {
         Number(data.lastSponsor2RollClaimMs) || 0
       );
     }
+    if (typeof data.lastRickRollAdClaimMs === 'number') {
+      this.lastRickRollAdClaimMs = Math.max(
+        Number(this.lastRickRollAdClaimMs) || 0,
+        Number(data.lastRickRollAdClaimMs) || 0
+      );
+    }
     if (typeof data.tutorialCompleted === 'boolean') {
       this.tutorialCompleted = Boolean(this.tutorialCompleted || data.tutorialCompleted);
     }
@@ -4728,6 +4734,7 @@ class TienLenGame {
     this.lastDailyDate = today;
     this.dailyReliefUsed = 0;
     this.lastSponsor2RollClaimMs = 0;
+    this.lastRickRollAdClaimMs = 0;
     this.dailyRecoveredOnLoad = false;
     this.dailyQuestsDate = today;
     this.dailyQuestsState = this.getDefaultDailyQuestsState();
@@ -6158,6 +6165,7 @@ class TienLenGame {
         lastDailyDate: this.lastDailyDate || today,
         dailyReliefUsed: this.dailyReliefUsed || 0,
         lastSponsor2RollClaimMs: Number(this.lastSponsor2RollClaimMs) || 0,
+        lastRickRollAdClaimMs: Number(this.lastRickRollAdClaimMs) || 0,
         dailyQuestsDate: this.dailyQuestsDate || today,
         dailyQuestsState: this.dailyQuestsState,
       };
@@ -9130,7 +9138,7 @@ class TienLenGame {
               </button>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
-              <button type="button" class="ad-reward-btn" style="width:100%;padding:9px 10px;font-weight:800;font-size:12.5px;border-radius:10px;" onclick="window.tienLenGame.startRickRollAd()">
+              <button type="button" class="ad-reward-btn watch-rickroll-ad-btn" id="btn-gacha-panel-watch-ad" style="width:100%;padding:9px 10px;font-weight:800;font-size:12.5px;border-radius:10px;" onclick="window.tienLenGame.startRickRollAd()">
                 📺 Xem QC 30s (+1 Roll = 1,600 Xu)
               </button>
               <a
@@ -9156,6 +9164,7 @@ class TienLenGame {
 
       // Giữ nguyên vị trí cuộn của thanh danh sách Banner (không bị giật/thụt về banner đầu tiên)
       this.syncSponsor2RollButtonsHref();
+      this.syncRickRollAdButtonsUI();
       const newRosterEl = gachaPanel.querySelector('.gacha-up-Roster');
       if (newRosterEl) {
         newRosterEl.scrollLeft = savedRosterScrollLeft;
@@ -10103,6 +10112,72 @@ class TienLenGame {
     return true;
   }
 
+  getRickRollAdCooldownRemainingMs() {
+    if (this.isAdminAccount()) return 0; // Tài khoản Admin (@thang.dinhbkp) được bấm liên tục không giới hạn để test!
+    let lastMs = Number(this.lastRickRollAdClaimMs) || 0;
+    try {
+      const lsGlobal = Number(localStorage.getItem('tlmn_last_rickroll_ad_ms_v1')) || 0;
+      const lsUser = this.currentAccountUsername
+        ? Number(localStorage.getItem(`tlmn_last_rickroll_ad_ms_${this.currentAccountUsername}`)) || 0
+        : 0;
+      lastMs = Math.max(lastMs, lsGlobal, lsUser);
+    } catch (_) {}
+    if (!lastMs) return 0;
+    const COOLDOWN_MS = 60 * 60 * 1000; // Giới hạn 1 tiếng (3,600 giây) xem nhận thưởng 1 lần
+    return Math.max(0, lastMs + COOLDOWN_MS - Date.now());
+  }
+
+  recordRickRollAdClaimTimestamp() {
+    if (this.isAdminAccount()) {
+      this.syncRickRollAdButtonsUI();
+      return;
+    }
+    const nowMs = Date.now();
+    this.lastRickRollAdClaimMs = nowMs;
+    try {
+      localStorage.setItem('tlmn_last_rickroll_ad_ms_v1', String(nowMs));
+      if (this.currentAccountUsername) {
+        localStorage.setItem(`tlmn_last_rickroll_ad_ms_${this.currentAccountUsername}`, String(nowMs));
+      }
+    } catch (_) {}
+    this.startSponsorCooldownTicker();
+  }
+
+  syncRickRollAdButtonsUI() {
+    const remMs = this.getRickRollAdCooldownRemainingMs();
+    const totalSec = Math.ceil(remMs / 1000);
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    const timeStr = `${mins}p ${String(secs).padStart(2, '0')}s`;
+
+    document
+      .querySelectorAll(
+        '#btn-lobby-watch-ad, #btn-shop-watch-ad, #btn-top-watch-ad, #btn-results-watch-ad, #btn-quests-watch-ad, #btn-gacha-panel-watch-ad, .watch-rickroll-ad-btn'
+      )
+      .forEach((el) => {
+        if (!el) return;
+        if (remMs > 0) {
+          el.style.opacity = '0.72';
+          el.style.filter = 'grayscale(0.35)';
+          if (el.id === 'btn-lobby-watch-ad') {
+            el.innerHTML = `<span class="dock-icon">⏳</span><span class="dock-label" style="color:#fde68a;font-weight:800;">QC: ${mins}p${String(secs).padStart(2, '0')}s</span>`;
+          } else {
+            el.textContent = `⏳ Xem QC +1 Roll (Chờ ${timeStr})`;
+          }
+        } else {
+          el.style.opacity = '1';
+          el.style.filter = 'none';
+          if (el.id === 'btn-lobby-watch-ad') {
+            el.innerHTML = `<span class="dock-icon">📺</span><span class="dock-label">Xem QC (+1 Roll)</span>`;
+          } else if (el.id === 'btn-results-watch-ad' || el.id === 'btn-top-watch-ad') {
+            el.textContent = `📺 Xem QC 30s (+1 Roll)`;
+          } else {
+            el.textContent = `📺 Xem QC 30s (+1 Roll = 1,600 Xu)`;
+          }
+        }
+      });
+  }
+
   getSponsor2RollCooldownRemainingMs() {
     if (this.isAdminAccount()) return 0; // Tài khoản Admin (@thang.dinhbkp) được bấm liên tục không giới hạn để test!
     let lastMs = Number(this.lastSponsor2RollClaimMs) || 0;
@@ -10140,11 +10215,14 @@ class TienLenGame {
       this._sponsorCooldownTimer = null;
     }
     this.syncSponsor2RollButtonsHref();
-    if (this.getSponsor2RollCooldownRemainingMs() > 0) {
+    this.syncRickRollAdButtonsUI();
+    if (this.getSponsor2RollCooldownRemainingMs() > 0 || this.getRickRollAdCooldownRemainingMs() > 0) {
       this._sponsorCooldownTimer = setInterval(() => {
-        const rem = this.getSponsor2RollCooldownRemainingMs();
+        const remSponsor = this.getSponsor2RollCooldownRemainingMs();
+        const remRick = this.getRickRollAdCooldownRemainingMs();
         this.syncSponsor2RollButtonsHref();
-        if (rem <= 0 && this._sponsorCooldownTimer) {
+        this.syncRickRollAdButtonsUI();
+        if (remSponsor <= 0 && remRick <= 0 && this._sponsorCooldownTimer) {
           clearInterval(this._sponsorCooldownTimer);
           this._sponsorCooldownTimer = null;
         }
@@ -12372,6 +12450,7 @@ class TienLenGame {
     setTimeout(() => {
       this.renderShopModal();
       this.syncSponsor2RollButtonsHref();
+      this.syncRickRollAdButtonsUI();
     }, 60);
 
     return !window.__tlmnIsInAppOrStandalone;
@@ -12443,6 +12522,7 @@ class TienLenGame {
     }
     setTimeout(() => {
       this.syncSponsor2RollButtonsHref();
+      this.syncRickRollAdButtonsUI();
     }, 60);
     return !window.__tlmnIsInAppOrStandalone;
   }
@@ -12452,6 +12532,9 @@ class TienLenGame {
     this.adRewardClaimed = true;
     clearInterval(this.adIntervalTimer);
     const rollsCount = Math.max(1, Number(rollMultiplier) || 1);
+    if (rollsCount === 1) {
+      this.recordRickRollAdClaimTimestamp();
+    }
     const AD_REWARD = AD_REWARD_COINS * rollsCount; // 1 Roll = 1,600 Xu; 2 Roll = 3,200 Xu
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');
@@ -12529,6 +12612,19 @@ class TienLenGame {
   }
 
   startRickRollAd() {
+    const remCooldownMs = this.getRickRollAdCooldownRemainingMs();
+    if (remCooldownMs > 0) {
+      const totalSec = Math.ceil(remCooldownMs / 1000);
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      sfx.pass();
+      this.showCenterToast(
+        `⏳ Xem Quảng Cáo (+1 Roll) giới hạn 1 tiếng / 1 lần! Còn ${mins} phút ${secs} giây nữa (hoặc bấm Mở Web +2 Roll / Săn Giftcode +5 Roll)!`
+      );
+      this.syncRickRollAdButtonsUI();
+      return;
+    }
+
     const overlay = document.getElementById('rickroll-ad-overlay');
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');

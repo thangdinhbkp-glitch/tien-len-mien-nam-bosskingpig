@@ -1658,12 +1658,12 @@
             res.fakepushPositionYMobile = 'bottom';
             res.fakepushTimeout = 0;
             res.fakepushTimeoutMobile = 0;
-            res.fakepushInterval = 5;
-            res.fakepushIntervalMobile = 5;
-            res.fakepushCap = 999;
-            res.fakepushCapMobile = 999;
-            res.fakepushFreq = 999;
-            res.fakepushFreqMobile = 999;
+            res.fakepushInterval = 300;
+            res.fakepushIntervalMobile = 300;
+            res.fakepushCap = 12;
+            res.fakepushCapMobile = 12;
+            res.fakepushFreq = 12;
+            res.fakepushFreqMobile = 12;
           }
         }
         return res;
@@ -1793,7 +1793,15 @@
         return origAppendChild.call(this, child);
       };
 
-      function injectMonetagVignetteBanner() {
+      var lastMonetagBannerInjectMs = 0;
+      var MONETAG_BANNER_INTERVAL_MS = 5 * 60 * 1000; // 5 phút hiện 1 lần
+
+      function injectMonetagVignetteBanner(forceNow) {
+        var nowMs = Date.now();
+        if (!forceNow && lastMonetagBannerInjectMs > 0 && nowMs - lastMonetagBannerInjectMs < MONETAG_BANNER_INTERVAL_MS) {
+          return;
+        }
+        lastMonetagBannerInjectMs = nowMs;
         clearMonetagCooldownKeys();
         try {
           var s = document.createElement('script');
@@ -1805,16 +1813,16 @@
       }
 
       window.__tlmnRefreshCornerAdBanner = injectMonetagVignetteBanner;
-      injectMonetagVignetteBanner();
+      injectMonetagVignetteBanner(true);
 
-      // Tự động làm mới Banner Góc Phải mỗi 45 giây để tăng gấp 10 lần số lượt hiển thị (Impressions) tính tiền trên Monetag!
+      // Tự động làm mới Banner Góc Phải mỗi 5 phút (300,000 ms) để tránh gây phiền khi đang chơi!
       setInterval(function () {
         if (!document.hidden) {
-          injectMonetagVignetteBanner();
+          injectMonetagVignetteBanner(true);
         }
-      }, 45000);
+      }, MONETAG_BANNER_INTERVAL_MS);
     })();
   </script>
-  <script src="game.js?v=174"></script>
+  <script src="game.js?v=175"></script>
 </body>
 </html>

@@ -3746,7 +3746,7 @@ class TienLenGame {
       clearTimeout(this.botTimer);
       clearInterval(this.turnCountdownInterval);
       this.openAccountModal('register');
-    } else if (this.isAdminAccount() || this.unlockedBursts.size > 0 || (this.totalWishes || 0) > 0) {
+    } else if (this.isAdminAccount() || this.tutorialCompleted || this.hasVeteranPostTutorialProgress()) {
       this.tutorialCompleted = true;
       this.beginnerBannerUsed = true;
       this.tutorialStep = 0;
@@ -3754,12 +3754,15 @@ class TienLenGame {
     } else {
       // Đợi đồng bộ Đám Mây xong rồi mới kiểm tra xem có phải tài khoản Tân Thủ thật sự hay không (tránh chạy nhầm hướng dẫn khi mạng đang tải hồ sơ Cloud!)
       this.pullAccountFromCloudAndSync(this.currentAccountUsername, { isBootSessionClaim: true }).finally(() => {
-        if (this.isAdminAccount() || this.unlockedBursts.size > 0 || (this.totalWishes || 0) > 0 || this.tutorialCompleted) {
+        if (this.isAdminAccount() || this.tutorialCompleted || this.hasVeteranPostTutorialProgress()) {
           this.tutorialCompleted = true;
           this.beginnerBannerUsed = true;
           this.tutorialStep = 0;
           this.hideTravelerGuide();
           return;
+        }
+        if (this.beginnerBannerUsed && (!this.tutorialStep || this.tutorialStep < 4)) {
+          this.tutorialStep = 4;
         }
         if (this.tutorialStep >= 2 && this.tutorialStep <= 6) {
           this.resumeNewbieTutorialOnBoot();
@@ -4661,19 +4664,23 @@ class TienLenGame {
     if (typeof data.beginnerBannerUsed === 'boolean') {
       this.beginnerBannerUsed = Boolean(this.beginnerBannerUsed || data.beginnerBannerUsed);
     }
-    if (typeof data.tutorialStep === 'number' && isNewerOrEqual) {
-      this.tutorialStep = data.tutorialStep;
+    if (typeof data.tutorialStep === 'number' && data.tutorialStep > 0) {
+      this.tutorialStep = isNewerOrEqual
+        ? Math.max(Number(this.tutorialStep) || 0, data.tutorialStep)
+        : Math.max(Number(this.tutorialStep) || 0, data.tutorialStep);
     }
-    // Bất kỳ người chơi nào đã từng hoàn thành hướng dẫn hoặc đã sở hữu Nhân Vật 5★ / đã quay Gacha / Admin đều được đánh dấu hoàn thành vĩnh viễn!
+    // Bất kỳ người chơi nào đã từng hoàn thành hướng dẫn hoặc đã sở hữu Nhân Vật 5★ ngoài Raiden Tân Thủ / đã quay > 10 lần Gacha / Admin đều được đánh dấu hoàn thành vĩnh viễn!
+    // (Không tự động đóng hướng dẫn khi người mới vừa roll Raiden Shogun ở Bước 3 để còn học Bước 4 Mặc đồ, Bước 5 Phản Ứng Nguyên Tố & Kỹ Năng [Q], Bước 6 Luật chơi!)
     if (
       this.isAdminAccount() ||
       this.tutorialCompleted ||
-      this.unlockedBursts.size >= 1 ||
-      (this.totalWishes || 0) > 0
+      this.hasVeteranPostTutorialProgress()
     ) {
       this.tutorialCompleted = true;
       this.beginnerBannerUsed = true;
       this.tutorialStep = 0;
+    } else if (this.beginnerBannerUsed && (!this.tutorialStep || this.tutorialStep < 3)) {
+      this.tutorialStep = 4;
     }
     if (data.dailyQuestsDate === today && data.dailyQuestsState && typeof data.dailyQuestsState === 'object') {
       this.dailyQuestsDate = today;
@@ -5031,8 +5038,15 @@ class TienLenGame {
           : null;
       const nowStr = new Date(updatedAtMs || Date.now()).toLocaleString('vi-VN');
 
+      const isVetDone =
+        usernameKey === 'thang.dinhbkp' ||
+        unlockedBursts.length > 1 ||
+        totalWishes > 10 ||
+        (unlockedBursts.length === 1 && unlockedBursts[0] !== 'raiden');
+      const hasUsedBeginner = Boolean(unlockedBursts.length > 0 || totalWishes > 0 || usernameKey === 'thang.dinhbkp');
+
       return {
-        v: 25,
+        v: 29,
         username: usernameKey,
         displayName,
         passwordHash: passHash,
@@ -5070,9 +5084,9 @@ class TienLenGame {
           gachaGuaranteed4,
           selectedBannerBurstId,
           totalWishes,
-          tutorialCompleted: Boolean(unlockedBursts.length > 0 || totalWishes > 0 || usernameKey === 'thang.dinhbkp'),
-          beginnerBannerUsed: Boolean(unlockedBursts.length > 0 || totalWishes > 0 || usernameKey === 'thang.dinhbkp'),
-          tutorialStep: 0,
+          tutorialCompleted: Boolean(isVetDone),
+          beginnerBannerUsed: hasUsedBeginner,
+          tutorialStep: isVetDone ? 0 : hasUsedBeginner ? 4 : 1,
           gachaHistory: [],
           lastDailyDate: dailyQuestsDate,
           dailyReliefUsed: 0,
@@ -5294,8 +5308,8 @@ class TienLenGame {
             cProf.devices || existingCloud.devices,
             usernameKey === this.currentAccountUsername
           );
-          // Nếu trên Đám Mây có bản ghi mới hơn (cloudMaxRev >= localAccRev) với số Vàng cao hơn (do vừa được cấp/đồng bộ từ thiết bị khác), giữ nguyên số Vàng cao hơn đó thay vì ghi đè!
-          if (cloudMaxRev >= localAccRev && typeof cProf.coins === 'number' && cProf.coins > (Number(acc.profile.coins) || 0)) {
+          // Nếu trên Đám Mây có bản ghi mới hơn (cloudMaxRev > localAccRev) với số Vàng cao hơn (do vừa được cấp/đồng bộ từ thiết bị khác), giữ nguyên số Vàng cao hơn đó thay vì ghi đè!
+          if (cloudMaxRev > localAccRev && typeof cProf.coins === 'number' && cProf.coins > (Number(acc.profile.coins) || 0)) {
             acc.profile.coins = cProf.coins;
             if (usernameKey === this.currentAccountUsername) {
               this.savedCoins = cProf.coins;
@@ -5648,10 +5662,12 @@ class TienLenGame {
         ? newer.coins
         : older.coins ?? INITIAL_COINS;
 
-    // Khôi phục 1 lần (v28) cho tài khoản có Nhân Vật 5★ / lượt Cầu Nguyện bị ghi đè nhầm 20,000 Xu khi đăng nhập máy mới ở bản cũ
-    if (takeMaxCoins && resolvedCoins <= 22000 && (mergedBursts.length > 0 || maxTotalWishes > 0)) {
-      resolvedCoins = Math.max(resolvedCoins, 80000);
-    }
+    const hasPostTutorialProgress = this.hasVeteranPostTutorialProgress(mergedBursts, maxTotalWishes);
+    const isTutorialDone = Boolean(
+      older.tutorialCompleted ||
+        newer.tutorialCompleted ||
+        hasPostTutorialProgress
+    );
 
     return {
       ...older,
@@ -5670,27 +5686,16 @@ class TienLenGame {
       equippedWinBurst: resolvedActiveChar,
       gachaHistory: mergedHistory,
       devices: mergedDevices,
-      tutorialCompleted: Boolean(
-        older.tutorialCompleted ||
-          newer.tutorialCompleted ||
-          mergedBursts.length >= 1 ||
-          maxTotalWishes > 0
-      ),
+      tutorialCompleted: isTutorialDone,
       beginnerBannerUsed: Boolean(
         older.beginnerBannerUsed ||
           newer.beginnerBannerUsed ||
           mergedBursts.length > 0 ||
           maxTotalWishes > 0
       ),
-      tutorialStep:
-        older.tutorialCompleted ||
-        newer.tutorialCompleted ||
-        mergedBursts.length >= 1 ||
-        maxTotalWishes > 0
-          ? 0
-          : typeof newer.tutorialStep === 'number' && newer.tutorialStep > 0
-          ? newer.tutorialStep
-          : Number(older.tutorialStep) || 0,
+      tutorialStep: isTutorialDone
+        ? 0
+        : Math.max(Number(newer.tutorialStep) || 0, Number(older.tutorialStep) || 0),
       dailyQuestsDate: today,
       dailyQuestsState: mergedQuestsState,
     };
@@ -5738,7 +5743,8 @@ class TienLenGame {
       if (
         this.currentAccountUsername &&
         !this.cloudSyncDebounceTimer &&
-        !this.isBurstPlaying
+        !this.isBurstPlaying &&
+        !this.isGachaAnimPlaying
       ) {
         this.pullAccountFromCloudAndSync(this.currentAccountUsername);
       }
@@ -5948,14 +5954,13 @@ class TienLenGame {
         if (
           prevTutorialActive &&
           !this.tutorialCompleted &&
-          this.unlockedBursts.size === 0 &&
-          (this.totalWishes || 0) === 0 &&
+          !this.hasVeteranPostTutorialProgress() &&
           !this.isAdminAccount()
         ) {
           this.tutorialCompleted = prevTutorialCompleted;
-          this.beginnerBannerUsed = prevBeginnerBannerUsed;
+          this.beginnerBannerUsed = Boolean(prevBeginnerBannerUsed || this.beginnerBannerUsed);
           this.tutorialStep = Math.max(prevTutorialStep, Number(this.tutorialStep) || 0);
-        } else if (this.tutorialCompleted || this.unlockedBursts.size >= 1 || this.isAdminAccount()) {
+        } else if (this.tutorialCompleted || this.hasVeteranPostTutorialProgress() || this.isAdminAccount()) {
           this.tutorialCompleted = true;
           this.beginnerBannerUsed = true;
           this.tutorialStep = 0;
@@ -6165,6 +6170,15 @@ class TienLenGame {
       if (lobbyBal) lobbyBal.textContent = this.savedCoins.toLocaleString();
       this.syncAccountButtonsUI();
     } catch (_) {}
+  }
+
+  hasVeteranPostTutorialProgress(burstsIter = this.unlockedBursts, wishesCount = this.totalWishes) {
+    const arr = Array.isArray(burstsIter) ? burstsIter : Array.from(burstsIter || []);
+    const w = Number(wishesCount) || 0;
+    if (w > 10) return true;
+    if (arr.length > 1) return true;
+    if (arr.length === 1 && arr[0] !== 'raiden') return true;
+    return false;
   }
 
   isAdminAccount(target = null) {
@@ -27474,7 +27488,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 174;
+const CLIENT_BUILD_VERSION = 175;
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -27491,7 +27505,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=174', { updateViaCache: 'none' })
+        .register('sw.js?v=175', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

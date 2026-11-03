@@ -9747,6 +9747,7 @@ class TienLenGame {
   }
 
   getSponsor2RollCooldownRemainingMs() {
+    if (this.isAdminAccount()) return 0; // Tài khoản Admin (@thang.dinhbkp) được bấm liên tục không giới hạn để test!
     let lastMs = Number(this.lastSponsor2RollClaimMs) || 0;
     try {
       const lsGlobal = Number(localStorage.getItem('tlmn_last_sponsor_2roll_ms_v1')) || 0;
@@ -9761,6 +9762,10 @@ class TienLenGame {
   }
 
   recordSponsor2RollClaimTimestamp() {
+    if (this.isAdminAccount()) {
+      this.syncSponsor2RollButtonsHref();
+      return;
+    }
     const nowMs = Date.now();
     this.lastSponsor2RollClaimMs = nowMs;
     try {

@@ -1288,31 +1288,31 @@
       </div>
     </div>
 
-    <!-- RICK ROLL REWARDED VIDEO AD OVERLAY + MONETAG REAL REVENUE TRIGGER -->
+    <!-- RICK ROLL REWARDED VIDEO AD OVERLAY (30S) + RANDOM MONETAG / SHOPEE SPONSOR LINK (+2 ROLLS) -->
     <div class="rickroll-ad-overlay hidden" id="rickroll-ad-overlay">
       <div class="rickroll-ad-card">
         <!-- Top Ad HUD Bar -->
         <div class="ad-top-bar">
           <div class="ad-sponsor-badge" id="ad-sponsor-badge">
-            📢 QUẢNG CÁO NHẬN THƯỞNG • XEM NHẠC HOẶC BẤM TÀI TRỢ NHẬN NGAY +1 ROLL
+            📢 QUẢNG CÁO NHẬN THƯỞNG • XEM 30S (+1 ROLL) HOẶC MỞ WEB TÀI TRỢ (+2 ROLL NGAY!)
           </div>
           <div class="ad-top-right" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <button type="button" class="ad-skip-btn" id="btn-ad-switch-music" onclick="window.tienLenGame.toggleAdMusicTrack()" style="background:rgba(250,204,21,0.18);border-color:#fde047;color:#fef08a;cursor:pointer;" title="Đổi nhạc quảng cáo giữa Rick Roll và Verity">
               🎬 Video: Rick Roll (Đổi ⇄)
             </button>
             <div class="ad-countdown-pill" id="ad-countdown-pill">
-              ⏳ Nhận +1 Roll (1,600 Xu) sau: <strong>10s</strong>
+              ⏳ Nhận +1 Roll (1,600 Xu) sau: <strong>30s</strong>
             </div>
             <button class="ad-skip-btn" id="btn-ad-skip-or-claim">
-              🔒 Chờ 10s...
+              🔒 Chờ 30s...
             </button>
           </div>
         </div>
 
-        <!-- Thanh Nhà Tài Trợ: Bấm mở Tab thật (không bị Verify you are human của iframe) để bỏ qua chờ 10s & nhận +1 Roll ngay lập tức -->
-        <div style="padding:8px 14px;background:linear-gradient(90deg,rgba(30,58,138,0.95),rgba(15,23,42,0.98));border-bottom:1px solid rgba(96,165,250,0.45);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;z-index:5;">
-          <div style="font-size:12.5px;color:#e0f2fe;line-height:1.4;" id="ad-real-sponsor-sub">
-            ⚡ <strong>Muốn nhận ngay không cần chờ 10s?</strong> Bấm nút bên phải hoặc bấm vào <strong>Banner Quảng Cáo ở góc dưới màn hình</strong> để cộng ngay <strong>+1 Roll (+1,600 Xu)</strong>!
+        <!-- Thanh Nhà Tài Trợ (Random Monetag & Shopee Affiliate): Bấm mở trang nhận NGAY +2 ROLL (3,200 Xu) & Bỏ qua 30s chờ! -->
+        <div style="padding:10px 14px;background:linear-gradient(90deg,rgba(30,58,138,0.96),rgba(88,28,135,0.96));border-bottom:1.5px solid rgba(250,204,21,0.65);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;z-index:5;">
+          <div style="font-size:12.5px;color:#fef08a;line-height:1.4;" id="ad-real-sponsor-sub">
+            🔥 <strong>ƯU ĐÃI X2 THƯỞNG:</strong> Ngồi xem hết 30s nhận <strong>+1 Roll (1,600 Xu)</strong> — Hoặc bấm <strong>Mở Trang Nhà Tài Trợ</strong> bên phải để bỏ qua 30s và nhận ngay <strong>+2 ROLL (+3,200 Xu)!</strong>
           </div>
           <a
             id="btn-ad-open-sponsor-link"
@@ -1320,9 +1320,9 @@
             target="_blank"
             rel="noopener noreferrer"
             onclick="return window.tienLenGame.onClickSponsorAdLink(event)"
-            style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);border:1.5px solid #fde047;color:#fff;font-weight:900;font-size:12.5px;cursor:pointer;white-space:nowrap;text-decoration:none;box-shadow:0 4px 12px rgba(16,185,129,0.45);"
+            style="padding:8px 16px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#ea580c);border:2px solid #fde047;color:#fff;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;text-decoration:none;box-shadow:0 4px 15px rgba(245,158,11,0.55);"
           >
-            🚀 Mở Trang Tài Trợ (Nhận Ngay +1 Roll 0s!) ↗
+            🎁 Mở Trang Nhà Tài Trợ (Nhận Ngay +2 ROLL = 3,200 Xu!) ↗
           </a>
         </div>
 
@@ -1347,7 +1347,7 @@
           <audio id="verity-audio" src="verity.mp3" loop preload="auto"></audio>
 
           <div class="ad-rickroll-banner" id="ad-rickroll-banner">
-            🕺 <strong>QUẢNG CÁO NHẬN THƯỞNG!</strong> Xem 10 giây hoặc bấm vào <em>Banner Quảng Cáo góc dưới bên phải</em> để nhận ngay <strong>+1 Roll (+1,600 Xu)</strong>! 🎤
+            🕺 <strong>BẠN ĐÃ BỊ RICK ROLL (30 GIÂY)!</strong> Đợi hết 30s nhận <strong>+1 Roll</strong> hoặc bấm nút <em>"🎁 Mở Trang Nhà Tài Trợ"</em> phía trên để lấy ngay <strong>+2 ROLL (+3,200 Xu)</strong>! 🎤
           </div>
 
           <div class="ad-lyrics-sub" id="ad-lyrics-sub">
@@ -1362,9 +1362,9 @@
 
         <div class="ad-bottom-bar">
           <div class="ad-toast-msg" id="ad-toast-msg">
-            💡 Xem hết 10 giây hoặc bấm vào Banner Quảng Cáo góc phải sẽ được cộng ngay <strong>+1,600 Xu (+1 Lượt Cầu Nguyện)</strong>!
+            💡 Xem hết <strong>30 giây</strong> nhận <strong>+1 Roll (+1,600 Xu)</strong> • Bấm <strong>Mở Trang Nhà Tài Trợ</strong> nhận ngay <strong>+2 Roll (+3,200 Xu)</strong>!
           </div>
-          <button class="clear-log-btn" id="btn-ad-force-abandon" title="Tắt quảng cáo sớm sẽ mất phần thưởng +1,600 Xu!">
+          <button class="clear-log-btn" id="btn-ad-force-abandon" title="Tắt quảng cáo sớm sẽ mất phần thưởng!">
             ✕ Tắt sớm (Không nhận thưởng)
           </button>
         </div>
@@ -1763,6 +1763,6 @@
       }, 45000);
     })();
   </script>
-  <script src="game.js?v=165"></script>
+  <script src="game.js?v=166"></script>
 </body>
 </html>

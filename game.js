@@ -6481,6 +6481,7 @@ class TienLenGame {
 
       const mergedAdMonetization = {
         sponsorUrl: String(newerAdCfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim(),
+        shopeeUrl: String(newerAdCfg.shopeeUrl || localAd.shopeeUrl || remoteAd.shopeeUrl || 'https://shopee.vn/').trim(),
         bannerHtml: String(newerAdCfg.bannerHtml || '').trim(),
         adMode: newerAdCfg.adMode || 'auto_open',
         bankCode: String(newerAdCfg.bankCode || '').trim().toUpperCase(),
@@ -6674,6 +6675,7 @@ class TienLenGame {
 
     const adCfg = globalReg.adMonetization || {};
     const curSponsorUrl = String(adCfg.sponsorUrl || 'https://uplcm.com/4/12175425').replace(/"/g, '&quot;');
+    const curShopeeUrl = String(adCfg.shopeeUrl || 'https://shopee.vn/').replace(/"/g, '&quot;');
     const curBannerHtml = String(adCfg.bannerHtml || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -6727,9 +6729,15 @@ class TienLenGame {
         <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:12px;">
           <div>
             <label style="display:block;font-weight:800;color:#e2e8f0;margin-bottom:3px;">
-              1️⃣ Link Quảng Cáo Trực Tiếp (Direct Link / Smartlink Monetag, Adsterra, Shopee...):
+              1️⃣ Link Quảng Cáo Monetag (Direct Link — Random 50% khi mở Trang Nhà Tài Trợ +2 Roll):
             </label>
-            <input type="url" id="admin-input-sponsor-url" value="${curSponsorUrl}" placeholder="Dán link Direct Link (VD: https://otieu.com/4/xxxxxxx) vào đây..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:12px;" />
+            <input type="url" id="admin-input-sponsor-url" value="${curSponsorUrl}" placeholder="Dán link Direct Link Monetag (VD: https://uplcm.com/4/12175425) vào đây..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#fff;font-size:12px;" />
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;color:#fb923c;margin-bottom:3px;">
+              🛒 Link Shopee Affiliate (Tiếp Thị Liên Kết Shopee — Random 50% với Monetag khi mở Trang Nhà Tài Trợ +2 Roll):
+            </label>
+            <input type="url" id="admin-input-shopee-url" value="${curShopeeUrl}" placeholder="Dán link Shopee Affiliate của bạn (VD: https://s.shopee.vn/xxxx) vào đây..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(251,146,60,0.5);background:rgba(15,23,42,0.9);color:#fff;font-size:12px;" />
           </div>
           <div>
             <label style="display:block;font-weight:800;color:#e2e8f0;margin-bottom:3px;">
@@ -9644,6 +9652,7 @@ class TienLenGame {
     const ad = reg.adMonetization || {};
     return {
       sponsorUrl: String(ad.sponsorUrl || 'https://uplcm.com/4/12175425').trim(),
+      shopeeUrl: String(ad.shopeeUrl || 'https://shopee.vn/').trim(),
       bannerHtml: String(ad.bannerHtml || '').trim(),
       adMode: ad.adMode || 'auto_open',
       bankCode: String(ad.bankCode || 'MB').trim().toUpperCase(),
@@ -9657,9 +9666,39 @@ class TienLenGame {
     };
   }
 
+  pickRandomSponsorPartner() {
+    const cfg = this.getAdMonetizationConfig();
+    const monetagUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
+    const shopeeUrl = String(cfg.shopeeUrl || 'https://shopee.vn/').trim();
+    const pool = [];
+    if (monetagUrl) {
+      pool.push({
+        type: 'monetag',
+        url: monetagUrl,
+        name: 'Nhà Tài Trợ Monetag',
+      });
+    }
+    if (shopeeUrl) {
+      pool.push({
+        type: 'shopee',
+        url: shopeeUrl,
+        name: 'Nhà Tài Trợ Shopee',
+      });
+    }
+    if (pool.length === 0) {
+      return {
+        type: 'monetag',
+        url: 'https://uplcm.com/4/12175425',
+        name: 'Nhà Tài Trợ',
+      };
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
   async saveAdminAdMonetizationConfig() {
     if (!this.isAdminAccount()) return;
     const urlInput = document.getElementById('admin-input-sponsor-url');
+    const shopeeInput = document.getElementById('admin-input-shopee-url');
     const modeSelect = document.getElementById('admin-select-ad-mode');
     const bannerInput = document.getElementById('admin-input-banner-html');
     const bankCodeInput = document.getElementById('admin-input-bank-code');
@@ -9668,7 +9707,8 @@ class TienLenGame {
     const contactUrlInput = document.getElementById('admin-input-contact-url');
     const btn = document.getElementById('btn-save-admin-ad-config');
 
-    const sponsorUrl = String(urlInput ? urlInput.value : '').trim();
+    const sponsorUrl = String(urlInput ? urlInput.value : '').trim() || 'https://uplcm.com/4/12175425';
+    const shopeeUrl = String(shopeeInput ? shopeeInput.value : '').trim() || 'https://shopee.vn/';
     const adMode = String(modeSelect ? modeSelect.value : 'auto_open').trim();
     const bannerHtml = String(bannerInput ? bannerInput.value : '').trim();
     const bankCode = String(bankCodeInput ? bankCodeInput.value : 'MB').trim().toUpperCase();
@@ -9686,6 +9726,7 @@ class TienLenGame {
     reg.adMonetization = {
       ...prevAd,
       sponsorUrl,
+      shopeeUrl,
       bannerHtml,
       adMode,
       bankCode,
@@ -10035,12 +10076,17 @@ class TienLenGame {
   }
 
   onClickSponsorAdLink(evt = null) {
-    const cfg = this.getAdMonetizationConfig();
-    const sponsorUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
+    const partner = this.currentSponsorOffer || this.pickRandomSponsorPartner();
+    const sponsorUrl = String(partner.url || 'https://uplcm.com/4/12175425').trim();
     this.adSponsorClickedThisSession = true;
     this.recordAdMonetizationEvent('click');
 
-    // Trên App APK / WebView / PWA Standalone: Chặn mở trang đè lên App, gửi ping ngầm và cộng thưởng ngay lập tức!
+    const btn = document.getElementById('btn-ad-open-sponsor-link');
+    if (btn && sponsorUrl) {
+      btn.href = sponsorUrl;
+    }
+
+    // Trên App APK / WebView / PWA Standalone: Chặn mở trang đè lên App, gửi ping ngầm và cộng thưởng +2 Roll ngay lập tức!
     if (window.__tlmnIsInAppOrStandalone) {
       if (evt && typeof evt.preventDefault === 'function') {
         evt.preventDefault();
@@ -10055,28 +10101,30 @@ class TienLenGame {
       }
     }
 
-    const btn = document.getElementById('btn-ad-open-sponsor-link');
     const sub = document.getElementById('ad-real-sponsor-sub');
     if (btn) {
-      btn.textContent = '✅ Đã Mở Trang Tài Trợ (+1 Roll!)';
+      btn.textContent = `✅ Đã Mở ${partner.name} (Đã Cộng +2 ROLL = +3,200 Xu!)`;
       btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
       btn.style.color = '#ffffff';
     }
     if (sub) {
-      sub.innerHTML = '🎉 <strong>Đã mở khóa thưởng!</strong> Đã cộng ngay <strong>+1 Roll (+1,600 Xu)</strong> vào túi của bạn!';
+      sub.innerHTML = `🎉 <strong>Đã mở ${partner.name}!</strong> Bạn được nhân đôi phần thưởng: cộng ngay <strong>+2 ROLL (+3,200 Xu)</strong> và bỏ qua 30s chờ!`;
     }
     if (!this.adRewardClaimed) {
       this.adRemainingSec = 0;
-      this.claimRewardedAdCoinsNow();
+      this.claimRewardedAdCoinsNow(2, partner.name);
     }
+    // Chuẩn bị random sẵn đối tác tiếp theo cho lần bấm sau
+    this.currentSponsorOffer = this.pickRandomSponsorPartner();
     return !window.__tlmnIsInAppOrStandalone;
   }
 
-  claimRewardedAdCoinsNow() {
+  claimRewardedAdCoinsNow(rollMultiplier = 1, sponsorName = '') {
     if (this.adRewardClaimed) return;
     this.adRewardClaimed = true;
     clearInterval(this.adIntervalTimer);
-    const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
+    const rollsCount = Math.max(1, Number(rollMultiplier) || 1);
+    const AD_REWARD = AD_REWARD_COINS * rollsCount; // 1 Roll = 1,600 Xu; 2 Roll = 3,200 Xu
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');
     const progressFill = document.getElementById('ad-progress-fill');
@@ -10096,21 +10144,24 @@ class TienLenGame {
     this.renderBetTiers();
     const resBal = document.getElementById('gacha-results-balance');
     if (resBal && me) resBal.textContent = me.coins.toLocaleString();
+    this.showCenterToast(`🎉 Đã cộng +${rollsCount} Roll (+${AD_REWARD.toLocaleString()} Xu) vào túi!`);
     this.addLog(
-      `🎁 <strong>Quảng Cáo Nhận Thưởng:</strong> Bạn đã nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} xu)</strong>!`,
+      rollsCount >= 2
+        ? `🎁 <strong>Mở Trang Nhà Tài Trợ (${sponsorName || 'VIP'}):</strong> Bạn vừa nhận thưởng gấp đôi <strong>+${rollsCount} Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`
+        : `🕺 <strong>Xem Quảng Cáo 30 Giây:</strong> Bạn đã xem đủ 30 giây và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`,
       'log-win'
     );
     this.syncCosmeticsInRoom();
 
     if (countdownPill) {
-      countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +1 ROLL (+${AD_REWARD.toLocaleString()} XU)!</strong>`;
+      countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +${rollsCount} ROLL (+${AD_REWARD.toLocaleString()} XU)!</strong>`;
     }
     if (skipBtn) {
-      skipBtn.textContent = `✅ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) & Đóng QC`;
+      skipBtn.textContent = `✅ Nhận +${rollsCount} Roll (${AD_REWARD.toLocaleString()} Xu) & Đóng QC`;
       skipBtn.classList.add('ready-claim');
     }
     if (toastMsg) {
-      toastMsg.innerHTML = `🎁 <strong>Hoàn tất!</strong> Tài khoản của bạn đã được cộng thêm <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
+      toastMsg.innerHTML = `🎁 <strong>Hoàn tất!</strong> Tài khoản của bạn đã được cộng thêm <strong>+${rollsCount} Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
     }
   }
 
@@ -10123,7 +10174,8 @@ class TienLenGame {
     const overlay = document.getElementById('rickroll-ad-overlay');
     if (overlay && !overlay.classList.contains('hidden') && !this.adRewardClaimed) {
       this.adRemainingSec = 0;
-      this.claimRewardedAdCoinsNow();
+      this.claimRewardedAdCoinsNow(2, 'Banner Quảng Cáo');
+      return;
     }
     const reward = AD_REWARD_COINS; // +1,600 Xu (= 1 Roll)
     const me = this.getLocalPlayer();
@@ -10164,11 +10216,13 @@ class TienLenGame {
       this.adMusicTrack = 'rickroll';
     }
 
-    const cfg = this.getAdMonetizationConfig();
-    const sponsorUrl = String(cfg.sponsorUrl || 'https://uplcm.com/4/12175425').trim();
+    // Random 50/50 giữa Monetag Direct Link và Shopee Affiliate mỗi lần mở màn hình chờ Quảng Cáo 30s!
+    this.currentSponsorOffer = this.pickRandomSponsorPartner();
+    const sponsorUrl = this.currentSponsorOffer.url;
 
-    const AD_DURATION = this.isWelkinActive() ? 1 : 10;
-    const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll)
+    const AD_DURATION = this.isWelkinActive() ? 1 : 30;
+    const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll khi xem đủ 30s)
+    const SPONSOR_REWARD = AD_REWARD_COINS * 2; // 3,200 Xu (= 2 Roll khi bấm Mở Trang Nhà Tài Trợ)
     this.adRemainingSec = AD_DURATION;
     this.adRewardClaimed = false;
     this.adSponsorClickedThisSession = false;
@@ -10181,17 +10235,16 @@ class TienLenGame {
     overlay.classList.remove('hidden');
 
     if (btnSponsor) {
-      btnSponsor.href = sponsorUrl || 'https://uplcm.com/4/12175425';
-      btnSponsor.textContent = '🚀 Mở Trang Tài Trợ (Nhận Ngay +1 Roll 0s!) ↗';
-      btnSponsor.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+      btnSponsor.href = sponsorUrl;
+      btnSponsor.textContent = `🎁 Mở Trang Nhà Tài Trợ (Nhận Ngay +2 ROLL = ${SPONSOR_REWARD.toLocaleString()} Xu!) ↗`;
+      btnSponsor.style.background = 'linear-gradient(135deg,#f59e0b,#ea580c)';
       btnSponsor.style.color = '#ffffff';
     }
     if (subSponsor) {
-      subSponsor.innerHTML =
-        '⚡ <strong>Muốn nhận ngay không cần chờ 10s?</strong> Bấm nút bên phải hoặc bấm vào <strong>Banner Quảng Cáo ở góc dưới màn hình</strong> để cộng ngay <strong>+1 Roll (+1,600 Xu)</strong>!';
+      subSponsor.innerHTML = `🔥 <strong>ƯU ĐÃI X2 THƯỞNG:</strong> Ngồi xem hết ${AD_DURATION}s nhận <strong>+1 Roll (${AD_REWARD.toLocaleString()} Xu)</strong> — Hoặc bấm <strong>Mở Trang Nhà Tài Trợ</strong> bên phải để bỏ qua ${AD_DURATION}s và nhận ngay <strong>+2 ROLL (+${SPONSOR_REWARD.toLocaleString()} Xu)!</strong>`;
     }
 
-    // Tự động làm mới Banner Quảng Cáo Góc Dưới Phải (Zone 12175813) để Monetag cộng tiền Impression ($) ngay lập tức mà không bị dính "Verify you are human"!
+    // Tự động làm mới Banner Quảng Cáo Góc Dưới Phải (Zone 12175813) để Monetag cộng tiền Impression ($) ngay lập tức!
     if (typeof window.__tlmnRefreshCornerAdBanner === 'function') {
       window.__tlmnRefreshCornerAdBanner();
     }
@@ -10207,19 +10260,20 @@ class TienLenGame {
       progressFill.style.width = '0%';
     }
     if (toastMsg) {
-      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> hoặc bấm vào Banner Quảng Cáo góc phải sẽ được cộng ngay <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
+      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> nhận <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong> • Bấm <strong>Mở Trang Nhà Tài Trợ</strong> nhận ngay <strong>+2 Roll (+${SPONSOR_REWARD.toLocaleString()} Xu)</strong>!`;
     }
 
     const verityLyricsTimeline = [
       { at: 0, text: "🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵" },
-      { at: 5, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
-      { at: 8, text: "🗼🥖 “What's the capital of France? ~ Oh, oui oui oui, it is Paris!” 🎵" },
+      { at: 8, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
+      { at: 16, text: "🗼🥖 “What's the capital of France? ~ Oh, oui oui oui, it is Paris!” 🎵" },
+      { at: 24, text: "🌟🎶 “Bấm Mở Trang Nhà Tài Trợ phía trên để nhận ngay +2 Roll không cần chờ!” 🎁" },
     ];
     const rickLyricsTimeline = [
       { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
-      { at: 3, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
-      { at: 6, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
-      { at: 8, text: '🔥 “Never gonna make you cry ~ Never gonna say goodbye!” 👑' },
+      { at: 6, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
+      { at: 14, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
+      { at: 22, text: '🔥 “Never gonna make you cry ~ Bấm Mở Trang Tài Trợ lấy ngay +2 Roll!” 👑' },
     ];
     if (lyricsSub) {
       lyricsSub.textContent =
@@ -10249,7 +10303,7 @@ class TienLenGame {
           skipBtn.textContent = `🔒 Chờ ${this.adRemainingSec}s...`;
         }
       } else {
-        this.claimRewardedAdCoinsNow();
+        this.claimRewardedAdCoinsNow(1);
       }
     }, 1000);
   }

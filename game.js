@@ -198,7 +198,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'eula', name: 'Eula (Kỵ Sĩ Sóng Nước)', desc: '[Sử Thi] Fanart Đội trưởng Đội Du Kích Kỵ Sĩ Đoàn Tây Phong.', avatarPrice: 35000, skinPrice: 50000, crest: '❄️' },
   { id: 'ganyu', name: 'Ganyu (Tuần Lộc Ánh Trăng)', desc: '[Sử Thi] Fanart tổng thư ký Nguyệt Hải Đình dịu dàng.', avatarPrice: 35000, skinPrice: 50000, crest: '🏹' },
   { id: 'kokomi', name: 'Sangonomiya Kokomi (Thánh Pháp Sư)', desc: '[Sử Thi] Fanart quân sư tối cao đảo Watatsumi.', avatarPrice: 35000, skinPrice: 50000, crest: '🫧' },
-  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Đại tiểu thư Spina di Rosula khai hỏa Pháo Dù Phỏm Pha Lê: Mặc kệ đối thủ đánh gì, chỉ cần tung Sảnh Đồng Chất hoặc Sám Cô là đều chặt đè được tất cả!', avatarPrice: 38000, skinPrice: 54000, crest: '☂️' },
+  { id: 'navia', name: 'Navia (Hội Trưởng Spina di Rosula)', desc: '[Sử Thi] Đại tiểu thư Spina di Rosula khai hỏa Pháo Dù Pha Lê: Mặc kệ đối thủ đánh gì, chỉ cần tung Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) là chặt đè được tất cả!', avatarPrice: 38000, skinPrice: 54000, crest: '☂️' },
   { id: 'shenhe', name: 'Shenhe (Cô Thần Hàn Sương)', desc: '[Sử Thi] Fanart đệ tử tiên nhân mang khí chất thoát tục.', avatarPrice: 40000, skinPrice: 56000, crest: '❄️' },
   { id: 'ayaka', name: 'Kamisato Ayaka (Bạch Hạc Sương Hoa)', desc: '[Sử Thi] Fanart đại tiểu thư Hiệp Hội Yashiro kiêu sa.', avatarPrice: 42000, skinPrice: 60000, crest: '❄️' },
   { id: 'clorinde', name: 'Clorinde (Đấu Sĩ Đại Diện)', desc: '[Sử Thi] Fanart nữ kiếm sĩ Lôi nguyên tố bất bại của Fontaine.', avatarPrice: 43000, skinPrice: 62000, crest: '⚡' },
@@ -436,7 +436,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'navia',
     name: 'Navia — Pháo Lễ Hoa Hồng Vàng',
-    desc: '[Sử Thi] Hội trưởng Spina di Rosula khai hỏa Pháo Dù Phỏm Pha Lê: Khi kích hoạt, mặc kệ đối thủ đánh bài gì trên bàn, chỉ cần Navia đánh ra Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) hoặc Sám Cô (giống bộ Phỏm) là đều chặt đè được tất cả (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Hội trưởng Spina di Rosula khai hỏa Pháo Dù Sảnh Đồng Chất: Khi kích hoạt, mặc kệ đối thủ đánh bài gì trên bàn, chỉ cần Navia đánh ra Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) là chặt đè được tất cả (Video + Giọng lồng tiếng thật).',
     price: 110000,
     mp4Url: 'navia_burst.mp4',
     audioUrl: 'navia_burst.ogg?v=48',
@@ -1524,8 +1524,8 @@ const CHARACTER_SKILLS = {
     id: 'navia',
     charName: 'Navia',
     icon: '☂️',
-    name: 'Pháo Dù Phỏm Pha Lê',
-    shortDesc: 'Trong lượt này: Mặc kệ đối thủ đang đánh bài gì trên bàn (Cóc lẻ, Đôi, Sảnh, Heo hay Hàng...), chỉ cần Navia đánh ra một bộ Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) hoặc Sám Cô (giống bộ Phỏm) là đều CHẶT ĐÈ được tất cả!',
+    name: 'Pháo Dù Sảnh Đồng Chất',
+    shortDesc: 'Trong lượt này: Mặc kệ đối thủ đang đánh bài gì trên bàn (Cóc lẻ, Đôi, Sám, Sảnh, Heo hay Hàng...), chỉ cần Navia đánh ra một bộ Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) là đều CHẶT ĐÈ được tất cả!',
   },
   shenhe: {
     id: 'shenhe',
@@ -2677,10 +2677,7 @@ function classifyCombo(cards) {
         highCard,
         highValue,
         highRank,
-        isNaviaPhom: true,
-        label: activeNaviaFlushStraight
-          ? `Phỏm Sám Cô ${highCard.rank} ☂️`
-          : `Sám cô ${highCard.rank}`,
+        label: `Sám cô ${highCard.rank}`,
       };
     }
   }
@@ -2908,11 +2905,11 @@ function canBeatCombo(candidate, current) {
     };
   }
 
-  // Pháo Dù Phỏm Pha Lê (Navia): Mặc kệ đối thủ đánh gì trên bàn, chỉ cần Navia đánh ra Sảnh Đồng Chất hoặc Sám Cô (bộ Phỏm) là đều CHẶT ĐÈ được tất cả!
+  // Pháo Dù Sảnh Đồng Chất (Navia): Mặc kệ đối thủ đánh gì trên bàn, chỉ cần Navia đánh ra Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) là đều CHẶT ĐÈ được tất cả!
   const isNaviaPhomChop =
     Boolean(activeNaviaFlushStraight) &&
-    (candidate.type === COMBO_TYPES.TRIPLE ||
-      (candidate.type === COMBO_TYPES.STRAIGHT && Boolean(candidate.isSameSuitStraight)));
+    candidate.type === COMBO_TYPES.STRAIGHT &&
+    Boolean(candidate.isSameSuitStraight);
   if (isNaviaPhomChop && current) {
     if (current.baizhuShielded || activeBaizhuShield) {
       return {
@@ -16844,7 +16841,7 @@ class TienLenGame {
     }
     if (this.naviaFlushStraightTurn) {
       pills.push(
-        `<span class="round-skill-pill">☂️ Pháo Dù Phỏm Pha Lê (Navia): Lượt này dùng Sảnh Đồng Chất hoặc Sám Cô chặt đè mọi bộ bài trên bàn!</span>`
+        `<span class="round-skill-pill">☂️ Pháo Dù Pha Lê (Navia): Lượt này dùng Sảnh Đồng Chất chặt đè mọi bộ bài trên bàn!</span>`
       );
     }
     if (this.naviaLockedCardIds && this.naviaLockedCardIds.size > 0) {
@@ -17442,24 +17439,24 @@ class TienLenGame {
     }
     if (charId === 'navia') {
       if (this.naviaFlushStraightTurn) {
-        return { ok: false, reason: 'Pháo Dù Phỏm Pha Lê đã bật trong lượt này' };
+        return { ok: false, reason: 'Pháo Dù Sảnh Đồng Chất đã bật trong lượt này' };
       }
       if (!this.currentCombo || this.trickOwnerId === player.id) {
         return {
           ok: false,
-          reason: 'Chỉ kích hoạt khi trên bàn đang có bộ bài của đối thủ để dùng Sảnh Đồng Chất hoặc Sám Cô chặt đè!',
+          reason: 'Chỉ kích hoạt khi trên bàn đang có bộ bài của đối thủ để dùng Sảnh Đồng Chất chặt đè!',
         };
       }
       const prevFlush = activeNaviaFlushStraight;
       activeNaviaFlushStraight = true;
       const phomMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
-        (m) => m.type === COMBO_TYPES.TRIPLE || (m.type === COMBO_TYPES.STRAIGHT && m.isSameSuitStraight)
+        (m) => m.type === COMBO_TYPES.STRAIGHT && m.isSameSuitStraight
       );
       activeNaviaFlushStraight = prevFlush;
       if (phomMoves.length === 0) {
         return {
           ok: false,
-          reason: 'Cần có ít nhất 1 bộ Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) hoặc Sám Cô (3 lá cùng số) trên tay để chặt đè!',
+          reason: 'Cần có ít nhất 1 bộ Sảnh Đồng Chất (≥ 3 lá liên tiếp cùng chất) trên tay để chặt đè!',
         };
       }
     }
@@ -18408,7 +18405,7 @@ class TienLenGame {
       this.syncRoundRuleGlobals(player.id);
       const struct = this.analyzeBotHandStructure(player.hand);
       const allPhomMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
-        (m) => m.type === COMBO_TYPES.TRIPLE || (m.type === COMBO_TYPES.STRAIGHT && m.isSameSuitStraight)
+        (m) => m.type === COMBO_TYPES.STRAIGHT && m.isSameSuitStraight
       );
       const safePhomMoves = allPhomMoves
         .filter((m) => !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)))
@@ -18424,7 +18421,7 @@ class TienLenGame {
         this.companionCardIds.clear();
         player._skillForcedComboIds = phomIds;
       }
-      skillSummary = `☂️ [Pháo Dù Phỏm Pha Lê] ${player.name} khai hỏa Pháo Dù Phỏm: Mặc kệ đối thủ vừa đánh bộ bài gì trên bàn, lượt này ${player.name} được dùng Sảnh Đồng Chất hoặc Sám Cô để chặt đè trực tiếp!`;
+      skillSummary = `☂️ [Pháo Dù Sảnh Đồng Chất] ${player.name} khai hỏa Pháo Dù Pha Lê: Mặc kệ đối thủ vừa đánh bộ bài gì trên bàn, lượt này ${player.name} được dùng Sảnh Đồng Chất để chặt đè trực tiếp!`;
     } else if (charId === 'shenhe') {
       const target =
         activeOpponents.find((p) => p.id === this.lastLoserId) ||
@@ -20168,7 +20165,8 @@ class TienLenGame {
         activeNaviaFlushStraight = true;
         const phomMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
           (m) =>
-            (m.type === COMBO_TYPES.TRIPLE || (m.type === COMBO_TYPES.STRAIGHT && m.isSameSuitStraight)) &&
+            m.type === COMBO_TYPES.STRAIGHT &&
+            m.isSameSuitStraight &&
             !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
         );
         activeNaviaFlushStraight = prevFlush;

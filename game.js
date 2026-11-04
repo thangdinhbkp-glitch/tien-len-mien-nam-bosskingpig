@@ -5409,16 +5409,29 @@ class TienLenGame {
     }
   }
 
-  claimNewAccountSessionToken() {
-    const token = `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-    const nowMs = Date.now();
+  claimNewAccountSessionToken(minTimestampMs = 0) {
+    const nowMs = Math.max(Date.now(), (Number(minTimestampMs) || 0) + 1000);
+    const token = `sess_${nowMs.toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
     this.currentSessionToken = token;
     this.sessionClaimedAtMs = nowMs;
+    this._localSessionClaimWallMs = Date.now();
     try {
       localStorage.setItem('tlmn_account_session_token_v1', token);
       localStorage.setItem('tlmn_account_session_claimed_ms_v1', String(nowMs));
     } catch (_) {}
     return token;
+  }
+
+  isCloudRoomFreshAndAlive(cloudRoom, maxIdleMs = 90000) {
+    if (!cloudRoom || cloudRoom.closed || cloudRoom.state?.closed) return false;
+    const players = Array.isArray(cloudRoom.state?.players) ? cloudRoom.state.players : [];
+    const hasActiveHuman = players.some((p) => p && p.active && !p.isBot);
+    if (!hasActiveHuman) return false;
+    const lastTs = Math.max(Number(cloudRoom.updatedAtMs) || 0, Number(cloudRoom.hostHeartbeatMs) || 0);
+    if (lastTs > 0 && Date.now() - lastTs > maxIdleMs) {
+      return false;
+    }
+    return true;
   }
 
   buildCurrentActiveActivity() {
@@ -5522,25 +5535,38 @@ class TienLenGame {
     if (!this.currentAccountUsername) return false;
     const myCleanUser = this.currentAccountUsername.trim().toLowerCase();
 
-    // 1. Nếu Máy 1 đang trong Phòng Nhiều Người Chơi (Multiplayer Room)
+    // 1. Nếu Máy 1 đang trong Phòng Nhiều Người Chơi (Multiplayer Room) còn sống thực sự
     if (activity && activity.type === 'multiplayer' && activity.roomId) {
       const cloudRoom = await this.fetchRoomStateFromCloud(activity.roomId);
-      if (cloudRoom && !cloudRoom.closed && Array.isArray(cloudRoom.state?.players)) {
+      if (
+        this.isCloudRoomFreshAndAlive(cloudRoom, 90000) &&
+        cloudRoom.state.players.some(
+          (p) =>
+            p &&
+            p.active &&
+            !p.isBot &&
+            (p.clientId === this.myClientId || String(p.accountUsername || '').trim().toLowerCase() === myCleanUser)
+        )
+      ) {
         await this.joinWifiRoom(activity.roomId, activity.roomPassword || '', true, { isAccountHandover: true });
         return true;
+      } else if (activity.roomId) {
+        this.removeRoomFromDirectory(activity.roomId).catch(() => {});
       }
     }
 
-    // 2. Dự phòng: Quét danh sách bàn trên Sảnh Đám Mây xem tài khoản này có đang ngồi trong bàn nào không
+    // 2. Dự phòng: Quét danh sách bàn trên Sảnh Đám Mây xem tài khoản này có đang ngồi trong bàn nào còn sống không
     if (!activity || activity.type !== 'solo') {
       try {
         const dirList = await this.fetchCloudRoomsDirectory();
         for (const r of dirList || []) {
           if (!r || !r.roomId || r.closed) continue;
           const rm = await this.fetchRoomStateFromCloud(r.roomId);
+          if (!this.isCloudRoomFreshAndAlive(rm, 90000)) {
+            this.removeRoomFromDirectory(r.roomId).catch(() => {});
+            continue;
+          }
           if (
-            rm &&
-            !rm.closed &&
             Array.isArray(rm.state?.players) &&
             rm.state.players.some(
               (p) => p.active && !p.isBot && String(p.accountUsername || '').trim().toLowerCase() === myCleanUser
@@ -5579,6 +5605,7 @@ class TienLenGame {
     const acc = accountsDb[usernameKey];
     if (!acc || !acc.passwordHash) return false;
     const { claimSession = false, overrideActivity = undefined } = options || {};
+    this._isPushingCloud = true;
 
     let cloudMaxRev = 0;
     let existingCloud = null;
@@ -5589,28 +5616,46 @@ class TienLenGame {
         const cloudSessionToken = existingCloud.activeSessionToken || existingCloud.profile?.activeSessionToken || '';
         const cloudSessionMs = Number(existingCloud.sessionClaimedAtMs || existingCloud.profile?.sessionClaimedAtMs) || 0;
         const cloudClientId = existingCloud.activeClientId || existingCloud.profile?.activeClientId || '';
+        const cloudDevId = existingCloud.activeDeviceId || existingCloud.profile?.activeDeviceId || '';
+        const myDevId = this.getOrCreateDeviceId();
+        const isSamePhysicalDevice =
+          (cloudDevId && cloudDevId === myDevId) || (cloudClientId && cloudClientId === this.myClientId);
+        const withinLoginGrace =
+          Boolean(this._isLoggingIn) ||
+          (this._localSessionClaimWallMs && Date.now() - this._localSessionClaimWallMs < 15000);
         const wasOfflineOrHidden = Boolean(
           this._wasDeviceInactiveOrOffline ||
             (typeof document !== 'undefined' && document.hidden) ||
             (typeof navigator !== 'undefined' && navigator.onLine === false) ||
             (this._lastActiveOnlinePullMs && Date.now() - this._lastActiveOnlinePullMs > 8000)
         );
-        if (
+        if (claimSession && usernameKey === this.currentAccountUsername && cloudSessionMs >= (Number(this.sessionClaimedAtMs) || 0)) {
+          this.claimNewAccountSessionToken(cloudSessionMs);
+        } else if (
           !claimSession &&
           usernameKey === this.currentAccountUsername &&
           cloudSessionToken &&
           this.currentSessionToken &&
           cloudSessionToken !== this.currentSessionToken &&
-          cloudSessionMs >= (Number(this.sessionClaimedAtMs) || 0) &&
-          (!cloudClientId || cloudClientId !== this.myClientId)
+          cloudSessionMs > (Number(this.sessionClaimedAtMs) || 0)
         ) {
-          if (wasOfflineOrHidden) {
+          if (isSamePhysicalDevice || withinLoginGrace) {
+            this.currentSessionToken = cloudSessionToken;
+            this.sessionClaimedAtMs = Math.max(Number(this.sessionClaimedAtMs) || 0, cloudSessionMs);
+            try {
+              localStorage.setItem('tlmn_account_session_token_v1', this.currentSessionToken);
+              localStorage.setItem('tlmn_account_session_claimed_ms_v1', String(this.sessionClaimedAtMs));
+            } catch (_) {}
+          } else if (wasOfflineOrHidden) {
             // Thiết bị 1 vừa quay lại từ trạng thái Offline/Ẩn nền sau khi Thiết bị 2 đã chơi ➔ Đồng bộ dữ liệu từ Thiết bị 2 về thay vì văng ra!
+            this._isPushingCloud = false;
             await this.pullAccountFromCloudAndSync(usernameKey, { forceCloud: true, isBootSessionClaim: true });
             return true;
+          } else {
+            this._isPushingCloud = false;
+            this.forceLogoutDueToOtherDevice(existingCloud.activeDeviceLabel || existingCloud.profile?.activeDeviceLabel || '');
+            return false;
           }
-          this.forceLogoutDueToOtherDevice(existingCloud.activeDeviceLabel || existingCloud.profile?.activeDeviceLabel || '');
-          return false;
         }
 
         cloudMaxRev = Math.max(Number(existingCloud.syncRev) || 0, Number(existingCloud.profile?.syncRev) || 0);
@@ -5685,6 +5730,10 @@ class TienLenGame {
       usernameKey === this.currentAccountUsername
         ? this.myClientId
         : acc.activeClientId || existingCloud?.activeClientId || '';
+    const resolvedDevId =
+      usernameKey === this.currentAccountUsername
+        ? myDevEntry.deviceId
+        : acc.activeDeviceId || existingCloud?.activeDeviceId || '';
     const resolvedDevLabel =
       usernameKey === this.currentAccountUsername
         ? myDevEntry.label
@@ -5693,6 +5742,7 @@ class TienLenGame {
     acc.activeSessionToken = resolvedSessionToken;
     acc.sessionClaimedAtMs = resolvedSessionMs;
     acc.activeClientId = resolvedClientId;
+    acc.activeDeviceId = resolvedDevId;
     acc.activeDeviceLabel = resolvedDevLabel;
     acc.activeActivity = activeActivity;
 
@@ -5702,6 +5752,7 @@ class TienLenGame {
       acc.profile.activeSessionToken = resolvedSessionToken;
       acc.profile.sessionClaimedAtMs = resolvedSessionMs;
       acc.profile.activeClientId = resolvedClientId;
+      acc.profile.activeDeviceId = resolvedDevId;
       acc.profile.activeDeviceLabel = resolvedDevLabel;
       acc.profile.activeActivity = activeActivity;
       acc.profile.devices = this.mergeDeviceLists(
@@ -5733,6 +5784,7 @@ class TienLenGame {
       activeSessionToken: resolvedSessionToken,
       sessionClaimedAtMs: resolvedSessionMs,
       activeClientId: resolvedClientId,
+      activeDeviceId: resolvedDevId,
       activeDeviceLabel: resolvedDevLabel,
       activeActivity,
       devices: syncedDevices,
@@ -5744,6 +5796,7 @@ class TienLenGame {
         activeSessionToken: resolvedSessionToken,
         sessionClaimedAtMs: resolvedSessionMs,
         activeClientId: resolvedClientId,
+        activeDeviceId: resolvedDevId,
         activeDeviceLabel: resolvedDevLabel,
         activeActivity,
         devices: syncedDevices,
@@ -5790,6 +5843,8 @@ class TienLenGame {
       return ok;
     } catch (_) {
       return false;
+    } finally {
+      this._isPushingCloud = false;
     }
   }
 
@@ -5851,9 +5906,12 @@ class TienLenGame {
       return (Number(b.updatedAtMs) || 0) - (Number(a.updatedAtMs) || 0);
     });
     const best = candidates[0];
-    // Giữ lại thông tin phiên đăng nhập (activeSessionToken) và ván đấu đang diễn ra (activeActivity) mới nhất
+    const bestRev = Number(best.syncRev || best.profile?.syncRev) || 0;
+    // Giữ lại thông tin phiên đăng nhập (activeSessionToken) chỉ từ bản ghi có syncRev cao nhất
     let newestSessCand = best;
     candidates.forEach((c) => {
+      const cRev = Number(c.syncRev || c.profile?.syncRev) || 0;
+      if (cRev < bestRev) return;
       const cSessMs = Number(c.sessionClaimedAtMs || c.profile?.sessionClaimedAtMs) || 0;
       const bSessMs = Number(newestSessCand.sessionClaimedAtMs || newestSessCand.profile?.sessionClaimedAtMs) || 0;
       if ((c.activeSessionToken || c.profile?.activeSessionToken) && cSessMs >= bSessMs) {
@@ -5866,11 +5924,21 @@ class TienLenGame {
       best.activeSessionToken = newestSessCand.activeSessionToken || newestSessCand.profile?.activeSessionToken || '';
       best.sessionClaimedAtMs = Number(newestSessCand.sessionClaimedAtMs || newestSessCand.profile?.sessionClaimedAtMs) || 0;
       best.activeClientId = newestSessCand.activeClientId || newestSessCand.profile?.activeClientId || '';
+      best.activeDeviceId = newestSessCand.activeDeviceId || newestSessCand.profile?.activeDeviceId || '';
       best.activeDeviceLabel = newestSessCand.activeDeviceLabel || newestSessCand.profile?.activeDeviceLabel || '';
     }
     const candWithFullActivity =
-      candidates.find((c) => (c.v || 0) >= 26 && (c.activeActivity || c.profile?.activeActivity)) ||
-      candidates.find((c) => c.activeActivity || c.profile?.activeActivity);
+      candidates.find(
+        (c) =>
+          (Number(c.syncRev || c.profile?.syncRev) || 0) >= bestRev &&
+          (c.v || 0) >= 26 &&
+          (c.activeActivity || c.profile?.activeActivity)
+      ) ||
+      candidates.find(
+        (c) =>
+          (Number(c.syncRev || c.profile?.syncRev) || 0) >= bestRev &&
+          (c.activeActivity || c.profile?.activeActivity)
+      );
     if (candWithFullActivity && !best.activeActivity) {
       best.activeActivity = candWithFullActivity.activeActivity || candWithFullActivity.profile?.activeActivity || null;
     }
@@ -5879,6 +5947,7 @@ class TienLenGame {
       best.profile.activeSessionToken = best.activeSessionToken || '';
       best.profile.sessionClaimedAtMs = best.sessionClaimedAtMs || 0;
       best.profile.activeClientId = best.activeClientId || '';
+      best.profile.activeDeviceId = best.activeDeviceId || '';
       best.profile.activeDeviceLabel = best.activeDeviceLabel || '';
       if (best.activeActivity !== undefined) {
         best.profile.activeActivity = best.activeActivity;
@@ -6140,7 +6209,7 @@ class TienLenGame {
 
   async pullAccountFromCloudAndSync(usernameKey = this.currentAccountUsername, options = {}) {
     const targetUser = (usernameKey || this.currentAccountUsername || '').trim().toLowerCase();
-    if (!targetUser || this._isPullingCloud) return false;
+    if (!targetUser || this._isPullingCloud || this._isPushingCloud || this._isLoggingIn) return false;
     const { forceCloud = false, isBootSessionClaim = false } = options || {};
     const isResumeFromOfflineOrHidden = Boolean(
       isBootSessionClaim ||
@@ -6192,6 +6261,13 @@ class TienLenGame {
       const cloudSessionToken = cloudAcc.activeSessionToken || cloudAcc.profile?.activeSessionToken || '';
       const cloudSessionMs = Number(cloudAcc.sessionClaimedAtMs || cloudAcc.profile?.sessionClaimedAtMs) || 0;
       const cloudClientId = cloudAcc.activeClientId || cloudAcc.profile?.activeClientId || '';
+      const cloudDevId = cloudAcc.activeDeviceId || cloudAcc.profile?.activeDeviceId || '';
+      const myDevId = this.getOrCreateDeviceId();
+      const isSamePhysicalDevice =
+        (cloudDevId && cloudDevId === myDevId) || (cloudClientId && cloudClientId === this.myClientId);
+      const withinLoginGrace =
+        Boolean(this._isLoggingIn) ||
+        (this._localSessionClaimWallMs && Date.now() - this._localSessionClaimWallMs < 15000);
       const cloudActivity = cloudAcc.activeActivity || cloudAcc.profile?.activeActivity || null;
       let bootHandoverActivity = null;
       let sessionHandoverFromOtherDevice = false;
@@ -6201,17 +6277,26 @@ class TienLenGame {
           (cloudSessionToken && this.currentSessionToken && cloudSessionToken !== this.currentSessionToken) ||
           (cloudClientId && cloudClientId !== this.myClientId && (!this.currentSessionToken || cloudSessionToken !== this.currentSessionToken));
 
-        if (isResumeFromOfflineOrHidden) {
+        if (isSamePhysicalDevice || withinLoginGrace) {
+          if (cloudSessionToken && cloudSessionToken !== this.currentSessionToken && cloudSessionMs > (Number(this.sessionClaimedAtMs) || 0)) {
+            this.currentSessionToken = cloudSessionToken;
+            this.sessionClaimedAtMs = Math.max(Number(this.sessionClaimedAtMs) || 0, cloudSessionMs);
+            try {
+              localStorage.setItem('tlmn_account_session_token_v1', this.currentSessionToken);
+              localStorage.setItem('tlmn_account_session_claimed_ms_v1', String(this.sessionClaimedAtMs));
+            } catch (_) {}
+          }
+        } else if (isResumeFromOfflineOrHidden) {
           // Thiết bị 1 đang Offline / Đóng app / Ẩn nền lúc Thiết bị 2 chơi và giờ mới mở lại (hoặc vừa đăng nhập):
           // -> KHÔNG bị văng ra! Tự động đồng bộ 100% những gì đã diễn ra ở Thiết bị 2 và tiếp quản phiên!
           if (isDifferentSession || !this.currentSessionToken) {
             bootHandoverActivity = cloudActivity;
             sessionHandoverFromOtherDevice = true;
-            this.claimNewAccountSessionToken();
+            this.claimNewAccountSessionToken(cloudSessionMs);
           }
         } else if (
           isDifferentSession &&
-          cloudSessionMs >= (Number(this.sessionClaimedAtMs) || 0)
+          cloudSessionMs > (Number(this.sessionClaimedAtMs) || 0)
         ) {
           // Thiết bị 1 đang thực sự Online mở màn hình ngay lúc Thiết bị 2 đăng nhập ➔ Thiết bị 1 bị văng ra ngay!
           this._isPullingCloud = false;
@@ -6233,7 +6318,6 @@ class TienLenGame {
           : Number(localAcc?.updatedAtMs) || 0;
 
       const cProf = cloudAcc.profile || {};
-      const myDevId = this.getOrCreateDeviceId();
       const cloudDevices = cProf.devices || cloudAcc.devices || [];
       const hasNewCloudUnlock =
         (!localAcc?.passwordHash && !!cloudAcc.passwordHash) ||
@@ -8853,149 +8937,162 @@ class TienLenGame {
       btnEl.textContent = '⏳ Đang tải tài khoản từ Đám Mây (Cloud)...';
     }
 
-    // Lưu tài khoản cũ trước khi chuyển
-    if (this.currentAccountUsername && this.currentAccountUsername !== usernameKey) {
-      this.saveShopProfile();
-      await this.pushAccountToCloud(this.currentAccountUsername);
-    }
-
-    const accountsDb = this.loadAccountsDb();
-    const localAcc = accountsDb[usernameKey] || null;
-    const cloudAcc = await this.fetchCloudAccount(usernameKey);
-    const targetAcc = cloudAcc || localAcc;
-
-    if (!targetAcc) {
-      if (btnEl) {
-        btnEl.disabled = false;
-        btnEl.textContent = '🔑 Đăng Nhập Vào Tài Khoản';
+    this._isLoggingIn = true;
+    try {
+      // Lưu tài khoản cũ trước khi chuyển
+      if (this.currentAccountUsername && this.currentAccountUsername !== usernameKey) {
+        this.saveShopProfile();
+        await this.pushAccountToCloud(this.currentAccountUsername);
       }
-      alert(
-        `⚠️ Không tìm thấy tài khoản "${usernameKey}" trên hệ thống Đám Mây!\n💡 Nếu bạn chưa tạo tài khoản hoặc tạo trên máy cũ lúc chưa có Cloud, hãy mở lại máy cũ 1 lần để tự động đồng bộ lên Cloud hoặc bấm sang tab "📝 Tạo Tài Khoản Mới" nhé!`
+
+      const accountsDb = this.loadAccountsDb();
+      const localAcc = accountsDb[usernameKey] || null;
+      const cloudAcc = await this.fetchCloudAccount(usernameKey);
+      const targetAcc = cloudAcc || localAcc;
+
+      if (!targetAcc) {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.textContent = '🔑 Đăng Nhập Vào Tài Khoản';
+        }
+        alert(
+          `⚠️ Không tìm thấy tài khoản "${usernameKey}" trên hệ thống Đám Mây!\n💡 Nếu bạn chưa tạo tài khoản hoặc tạo trên máy cũ lúc chưa có Cloud, hãy mở lại máy cũ 1 lần để tự động đồng bộ lên Cloud hoặc bấm sang tab "📝 Tạo Tài Khoản Mới" nhé!`
+        );
+        return;
+      }
+
+      const inputHash = this.hashAccountPassword(pass, usernameKey);
+      if (targetAcc.passwordHash !== inputHash && (!localAcc || localAcc.passwordHash !== inputHash)) {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.textContent = '🔑 Đăng Nhập Vào Tài Khoản';
+        }
+        alert('❌ Mật khẩu không chính xác! Vui lòng kiểm tra lại.');
+        return;
+      }
+
+      // Lưu lại hoạt động đang diễn ra ở Máy 1 (Phòng Nhiều Người hoặc Ván Solo đang đánh dở) trước khi Máy 2 chiếm phiên!
+      const prevActivity =
+        cloudAcc?.activeActivity ||
+        cloudAcc?.profile?.activeActivity ||
+        localAcc?.activeActivity ||
+        localAcc?.profile?.activeActivity ||
+        null;
+
+      const migKey = `tlmn_v28_migrated_${usernameKey}`;
+      const alreadyMigrated = localStorage.getItem(migKey) === '1' && (cloudAcc?.v || 0) >= 28;
+      const cloudRev = Number(cloudAcc?.syncRev || cloudAcc?.profile?.syncRev || 0);
+      const localRev = Number(localAcc?.syncRev || localAcc?.profile?.syncRev || 0);
+      const cloudTime = Number(cloudAcc?.updatedAtMs || cloudAcc?.profile?.updatedAtMs || 0);
+      const localTime = Number(localAcc?.updatedAtMs || localAcc?.profile?.updatedAtMs || 0);
+      const prevCloudSessMs = Number(cloudAcc?.sessionClaimedAtMs || cloudAcc?.profile?.sessionClaimedAtMs || 0);
+
+      // Gộp dữ liệu mới nhất giữa Cloud và Local (ưu tiên Cloud khi đăng nhập từ máy khác để 2 máy là 1 tài khoản duy nhất)
+      const preferCloudOnLogin =
+        !!cloudAcc &&
+        (this.currentAccountUsername !== usernameKey ||
+          !localAcc ||
+          (cloudRev !== localRev ? cloudRev > localRev : cloudTime >= localTime));
+      const finalProfile = this.mergeTwoAccountProfiles(
+        localAcc ? { ...(localAcc.profile || {}), updatedAtMs: localTime, syncRev: localRev } : null,
+        cloudAcc ? { ...(cloudAcc.profile || {}), updatedAtMs: cloudTime, syncRev: cloudRev } : null,
+        preferCloudOnLogin,
+        !alreadyMigrated
       );
-      return;
-    }
+      localStorage.setItem(migKey, '1');
 
-    const inputHash = this.hashAccountPassword(pass, usernameKey);
-    if (targetAcc.passwordHash !== inputHash && (!localAcc || localAcc.passwordHash !== inputHash)) {
-      if (btnEl) {
-        btnEl.disabled = false;
-        btnEl.textContent = '🔑 Đăng Nhập Vào Tài Khoản';
+      const nowStr = new Date().toLocaleString('vi-VN');
+      const resolvedLoginName = this.resolveCleanPlayerName(
+        finalProfile?.playerName || targetAcc.displayName,
+        usernameKey
+      );
+      const mergedTimestamp = Math.max(cloudTime, localTime, Date.now());
+      const mergedRev = Math.max(cloudRev, localRev, 1) + 1;
+      const myDevId = this.getOrCreateDeviceId();
+      this.claimNewAccountSessionToken(prevCloudSessMs);
+      if (finalProfile) {
+        finalProfile.playerName = resolvedLoginName;
+        finalProfile.updatedAtMs = mergedTimestamp;
+        finalProfile.syncRev = mergedRev;
+        finalProfile.activeSessionToken = this.currentSessionToken;
+        finalProfile.sessionClaimedAtMs = this.sessionClaimedAtMs;
+        finalProfile.activeClientId = this.myClientId;
+        finalProfile.activeDeviceId = myDevId;
+        finalProfile.activeActivity = prevActivity;
       }
-      alert('❌ Mật khẩu không chính xác! Vui lòng kiểm tra lại.');
-      return;
-    }
-
-    // Lưu lại hoạt động đang diễn ra ở Máy 1 (Phòng Nhiều Người hoặc Ván Solo đang đánh dở) trước khi Máy 2 chiếm phiên!
-    const prevActivity =
-      cloudAcc?.activeActivity ||
-      cloudAcc?.profile?.activeActivity ||
-      localAcc?.activeActivity ||
-      localAcc?.profile?.activeActivity ||
-      null;
-
-    const migKey = `tlmn_v28_migrated_${usernameKey}`;
-    const alreadyMigrated = localStorage.getItem(migKey) === '1' && (cloudAcc?.v || 0) >= 28;
-    const cloudRev = Number(cloudAcc?.syncRev || cloudAcc?.profile?.syncRev || 0);
-    const localRev = Number(localAcc?.syncRev || localAcc?.profile?.syncRev || 0);
-    const cloudTime = Number(cloudAcc?.updatedAtMs || cloudAcc?.profile?.updatedAtMs || 0);
-    const localTime = Number(localAcc?.updatedAtMs || localAcc?.profile?.updatedAtMs || 0);
-
-    // Gộp dữ liệu mới nhất giữa Cloud và Local (ưu tiên Cloud khi đăng nhập từ máy khác để 2 máy là 1 tài khoản duy nhất)
-    const preferCloudOnLogin =
-      !!cloudAcc &&
-      (this.currentAccountUsername !== usernameKey ||
-        !localAcc ||
-        (cloudRev !== localRev ? cloudRev > localRev : cloudTime >= localTime));
-    const finalProfile = this.mergeTwoAccountProfiles(
-      localAcc ? { ...(localAcc.profile || {}), updatedAtMs: localTime, syncRev: localRev } : null,
-      cloudAcc ? { ...(cloudAcc.profile || {}), updatedAtMs: cloudTime, syncRev: cloudRev } : null,
-      preferCloudOnLogin,
-      !alreadyMigrated
-    );
-    localStorage.setItem(migKey, '1');
-
-    const nowStr = new Date().toLocaleString('vi-VN');
-    const resolvedLoginName = this.resolveCleanPlayerName(
-      finalProfile?.playerName || targetAcc.displayName,
-      usernameKey
-    );
-    const mergedTimestamp = Math.max(cloudTime, localTime, Date.now());
-    const mergedRev = Math.max(cloudRev, localRev, 1) + 1;
-    this.claimNewAccountSessionToken();
-    if (finalProfile) {
-      finalProfile.playerName = resolvedLoginName;
-      finalProfile.updatedAtMs = mergedTimestamp;
-      finalProfile.syncRev = mergedRev;
-      finalProfile.activeSessionToken = this.currentSessionToken;
-      finalProfile.sessionClaimedAtMs = this.sessionClaimedAtMs;
-      finalProfile.activeClientId = this.myClientId;
-      finalProfile.activeActivity = prevActivity;
-    }
-    accountsDb[usernameKey] = {
-      username: usernameKey,
-      displayName: resolvedLoginName,
-      passwordHash: inputHash,
-      createdAt: targetAcc.createdAt || nowStr,
-      updatedAt: nowStr,
-      updatedAtMs: mergedTimestamp,
-      syncRev: mergedRev,
-      activeSessionToken: this.currentSessionToken,
-      sessionClaimedAtMs: this.sessionClaimedAtMs,
-      activeClientId: this.myClientId,
-      activeActivity: prevActivity,
-      profile: finalProfile,
-    };
-    this.saveAccountsDb(accountsDb);
-
-    this.clearActiveMatchSnapshot();
-    this.resetProfileMemoryToDefaults();
-    this.currentAccountUsername = usernameKey;
-    localStorage.setItem('tlmn_active_account_v1', usernameKey);
-    document.cookie = `tlmn_active_account_v1=${encodeURIComponent(usernameKey)}; path=/; max-age=31536000; SameSite=Lax`;
-    document.cookie = `tlmn_active_passhash_v1=${encodeURIComponent(inputHash)}; path=/; max-age=31536000; SameSite=Lax`;
-
-    if (finalProfile) {
-      const jsonStr = JSON.stringify({
-        ...finalProfile,
-        accountUsername: usernameKey,
+      accountsDb[usernameKey] = {
+        username: usernameKey,
+        displayName: resolvedLoginName,
+        passwordHash: inputHash,
+        createdAt: targetAcc.createdAt || nowStr,
+        updatedAt: nowStr,
         updatedAtMs: mergedTimestamp,
         syncRev: mergedRev,
-      });
-      localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
-      window.name = `TLMN_VAULT_V9:${jsonStr}`;
-      this.applyProfileDataObject(finalProfile, this.getTodayKey());
-      this.profileUpdatedAtMs = mergedTimestamp;
-      this.profileSyncRev = mergedRev;
+        activeSessionToken: this.currentSessionToken,
+        sessionClaimedAtMs: this.sessionClaimedAtMs,
+        activeClientId: this.myClientId,
+        activeDeviceId: myDevId,
+        activeActivity: prevActivity,
+        profile: finalProfile,
+      };
+      this.saveAccountsDb(accountsDb);
+
+      this.clearActiveMatchSnapshot();
+      this.resetProfileMemoryToDefaults();
+      this.currentAccountUsername = usernameKey;
+      localStorage.setItem('tlmn_active_account_v1', usernameKey);
+      document.cookie = `tlmn_active_account_v1=${encodeURIComponent(usernameKey)}; path=/; max-age=31536000; SameSite=Lax`;
+      document.cookie = `tlmn_active_passhash_v1=${encodeURIComponent(inputHash)}; path=/; max-age=31536000; SameSite=Lax`;
+
+      if (finalProfile) {
+        const jsonStr = JSON.stringify({
+          ...finalProfile,
+          accountUsername: usernameKey,
+          updatedAtMs: mergedTimestamp,
+          syncRev: mergedRev,
+        });
+        localStorage.setItem('tlmn_genshin_vault_v9', jsonStr);
+        window.name = `TLMN_VAULT_V9:${jsonStr}`;
+        this.applyProfileDataObject(finalProfile, this.getTodayKey());
+        this.profileUpdatedAtMs = mergedTimestamp;
+        this.profileSyncRev = mergedRev;
+      }
+      // QUAN TRỌNG: Phải gọi syncLoadedProfileToLivePlayer() TRƯỚC saveShopProfile để me.coins nhận đúng số Xu vừa tải từ Cloud!
+      this.syncLoadedProfileToLivePlayer();
+      this.saveShopProfile({ bumpTimestamp: false, syncCloud: false, preserveSavedCoins: true });
+      await this.pushAccountToCloud(usernameKey, { claimSession: true, overrideActivity: prevActivity });
+      this.syncLoadedProfileToLivePlayer();
+      sfx.win();
+      this.addLog(
+        `☁️ <strong>Đăng nhập Đám Mây thành công @${usernameKey} (${this.savedPlayerName})!</strong> Số dư: <strong>${this.savedCoins.toLocaleString()} Xu</strong> • Nộ 5★: <strong>${this.unlockedBursts.size}/${GENSHIN_BURSTS.length}</strong>.`,
+        'log-win'
+      );
+      this.renderAccountModal();
+      document.getElementById('account-modal')?.classList.add('hidden');
+      if (!this.tutorialCompleted && this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0) {
+        this._pendingJoinRoomParam = '';
+        this.startNewbieTutorial(1);
+        return;
+      }
+      if (!this.tutorialCompleted && this.tutorialStep >= 1 && this.tutorialStep <= 6) {
+        this.resumeNewbieTutorialOnBoot();
+        return;
+      }
+      if (this._pendingJoinRoomParam) {
+        const pendingRoom = this._pendingJoinRoomParam;
+        this._pendingJoinRoomParam = '';
+        this.openModeSetupModal('human');
+        this.searchMultiplayerRoomById(pendingRoom);
+        return;
+      }
+      await this.resumeAccountActivityFromCloud(prevActivity);
+    } finally {
+      this._isLoggingIn = false;
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.textContent = '🔑 Đăng Nhập Vào Tài Khoản';
+      }
     }
-    // QUAN TRỌNG: Phải gọi syncLoadedProfileToLivePlayer() TRƯỚC saveShopProfile để me.coins nhận đúng số Xu vừa tải từ Cloud!
-    this.syncLoadedProfileToLivePlayer();
-    this.saveShopProfile({ bumpTimestamp: false, syncCloud: false, preserveSavedCoins: true });
-    await this.pushAccountToCloud(usernameKey, { claimSession: true, overrideActivity: prevActivity });
-    this.syncLoadedProfileToLivePlayer();
-    sfx.win();
-    this.addLog(
-      `☁️ <strong>Đăng nhập Đám Mây thành công @${usernameKey} (${this.savedPlayerName})!</strong> Số dư: <strong>${this.savedCoins.toLocaleString()} Xu</strong> • Nộ 5★: <strong>${this.unlockedBursts.size}/${GENSHIN_BURSTS.length}</strong>.`,
-      'log-win'
-    );
-    this.renderAccountModal();
-    document.getElementById('account-modal')?.classList.add('hidden');
-    if (!this.tutorialCompleted && this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0) {
-      this._pendingJoinRoomParam = '';
-      this.startNewbieTutorial(1);
-      return;
-    }
-    if (!this.tutorialCompleted && this.tutorialStep >= 1 && this.tutorialStep <= 6) {
-      this.resumeNewbieTutorialOnBoot();
-      return;
-    }
-    if (this._pendingJoinRoomParam) {
-      const pendingRoom = this._pendingJoinRoomParam;
-      this._pendingJoinRoomParam = '';
-      this.openModeSetupModal('human');
-      this.searchMultiplayerRoomById(pendingRoom);
-      return;
-    }
-    await this.resumeAccountActivityFromCloud(prevActivity);
   }
 
   async changeAccountPassword() {
@@ -23075,7 +23172,7 @@ class TienLenGame {
         const savedMp = JSON.parse(rawMp);
         if (savedMp && savedMp.roomId && Date.now() - (Number(savedMp.savedAt) || 0) < 3600000) {
           const cloudRoom = await this.fetchRoomStateFromCloud(savedMp.roomId);
-          if (cloudRoom && !cloudRoom.closed && Array.isArray(cloudRoom.state?.players)) {
+          if (this.isCloudRoomFreshAndAlive(cloudRoom, 90000) && Array.isArray(cloudRoom.state?.players)) {
             const kickedList = Array.isArray(cloudRoom.state.kickedAfkClientIds)
               ? cloudRoom.state.kickedAfkClientIds
               : [];
@@ -23103,6 +23200,9 @@ class TienLenGame {
               this.clearMultiplayerSessionFromLocal();
             }
           } else {
+            if (savedMp.roomId) {
+              this.removeRoomFromDirectory(savedMp.roomId).catch(() => {});
+            }
             this.clearMultiplayerSessionFromLocal();
           }
         }
@@ -23319,6 +23419,14 @@ class TienLenGame {
     this.hostPeerId = `tlmn-bkp-room-${this.roomId}-${this.hostClaimEpoch}`;
     this.roomStateVersion = (Number(cloudRoom.version) || 1) + 1;
     this._lastRoomHumanActivityLocalMs = Date.now();
+    this._hostSessionStartedAtMs = Date.now();
+    if (!this.processedClientEventIds) this.processedClientEventIds = new Set();
+    try {
+      const priorEvts = await this.fetchCloudRoomEvents(this.roomId);
+      priorEvts.forEach((e) => {
+        if (e && e.id) this.processedClientEventIds.add(e.id);
+      });
+    } catch (_) {}
 
     this.applyRestoredRoomStateOnHost(
       cloudRoom.state,
@@ -23731,6 +23839,14 @@ class TienLenGame {
       const oldHostClientId = cloudRoom.hostClientId;
       this.isHost = true;
       this.hostClientId = this.myClientId;
+      this._hostSessionStartedAtMs = Date.now();
+      if (!this.processedClientEventIds) this.processedClientEventIds = new Set();
+      try {
+        const priorEvts = await this.fetchCloudRoomEvents(cleanCode);
+        priorEvts.forEach((e) => {
+          if (e && e.id) this.processedClientEventIds.add(e.id);
+        });
+      } catch (_) {}
       this.hostClaimEpoch =
         oldHostClientId && oldHostClientId !== this.myClientId
           ? (Number(cloudRoom.hostClaimEpoch) || 1) + 1
@@ -23770,7 +23886,9 @@ class TienLenGame {
     this.hostPeerId = cloudRoom?.hostPeerId || `tlmn-bkp-room-${cleanCode}-${this.hostClaimEpoch}`;
     this._lastObservedHostBeatVal = Number(cloudRoom?.hostHeartbeatMs) || 0;
     this._lastObservedHostBeatLocalMs = Date.now();
+    this._joinedRoomAtLocalMs = Date.now();
     this._autoRestoreTakeoverCheck = !!isAutoRestore;
+    this.lastSyncedVersion = Number(cloudRoom?.version) || 0;
     this._lastSyncedStateSig = '';
     this.isLocalAfkBotPlaying = false;
     if (this._recentlyLeftRoomIds instanceof Map) {
@@ -23848,7 +23966,7 @@ class TienLenGame {
       myExistingSeat.avatar = mySavedAvatarBeforeJoin;
       myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
     }
-    this._hasConfirmedSeatInRoom = true;
+    this._hasConfirmedSeatInRoom = false;
 
     this.saveMultiplayerSessionToLocal();
     this.updateBetBadges();
@@ -23858,6 +23976,7 @@ class TienLenGame {
       id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
       type: 'JOIN',
       clientId: this.myClientId,
+      deviceId: this.getOrCreateDeviceId(),
       preferredSeatId: this.mySeatId,
       accountUsername: this.currentAccountUsername || '',
       name: myName,
@@ -24734,6 +24853,13 @@ class TienLenGame {
 
       // Nếu Máy 2 đăng nhập cùng tài khoản của chính Chủ phòng (Máy 1) và gửi JOIN vào bàn -> Bàn giao ngay Ghế Chủ phòng cho Máy 2 và tự động đăng xuất Máy 1!
       if (seat && seat.id === this.mySeatId && evt.clientId && evt.clientId !== this.myClientId) {
+        if (this._hostSessionStartedAtMs && evt.sentAtMs && Number(evt.sentAtMs) < this._hostSessionStartedAtMs - 1500) {
+          return;
+        }
+        const myDevId = this.getOrCreateDeviceId();
+        if (evt.deviceId && evt.deviceId === myDevId) {
+          return;
+        }
         if (!this.displacedClientIds) this.displacedClientIds = {};
         this.displacedClientIds[this.myClientId] = evt.clientId;
         seat.clientId = evt.clientId;
@@ -25007,7 +25133,12 @@ class TienLenGame {
       this.leaveWifiRoom(false, '🏠 Bàn chơi đã tự động đóng và xóa khỏi Sảnh.');
       return;
     }
-    if (state.displacedClientIds && state.displacedClientIds[this.myClientId]) {
+    if (
+      state.displacedClientIds &&
+      state.displacedClientIds[this.myClientId] &&
+      state.displacedClientIds[this.myClientId] !== this.myClientId &&
+      (!this._joinedRoomAtLocalMs || Date.now() - this._joinedRoomAtLocalMs > 4000)
+    ) {
       this.forceLogoutDueToOtherDevice();
       return;
     }
@@ -25100,9 +25231,10 @@ class TienLenGame {
         if (sameAccSeat) {
           if (
             this._hasConfirmedSeatInRoom &&
-            sameAccSeat.clientId &&
-            sameAccSeat.clientId !== this.myClientId &&
-            sameAccSeat.queuedHumanReplacement?.clientId !== this.myClientId
+            state.displacedClientIds &&
+            state.displacedClientIds[this.myClientId] &&
+            state.displacedClientIds[this.myClientId] === sameAccSeat.clientId &&
+            sameAccSeat.clientId !== this.myClientId
           ) {
             this.forceLogoutDueToOtherDevice();
             return;
@@ -25114,6 +25246,28 @@ class TienLenGame {
         this.mySeatId = me.id;
         if (me.clientId === this.myClientId || me.queuedHumanReplacement?.clientId === this.myClientId) {
           this._hasConfirmedSeatInRoom = true;
+        } else if (Date.now() - (this._lastJoinRetryMs || 0) > 2500) {
+          this._lastJoinRetryMs = Date.now();
+          const myName =
+            document.getElementById('input-player-name')?.value.trim() ||
+            this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername) ||
+            'Bạn bè';
+          this.sendClientEvent({
+            id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+            type: 'JOIN',
+            clientId: this.myClientId,
+            deviceId: this.getOrCreateDeviceId(),
+            preferredSeatId: this.mySeatId,
+            accountUsername: this.currentAccountUsername || '',
+            name: myName,
+            avatar: this.equippedAvatar,
+            cardSkin: this.equippedSkin,
+            chopBurst: this.equippedChopBurst,
+            winBurst: this.equippedWinBurst,
+            activeChar: this.equippedActiveChar || 'none',
+            coins: this.savedCoins,
+            sentAtMs: Date.now(),
+          });
         }
         this.isLocalAfkBotPlaying = !!me.isAfkBotPlaying;
         if (Array.isArray(me.hand)) {
@@ -25147,6 +25301,7 @@ class TienLenGame {
               id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
               type: 'JOIN',
               clientId: this.myClientId,
+              deviceId: this.getOrCreateDeviceId(),
               preferredSeatId: this.mySeatId,
               accountUsername: this.currentAccountUsername || '',
               name: myName,
@@ -32996,7 +33151,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=205', { updateViaCache: 'none' })
+        .register('sw.js?v=206', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

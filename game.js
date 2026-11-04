@@ -504,7 +504,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'xilonen',
     name: 'Xilonen — Nhịp Điệu Dạ Hồn',
-    desc: '[Sử Thi] Bậc thầy rèn tên cổ bật bàn xoay DJ xào tung bài của mọi đối thủ (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Bậc thầy rèn tên cổ xoay đĩa DJ TUA NGƯỢC BÀN ĐẤU: Trả toàn bộ bộ bài đối thủ vừa đánh về lại tay họ, khóa cứng các lá đó trong vòng này và khôi phục bàn đấu (Video + Giọng lồng tiếng thật).',
     price: 125000,
     mp4Url: 'xilonen_burst.mp4',
     audioUrl: 'xilonen_burst.ogg?v=48',
@@ -512,8 +512,8 @@ const GENSHIN_BURSTS = [
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🐆 KỸ NĂNG NỘ • XILONEN (OCELOTLICUE POINT!)',
-    title: 'NHỊP ĐIỆU DẠ HỒN: BÀN XOAY XÀO BÀI',
-    quote: '“Bắt Nhịp Âm Thanh — Đảo Lộn Thế Cờ!”',
+    title: 'BÀN XOAY DJ: TUA NGƯỢC BÀN ĐẤU',
+    quote: '“Bắt Nhịp Âm Thanh — Tua Ngược Thế Cờ!”',
   },
   {
     id: 'citlali',
@@ -574,7 +574,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'zibai',
     name: 'Zibai — Tam Hoàng Chi Uy',
-    desc: '[Sử Thi] Tiên nhân Bạch Mã chỉ định đối thủ nhiều bài nhất phải đỡ bài kế tiếp và dựng Rào Cản Bạch Mã: Mọi đối thủ muốn đè bài trong vòng này bắt buộc phải lớn hơn tối thiểu +2 bậc số (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Tiên nhân Bạch Mã phóng nước đại qua khoảng cách số: Cho phép ghép các lá bài cách đều nhau 2, 3 hoặc 4 bậc (VD: 3-6-9-Q, 4-7-10-K, 3-5-7-9) thành bộ Sảnh Bạch Mã hợp lệ và cộng +2 bậc sức mạnh (Video + Giọng lồng tiếng thật).',
     price: 110000,
     mp4Url: 'zibai_burst.mp4',
     audioUrl: 'zibai_burst.ogg?v=54',
@@ -582,7 +582,7 @@ const GENSHIN_BURSTS = [
     theme: 'theme-geo',
     sfxType: 'raiden',
     tag: '🐎 KỸ NĂNG NỘ • ZIBAI (TRI-SPHERE EMINENCE)',
-    title: 'TIÊN NHÂN BẠCH MÃ: BẠCH MÃ VƯỢT TUYẾN',
+    title: 'TIÊN NHÂN BẠCH MÃ: BẠCH MÃ PHI NƯỚC ĐẠI',
     quote: '“Ánh Trăng Tiên Nhân — Khai Mở Thiên Địa!”',
   },
   {
@@ -1423,6 +1423,7 @@ let activeVarkaSumSlash = false;
 let activeAlhaithamAllowedRanks = null;
 let activeEmilieStepCap = false;
 let activeZibaiMinStep = false;
+let activeZibaiGallopStraight = false;
 let activeCynoRoyalBan = false;
 let activeYelanSameParity = false;
 let activeBaizhuShield = false;
@@ -1541,8 +1542,8 @@ const CHARACTER_SKILLS = {
     id: 'xilonen',
     charName: 'Xilonen',
     icon: '🐆',
-    name: 'Bàn Xoay DJ Xào Bài',
-    shortDesc: 'Thu gom mỗi đối thủ 2 lá bài ngẫu nhiên, trộn đều lên rồi chia trả lại ngẫu nhiên để phá bộ đối phương',
+    name: 'Bàn Xoay DJ: Tua Ngược Bàn Đấu',
+    shortDesc: 'Khi đối thủ vừa đánh bộ bài trên bàn: Bấm [Q] xoay đĩa DJ TUA NGƯỢC BÀN ĐẤU — trả toàn bộ lá bài vừa đánh về lại tay đối thủ đó, khóa cứng các lá đó trong vòng này và khôi phục bàn đấu về bộ trước đó (hoặc mở vòng mới)!',
   },
   citlali: {
     id: 'citlali',
@@ -1576,8 +1577,8 @@ const CHARACTER_SKILLS = {
     id: 'zibai',
     charName: 'Zibai',
     icon: '🐎',
-    name: 'Bạch Mã Vượt Tuyến',
-    shortDesc: 'Tự chọn chỉ định thẳng 1 đối thủ mục tiêu phải đỡ bài kế tiếp (lướt qua các nhà ngồi giữa) & ép mọi đối thủ muốn đè bài trong vòng này phải lớn hơn tối thiểu +2 bậc số (cấm đè đồng số hoặc +1 bậc)!',
+    name: 'Bạch Mã Phi Nước Đại',
+    shortDesc: 'Trong lượt này: Cưỡi Bạch Mã phóng qua khoảng cách số — Cho phép ghép các lá bài cách đều nhau 2, 3 hoặc 4 bậc (VD: 3-6-9-Q, 4-7-10-K, 5-8-J-A, 3-5-7-9) thành bộ Sảnh Bạch Mã hợp lệ và được cộng thêm +2 bậc sức mạnh (tối đa cấp A♥) để đè mọi Sảnh cùng độ dài!',
   },
   lauma: {
     id: 'lauma',
@@ -2777,6 +2778,42 @@ function classifyCombo(cards) {
         };
       }
     }
+    // Bạch Mã Phi Nước Đại (Zibai): Cho phép ghép các lá bài cách đều nhau 2, 3 hoặc 4 bậc thành Sảnh Bạch Mã và cộng +2 bậc sức mạnh (tối đa A♥)
+    if (activeZibaiGallopStraight) {
+      const step = sorted[1].rankIndex - sorted[0].rankIndex;
+      if (step === 2 || step === 3 || step === 4) {
+        let isGallop = true;
+        for (let i = 1; i < n; i++) {
+          if (sorted[i].rankIndex !== sorted[i - 1].rankIndex + step) {
+            isGallop = false;
+            break;
+          }
+        }
+        if (isGallop) {
+          const boostedRank = Math.min(11, highRank + 2);
+          const boostedSuit = boostedRank > highRank ? 3 : highCard.suitIndex;
+          const virtualHighCard = {
+            ...highCard,
+            rankIndex: boostedRank,
+            suitIndex: boostedSuit,
+            rank: RANKS[boostedRank],
+            suit: SUITS[boostedSuit],
+            value: boostedRank * 4 + boostedSuit,
+          };
+          return {
+            type: COMBO_TYPES.STRAIGHT,
+            cards: sorted,
+            length: n,
+            highCard: virtualHighCard,
+            highValue: virtualHighCard.value,
+            highRank: boostedRank,
+            isZibaiGallopStraight: true,
+            gallopStep: step,
+            label: `Sảnh Bạch Mã ${n} lá (${sorted.map((c) => c.rank).join('-')} ➔ Cấp ${RANKS[boostedRank]}${SUITS[boostedSuit]} 🐎)`,
+          };
+        }
+      }
+    }
   }
 
   // Vòng Lửa Thái Dương (Mavuika): Cho phép ghép Heo (2) nối liền với A và vòng qua 3-4 tạo Sảnh Vòng Tròn Xuyên Heo (VD: K-A-2, Q-K-A-2-3, A-2-3-4)
@@ -3316,6 +3353,35 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     }
   }
 
+  // Bạch Mã Phi Nước Đại (Zibai): Sinh thêm các bộ Sảnh Bạch Mã cách đều 2, 3 hoặc 4 bậc (VD: 3-6-9-Q, 4-7-10-K, 3-5-7-9)
+  if (activeZibaiGallopStraight) {
+    const pickCardForRank = (r) => {
+      if (preferredCard && preferredCard.rankIndex === r) return preferredCard;
+      return byRank[r][0];
+    };
+    for (const step of [2, 3, 4]) {
+      for (let start = 0; start <= 11 - step * 2; start++) {
+        if (byRank[start].length === 0) continue;
+        const gallopRun = [pickCardForRank(start)];
+        for (let next = start + step; next <= 11; next += step) {
+          if (byRank[next].length === 0) break;
+          const highOfNext = byRank[next][byRank[next].length - 1];
+          const lowOfNext = pickCardForRank(next);
+          const candLow = [...gallopRun, lowOfNext];
+          if (candLow.length >= 3) {
+            const gc = classifyCombo(candLow);
+            if (gc) combos.push(gc);
+          }
+          if (highOfNext.id !== lowOfNext.id && candLow.length >= 3) {
+            const gcH = classifyCombo([...gallopRun, highOfNext]);
+            if (gcH) combos.push(gcH);
+          }
+          gallopRun.push(lowOfNext);
+        }
+      }
+    }
+  }
+
   // Vòng Lửa Thái Dương (Mavuika): Sinh thêm các bộ Sảnh Vòng Tròn Xuyên Heo (VD: K-A-2, Q-K-A-2-3, A-2-3-4)
   if (activeMavuikaWrapStraight && byRank[12].length > 0) {
     const pickCardForRank = (r) => {
@@ -3650,6 +3716,8 @@ class TienLenGame {
     activeNicoleSuitOnlyRound = false;
     this.xianyunStepStraightTurn = false;
     activeXianyunStepStraight = false;
+    this.zibaiGallopStraightTurn = false;
+    activeZibaiGallopStraight = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -16783,6 +16851,11 @@ class TienLenGame {
         `<span class="round-skill-pill">🦩 Tiên Hạc Xianyun: Lượt này được đánh Sảnh Nhảy Bậc cách 2 đơn vị (VD: 3-5-7, 6-8-10)!</span>`
       );
     }
+    if (this.zibaiGallopStraightTurn) {
+      pills.push(
+        `<span class="round-skill-pill">🐎 Bạch Mã Phi Nước Đại (Zibai): Lượt này được ghép Sảnh Bạch Mã cách đều 2, 3 hoặc 4 bậc (cộng +2 bậc sức mạnh)!</span>`
+      );
+    }
     if (this.varkaSumSlashTurn) {
       pills.push(
         `<span class="round-skill-pill">🗡️ Song Kiếm Varka: Lượt này được ghép 2 Lá Lẻ khác số cộng điểm đè Bài Lẻ trên bàn!</span>`
@@ -16896,6 +16969,7 @@ class TienLenGame {
     activeVarkaSumSlash = Boolean(this.varkaSumSlashTurn);
     activeMavuikaWrapStraight = Boolean(this.mavuikaWrapStraightTurn);
     activeNaviaFlushStraight = Boolean(this.naviaFlushStraightTurn);
+    activeZibaiGallopStraight = Boolean(this.zibaiGallopStraightTurn);
     activeBaizhuShield = Boolean(
       this.baizhuShieldOwnerId !== null && this.trickOwnerId === this.baizhuShieldOwnerId
     );
@@ -17347,6 +17421,14 @@ class TienLenGame {
         return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để châm ngòi Dây Pháo Liên Hoàn!' };
       }
     }
+    if (charId === 'xilonen') {
+      if (!this.currentCombo || this.trickOwnerId === null || this.trickOwnerId === player.id) {
+        return {
+          ok: false,
+          reason: 'Chỉ kích hoạt khi đối thủ vừa đánh bộ bài trên bàn để xoay đĩa DJ TUA NGƯỢC BÀN ĐẤU trả bài về lại tay đối thủ!',
+        };
+      }
+    }
     if (charId === 'citlali') {
       if (this.citlaliPillowOwnerId !== null) {
         return { ok: false, reason: 'Gối Ôm Ký Sinh đã gắn lên đối thủ trong vòng này' };
@@ -17415,8 +17497,35 @@ class TienLenGame {
     if (charId === 'yelan' && this.yelanParityRound) {
       return { ok: false, reason: 'Sòng Bạc Dạ Lan đã mở trong vòng này' };
     }
-    if (charId === 'zibai' && this.zibaiMinStepOwnerId !== null) {
-      return { ok: false, reason: 'Bạch Mã Vượt Tuyến đã kích hoạt trong vòng này' };
+    if (charId === 'zibai') {
+      if (this.zibaiGallopStraightTurn) {
+        return { ok: false, reason: 'Bạch Mã Phi Nước Đại đã bật trong lượt này' };
+      }
+      if (this.currentCombo && this.currentCombo.type !== COMBO_TYPES.STRAIGHT) {
+        return {
+          ok: false,
+          reason: 'Bạch Mã Phi Nước Đại chỉ dùng khi mở vòng mới hoặc khi trên bàn đang đánh bộ Sảnh!',
+        };
+      }
+      if (player.hand.length < 3) {
+        return {
+          ok: false,
+          reason: 'Cần ít nhất 3 lá bài trên tay để ghép Sảnh Bạch Mã (cách đều 2, 3 hoặc 4 bậc)!',
+        };
+      }
+      const prevGallop = activeZibaiGallopStraight;
+      activeZibaiGallopStraight = true;
+      const gallopMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isZibaiGallopStraight
+      );
+      activeZibaiGallopStraight = prevGallop;
+      if (gallopMoves.length === 0) {
+        return {
+          ok: false,
+          reason:
+            'Cần có ít nhất 3 lá bài cách đều nhau 2, 3 hoặc 4 bậc (VD: 3-6-9-Q, 4-7-10-K, 3-5-7) đủ sức đánh ra bàn!',
+        };
+      }
     }
     if (charId === 'vesna' && this.vesnaSpringOwnerId !== null) {
       return { ok: false, reason: 'Gió Xuân Đoạt Cái đã kích hoạt trong vòng này' };
@@ -17675,11 +17784,6 @@ class TienLenGame {
       yelan: {
         title: '🎲 Sòng Bạc Dạ Lan — Chọn đối thủ để Thấu Thị 2 lá bài:',
         desc: 'Lật ngửa 2 lá bài trên tay đối thủ này trong 8.5s và khóa luật Chẵn/Lẻ cho cả vòng!',
-        candidates: activeOpponents,
-      },
-      zibai: {
-        title: '🐎 Bạch Mã Vượt Tuyến — Chọn đối thủ bắt buộc phải đỡ bài:',
-        desc: 'Bỏ qua các nhà ngồi giữa, chỉ định thẳng đối thủ này phải đỡ bài kế tiếp với luật +2 bậc!',
         candidates: activeOpponents,
       },
       kazuha: {
@@ -18219,45 +18323,89 @@ class TienLenGame {
       this.yoimiyaChainFuseReady = true;
       skillSummary = `🎆 [Dây Pháo Liên Hoàn] ${player.name} châm ngòi Dây Pháo: Khi đánh ra 1 lá bài (hoặc 1 Đôi) trong lượt này, tất cả các lá bài có bậc số liên tiếp ngay phía trên nó trên tay sẽ tự động bắt lửa nổ dây chuyền bay ra bàn cùng lúc và chốt bàn ở lá cao nhất!`;
     } else if (charId === 'xilonen') {
-      if (activeOpponents.length >= 2) {
-        const pool = [];
-        const takeCounts = [];
-        activeOpponents.forEach((opp) => {
-          const shuffledOpp = shuffleDeck([...opp.hand]);
-          const k = Math.min(2, shuffledOpp.length);
-          const taken = shuffledOpp.slice(0, k);
-          const takenIds = new Set(taken.map((c) => c.id));
-          opp.hand = opp.hand.filter((c) => !takenIds.has(c.id));
-          pool.push(...taken);
-          takeCounts.push({ opp, count: k });
+      const target = prevTrickOwner || activeOpponents[0];
+      if (target && this.currentCombo && Array.isArray(this.currentCombo.cards) && this.currentCombo.cards.length > 0) {
+        const oldCombo = this.currentCombo;
+        const oldLabel = oldCombo.label;
+        const rewoundCards = sortCardsAsc(oldCombo.cards).map((rc) => ({ ...rc }));
+        if (Array.isArray(this.matchGraveyardCards) && this.matchGraveyardCards.length > 0) {
+          rewoundCards.forEach((rc) => {
+            const gIdx = this.matchGraveyardCards.findIndex((gc) => gc.id === rc.id || gc.value === rc.value);
+            if (gIdx !== -1) this.matchGraveyardCards.splice(gIdx, 1);
+          });
+        }
+        if (Array.isArray(this.roundChoppableStack) && this.roundChoppableStack.length > 0) {
+          const lastStack = this.roundChoppableStack[this.roundChoppableStack.length - 1];
+          if (lastStack && lastStack.playerId === target.id) {
+            this.roundChoppableStack.pop();
+          }
+        }
+        if (!this.naviaLockedCardIds) this.naviaLockedCardIds = new Set();
+        this.naviaLockedTargetId = target.id;
+        const existingIds = new Set(target.hand.map((c) => c.id));
+        rewoundCards.forEach((rc) => {
+          if (!existingIds.has(rc.id)) {
+            target.hand.push(rc);
+            existingIds.add(rc.id);
+          }
+          this.naviaLockedCardIds.add(rc.id);
         });
-        const mixedPool = shuffleDeck(pool);
-        let offset = 0;
-        takeCounts.forEach(({ opp, count }) => {
-          const given = mixedPool.slice(offset, offset + count);
-          offset += count;
-          opp.hand.push(...given);
-          opp.hand = sortHandByMode(opp.hand, opp.id === this.mySeatId ? this.sortMode : 'asc');
-        });
-        this.selectedCardIds.clear();
-        this.companionCardIds.clear();
-        skillSummary = `🐆 [Bàn Xoay DJ Xào Bài] ${player.name} thu gom ${pool.length} lá bài của các đối thủ, trộn đều trên bàn xoay DJ rồi chia lại ngẫu nhiên phá nát bộ đối phương!`;
-      } else if (activeOpponents.length === 1) {
-        const opp = activeOpponents[0];
-        const k = Math.min(2, player.hand.length, opp.hand.length);
-        const myTaken = shuffleDeck([...player.hand]).slice(0, k);
-        const myTakenIds = new Set(myTaken.map((c) => c.id));
-        const oppTaken = shuffleDeck([...opp.hand]).slice(0, k);
-        const oppTakenIds = new Set(oppTaken.map((c) => c.id));
-        player.hand = player.hand.filter((c) => !myTakenIds.has(c.id));
-        opp.hand = opp.hand.filter((c) => !oppTakenIds.has(c.id));
-        player.hand.push(...oppTaken);
-        opp.hand.push(...myTaken);
-        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-        opp.hand = sortHandByMode(opp.hand, opp.id === this.mySeatId ? this.sortMode : 'asc');
-        this.selectedCardIds.clear();
-        this.companionCardIds.clear();
-        skillSummary = `🐆 [Bàn Xoay DJ Xào Bài] ${player.name} xào tráo ${k} lá bài ngẫu nhiên trên tay với ${k} lá bài ngẫu nhiên của ${opp.name}!`;
+        activeNaviaLockedCardIds = this.naviaLockedCardIds;
+        target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
+
+        const canRestorePrev =
+          this.previousCombo &&
+          this.previousCombo.ownerId !== undefined &&
+          this.previousCombo.ownerId !== null &&
+          this.previousCombo.ownerId !== player.id &&
+          this.previousCombo.ownerId !== target.id &&
+          getValidMoves(player.hand, this.previousCombo, this.mustPlay3Spade, false).length > 0;
+
+        if (canRestorePrev) {
+          this.currentCombo = this.previousCombo;
+          this.previousCombo = null;
+          this.trickOwnerId = this.currentCombo.ownerId;
+        } else {
+          this.currentCombo = null;
+          this.previousCombo = null;
+          this.trickOwnerId = player.id;
+          this.chopPot = 0;
+          this.lastChoppedPlayerId = null;
+          this.roundChoppableStack = [];
+          this.players.forEach((p) => {
+            if (p.active && !p.spectatingCurrentMatch && p.finishRank === null) {
+              p.passed = false;
+              p.declinedFourPairsCut = false;
+            }
+          });
+        }
+        this.syncRoundRuleGlobals(player.id);
+        const struct = this.analyzeBotHandStructure(player.hand);
+        const validAfterRewind = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false);
+        if (validAfterRewind.length > 0) {
+          const safeAfterRewind = validAfterRewind.filter(
+            (m) => !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+          );
+          const pool = safeAfterRewind.length > 0 ? safeAfterRewind : validAfterRewind;
+          pool.sort(
+            (a, b) =>
+              this.evaluateMoveBreakCost(a, struct) - this.evaluateMoveBreakCost(b, struct) ||
+              a.highValue - b.highValue
+          );
+          const chosenMove = pool[0];
+          const chosenIds = chosenMove.cards.map((c) => c.id);
+          this.selectedCardIds = new Set(chosenIds);
+          this.companionCardIds.clear();
+          player._skillForcedComboIds = chosenIds;
+        } else {
+          this.selectedCardIds.clear();
+          this.companionCardIds.clear();
+        }
+        const rewoundStr = rewoundCards.map((c) => `${c.rank}${c.suit}`).join(' ');
+        const restoreNote = this.currentCombo
+          ? `khôi phục bàn đấu về ${this.currentCombo.label}`
+          : `giành quyền mở vòng mới`;
+        skillSummary = `🐆 [Bàn Xoay DJ: Tua Ngược Bàn Đấu] ${player.name} xoay đĩa DJ tua ngược ${oldLabel}, trả toàn bộ (${rewoundStr}) về lại tay ${target.name}, khóa cứng các lá đó trong vòng này và ${restoreNote}!`;
       }
     } else if (charId === 'citlali') {
       const unpassedOpps = activeOpponents.filter((p) => !p.passed);
@@ -18328,36 +18476,31 @@ class TienLenGame {
         skillSummary = `🍰 [Tuyệt Kỹ Đôi Thông] ${player.name} lập tức thêm lá ${newCard.rank}${newCard.suit} vào tay và bỏ lá bài rác ${trashLabel} ➔ Hoàn thành ngay bộ ${setup.label}!`;
       }
     } else if (charId === 'zibai') {
-      this.zibaiMinStepOwnerId = player.id;
+      this.zibaiGallopStraightTurn = true;
+      activeZibaiGallopStraight = true;
       this.syncRoundRuleGlobals(player.id);
-      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      const candOpps = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
-      const maxCardOpp = resolveTargetOpponent(
-        candOpps,
-        (opps) => [...opps].sort((a, b) => b.hand.length - a.hand.length)[0]
+      const struct = this.analyzeBotHandStructure(player.hand);
+      const allGallopMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isZibaiGallopStraight
       );
-      let redirectNote = '';
-      if (maxCardOpp) {
-        maxCardOpp.passed = false;
-        this.zibaiRedirectTargetId = maxCardOpp.id;
-        // Các đối thủ ngồi chen giữa Zibai và người nhiều bài nhất bị Bạch Mã phóng vọt qua đầu
-        const dir = this.turnDirection === -1 ? -1 : 1;
-        const skippedNames = [];
-        for (let step = 1; step < 4; step++) {
-          const midId = (player.id + step * dir + 16) % 4;
-          if (midId === maxCardOpp.id) break;
-          const midP = this.players[midId];
-          if (midP && midP.active && midP.finishRank === null && !midP.passed && midP.hand.length > 0) {
-            midP.passed = true;
-            skippedNames.push(midP.name);
-          }
-        }
-        redirectNote =
-          skippedNames.length > 0
-            ? ` chỉ định thẳng ${maxCardOpp.name} (${maxCardOpp.hand.length} lá) phải đỡ bài kế tiếp (vượt qua ${skippedNames.join(', ')}) và`
-            : ` chỉ định ${maxCardOpp.name} (${maxCardOpp.hand.length} lá) đỡ bài kế tiếp và`;
+      const safeGallopMoves = allGallopMoves
+        .filter((m) => !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)))
+        .sort(
+          (a, b) =>
+            b.length - a.length ||
+            this.evaluateMoveBreakCost(a, struct) - this.evaluateMoveBreakCost(b, struct) ||
+            a.highValue - b.highValue
+        );
+      const chosenGallop = safeGallopMoves[0] || allGallopMoves[0];
+      let gallopNote = '';
+      if (chosenGallop) {
+        const gallopIds = chosenGallop.cards.map((c) => c.id);
+        this.selectedCardIds = new Set(gallopIds);
+        this.companionCardIds.clear();
+        player._skillForcedComboIds = gallopIds;
+        gallopNote = ` — Sẵn sàng tung ${chosenGallop.label}`;
       }
-      skillSummary = `🐎 [Bạch Mã Vượt Tuyến] ${player.name} thúc Bạch Mã${redirectNote} dựng Rào Cản Tốc Độ: Mọi đối thủ muốn đánh đè bài trong vòng này BẮT BUỘC phải lớn hơn tối thiểu +2 bậc số (CẤM đè đồng số hoặc +1 bậc)!`;
+      skillSummary = `🐎 [Bạch Mã Phi Nước Đại] ${player.name} cưỡi Bạch Mã phóng qua khoảng cách số: Cho phép ghép các lá bài cách đều nhau 2, 3 hoặc 4 bậc thành Sảnh Bạch Mã và cộng +2 bậc sức mạnh (tối đa cấp A♥)${gallopNote}!`;
     } else if (charId === 'lauma') {
       if (this.currentCombo && this.currentCombo.highRank < 12) {
         const oldLabel = this.currentCombo.label;
@@ -19405,6 +19548,8 @@ class TienLenGame {
           'tartaglia',
           'varka',
           'xianyun',
+          'zibai',
+          'xilonen',
           'nilou',
           'wriothesley',
           'durin',
@@ -19936,22 +20081,22 @@ class TienLenGame {
         }
       }
     } else if (charId === 'xilonen') {
-      if (activeOpponents.length >= 2) {
-        if ((!this.currentCombo || plannedMove) && (minOppCards <= 7 || bot.hand.length <= 8)) {
+      if (this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== bot.id) {
+        const ownerPlayer = this.players[this.trickOwnerId];
+        const ownerCards = ownerPlayer ? ownerPlayer.hand.length : 99;
+        const isBigOrDangerousCombo =
+          this.currentCombo.isBomb ||
+          this.currentCombo.highRank >= 9 ||
+          this.currentCombo.length >= 3 ||
+          ownerCards <= 4 ||
+          minOppCards <= 4;
+        const needRewind =
+          !plannedMove ||
+          plannedMove.highRank === 12 ||
+          this.evaluateMoveBreakCost(plannedMove, struct) >= 65 ||
+          ownerCards <= 3;
+        if (isBigOrDangerousCombo && needRewind) {
           shouldCast = true;
-        }
-      } else if (activeOpponents.length === 1) {
-        const hasTwos = rankCounts[12] > 0;
-        const hasBombs = struct.bombRanks.size > 0;
-        const lowCardsCount = bot.hand.filter((c) => c.rankIndex <= 6).length;
-        if (!hasBombs && (!hasTwos || minOppCards <= 5) && bot.hand.length >= 2) {
-          if (
-            minOppCards <= 6 ||
-            (!plannedMove && this.currentCombo) ||
-            lowCardsCount >= Math.ceil(bot.hand.length * 0.45)
-          ) {
-            shouldCast = true;
-          }
         }
       }
     } else if (charId === 'citlali') {
@@ -20057,13 +20202,25 @@ class TienLenGame {
         preferredIds = [pairRunSetup.trashCard.id];
       }
     } else if (charId === 'zibai') {
-      if (
-        plannedMove &&
-        unpassedOpps.length >= 1 &&
-        (plannedMove.length >= 2 || plannedMove.highRank >= 6) &&
-        (bot.hand.length <= 8 || minOppCards <= 7)
-      ) {
-        shouldCast = true;
+      const prevGallop = activeZibaiGallopStraight;
+      activeZibaiGallopStraight = true;
+      const gallopMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isZibaiGallopStraight && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+      );
+      activeZibaiGallopStraight = prevGallop;
+      if (gallopMoves.length > 0) {
+        const canInstantWinGallop = gallopMoves.some((m) => m.length === bot.hand.length);
+        const needGallopToBeatStraight =
+          this.currentCombo &&
+          this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
+          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 65);
+        const goodLeadGallop =
+          !this.currentCombo &&
+          gallopMoves.some((m) => this.evaluateMoveBreakCost(m, struct) <= 45) &&
+          (bot.hand.length <= 10 || minOppCards <= 8);
+        if (canInstantWinGallop || needGallopToBeatStraight || goodLeadGallop) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'linnea') {
       const singleNormals = sortCardsAsc(bot.hand).filter(
@@ -22970,6 +23127,7 @@ class TienLenGame {
       mualaniCrossBeatTurn: !!this.mualaniCrossBeatTurn,
       nicoleSuitOnlyRound: !!this.nicoleSuitOnlyRound,
       xianyunStepStraightTurn: !!this.xianyunStepStraightTurn,
+      zibaiGallopStraightTurn: !!this.zibaiGallopStraightTurn,
       wriothesleyPairSmashTurn: !!this.wriothesleyPairSmashTurn,
       ayatoCloneReady: !!this.ayatoCloneReady,
       arlecchinoBondOwnerId: this.arlecchinoBondOwnerId ?? null,
@@ -23682,6 +23840,8 @@ class TienLenGame {
     activeNicoleSuitOnlyRound = this.nicoleSuitOnlyRound;
     this.xianyunStepStraightTurn = !!state.xianyunStepStraightTurn;
     activeXianyunStepStraight = this.xianyunStepStraightTurn;
+    this.zibaiGallopStraightTurn = !!state.zibaiGallopStraightTurn;
+    activeZibaiGallopStraight = this.zibaiGallopStraightTurn;
     this.wriothesleyPairSmashTurn = !!state.wriothesleyPairSmashTurn;
     activeWriothesleyPairSmash = this.wriothesleyPairSmashTurn;
     this.ayatoCloneReady = !!state.ayatoCloneReady;
@@ -24389,6 +24549,8 @@ class TienLenGame {
     activeNicoleSuitOnlyRound = false;
     this.xianyunStepStraightTurn = false;
     activeXianyunStepStraight = false;
+    this.zibaiGallopStraightTurn = false;
+    activeZibaiGallopStraight = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -25015,6 +25177,7 @@ class TienLenGame {
       this.ganyuGapStraightTurn ||
       this.mualaniCrossBeatTurn ||
       this.xianyunStepStraightTurn ||
+      this.zibaiGallopStraightTurn ||
       this.wriothesleyPairSmashTurn ||
       this.varkaSumSlashTurn
     ) {
@@ -25028,6 +25191,8 @@ class TienLenGame {
       activeMualaniCrossBeat = false;
       this.xianyunStepStraightTurn = false;
       activeXianyunStepStraight = false;
+      this.zibaiGallopStraightTurn = false;
+      activeZibaiGallopStraight = false;
       this.wriothesleyPairSmashTurn = false;
       activeWriothesleyPairSmash = false;
       this.varkaSumSlashTurn = false;
@@ -25472,6 +25637,7 @@ class TienLenGame {
       }
     }
 
+    combo.ownerId = player.id;
     combo.ownerSkin = player.cardSkin || 'classic';
     combo.wasChop = !!beatCheck.isChop;
     this.previousCombo = this.currentCombo;
@@ -25612,6 +25778,7 @@ class TienLenGame {
       this.yoimiyaChainFuseReady ||
       this.columbinaExtraTurnReady ||
       this.xianyunStepStraightTurn ||
+      this.zibaiGallopStraightTurn ||
       this.varkaSumSlashTurn ||
       this.ayatoCloneReady
     ) {
@@ -25627,6 +25794,8 @@ class TienLenGame {
       this.columbinaExtraTurnReady = false;
       this.xianyunStepStraightTurn = false;
       activeXianyunStepStraight = false;
+      this.zibaiGallopStraightTurn = false;
+      activeZibaiGallopStraight = false;
       this.varkaSumSlashTurn = false;
       activeVarkaSumSlash = false;
       this.ayatoCloneReady = false;
@@ -25849,6 +26018,8 @@ class TienLenGame {
     activeNicoleSuitOnlyRound = false;
     this.xianyunStepStraightTurn = false;
     activeXianyunStepStraight = false;
+    this.zibaiGallopStraightTurn = false;
+    activeZibaiGallopStraight = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -28177,6 +28348,9 @@ class TienLenGame {
       if (this.xianyunStepStraightTurn && move.isStepStraight && !touchesBomb) {
         score += 340;
       }
+      if (this.zibaiGallopStraightTurn && move.isZibaiGallopStraight && !touchesBomb) {
+        score += 350;
+      }
       if (isYoimiyaChainActive && (move.type === COMBO_TYPES.SINGLE || move.type === COMBO_TYPES.PAIR) && !touchesBomb) {
         score += 220;
       }
@@ -28676,6 +28850,9 @@ class TienLenGame {
         if (this.xianyunStepStraightTurn && move.isStepStraight) {
           skillSynergyBonus -= 340;
         }
+        if (this.zibaiGallopStraightTurn && move.isZibaiGallopStraight) {
+          skillSynergyBonus -= 350;
+        }
         if (this.varkaSumSlashTurn && move.isVarkaSumSlash) {
           skillSynergyBonus -= 340;
         }
@@ -28750,6 +28927,7 @@ class TienLenGame {
       (this.yoimiyaChainFuseReady && activeCharId === 'yoimiya') ||
       (this.ganyuGapStraightTurn && activeCharId === 'ganyu') ||
       (this.xianyunStepStraightTurn && activeCharId === 'xianyun') ||
+      (this.zibaiGallopStraightTurn && activeCharId === 'zibai') ||
       (this.mualaniCrossBeatTurn && activeCharId === 'mualani') ||
       (this.columbinaExtraTurnReady && activeCharId === 'columbina') ||
       (this.ayatoCloneReady && activeCharId === 'ayato') ||

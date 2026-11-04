@@ -262,8 +262,8 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'ineffa', name: 'Ineffa (Cơ Khí Đồng Bộ Lôi)', desc: '[Huyền Thoại] Phát xung nhịp điện từ làm đoản mạch 1 lá bài trùng bậc số chủ lực trên tay đối thủ tụt thẳng về 3♠.', avatarPrice: 82000, skinPrice: 125000, crest: '🤖' },
   { id: 'flins', name: 'Flins (Người Giữ Đèn Ratniki)', desc: '[Huyền Thoại] Treo Ngọn Đèn Dẫn Hồn: Ngay khi có bất kỳ đối thủ nào Bỏ Lượt sẽ lập tức kết thúc vòng và cướp Cái.', avatarPrice: 88000, skinPrice: 135000, crest: '🏮' },
   { id: 'mitya', name: 'Mitya (Học Giả Nguyên Lý Biến Đổi)', desc: '[Huyền Thoại] Học giả Snezhnaya phân tích Nguyên Lý Biến Đổi: Khi đang có Sám Cô trên tay, biến 1 lá bài rác thành Tứ Quý và kích hoạt Tinh Siêu Dẫn (×10 cược).', avatarPrice: 88000, skinPrice: 135000, crest: '🧬' },
-  { id: 'lyney', name: 'Lyney (Đại Ảo Thuật Gia Fontaine)', desc: '[Huyền Thoại] Đại ảo thuật gia Đại Viện Opera Epiclese tung Trò Bịp Ba Lá: Ghép 3 lá bài bất kỳ cùng chất (Thùng 3 lá) chặt Heo (2) và đè Lẻ/Đôi/Sám/Sảnh 3 lá.', avatarPrice: 88000, skinPrice: 135000, crest: '🎩' },
-  { id: 'chiori', name: 'Chiori (Nhà Thiết Kế Chioriya)', desc: '[Huyền Thoại] Chủ tiệm Chioriya Boutique vung Song Đao: Khi có 2 bộ Sảnh 3 lá riêng biệt (VD: 3-4-5 và 6-7-8), cắt ghép Sảnh lớn nhập vào Sảnh nhỏ thành 3 Đôi Thông!', avatarPrice: 88000, skinPrice: 135000, crest: '✂️' },
+  { id: 'lyney', name: 'Lyney (Đại Ảo Thuật Gia Fontaine)', desc: '[Huyền Thoại] Đại ảo thuật gia Đại Viện Opera Epiclese tung Ảo Thuật Thùng Năm Lá: Ghép 5 lá bài bất kỳ đồng chất (Thùng 5 lá dưới Heo) đè được bất cứ bộ bài thường nào trên bàn trừ Heo (2).', avatarPrice: 88000, skinPrice: 135000, crest: '🎩' },
+  { id: 'chiori', name: 'Chiori (Nhà Thiết Kế Chioriya)', desc: '[Huyền Thoại] Chủ tiệm Chioriya Boutique vung Song Đao: Chọn 6 lá gồm 2 bộ Sảnh 3 lá riêng biệt (VD: 3-4-5 và 6-7-8), cắt ghép Sảnh lớn nhập vào Sảnh nhỏ thành 3 Đôi Thông!', avatarPrice: 88000, skinPrice: 135000, crest: '✂️' },
 ];
 
 const ANIME_CARD_SKINS = [
@@ -1254,25 +1254,25 @@ const GENSHIN_BURSTS = [
   {
     id: 'lyney',
     name: 'Lyney — Ảo Thuật Kỳ Diệu: Diễu Hành Phép Màu',
-    desc: '[Huyền Thoại] Đại ảo thuật gia Fontaine tung Trò Bịp Ba Lá: Trong lượt này, chỉ cần chọn 3 lá bài bất kỳ có CÙNG CHẤT không cần liên tiếp (Thùng 3 lá, dưới 2) là chặt đè được Heo lẻ (2) hoặc đè Bài Lẻ / Đôi / Sám Cô / Sảnh 3 lá trên bàn!',
+    desc: '[Huyền Thoại] Đại ảo thuật gia Fontaine tung Ảo Thuật Thùng Năm Lá: Trong lượt này, ghép 5 lá bài bất kỳ ĐỒNG CHẤT không cần liên tiếp (Thùng 5 lá, dưới 2) để đè BẤT CỨ bộ bài thường nào trên bàn (Lẻ, Đôi, Sám, Sảnh dài bất kỳ) TRỪ Heo (2)!',
     price: 165000,
-    mp4Url: 'lyney_burst.mp4?v=202',
-    audioUrl: 'lyney_burst.ogg?v=202',
-    posterUrl: 'fanart/lyney.jpg?v=202',
+    mp4Url: 'lyney_burst.mp4?v=203',
+    audioUrl: 'lyney_burst.ogg?v=203',
+    posterUrl: 'fanart/lyney.jpg?v=203',
     theme: 'theme-pyro',
     sfxType: 'raiden',
     tag: '🎩 KỸ NĂNG NỘ • LYNEY (WONDROUS TRICK: MIRACLE PARADE)',
-    title: 'ĐẠI ẢO THUẬT GIA: THÙNG BA LÁ CHẶT HEO',
+    title: 'ĐẠI ẢO THUẬT GIA: THÙNG NĂM LÁ ĐỒNG CHẤT',
     quote: '“Đã Đến Lúc Khép Màn — Chào Mừng Đến Với Buổi Diễu Hành Phép Màu!”',
   },
   {
     id: 'chiori',
     name: 'Chiori — Hiyoku: Song Đao Cắt Vải',
-    desc: '[Huyền Thoại] Nhà thiết kế Chioriya Boutique vung Song Đao: Khi trên tay có 2 bộ Sảnh 3 lá riêng biệt không trùng bậc số (VD: 3-4-5 và 6-7-8), cắt may 3 lá Sảnh lớn nhập vào 3 lá Sảnh nhỏ để tạo thành 3 Đôi Thông của Sảnh nhỏ (33-44-55) chặt Heo!',
+    desc: '[Huyền Thoại] Nhà thiết kế Chioriya Boutique vung Song Đao: Chọn 6 lá bài gồm 2 bộ Sảnh 3 lá riêng biệt không trùng bậc số (VD: 3-4-5 và 6-7-8), cắt may 3 lá Sảnh lớn nhập vào 3 lá Sảnh nhỏ tạo thành 3 Đôi Thông của Sảnh nhỏ (33-44-55) chặt Heo!',
     price: 165000,
-    mp4Url: 'chiori_burst.mp4?v=202',
-    audioUrl: 'chiori_burst.ogg?v=202',
-    posterUrl: 'fanart/chiori.jpg?v=202',
+    mp4Url: 'chiori_burst.mp4?v=203',
+    audioUrl: 'chiori_burst.ogg?v=203',
+    posterUrl: 'fanart/chiori.jpg?v=203',
     theme: 'theme-geo',
     sfxType: 'skirk',
     tag: '✂️ KỸ NĂNG NỘ • CHIORI (HIYOKU: TWIN BLADES)',
@@ -1975,15 +1975,15 @@ const CHARACTER_SKILLS = {
     id: 'lyney',
     charName: 'Lyney',
     icon: '🎩',
-    name: 'Trò Bịp Ba Lá: Thùng 3 Lá Chặt Heo',
-    shortDesc: 'Trong lượt này: Thay vì cần 3 Đôi Thông hay Tứ Quý, cho phép Lyney ghép 3 lá bài bất kỳ có CÙNG CHẤT không cần liên tiếp (Thùng 3 lá dưới Heo, VD: 4♥ - 9♥ - K♥) thành Bộ Bài Ảo Thuật để CHẶT HEO (2) hoặc đè Bài Lẻ / Đôi / Sám Cô / Sảnh 3 lá!',
+    name: 'Ảo Thuật Năm Lá: Thùng Đồng Chất',
+    shortDesc: 'Trong lượt này: Cho phép Lyney ghép 5 lá bài bất kỳ ĐỒNG CHẤT không cần liên tiếp (Thùng 5 lá dưới Heo, VD: 3♥-6♥-8♥-J♥-K♥) thành Thùng 5 Lá Ảo Thuật đè được BẤT CỨ bộ bài thường nào trên bàn (Lẻ, Đôi, Sám Cô, Sảnh dài bất kỳ) TRỪ Heo (2)!',
   },
   chiori: {
     id: 'chiori',
     charName: 'Chiori',
     icon: '✂️',
     name: 'Song Đao Cắt Vải: Đúc Đôi Thông',
-    shortDesc: 'Khi trên tay có 2 bộ Sảnh 3 lá riêng biệt không trùng bậc số (VD: 3-4-5 và 6-7-8, không tính 3-4-5 với 5-6-7), cắt ghép 3 lá của Sảnh lớn nhập vào 3 lá của Sảnh nhỏ để tạo thành ngay bộ 3 Đôi Thông của Sảnh nhỏ (33-44-55) chặt Heo!',
+    shortDesc: 'Chọn đúng 6 lá bài gồm 2 bộ Sảnh 3 lá riêng biệt không trùng bậc số (VD: 3-4-5 và 6-7-8, không tính 3-4-5 với 5-6-7) trên tay rồi bấm [Q]: Chiori cắt ghép 3 lá Sảnh lớn nhập vào 3 lá Sảnh nhỏ tạo thành ngay bộ 3 Đôi Thông của Sảnh nhỏ (33-44-55) chặt Heo!',
   },
 };
 
@@ -2814,21 +2814,22 @@ function classifyCombo(cards) {
     }
   }
 
-  // Trò Bịp Ba Lá (Lyney): Cho phép ghép 3 lá bài bất kỳ CÙNG CHẤT dưới Heo (2) thành Thùng 3 Lá Ảo Thuật chặt Heo như 3 Đôi Thông
-  if (n === 3 && highRank < 12 && activeLyneyThreeFlush) {
-    const isSameSuit3 = sorted.every((c) => c.suitIndex === sorted[0].suitIndex);
-    if (isSameSuit3) {
+  // Ảo Thuật Năm Lá (Lyney): Cho phép ghép 5 lá bài bất kỳ ĐỒNG CHẤT dưới Heo (2) thành Thùng 5 Lá Ảo Thuật đè mọi bộ bài thường trừ Heo
+  if (n === 5 && highRank < 12 && activeLyneyThreeFlush) {
+    const isSameSuit5 = sorted.every((c) => c.suitIndex === sorted[0].suitIndex);
+    if (isSameSuit5) {
       const flushCardsLabel = sorted.map((c) => `${c.rank}${c.suit}`).join('-');
       return {
-        type: COMBO_TYPES.THREE_PAIRS,
+        type: COMBO_TYPES.STRAIGHT,
         cards: sorted,
-        length: 3,
+        length: 5,
         highCard,
         highValue,
         highRank,
-        isBomb: true,
+        isBomb: false,
         isLyneyThreeFlush: true,
-        label: `Thùng 3 Lá Ảo Thuật (${flushCardsLabel} 🎩)`,
+        isLyneyFiveFlush: true,
+        label: `Thùng 5 Lá Ảo Thuật (${flushCardsLabel} 🎩)`,
       };
     }
   }
@@ -3031,6 +3032,33 @@ function canBeatCombo(candidate, current) {
     };
   }
 
+  // Ảo Thuật Năm Lá: Thùng Đồng Chất (Lyney): Dùng 5 lá đồng chất bất kỳ (dưới Heo) đè được BẤT CỨ bộ bài thường nào trên bàn NGOẠI TRỪ Heo (2)!
+  const isLyneyFlushChop =
+    Boolean(activeLyneyThreeFlush) && Boolean(candidate.isLyneyThreeFlush);
+  if (isLyneyFlushChop) {
+    if (!current) {
+      return { ok: true, isChop: false };
+    }
+    if (current.highRank === 12 || current.isBomb) {
+      return {
+        ok: false,
+        isChop: false,
+        reason: '🎩 Thùng 5 Lá Ảo Thuật (Lyney) đè được mọi bộ bài thường trên bàn NGOẠI TRỪ Heo (2) và Hàng!',
+      };
+    }
+    if (current.baizhuShielded || activeBaizhuShield) {
+      return {
+        ok: false,
+        isChop: false,
+        reason: '🐍 Khiên Trường Sinh (Baizhu): Bộ bài này đang được Khiên Ngọc bảo hộ — Miễn nhiễm bị chặt!',
+      };
+    }
+    return {
+      ok: true,
+      isChop: false,
+    };
+  }
+
   // Lục Đạo Độc Tôn (Shenhe): Cấm đánh Đôi, Sám Cô, Sảnh trong vòng hiện tại (chỉ được đánh Bài Lẻ hoặc Hàng chặt Heo)
   if (activeShenheSingleOnly && !candidate.isBomb && candidate.type !== COMBO_TYPES.SINGLE) {
     return {
@@ -3205,21 +3233,6 @@ function canBeatCombo(candidate, current) {
       };
     }
     return { ok: false, isChop: false };
-  }
-
-  // Trò Bịp Ba Lá (Lyney): Thùng 3 Lá Ảo Thuật ngoài chặt Heo (2) và đè 3 Đôi Thông nhỏ hơn còn có thể đè các bộ bài thường (Lẻ, Đôi, Sám Cô, Sảnh 3 lá dưới Heo) có lá cao nhất nhỏ hơn!
-  if (
-    activeLyneyThreeFlush &&
-    candidate.isLyneyThreeFlush &&
-    !current.isBomb &&
-    current.highRank < 12 &&
-    current.length <= 3 &&
-    candidate.highValue > current.highValue
-  ) {
-    return {
-      ok: true,
-      isChop: false,
-    };
   }
 
   // Cá Mập Đè Khác Loại (Mualani): Dùng bộ nhiều lá hơn (Đôi đè Lẻ, Sám/Sảnh đè Đôi, Sảnh dài đè Sảnh ngắn) có giá trị >= bộ trên bàn
@@ -3642,7 +3655,7 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     }
   }
 
-  // Trò Bịp Ba Lá (Lyney): Sinh các bộ Thùng 3 Lá cùng chất bất kỳ (dưới Heo)
+  // Ảo Thuật Năm Lá (Lyney): Sinh các bộ Thùng 5 Lá đồng chất bất kỳ (dưới Heo)
   if (activeLyneyThreeFlush) {
     const bySuit = [[], [], [], []];
     for (const c of sorted) {
@@ -3652,14 +3665,18 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     }
     for (let s = 0; s < 4; s++) {
       const suitCards = bySuit[s];
-      if (suitCards.length < 3) continue;
-      for (let a = 0; a < suitCards.length - 2; a++) {
-        for (let b = a + 1; b < suitCards.length - 1; b++) {
-          for (let cIdx = b + 1; cIdx < suitCards.length; cIdx++) {
-            const cards = [suitCards[a], suitCards[b], suitCards[cIdx]];
-            if (preferredCard && !cards.some((x) => x.id === preferredCard.id)) continue;
-            const fc = classifyCombo(cards);
-            if (fc) combos.push(fc);
+      if (suitCards.length < 5) continue;
+      for (let a = 0; a < suitCards.length - 4; a++) {
+        for (let b = a + 1; b < suitCards.length - 3; b++) {
+          for (let cIdx = b + 1; cIdx < suitCards.length - 2; cIdx++) {
+            for (let d = cIdx + 1; d < suitCards.length - 1; d++) {
+              for (let e = d + 1; e < suitCards.length; e++) {
+                const cards = [suitCards[a], suitCards[b], suitCards[cIdx], suitCards[d], suitCards[e]];
+                if (preferredCard && !cards.some((x) => x.id === preferredCard.id)) continue;
+                const fc = classifyCombo(cards);
+                if (fc) combos.push(fc);
+              }
+            }
           }
         }
       }
@@ -17262,7 +17279,7 @@ class TienLenGame {
     }
     if (this.lyneyThreeFlushTurn) {
       pills.push(
-        `<span class="round-skill-pill">🎩 Trò Bịp Ba Lá (Lyney): Lượt này được ghép 3 lá bất kỳ CÙNG CHẤT (dưới Heo) thành Thùng 3 Lá Ảo Thuật để chặt Heo (2) hoặc đè 3 Đôi Thông!</span>`
+        `<span class="round-skill-pill">🎩 Ảo Thuật Năm Lá (Lyney): Lượt này được ghép 5 lá bất kỳ ĐỒNG CHẤT (dưới Heo) thành Thùng 5 Lá Ảo Thuật đè mọi bộ bài thường trừ Heo (2)!</span>`
       );
     }
     if (this.varkaSumSlashTurn) {
@@ -18198,16 +18215,23 @@ class TienLenGame {
     }
     if (charId === 'lyney') {
       if (this.lyneyThreeFlushTurn) {
-        return { ok: false, reason: 'Trò Bịp Ba Lá đã bật trong lượt này' };
+        return { ok: false, reason: 'Ảo Thuật Thùng Năm Lá đã bật trong lượt này' };
+      }
+      if (this.currentCombo && (this.currentCombo.highRank === 12 || this.currentCombo.isBomb)) {
+        return {
+          ok: false,
+          reason: 'Thùng 5 Lá Ảo Thuật của Lyney đè được mọi bộ bài thường trên bàn NGOẠI TRỪ Heo (2) và Hàng!',
+        };
       }
       const suitCounts = [0, 0, 0, 0];
       player.hand.forEach((c) => {
         if (c.rankIndex <= 11) suitCounts[c.suitIndex]++;
       });
-      if (!suitCounts.some((cnt) => cnt >= 3)) {
+      if (!suitCounts.some((cnt) => cnt >= 5)) {
+        const maxCnt = Math.max(...suitCounts);
         return {
           ok: false,
-          reason: 'Cần có ít nhất 3 lá bài CÙNG CHẤT (♠/♣/♦/♥, dưới Heo) trên tay để Lyney ghép Thùng 3 Lá Ảo Thuật chặt Heo!',
+          reason: `Cần có ít nhất 5 lá bài ĐỒNG CHẤT (♠/♣/♦/♥, dưới Heo) trên tay để Lyney ghép Thùng 5 Lá Ảo Thuật (hiện có tối đa ${maxCnt}/5 lá cùng chất)!`,
         };
       }
       const prevLyney = activeLyneyThreeFlush;
@@ -18219,7 +18243,7 @@ class TienLenGame {
       if (flushMoves.length === 0) {
         return {
           ok: false,
-          reason: 'Chỉ kích hoạt khi trên bàn đang là Heo (2), 3 Đôi Thông nhỏ hơn, bộ bài ≤ 3 lá nhỏ hơn hoặc khi mở vòng mới để đánh Thùng 3 Lá!',
+          reason: 'Chỉ kích hoạt khi trên bàn đang là bộ bài thường (Lẻ, Đôi, Sám, Sảnh dưới Heo) hoặc khi mở vòng mới để đánh Thùng 5 Lá!',
         };
       }
     }
@@ -18230,19 +18254,64 @@ class TienLenGame {
           reason: 'Cần còn ít nhất 6 lá bài trên tay (2 bộ Sảnh 3 lá riêng biệt) để Chiori cắt ghép thành 3 Đôi Thông!',
         };
       }
-      const chioriPlan = this.findChioriTwoDisjointStraights(player.hand, this.selectedCardIds);
-      if (!chioriPlan) {
+      const anyPlan = this.findChioriTwoDisjointStraights(player.hand);
+      if (!anyPlan) {
         return {
           ok: false,
-          reason: 'Cần đang có sẵn 2 bộ Sảnh 3 lá RIÊNG BIỆT không trùng bậc nhau (VD: 3-4-5 và 6-7-8; không tính 3-4-5 và 5-6-7) dưới Heo để cắt ghép thành 3 Đôi Thông!',
+          reason: 'Cần đang có sẵn 2 bộ Sảnh 3 lá RIÊNG BIỆT không trùng bậc nhau (VD: 3-4-5 và 6-7-8; không tính 3-4-5 và 5-6-7) dưới Heo trên tay!',
         };
+      }
+      if (!player.isBot) {
+        const exactSixPlan = this.parseChioriExactSixSelectedCards(player.hand, this.selectedCardIds);
+        if (!exactSixPlan) {
+          return {
+            ok: false,
+            reason: `Hãy tự bấm chọn đúng 6 lá bài gồm 2 bộ Sảnh 3 lá RIÊNG BIỆT không trùng bậc (VD: 3-4-5 và 6-7-8) trên tay để kích hoạt Kỹ Năng [Q] (đang chọn ${this.selectedCardIds ? this.selectedCardIds.size : 0}/6 lá)!`,
+          };
+        }
       }
     }
     return { ok: true, charId };
   }
 
+  parseChioriExactSixSelectedCards(hand, selectedIds = null) {
+    if (!Array.isArray(hand) || !selectedIds) return null;
+    const selSet =
+      selectedIds instanceof Set
+        ? selectedIds
+        : Array.isArray(selectedIds)
+          ? new Set(selectedIds)
+          : new Set();
+    if (selSet.size !== 6) return null;
+    const selCards = hand.filter((c) => selSet.has(c.id));
+    if (selCards.length !== 6) return null;
+    if (selCards.some((c) => c.rankIndex < 0 || c.rankIndex >= 12)) return null;
+
+    const s = sortCardsAsc(selCards);
+    const lowCards = [s[0], s[1], s[2]];
+    const highCards = [s[3], s[4], s[5]];
+    const isLowStraight =
+      lowCards[1].rankIndex === lowCards[0].rankIndex + 1 &&
+      lowCards[2].rankIndex === lowCards[0].rankIndex + 2;
+    const isHighStraight =
+      highCards[1].rankIndex === highCards[0].rankIndex + 1 &&
+      highCards[2].rankIndex === highCards[0].rankIndex + 2;
+    // Bắt buộc 2 Sảnh 3 lá hoàn toàn RIÊNG BIỆT (highStart >= lowStart + 3, tức s[3].rankIndex > s[2].rankIndex)
+    if (!isLowStraight || !isHighStraight || highCards[0].rankIndex < lowCards[0].rankIndex + 3) {
+      return null;
+    }
+    return {
+      lowStart: lowCards[0].rankIndex,
+      highStart: highCards[0].rankIndex,
+      lowCards,
+      highCards,
+    };
+  }
+
   findChioriTwoDisjointStraights(hand, selectedIds = null) {
     if (!Array.isArray(hand) || hand.length < 6) return null;
+    const exactSix = this.parseChioriExactSixSelectedCards(hand, selectedIds);
+    if (exactSix) return exactSix;
     const selSet =
       selectedIds instanceof Set
         ? selectedIds
@@ -20203,7 +20272,7 @@ class TienLenGame {
         player._skillForcedComboIds = flushIds;
         flushNote = ` — Sẵn sàng tung ${chosenFlush.label}`;
       }
-      skillSummary = `🎩 [Trò Bịp Ba Lá] ${player.name} trình diễn ảo thuật Đại Ảo Thuật Gia: Cho phép ghép 3 lá bất kỳ CÙNG CHẤT (dưới Heo) thành Thùng 3 Lá Ảo Thuật để chặt Heo (2) hoặc đè 3 Đôi Thông${flushNote}!`;
+      skillSummary = `🎩 [Ảo Thuật Năm Lá: Thùng Đồng Chất] ${player.name} trình diễn ảo thuật Đại Ảo Thuật Gia: Cho phép ghép 5 lá bất kỳ ĐỒNG CHẤT (dưới Heo) thành Thùng 5 Lá Ảo Thuật đè mọi bộ bài thường trừ Heo (2)${flushNote}!`;
     } else if (charId === 'chiori') {
       const chioriPlan = this.findChioriTwoDisjointStraights(
         player.hand,
@@ -21644,16 +21713,17 @@ class TienLenGame {
       );
       activeLyneyThreeFlush = prevLyney;
       if (flushMoves.length > 0) {
-        const isChoppingHeoOr3Pairs =
-          this.currentCombo &&
-          ((this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank === 12) ||
-            this.currentCombo.type === COMBO_TYPES.THREE_PAIRS);
         const needFlushToBeat =
           this.currentCombo &&
-          !plannedMove &&
-          (this.currentCombo.highRank >= 7 || minOppCards <= 5);
-        const canInstantWinOrEndgame = !this.currentCombo && (bot.hand.length <= 6 || minOppCards <= 5);
-        if (isChoppingHeoOr3Pairs || needFlushToBeat || canInstantWinOrEndgame) {
+          this.currentCombo.highRank < 12 &&
+          !this.currentCombo.isBomb &&
+          (!plannedMove ||
+            plannedMove.highRank === 12 ||
+            this.evaluateMoveBreakCost(plannedMove, struct) >= 65 ||
+            this.currentCombo.highRank >= 6 ||
+            this.currentCombo.length >= 2);
+        const canInstantWinOrEndgame = !this.currentCombo && (bot.hand.length <= 8 || minOppCards <= 6);
+        if (needFlushToBeat || canInstantWinOrEndgame) {
           shouldCast = true;
         }
       }
@@ -29914,8 +29984,11 @@ class TienLenGame {
       return;
     }
 
-    // 1. NẾU MÌNH LÀ NGƯỜI ĐI TRƯỚC (MỞ VÒNG MỚI): đánh lẻ khi chọn 1 lá
-    if (!this.currentCombo) {
+    // 1. NẾU MÌNH LÀ NGƯỜI ĐI TRƯỚC (MỞ VÒNG MỚI) HOẶC ĐANG DÙNG CHIORI CHƯA TUNG NỘ (ĐỂ TỰ CHỌN 6 LÁ BÀI MỤC TIÊU):
+    const humanActiveCharId = this.getPlayerActiveCharId(human);
+    const isChioriManualTargeting =
+      humanActiveCharId === 'chiori' && !human.skillUsed && this.findChioriTwoDisjointStraights(human.hand);
+    if (!this.currentCombo || isChioriManualTargeting) {
       this.companionCardIds.clear();
       if (this.selectedCardIds.has(cardId)) {
         this.selectedCardIds.delete(cardId);
@@ -30199,6 +30272,11 @@ class TienLenGame {
             this.elCharSkillLabel.textContent = esSetup
               ? `🍰 Ghép ${esSetup.label} (+${RANKS[esSetup.targetRank]}♥) [Q]`
               : `${skill.icon} ${skill.name} [Q]`;
+          } else if (charId === 'chiori' && !human.skillUsed) {
+            const chioriSix = this.parseChioriExactSixSelectedCards(human.hand, this.selectedCardIds);
+            this.elCharSkillLabel.textContent = chioriSix
+              ? `✂️ Đúc 3 Đôi Thông (${RANKS[chioriSix.lowStart]}→${RANKS[chioriSix.lowStart + 2]}) [Q]`
+              : `✂️ Chọn 6 Lá (2 Sảnh 3) [Q]`;
           } else {
             this.elCharSkillLabel.textContent = `${skill.icon} ${skill.name} [Q]`;
           }
@@ -30212,11 +30290,30 @@ class TienLenGame {
       }
     }
 
+    const chioriTargetPlan =
+      this.getPlayerActiveCharId(human) === 'chiori' && !human.skillUsed
+        ? this.parseChioriExactSixSelectedCards(human.hand, this.selectedCardIds)
+        : null;
+
     if (selectedCards.length === 0) {
       this.elSelectedPreview.textContent = 'Chọn bài để đánh';
       this.elSelectedPreview.classList.remove('invalid');
+    } else if (chioriTargetPlan) {
+      const lowLbl = chioriTargetPlan.lowCards.map((c) => `${c.rank}${c.suit}`).join('-');
+      const highLbl = chioriTargetPlan.highCards.map((c) => `${c.rank}${c.suit}`).join('-');
+      const outLbl = `${RANKS[chioriTargetPlan.lowStart]}→${RANKS[chioriTargetPlan.lowStart + 2]}`;
+      this.elSelectedPreview.textContent = `✂️ Đã chọn 2 Sảnh riêng biệt (${lowLbl} & ${highLbl}) ➔ Bấm Kỹ Năng [Q] để đúc 3 Đôi Thông (${outLbl})!`;
+      this.elSelectedPreview.classList.remove('invalid');
     } else if (!combo) {
-      this.elSelectedPreview.textContent = `⚠️ ${selectedCards.length} lá đang chọn chưa tạo thành bộ hợp lệ`;
+      if (
+        this.getPlayerActiveCharId(human) === 'chiori' &&
+        !human.skillUsed &&
+        this.findChioriTwoDisjointStraights(human.hand)
+      ) {
+        this.elSelectedPreview.textContent = `✂️ Chiori: Đang chọn ${selectedCards.length}/6 lá — Hãy chọn đúng 2 Sảnh 3 lá riêng biệt (VD: 3-4-5 & 6-7-8) để bấm [Q]!`;
+      } else {
+        this.elSelectedPreview.textContent = `⚠️ ${selectedCards.length} lá đang chọn chưa tạo thành bộ hợp lệ`;
+      }
       this.elSelectedPreview.classList.add('invalid');
     } else {
       this.elSelectedPreview.textContent = `✅ Đang chọn: ${combo.label}`;

@@ -16,7 +16,7 @@ const INITIAL_COINS = 17000;
 const DAILY_RECOVERY_COINS = 1000;
 const MAX_DAILY_RELIEF_CLAIMS = 3;
 const MIN_BET_PER_CARD = 10;
-const MAX_BET_PER_CARD = 100;
+const MAX_BET_PER_CARD = 200;
 
 function clampBetPerCard(val) {
   const n = Math.round(Number(val) || 10);
@@ -24,7 +24,7 @@ function clampBetPerCard(val) {
 }
 
 // ============================================================================
-// 4 MỨC CƯỢC BÀN BÀI (10 • 20 • 50 • 100 XU/LÁ — ÁP DỤNG CHO CẢ ĐẤU BOT & ĐẤU NGƯỜI)
+// 5 MỨC CƯỢC BÀN BÀI (10 • 20 • 50 • 100 • 200 XU/LÁ — ÁP DỤNG CHO CẢ ĐẤU BOT & ĐẤU NGƯỜI)
 // ============================================================================
 const BET_TIERS = [
   {
@@ -58,6 +58,14 @@ const BET_TIERS = [
     betPerCard: 100,
     minCoins: 3000,
     desc: 'Cóng: 2,600 • Heo đỏ: 500',
+  },
+  {
+    id: 'ty_phu',
+    name: 'Bàn Tỷ Phú',
+    icon: '🔥',
+    betPerCard: 200,
+    minCoins: 6000,
+    desc: 'Cóng: 5,200 • Heo đỏ: 1,000',
   },
 ];
 
@@ -190,7 +198,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'linnea', name: 'Linnea (Ảo Thuật Gia Tinh Linh)', desc: '[Hiếm] Fanart thiếu nữ tinh linh duyên dáng và sắc sảo.', avatarPrice: 23000, skinPrice: 32000, crest: '🎩' },
   { id: 'citlali', name: 'Citlali (Bà Ngoại Itztli)', desc: '[Hiếm] Đại pháp sư Chủ Nhân Gió Đêm gắn Gối Ôm Ký Sinh xả bài rác ké theo mỗi lá bài đối thủ đánh ra.', avatarPrice: 25000, skinPrice: 35000, crest: '❄️' },
   { id: 'nefer', name: 'Nefer (Nữ Hoàng Sa Mạc)', desc: '[Hiếm] Fanart vẻ đẹp quyến rũ và quyền lực vùng cát vàng.', avatarPrice: 25000, skinPrice: 35000, crest: '🌙' },
-  { id: 'odette', name: 'Odette (Thiên Nga Băng Giá)', desc: '[Hiếm] Vũ công thiên nga soi Mặt Hồ Đối Xứng lật ngược 3 lá nhỏ nhất trên tay thành bài đại gia (3➔A, 4➔K, 5➔Q).', avatarPrice: 25000, skinPrice: 35000, crest: '🦢' },
+  { id: 'odette', name: 'Odette (Thiên Nga Băng Giá)', desc: '[Hiếm] Vũ công thiên nga kết hợp 4 bộ Đôi bất kỳ không cần liên tiếp thành Hàng 4 Đôi Thiên Nga chặt Heo (2).', avatarPrice: 25000, skinPrice: 35000, crest: '🦢' },
   { id: 'mualani', name: 'Mualani (Hướng Dẫn Viên Suối Nước)', desc: '[Hiếm] Fanart cô nàng lướt sóng năng động của Cư Dân Suối Nước.', avatarPrice: 26000, skinPrice: 38000, crest: '🦈' },
   { id: 'escoffier', name: 'Escoffier (Siêu Đầu Bếp Fontaine)', desc: '[Hiếm] Fanart thiên tài ẩm thực Băng nguyên tố của Fontaine.', avatarPrice: 28000, skinPrice: 40000, crest: '🍰' },
   { id: 'varesa', name: 'Varesa (Đấu Sĩ Lôi Đình)', desc: '[Sử Thi] Fanart nữ chiến binh tràn đầy năng lượng vùng Natlan.', avatarPrice: 32000, skinPrice: 45000, crest: '⚡' },
@@ -632,7 +640,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'odette',
     name: 'Odette — Vũ Khúc Thiên Nga Xanh',
-    desc: '[Huyền Thoại] Vũ công thiên nga soi Mặt Hồ Đối Xứng phản chiếu ngược 3 lá bài nhỏ nhất trên tay qua trục gương bàn bài (3➔A, 4➔K, 5➔Q, 6➔J, 7➔10, 8➔9) biến thành dàn bài đại gia (Video + Giọng lồng tiếng thật).',
+    desc: '[Huyền Thoại] Vũ công thiên nga múa Vũ Khúc Bốn Đôi: Thay vì cần 3 Đôi Thông liên tiếp, cho phép Odette ghép 4 bộ Đôi bất kỳ (dưới 2) trên tay để chặt Heo (2) và đè 3 Đôi Thông (Video + Giọng lồng tiếng thật).',
     price: 130000,
     mp4Url: 'odette_burst.mp4',
     audioUrl: 'odette_burst.ogg?v=55',
@@ -640,7 +648,7 @@ const GENSHIN_BURSTS = [
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '🦢 KỸ NĂNG NỘ • ODETTE (PRESTO: BLUEBIRD FINALE)',
-    title: 'VŨ KHÚC BĂNG GIÁ: MẶT HỒ ĐỐI XỨNG',
+    title: 'VŨ KHÚC BĂNG GIÁ: BỐN ĐÔI THIÊN NGA',
     quote: '“Điệu Múa Đêm Đông — Khép Lại Màn Nhung!”',
   },
   {
@@ -1446,6 +1454,7 @@ let activeYelanSameParity = false;
 let activeBaizhuShield = false;
 let activeMavuikaWrapStraight = false;
 let activeNaviaFlushStraight = false;
+let activeOdetteAnyFourPairs = false;
 let activeXiaoKarmaMaxRank = null;
 let activeEmilieRequiredSuit = null;
 
@@ -1622,8 +1631,8 @@ const CHARACTER_SKILLS = {
     id: 'odette',
     charName: 'Odette',
     icon: '🦢',
-    name: 'Mặt Hồ Đối Xứng',
-    shortDesc: 'Phản chiếu đối xứng 3 lá bài nhỏ nhất trên tay Odette qua trục gương bàn bài (3➔A, 4➔K, 5➔Q, 6➔J, 7➔10, 8➔9) — biến ngay các quân bài đáy sổ thành dàn bài đại gia!',
+    name: 'Vũ Khúc Bốn Đôi Thiên Nga',
+    shortDesc: 'Trong lượt này: Thay vì cần 3 Đôi Thông liên tiếp, cho phép Odette ghép 4 bộ Đôi bất kỳ không cần liên tiếp (dưới 2, VD: Đôi 3 - Đôi 6 - Đôi 9 - Đôi K) thành Hàng 4 Đôi Thiên Nga để CHẶT HEO (2) hoặc đè 3 Đôi Thông! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Lôi)',
   },
   vesna: {
     id: 'vesna',
@@ -2726,6 +2735,34 @@ function classifyCombo(cards) {
         label: `${pairCount} đôi thông (${sorted[0].rank}→${highCard.rank})`,
       };
     }
+    // Vũ Khúc Bốn Đôi Thiên Nga (Odette): Cho phép ghép 4 bộ Đôi bất kỳ (8 lá dưới Heo, không cần liên tiếp) thành Hàng 4 Đôi Thiên Nga chặt Heo như 3 Đôi Thông
+    if (n === 8 && activeOdetteAnyFourPairs) {
+      let isAnyFourPairs = true;
+      for (let i = 0; i < 8; i += 2) {
+        if (sorted[i].rankIndex !== sorted[i + 1].rankIndex) {
+          isAnyFourPairs = false;
+          break;
+        }
+        if (i > 0 && sorted[i].rankIndex === sorted[i - 2].rankIndex) {
+          isAnyFourPairs = false;
+          break;
+        }
+      }
+      if (isAnyFourPairs) {
+        const pairRanksLabel = [sorted[0].rank, sorted[2].rank, sorted[4].rank, sorted[6].rank].join('-');
+        return {
+          type: COMBO_TYPES.THREE_PAIRS,
+          cards: sorted,
+          length: 8,
+          highCard,
+          highValue,
+          highRank,
+          isBomb: true,
+          isOdetteAnyFourPairs: true,
+          label: `4 Đôi Thiên Nga (${pairRanksLabel} 🦢)`,
+        };
+      }
+    }
   }
 
   if (n >= 3 && highRank < 12) {
@@ -3054,7 +3091,10 @@ function canBeatCombo(candidate, current) {
     };
   }
 
-  if (candidate.type === current.type && candidate.length === current.length) {
+  if (
+    candidate.type === current.type &&
+    (candidate.length === current.length || candidate.type === COMBO_TYPES.THREE_PAIRS)
+  ) {
     let candRank = candidate.highRank;
     let curRank = current.highRank;
     // Thủy Triều Đảo Ngược (Kokomi): Đảo ngược sức mạnh từ 3 đến A (3 mạnh nhất = 11, A yếu nhất = 0; Heo 2 giữ nguyên = 12)
@@ -3188,7 +3228,7 @@ function canBeatCombo(candidate, current) {
     return {
       ok: true,
       isChop: true,
-      chopReason: `3 đôi thông chặt Heo ${current.highCard.suit}!`,
+      chopReason: `${candidate.label} chặt Heo ${current.highCard.suit}!`,
     };
   }
 
@@ -3481,6 +3521,44 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     }
   }
 
+  // Vũ Khúc Bốn Đôi Thiên Nga (Odette): Sinh các bộ 4 Đôi bất kỳ (8 lá dưới Heo)
+  if (activeOdetteAnyFourPairs) {
+    const pairRanks = [];
+    for (let r = 0; r <= 11; r++) {
+      if (byRank[r].length >= 2) pairRanks.push(r);
+    }
+    if (pairRanks.length >= 4) {
+      const pickPairForRank = (r, isTopPair) => {
+        const group = byRank[r];
+        if (preferredCard && preferredCard.rankIndex === r) {
+          const others = group.filter((c) => c.id !== preferredCard.id);
+          const partner = isTopPair ? others[others.length - 1] : others[0];
+          return [preferredCard, partner];
+        }
+        return isTopPair
+          ? [group[group.length - 2], group[group.length - 1]]
+          : [group[0], group[1]];
+      };
+      for (let a = 0; a < pairRanks.length - 3; a++) {
+        for (let b = a + 1; b < pairRanks.length - 2; b++) {
+          for (let cIdx = b + 1; cIdx < pairRanks.length - 1; cIdx++) {
+            for (let d = cIdx + 1; d < pairRanks.length; d++) {
+              const chosenRanks = [pairRanks[a], pairRanks[b], pairRanks[cIdx], pairRanks[d]];
+              const cards = [
+                ...pickPairForRank(chosenRanks[0], false),
+                ...pickPairForRank(chosenRanks[1], false),
+                ...pickPairForRank(chosenRanks[2], false),
+                ...pickPairForRank(chosenRanks[3], true),
+              ];
+              const sc = classifyCombo(cards);
+              if (sc) combos.push(sc);
+            }
+          }
+        }
+      }
+    }
+  }
+
   return combos.filter(Boolean);
 }
 
@@ -3739,6 +3817,8 @@ class TienLenGame {
     activeXianyunStepStraight = false;
     this.zibaiGallopStraightTurn = false;
     activeZibaiGallopStraight = false;
+    this.odetteAnyFourPairsTurn = false;
+    activeOdetteAnyFourPairs = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -17020,6 +17100,11 @@ class TienLenGame {
         `<span class="round-skill-pill">🐎 Bạch Mã Phi Nước Đại (Zibai): Lượt này được ghép Sảnh Bạch Mã cách đúng 2 số ở giữa (VD: 3-6-9-Q, 4-7-10-K, 5-8-J-A • cộng +2 bậc sức mạnh)!</span>`
       );
     }
+    if (this.odetteAnyFourPairsTurn) {
+      pills.push(
+        `<span class="round-skill-pill">🦢 Vũ Khúc Bốn Đôi Thiên Nga (Odette): Lượt này được ghép 4 bộ Đôi bất kỳ không cần liên tiếp để chặt Heo (2) hoặc đè 3 Đôi Thông!</span>`
+      );
+    }
     if (this.varkaSumSlashTurn) {
       pills.push(
         `<span class="round-skill-pill">🗡️ Song Kiếm Varka: Lượt này được ghép 2 Lá Lẻ khác số cộng điểm đè Bài Lẻ trên bàn!</span>`
@@ -17134,6 +17219,7 @@ class TienLenGame {
     activeMavuikaWrapStraight = Boolean(this.mavuikaWrapStraightTurn);
     activeNaviaFlushStraight = Boolean(this.naviaFlushStraightTurn);
     activeZibaiGallopStraight = Boolean(this.zibaiGallopStraightTurn);
+    activeOdetteAnyFourPairs = Boolean(this.odetteAnyFourPairsTurn);
     activeBaizhuShield = Boolean(
       this.baizhuShieldOwnerId !== null && this.trickOwnerId === this.baizhuShieldOwnerId
     );
@@ -17651,10 +17737,33 @@ class TienLenGame {
       return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá rác ghép thành Sám Cô / Đôi' };
     }
     if (charId === 'odette') {
-      if (!player.hand.some((c) => c.rankIndex <= 5)) {
+      if (this.odetteAnyFourPairsTurn) {
+        return { ok: false, reason: 'Vũ Khúc Bốn Đôi Thiên Nga đã bật trong lượt này' };
+      }
+      const rc = new Array(13).fill(0);
+      player.hand.forEach((c) => {
+        if (c.rankIndex <= 11) rc[c.rankIndex]++;
+      });
+      const pairRanks = [];
+      for (let r = 0; r <= 11; r++) {
+        if (rc[r] >= 2) pairRanks.push(r);
+      }
+      if (pairRanks.length < 4) {
         return {
           ok: false,
-          reason: 'Cần có ít nhất 1 lá bài nhỏ (từ 3 đến 8) trên tay để phản chiếu đối xứng qua Mặt Hồ thành bài lớn (9 ➔ A)!',
+          reason: `Cần có ít nhất 4 bộ Đôi bất kỳ (dưới Heo) trên tay để ghép thành 4 Đôi Thiên Nga chặt Heo (hiện có ${pairRanks.length}/4 Đôi)!`,
+        };
+      }
+      const prevOdette = activeOdetteAnyFourPairs;
+      activeOdetteAnyFourPairs = true;
+      const swanMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isOdetteAnyFourPairs
+      );
+      activeOdetteAnyFourPairs = prevOdette;
+      if (swanMoves.length === 0) {
+        return {
+          ok: false,
+          reason: 'Chỉ kích hoạt khi trên bàn đang là Heo (2), 3 Đôi Thông nhỏ hơn hoặc khi mở vòng mới để đánh 4 Đôi Thiên Nga!',
         };
       }
     }
@@ -18900,29 +19009,22 @@ class TienLenGame {
         }
       }
     } else if (charId === 'odette') {
-      const struct = this.analyzeBotHandStructure(player.hand);
-      const sorted = sortCardsAsc(player.hand);
-      const lowMirrorCands = sorted.filter((c) => c.rankIndex <= 5 && !struct.bombRanks.has(c.rankIndex));
-      const targets = (lowMirrorCands.length > 0 ? lowMirrorCands : sorted.filter((c) => c.rankIndex <= 5)).slice(0, 3);
-      const mirrorLogs = [];
-      const mirroredIds = [];
-      targets.forEach((c, idx) => {
-        const oldStr = `${c.rank}${c.suit}`;
-        // Trục đối xứng bàn bài: 3(0)➔A(11), 4(1)➔K(10), 5(2)➔Q(9), 6(3)➔J(8), 7(4)➔10(7), 8(5)➔9(6)
-        const newR = Math.min(11, Math.max(0, 11 - c.rankIndex));
-        c.rankIndex = newR;
-        c.rank = RANKS[newR];
-        c.value = newR * 4 + c.suitIndex;
-        c.id = `${c.rank}${c.suit}_odette_mirror_${Date.now()}_${idx}`;
-        mirrorLogs.push(`${oldStr}➔${c.rank}${c.suit}`);
-        mirroredIds.push(c.id);
-      });
-      player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-      if (mirroredIds.length > 0) {
-        this.selectedCardIds = new Set([mirroredIds[mirroredIds.length - 1]]);
+      this.odetteAnyFourPairsTurn = true;
+      activeOdetteAnyFourPairs = true;
+      this.syncRoundRuleGlobals(player.id);
+      const swanMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isOdetteAnyFourPairs
+      );
+      const chosenSwan = swanMoves[0];
+      let swanNote = '';
+      if (chosenSwan) {
+        const swanIds = chosenSwan.cards.map((c) => c.id);
+        this.selectedCardIds = new Set(swanIds);
         this.companionCardIds.clear();
+        player._skillForcedComboIds = swanIds;
+        swanNote = ` — Sẵn sàng tung ${chosenSwan.label}`;
       }
-      skillSummary = `🦢 [Mặt Hồ Đối Xứng] ${player.name} soi bóng Mặt Hồ Thiên Nga phản chiếu đối xứng ${targets.length} lá bài nhỏ nhất qua trục gương (${mirrorLogs.join(', ')})!`;
+      skillSummary = `🦢 [Vũ Khúc Bốn Đôi Thiên Nga] ${player.name} múa Vũ Khúc Thiên Nga Băng: Cho phép ghép 4 bộ Đôi bất kỳ không cần liên tiếp để chặt Heo (2) hoặc đè 3 Đôi Thông${swanNote}!`;
     } else if (charId === 'vesna') {
       this.vesnaSpringOwnerId = player.id;
       const struct = this.analyzeBotHandStructure(player.hand);
@@ -20653,16 +20755,19 @@ class TienLenGame {
         }
       }
     } else if (charId === 'odette') {
-      const lowMirrorCards = sortCardsAsc(bot.hand)
-        .filter((c) => c.rankIndex <= 5 && !struct.bombRanks.has(c.rankIndex))
-        .slice(0, 3);
-      if (lowMirrorCards.length >= 1) {
-        const mirrorIds = new Set(lowMirrorCards.map((c) => c.id));
-        const safeMirror =
-          !this.currentCombo ||
-          !plannedMove ||
-          !plannedMove.cards.some((pc) => mirrorIds.has(pc.id));
-        if (safeMirror && (lowMirrorCards.length >= 2 || bot.hand.length <= 7 || minOppCards <= 6)) {
+      const prevOdette = activeOdetteAnyFourPairs;
+      activeOdetteAnyFourPairs = true;
+      const swanMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isOdetteAnyFourPairs
+      );
+      activeOdetteAnyFourPairs = prevOdette;
+      if (swanMoves.length > 0) {
+        const isChoppingHeoOr3Pairs =
+          this.currentCombo &&
+          ((this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank === 12) ||
+            this.currentCombo.type === COMBO_TYPES.THREE_PAIRS);
+        const canInstantWinSwan = !this.currentCombo && bot.hand.length <= 9;
+        if (isChoppingHeoOr3Pairs || canInstantWinSwan) {
           shouldCast = true;
         }
       }
@@ -24843,6 +24948,8 @@ class TienLenGame {
     activeXianyunStepStraight = false;
     this.zibaiGallopStraightTurn = false;
     activeZibaiGallopStraight = false;
+    this.odetteAnyFourPairsTurn = false;
+    activeOdetteAnyFourPairs = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -25470,6 +25577,7 @@ class TienLenGame {
       this.mualaniCrossBeatTurn ||
       this.xianyunStepStraightTurn ||
       this.zibaiGallopStraightTurn ||
+      this.odetteAnyFourPairsTurn ||
       this.wriothesleyPairSmashTurn ||
       this.varkaSumSlashTurn
     ) {
@@ -25485,6 +25593,8 @@ class TienLenGame {
       activeXianyunStepStraight = false;
       this.zibaiGallopStraightTurn = false;
       activeZibaiGallopStraight = false;
+      this.odetteAnyFourPairsTurn = false;
+      activeOdetteAnyFourPairs = false;
       this.wriothesleyPairSmashTurn = false;
       activeWriothesleyPairSmash = false;
       this.varkaSumSlashTurn = false;
@@ -26074,6 +26184,7 @@ class TienLenGame {
       this.columbinaExtraTurnReady ||
       this.xianyunStepStraightTurn ||
       this.zibaiGallopStraightTurn ||
+      this.odetteAnyFourPairsTurn ||
       this.varkaSumSlashTurn ||
       this.ayatoCloneReady
     ) {
@@ -26091,6 +26202,8 @@ class TienLenGame {
       activeXianyunStepStraight = false;
       this.zibaiGallopStraightTurn = false;
       activeZibaiGallopStraight = false;
+      this.odetteAnyFourPairsTurn = false;
+      activeOdetteAnyFourPairs = false;
       this.varkaSumSlashTurn = false;
       activeVarkaSumSlash = false;
       this.ayatoCloneReady = false;
@@ -26315,6 +26428,8 @@ class TienLenGame {
     activeXianyunStepStraight = false;
     this.zibaiGallopStraightTurn = false;
     activeZibaiGallopStraight = false;
+    this.odetteAnyFourPairsTurn = false;
+    activeOdetteAnyFourPairs = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -29148,6 +29263,9 @@ class TienLenGame {
         if (this.zibaiGallopStraightTurn && move.isZibaiGallopStraight) {
           skillSynergyBonus -= 350;
         }
+        if (this.odetteAnyFourPairsTurn && move.isOdetteAnyFourPairs) {
+          skillSynergyBonus -= 650;
+        }
         if (this.varkaSumSlashTurn && move.isVarkaSumSlash) {
           skillSynergyBonus -= 340;
         }
@@ -29223,12 +29341,17 @@ class TienLenGame {
       (this.ganyuGapStraightTurn && activeCharId === 'ganyu') ||
       (this.xianyunStepStraightTurn && activeCharId === 'xianyun') ||
       (this.zibaiGallopStraightTurn && activeCharId === 'zibai') ||
+      (this.odetteAnyFourPairsTurn && activeCharId === 'odette') ||
       (this.mualaniCrossBeatTurn && activeCharId === 'mualani') ||
       (this.columbinaExtraTurnReady && activeCharId === 'columbina') ||
       (this.ayatoCloneReady && activeCharId === 'ayato') ||
       (this.varkaSumSlashTurn && activeCharId === 'varka');
 
     if (hasSkillFollowUp) {
+      if (this.odetteAnyFourPairsTurn && activeCharId === 'odette') {
+        const odetteCand = candidates.find((c) => c.move.isOdetteAnyFourPairs) || candidates[0];
+        if (odetteCand) return odetteCand.move;
+      }
       const skillCand =
         candidates.find((c) => !c.touchesBomb || sit.shouldBreakBombForEndgame) || candidates[0];
       if (skillCand && (!skillCand.touchesBomb || !sit.shouldHoldBombToBaitHeo)) {

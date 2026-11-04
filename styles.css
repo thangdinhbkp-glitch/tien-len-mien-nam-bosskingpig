@@ -2745,7 +2745,7 @@ body {
 
 .bet-tiers-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
 }
 
@@ -6907,7 +6907,7 @@ video::-internal-media-controls-loading-panel {
 
 .compact-bet-tiers-grid {
   display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
+  grid-template-columns: repeat(5, 1fr) !important;
   gap: 6px !important;
 }
 

@@ -4317,7 +4317,8 @@ class TienLenGame {
       }
       if (audioEl && burstMeta.audioUrl && sfx.enabled) {
         try {
-          audioEl.currentTime = 0;
+          const vTime = videoEl && Number.isFinite(videoEl.currentTime) && videoEl.currentTime > 0 ? videoEl.currentTime : 0;
+          audioEl.currentTime = vTime;
         } catch (_) {}
         audioEl.play().catch(() => {});
       }
@@ -4328,8 +4329,10 @@ class TienLenGame {
       videoEl.src = targetVideoSrc;
       videoEl.setAttribute('data-loaded-src', targetVideoSrc);
 
-      videoEl.muted = !sfx.enabled;
-      videoEl.volume = 0.95;
+      // Luôn tắt âm thanh nội tại của thẻ <video> vì tiếng Nộ đã được phát độc lập qua <audio id="burst-audio">
+      // Điều này giúp trình duyệt không bao giờ chặn autoplay và không bị lệch/vang 2 luồng tiếng!
+      videoEl.muted = true;
+      videoEl.volume = 0;
 
       let frameRevealed = false;
       const revealVideoFrame = () => {
@@ -4344,23 +4347,20 @@ class TienLenGame {
         triggerSyncedBurstAudio();
       };
 
-      // Hiển thị thẻ <video> mới tạo và phát tiếng Nộ ngay khi khung hình đầu tiên sẵn sàng (tương thích 100% cả PC và trình duyệt Điện thoại iOS/Android)
+      // Chỉ hiển thị video và phát tiếng Nộ ĐÚNG KHOẢNH KHẮC video thực sự bắt đầu chạy hình (onplaying / currentTime > 0)
       if (typeof videoEl.requestVideoFrameCallback === 'function') {
         videoEl.requestVideoFrameCallback(() => {
-          revealVideoFrame();
+          if (seqId !== this._burstSeqId) return;
+          if (!videoEl.paused) {
+            startDurationCountdown();
+            revealVideoFrame();
+          }
         });
       }
-      videoEl.onloadeddata = () => {
-        if (seqId !== this._burstSeqId) return;
-        revealVideoFrame();
-      };
-      videoEl.oncanplay = () => {
-        if (seqId !== this._burstSeqId) return;
-        revealVideoFrame();
-      };
       videoEl.ontimeupdate = () => {
         if (seqId !== this._burstSeqId) return;
         if (videoEl.currentTime > 0.01) {
+          startDurationCountdown();
           revealVideoFrame();
         }
       };
@@ -4377,12 +4377,7 @@ class TienLenGame {
         playPromise.catch(() => {
           if (seqId !== this._burstSeqId) return;
           videoEl.muted = true;
-          revealVideoFrame();
-          startDurationCountdown();
-          videoEl.play().catch(() => {
-            revealVideoFrame();
-            startDurationCountdown();
-          });
+          videoEl.play().catch(() => {});
         });
       }
     } else {
@@ -31819,7 +31814,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 199;
+const CLIENT_BUILD_VERSION = 200;
 
 // Tự động Fallback sang Cloud CDN (tienlenmiennamgenshin.web.app) nếu bản EXE / APK trên máy tính thiếu tệp ảnh/video nhân vật mới cập nhật!
 window.addEventListener(
@@ -31864,7 +31859,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=199', { updateViaCache: 'none' })
+        .register('sw.js?v=200', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

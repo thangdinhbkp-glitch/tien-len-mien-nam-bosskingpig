@@ -504,7 +504,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'xilonen',
     name: 'Xilonen — Nhịp Điệu Dạ Hồn',
-    desc: '[Sử Thi] Bậc thầy rèn tên cổ xoay đĩa DJ TUA NGƯỢC BÀN ĐẤU: Trả toàn bộ bộ bài đối thủ vừa đánh về lại tay họ, khóa cứng các lá đó trong vòng này và khôi phục bàn đấu (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Bậc thầy rèn tên cổ xoay đĩa DJ TUA NGƯỢC BÀN ĐẤU: Trả toàn bộ bộ bài đối thủ vừa đánh về lại tay họ, khóa cứng các lá đó chỉ trong vòng này và khôi phục bộ bài trước đó. Bắt buộc Xilonen phải đè lại bộ trên bàn ngay hoặc mất lượt (Video + Giọng lồng tiếng thật).',
     price: 125000,
     mp4Url: 'xilonen_burst.mp4',
     audioUrl: 'xilonen_burst.ogg?v=48',
@@ -1543,7 +1543,7 @@ const CHARACTER_SKILLS = {
     charName: 'Xilonen',
     icon: '🐆',
     name: 'Bàn Xoay DJ: Tua Ngược Bàn Đấu',
-    shortDesc: 'Khi đối thủ vừa đánh bộ bài trên bàn: Bấm [Q] xoay đĩa DJ TUA NGƯỢC BÀN ĐẤU — trả toàn bộ lá bài vừa đánh về lại tay đối thủ đó, khóa cứng các lá đó trong vòng này và khôi phục bàn đấu về bộ trước đó (hoặc mở vòng mới)!',
+    shortDesc: 'Khi đối thủ vừa đánh bộ bài trên bàn: Bấm [Q] xoay đĩa DJ TUA NGƯỢC BÀN ĐẤU — trả toàn bộ lá bài vừa đánh về lại tay đối thủ đó, khóa cứng các lá đó chỉ trong vòng này và khôi phục bộ trước đó trên bàn. Bắt buộc Xilonen phải đánh đè lại ngay trong lượt này, nếu không sẽ mất lượt!',
   },
   citlali: {
     id: 'citlali',
@@ -16778,9 +16778,9 @@ class TienLenGame {
     if (this.naviaLockedCardIds && this.naviaLockedCardIds.size > 0) {
       const np = this.naviaLockedTargetId !== null ? this.players[this.naviaLockedTargetId] : null;
       pills.push(
-        `<span class="round-skill-pill">🔒 Pháo Kích Khóa Bài (Navia): Đang khóa cứng ${this.naviaLockedCardIds.size} lá bài của ${
+        `<span class="round-skill-pill">🐆🔒 Bàn Xoay DJ (Xilonen): Đang khóa cứng ${this.naviaLockedCardIds.size} lá bài vừa tua ngược của ${
           np ? np.name : 'đối thủ'
-        } trong vòng này</span>`
+        } chỉ trong vòng này!</span>`
       );
     }
     if (this.zhongliPetrifiedCardIds && this.zhongliPetrifiedCardIds.size > 0) {
@@ -18024,6 +18024,7 @@ class TienLenGame {
     player._skillForcedComboIds = null;
     player._skillBoostedCardIds = null;
     let laumaAutoPassAfterBurst = false;
+    let xilonenAutoPassAfterBurst = false;
     const savedHumanSelectedIds = new Set(this.selectedCardIds);
     const savedHumanCompanionIds = new Set(this.companionCardIds);
     if (player.id !== this.mySeatId) {
@@ -18353,32 +18354,28 @@ class TienLenGame {
         activeNaviaLockedCardIds = this.naviaLockedCardIds;
         target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
 
-        const canRestorePrev =
-          this.previousCombo &&
-          this.previousCombo.ownerId !== undefined &&
-          this.previousCombo.ownerId !== null &&
-          this.previousCombo.ownerId !== player.id &&
-          this.previousCombo.ownerId !== target.id &&
-          getValidMoves(player.hand, this.previousCombo, this.mustPlay3Spade, false).length > 0;
-
-        if (canRestorePrev) {
-          this.currentCombo = this.previousCombo;
+        const rewoundStr = rewoundCards.map((c) => `${c.rank}${c.suit}`).join(' ');
+        if (this.previousCombo) {
+          const prevBaseLabel = this.previousCombo.label;
+          this.currentCombo = {
+            ...this.previousCombo,
+            label: `${prevBaseLabel} [🐆 Xilonen đã tua ngược ${oldLabel} — Phải đè lại hoặc mất lượt!]`,
+          };
           this.previousCombo = null;
-          this.trickOwnerId = this.currentCombo.ownerId;
+          this.trickOwnerId =
+            this.currentCombo.ownerId !== undefined &&
+            this.currentCombo.ownerId !== null &&
+            this.currentCombo.ownerId !== player.id
+              ? this.currentCombo.ownerId
+              : target.id;
         } else {
-          this.currentCombo = null;
-          this.previousCombo = null;
-          this.trickOwnerId = player.id;
-          this.chopPot = 0;
-          this.lastChoppedPlayerId = null;
-          this.roundChoppableStack = [];
-          this.players.forEach((p) => {
-            if (p.active && !p.spectatingCurrentMatch && p.finishRank === null) {
-              p.passed = false;
-              p.declinedFourPairsCut = false;
-            }
-          });
+          this.currentCombo = {
+            ...oldCombo,
+            label: `${oldLabel} [🐆 Xilonen đã trả bài về tay ${target.name} — Phải đè lại hoặc mất lượt!]`,
+          };
+          this.trickOwnerId = target.id;
         }
+
         this.syncRoundRuleGlobals(player.id);
         const struct = this.analyzeBotHandStructure(player.hand);
         const validAfterRewind = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false);
@@ -18397,15 +18394,15 @@ class TienLenGame {
           this.selectedCardIds = new Set(chosenIds);
           this.companionCardIds.clear();
           player._skillForcedComboIds = chosenIds;
+          skillSummary = `🐆 [Bàn Xoay DJ: Tua Ngược Bàn Đấu] ${player.name} xoay đĩa DJ tua ngược ${oldLabel}, trả toàn bộ (${rewoundStr}) về lại tay ${target.name} (khóa cứng chỉ trong vòng này) — Bắt buộc phải đánh đè lại bộ trên bàn ngay hoặc mất lượt!`;
         } else {
           this.selectedCardIds.clear();
           this.companionCardIds.clear();
+          player._skillForcedComboIds = null;
+          player._justUsedSkillThisTurn = false;
+          xilonenAutoPassAfterBurst = true;
+          skillSummary = `🐆 [Bàn Xoay DJ: Tua Ngược Bàn Đấu] ${player.name} xoay đĩa DJ tua ngược ${oldLabel}, trả toàn bộ (${rewoundStr}) về lại tay ${target.name} (khóa cứng chỉ trong vòng này), nhưng không có bài đè lại nên bị MẤT LƯỢT!`;
         }
-        const rewoundStr = rewoundCards.map((c) => `${c.rank}${c.suit}`).join(' ');
-        const restoreNote = this.currentCombo
-          ? `khôi phục bàn đấu về ${this.currentCombo.label}`
-          : `giành quyền mở vòng mới`;
-        skillSummary = `🐆 [Bàn Xoay DJ: Tua Ngược Bàn Đấu] ${player.name} xoay đĩa DJ tua ngược ${oldLabel}, trả toàn bộ (${rewoundStr}) về lại tay ${target.name}, khóa cứng các lá đó trong vòng này và ${restoreNote}!`;
       }
     } else if (charId === 'citlali') {
       const unpassedOpps = activeOpponents.filter((p) => !p.passed);
@@ -19589,7 +19586,7 @@ class TienLenGame {
               }
             }
           }
-        : charId === 'lauma' && laumaAutoPassAfterBurst
+        : (charId === 'lauma' && laumaAutoPassAfterBurst) || (charId === 'xilonen' && xilonenAutoPassAfterBurst)
         ? () => {
             player._justUsedSkillThisTurn = false;
             if (!this.isGameOver && this.currentTurn === player.id && this.currentCombo) {
@@ -20084,6 +20081,12 @@ class TienLenGame {
       if (this.currentCombo && this.trickOwnerId !== null && this.trickOwnerId !== bot.id) {
         const ownerPlayer = this.players[this.trickOwnerId];
         const ownerCards = ownerPlayer ? ownerPlayer.hand.length : 99;
+        const targetComboAfterRewind = this.previousCombo || this.currentCombo;
+        const movesAfterRewind = getValidMoves(bot.hand, targetComboAfterRewind, this.mustPlay3Spade, false).filter(
+          (m) =>
+            !m.cards.some((c) => struct.bombRanks.has(c.rankIndex)) &&
+            (this.evaluateMoveBreakCost(m, struct) < 75 || minOppCards <= 5 || bot.hand.length <= 5)
+        );
         const isBigOrDangerousCombo =
           this.currentCombo.isBomb ||
           this.currentCombo.highRank >= 9 ||
@@ -20095,7 +20098,7 @@ class TienLenGame {
           plannedMove.highRank === 12 ||
           this.evaluateMoveBreakCost(plannedMove, struct) >= 65 ||
           ownerCards <= 3;
-        if (isBigOrDangerousCombo && needRewind) {
+        if (isBigOrDangerousCombo && needRewind && (movesAfterRewind.length > 0 || ownerCards <= 2)) {
           shouldCast = true;
         }
       }
@@ -25689,6 +25692,9 @@ class TienLenGame {
       this.currentTurn = player.id;
       this.turnTimerComboSig = '';
       this.kinichBombOwnerId = null;
+      this.naviaLockedTargetId = null;
+      this.naviaLockedCardIds = new Set();
+      activeNaviaLockedCardIds = this.naviaLockedCardIds;
       this.players.forEach((p) => {
         if (p.active && p.finishRank === null) {
           p.passed = false;
@@ -29080,7 +29086,7 @@ class TienLenGame {
 
     if (activeNaviaLockedCardIds && activeNaviaLockedCardIds.has(cardId)) {
       sfx.pass();
-      this.showComboBanner('🔒 LÁ BÀI NÀY ĐANG BỊ PHÁO KÍCH CỦA NAVIA KHÓA TRONG VÒNG NÀY!');
+      this.showComboBanner('🔒 LÁ BÀI NÀY ĐANG BỊ BÀN XOAY DJ CỦA XILONEN KHÓA TRONG VÒNG NÀY (VÒNG SAU SẼ MỞ KHÓA)!');
       return;
     }
     if (activeZhongliPetrifiedCardIds && activeZhongliPetrifiedCardIds.has(cardId)) {
@@ -29978,7 +29984,7 @@ class TienLenGame {
       ? `<div class="card-anime-art" style="background-image:url('${activeSkin.imgUrl}')"></div>`
       : '';
     const naviaLockHtml = isNaviaLocked
-      ? `<div class="card-navia-lock-badge" title="Bị Pháo Kích Khóa Bài của Navia khóa trong vòng này">🔒 KHÓA</div>`
+      ? `<div class="card-navia-lock-badge" title="Bị Bàn Xoay DJ của Xilonen khóa trong vòng hiện tại (hết vòng sẽ mở khóa)">🔒 KHÓA</div>`
       : isZhongliPetrified
       ? `<div class="card-navia-lock-badge" title="Bị Thiên Tinh Hoá Đá của Zhongli khóa trong vòng này">☄️ HOÁ ĐÁ</div>`
       : '';

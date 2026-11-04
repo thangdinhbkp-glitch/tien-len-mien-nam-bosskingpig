@@ -269,7 +269,7 @@ const ANIME_CARD_SKINS = [
     desc: c.desc,
     price: c.skinPrice,
     crest: c.crest,
-    imgUrl: `fanart/${c.id}.jpg?v=66`,
+    imgUrl: `fanart/${c.id}.jpg?v=197`,
   })),
 ];
 
@@ -287,7 +287,7 @@ const ANIME_AVATARS = [
     name: c.name,
     desc: c.desc,
     price: c.avatarPrice,
-    imgUrl: `fanart/${c.id}.jpg?v=66`,
+    imgUrl: `fanart/${c.id}.jpg?v=197`,
   })),
 ];
 
@@ -576,7 +576,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'zibai',
     name: 'Zibai — Tam Hoàng Chi Uy',
-    desc: '[Sử Thi] Tiên nhân Bạch Mã phóng nước đại qua khoảng cách số: Cho phép ghép các lá bài cách đều nhau 2, 3 hoặc 4 bậc (VD: 3-6-9-Q, 4-7-10-K, 3-5-7-9) thành bộ Sảnh Bạch Mã hợp lệ và cộng +2 bậc sức mạnh (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Tiên nhân Bạch Mã phóng nước đại qua khoảng cách số: Cho phép ghép các lá bài cách đúng 2 số ở giữa (cách đều 3 bậc, VD: 3-6-9-Q, 4-7-10-K, 5-8-J-A) thành bộ Sảnh Bạch Mã hợp lệ và cộng +2 bậc sức mạnh (Video + Giọng lồng tiếng thật).',
     price: 110000,
     mp4Url: 'zibai_burst.mp4',
     audioUrl: 'zibai_burst.ogg?v=54',
@@ -1230,9 +1230,9 @@ const GENSHIN_BURSTS = [
     name: 'Mitya — Phân Tích: Nguyên Lý Biến Đổi',
     desc: '[Huyền Thoại] Học giả Snezhnaya phân tích Nguyên Lý Biến Đổi: Khi đang có Sám Cô trên tay, biến ngay 1 lá bài rác thành lá thứ 4 còn thiếu chất để hợp thành Tứ Quý chặt Heo/Hàng!',
     price: 165000,
-    mp4Url: 'mitya_burst.mp4?v=195',
-    audioUrl: 'mitya_burst.ogg?v=195',
-    posterUrl: 'fanart/mitya.jpg?v=195',
+    mp4Url: 'mitya_burst.mp4?v=197',
+    audioUrl: 'mitya_burst.ogg?v=197',
+    posterUrl: 'fanart/mitya.jpg?v=197',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '🧬 KỸ NĂNG NỘ • MITYA (ANALYSIS: GRADIENT THEORY)',
@@ -1595,7 +1595,7 @@ const CHARACTER_SKILLS = {
     charName: 'Zibai',
     icon: '🐎',
     name: 'Bạch Mã Phi Nước Đại',
-    shortDesc: 'Trong lượt này: Cưỡi Bạch Mã phóng qua khoảng cách số — Cho phép ghép các lá bài cách đều nhau 2, 3 hoặc 4 bậc (VD: 3-6-9-Q, 4-7-10-K, 5-8-J-A, 3-5-7-9) thành bộ Sảnh Bạch Mã hợp lệ và được cộng thêm +2 bậc sức mạnh (tối đa cấp A♥) để đè mọi Sảnh cùng độ dài!',
+    shortDesc: 'Trong lượt này: Cưỡi Bạch Mã phóng qua khoảng cách số — Cho phép ghép các lá bài cách đúng 2 số ở giữa (cách đều 3 bậc, VD: 3-6-9-Q, 4-7-10-K, 5-8-J-A) thành bộ Sảnh Bạch Mã hợp lệ và được cộng thêm +2 bậc sức mạnh (tối đa cấp A♥) để đè mọi Sảnh cùng độ dài!',
   },
   lauma: {
     id: 'lauma',
@@ -2802,10 +2802,10 @@ function classifyCombo(cards) {
         };
       }
     }
-    // Bạch Mã Phi Nước Đại (Zibai): Cho phép ghép các lá bài cách đều nhau 2, 3 hoặc 4 bậc thành Sảnh Bạch Mã và cộng +2 bậc sức mạnh (tối đa A♥)
+    // Bạch Mã Phi Nước Đại (Zibai): Cho phép ghép các lá bài cách đúng 2 số ở giữa (step === 3: 3-6-9-Q, 4-7-10-K, 5-8-J-A) thành Sảnh Bạch Mã và cộng +2 bậc sức mạnh (tối đa A♥)
     if (activeZibaiGallopStraight) {
       const step = sorted[1].rankIndex - sorted[0].rankIndex;
-      if (step === 2 || step === 3 || step === 4) {
+      if (step === 3) {
         let isGallop = true;
         for (let i = 1; i < n; i++) {
           if (sorted[i].rankIndex !== sorted[i - 1].rankIndex + step) {
@@ -3377,13 +3377,13 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     }
   }
 
-  // Bạch Mã Phi Nước Đại (Zibai): Sinh thêm các bộ Sảnh Bạch Mã cách đều 2, 3 hoặc 4 bậc (VD: 3-6-9-Q, 4-7-10-K, 3-5-7-9)
+  // Bạch Mã Phi Nước Đại (Zibai): Sinh thêm các bộ Sảnh Bạch Mã cách đúng 2 số ở giữa (step = 3: 3-6-9-Q, 4-7-10-K, 5-8-J-A)
   if (activeZibaiGallopStraight) {
     const pickCardForRank = (r) => {
       if (preferredCard && preferredCard.rankIndex === r) return preferredCard;
       return byRank[r][0];
     };
-    for (const step of [2, 3, 4]) {
+    for (const step of [3]) {
       for (let start = 0; start <= 11 - step * 2; start++) {
         if (byRank[start].length === 0) continue;
         const gallopRun = [pickCardForRank(start)];
@@ -10061,9 +10061,9 @@ class TienLenGame {
           splashImg.onload = null;
           startRevealNow();
         };
-        splashImg.src = item.thumbUrl || `fanart/${item.id}.jpg?v=66`;
+        splashImg.src = item.thumbUrl || `fanart/${item.id}.jpg?v=197`;
       };
-      splashImg.src = `splash/${item.id}.png`;
+      splashImg.src = `splash/${item.id}.png?v=197`;
       this.gachaSplashImgFallbackTimer = setTimeout(startRevealNow, 900);
     } else {
       startRevealNow();
@@ -10094,7 +10094,7 @@ class TienLenGame {
       .forEach((r) => {
         try {
           const preImg = new Image();
-          preImg.src = `splash/${r.id}.png`;
+          preImg.src = `splash/${r.id}.png?v=197`;
           const ek = CHARACTER_ELEMENTS[r.id] || 'electro';
           const preVis = new Image();
           preVis.src = `assets/icon-${ek}.svg`;
@@ -10797,7 +10797,7 @@ class TienLenGame {
           <div class="inv-equip-thumb">
             ${
               hasChar
-                ? `<img src="fanart/${currentCharId}.jpg?v=66" alt="${charSkill.charName}" />`
+                ? `<img src="fanart/${currentCharId}.jpg?v=197" alt="${charSkill.charName}" />`
                 : `<span style="font-size:20px;">🔒</span>`
             }
           </div>
@@ -11861,23 +11861,39 @@ class TienLenGame {
     return Math.ceil((expMs - Date.now()) / (24 * 3600 * 1000));
   }
 
-  claimDailyWelkinReward() {
-    if (!this.isWelkinActive()) return;
+  autoClaimDailyWelkinIfActive(silent = false) {
+    if (!this.isWelkinActive()) return false;
     const today = this.getTodayKey();
     const lastClaim = localStorage.getItem('tlmn_welkin_last_claim_v1') || '';
-    if (lastClaim === today) {
-      alert('✅ Hôm nay bạn đã nhận +2 Vé Roll (💫 Lượt Cầu Nguyện) từ Không Không Nguyệt Chúc rồi! Hãy quay lại vào ngày mai nhé.');
+    if (lastClaim === today) return false;
+    try {
+      localStorage.setItem('tlmn_welkin_last_claim_v1', today);
+    } catch (_) {}
+    this.addWishes(2);
+    this.saveShopProfile();
+    const remDays = this.getWelkinDaysRemaining();
+    if (!silent) {
+      this.showComboBanner(`🌙 KHÔNG KHÔNG NGUYỆT CHÚC: Tự động tặng +2 Vé Roll hôm nay (Còn ${remDays} ngày)!`);
+      this.addLog(
+        `🌙 <strong>Không Không Nguyệt Chúc:</strong> Đã tự động cộng <strong>+2 Vé Roll (💫 Lượt Cầu Nguyện)</strong> hôm nay vào tài khoản của bạn (Còn ${remDays} ngày)!`,
+        'log-win'
+      );
+    }
+    return true;
+  }
+
+  claimDailyWelkinReward() {
+    if (!this.isWelkinActive()) return;
+    if (this.autoClaimDailyWelkinIfActive(false)) {
+      sfx.win();
+      this.renderSeats();
+      this.renderShopModal();
+      this.renderGiftcodeModal();
+      this.renderTopupModal();
+      alert(`🌙 KHÔNG KHÔNG NGUYỆT CHÚC: Hệ thống đã tự động cộng +2 Vé Roll (💫 Lượt Cầu Nguyện) hôm nay! (Tổng: 💫 ${this.formatWishesCount()} Vé Roll)`);
       return;
     }
-    localStorage.setItem('tlmn_welkin_last_claim_v1', today);
-    this.addWishes(2);
-    sfx.win();
-    this.saveShopProfile();
-    this.renderSeats();
-    this.renderShopModal();
-    this.renderGiftcodeModal();
-    this.renderTopupModal();
-    alert(`🌙 KHÔNG KHÔNG NGUYỆT CHÚC: Bạn đã nhận +2 Vé Roll (💫 Lượt Cầu Nguyện) hôm nay! (Tổng: 💫 ${this.formatWishesCount()} Vé Roll)`);
+    alert(`✅ Hôm nay hệ thống đã tự động cộng +2 Vé Roll (💫 Lượt Cầu Nguyện) từ Không Không Nguyệt Chúc cho bạn rồi! (Còn ${this.getWelkinDaysRemaining()} ngày)`);
   }
 
   // ============================================================================
@@ -12537,12 +12553,16 @@ class TienLenGame {
         const found = this.findMatchingUserOrderEntry(orders, myCanon || myId);
         ord = found?.ord || null;
       }
-      if (!ord) return false;
+      if (!ord) {
+        this.autoClaimDailyWelkinIfActive(false);
+        return false;
+      }
 
-      // Đồng bộ thời hạn Thẻ Tháng từ Cloud về máy (nếu có)
+      // Đồng bộ thời hạn Thẻ Tháng từ Cloud về máy (nếu có) và tự động cộng +2 Vé Roll mỗi ngày
       if (Number(ord.welkinExpireMs) > (Number(localStorage.getItem('tlmn_welkin_expire_ms_v1')) || 0)) {
         localStorage.setItem('tlmn_welkin_expire_ms_v1', String(ord.welkinExpireMs));
       }
+      this.autoClaimDailyWelkinIfActive(false);
 
       let claimedIdsLocal = [];
       try {
@@ -12616,6 +12636,7 @@ class TienLenGame {
         const newExp = curExp + totalGrantedWelkinDaysAll * 24 * 3600 * 1000;
         localStorage.setItem('tlmn_welkin_expire_ms_v1', String(newExp));
         ord.welkinExpireMs = newExp;
+        this.autoClaimDailyWelkinIfActive(true);
       }
 
       const newClaimedList = Array.from(claimedSet).slice(-120);
@@ -13000,6 +13021,7 @@ class TienLenGame {
     this._selectedTopupPackId = selectedPack.id;
     const selectedGrant = this.calculateTopupPackGrant(selectedPack.id);
 
+    this.autoClaimDailyWelkinIfActive(false);
     const welkinDays = this.getWelkinDaysRemaining();
     const today = this.getTodayKey();
     const welkinClaimedToday = (localStorage.getItem('tlmn_welkin_last_claim_v1') || '') === today;
@@ -13134,7 +13156,7 @@ class TienLenGame {
             </div>
             <div style="font-size:12px;color:#e2e8f0;margin-top:4px;line-height:1.45;">
               • <strong>Nhận ngay khi kích hoạt:</strong> <strong style="color:#fde047;">💫 +10 Vé Roll (Lượt Cầu Nguyện)</strong><br/>
-              • <strong>Mỗi ngày đăng nhập (30 ngày):</strong> <strong style="color:#6ee7b7;">💫 +2 Vé Roll/ngày</strong> ➔ Tổng cộng <strong style="color:#fde047;">70 Vé Cầu Nguyện (💫)</strong>!<br/>
+              • <strong>Tự động tặng mỗi ngày (30 ngày):</strong> <strong style="color:#6ee7b7;">💫 +2 Vé Roll/ngày</strong> (Tự cộng ngay khi vào game, không cần bấm nhận) ➔ Tổng cộng <strong style="color:#fde047;">70 Vé Cầu Nguyện (💫)</strong>!<br/>
               • ⚡ <strong>Đặc quyền VIP 30 ngày:</strong> Bấm <em>"📺 Xem QC (+1 Roll)"</em> nhận thưởng <strong>tức thì 0 giây</strong> không cần chờ!
             </div>
           </div>
@@ -13144,11 +13166,9 @@ class TienLenGame {
             </div>
             ${
               welkinDays > 0
-                ? `<button type="button" class="primary-btn" onclick="event.stopPropagation(); window.tienLenGame.claimDailyWelkinReward();" ${
-                    welkinClaimedToday ? 'disabled' : ''
-                  } style="padding:8px 14px;font-weight:900;font-size:12px;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
-                    ${welkinClaimedToday ? `✅ Đã nhận hôm nay (Còn ${welkinDays} ngày)` : `🌙 Nhận +2 Vé Roll Hôm Nay (Còn ${welkinDays} ngày)`}
-                  </button>`
+                ? `<div style="padding:7px 12px;border-radius:10px;font-weight:900;font-size:11.5px;background:rgba(5,150,105,0.28);border:1.5px solid #6ee7b7;color:#a7f3d0;text-align:center;">
+                    ✅ Đã tự động tặng +2 Vé Roll hôm nay • Còn ${welkinDays} ngày
+                  </div>`
                 : ''
             }
             <button type="button" class="primary-btn" onclick="event.stopPropagation(); window.tienLenGame.selectTopupPack('welkin_20k');" style="padding:8px 16px;font-weight:900;font-size:12.5px;background:${
@@ -16905,7 +16925,7 @@ class TienLenGame {
     }
     if (this.zibaiGallopStraightTurn) {
       pills.push(
-        `<span class="round-skill-pill">🐎 Bạch Mã Phi Nước Đại (Zibai): Lượt này được ghép Sảnh Bạch Mã cách đều 2, 3 hoặc 4 bậc (cộng +2 bậc sức mạnh)!</span>`
+        `<span class="round-skill-pill">🐎 Bạch Mã Phi Nước Đại (Zibai): Lượt này được ghép Sảnh Bạch Mã cách đúng 2 số ở giữa (VD: 3-6-9-Q, 4-7-10-K, 5-8-J-A • cộng +2 bậc sức mạnh)!</span>`
       );
     }
     if (this.varkaSumSlashTurn) {
@@ -17562,7 +17582,7 @@ class TienLenGame {
       if (player.hand.length < 3) {
         return {
           ok: false,
-          reason: 'Cần ít nhất 3 lá bài trên tay để ghép Sảnh Bạch Mã (cách đều 2, 3 hoặc 4 bậc)!',
+          reason: 'Cần ít nhất 3 lá bài trên tay để ghép Sảnh Bạch Mã (cách đúng 2 số ở giữa: 3-6-9, 4-7-10, 5-8-J)!',
         };
       }
       const prevGallop = activeZibaiGallopStraight;
@@ -17575,7 +17595,7 @@ class TienLenGame {
         return {
           ok: false,
           reason:
-            'Cần có ít nhất 3 lá bài cách đều nhau 2, 3 hoặc 4 bậc (VD: 3-6-9-Q, 4-7-10-K, 3-5-7) đủ sức đánh ra bàn!',
+            'Cần có ít nhất 3 lá bài cách đúng 2 số ở giữa (VD: 3-6-9-Q, 4-7-10-K, 5-8-J-A) đủ sức đánh ra bàn!',
         };
       }
     }
@@ -18635,7 +18655,7 @@ class TienLenGame {
         player._skillForcedComboIds = gallopIds;
         gallopNote = ` — Sẵn sàng tung ${chosenGallop.label}`;
       }
-      skillSummary = `🐎 [Bạch Mã Phi Nước Đại] ${player.name} cưỡi Bạch Mã phóng qua khoảng cách số: Cho phép ghép các lá bài cách đều nhau 2, 3 hoặc 4 bậc thành Sảnh Bạch Mã và cộng +2 bậc sức mạnh (tối đa cấp A♥)${gallopNote}!`;
+      skillSummary = `🐎 [Bạch Mã Phi Nước Đại] ${player.name} cưỡi Bạch Mã phóng qua khoảng cách số: Cho phép ghép các lá bài cách đúng 2 số ở giữa (VD: 3-6-9-Q, 4-7-10-K, 5-8-J-A) thành Sảnh Bạch Mã và cộng +2 bậc sức mạnh (tối đa cấp A♥)${gallopNote}!`;
     } else if (charId === 'lauma') {
       if (this.currentCombo && this.currentCombo.highRank < 12) {
         const oldLabel = this.currentCombo.label;

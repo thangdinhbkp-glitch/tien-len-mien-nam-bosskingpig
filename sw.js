@@ -1,5 +1,5 @@
-const CORE_CACHE = 'tienlen-genshin-core-v196';
-const MEDIA_CACHE = 'tienlen-genshin-media-v2';
+const CORE_CACHE = 'tienlen-genshin-core-v197';
+const MEDIA_CACHE = 'tienlen-genshin-media-v4';
 
 const CORE_ASSETS = [
   './',
@@ -83,9 +83,9 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // 1. Media files (MP4, WebM, OGG, MP3, PNG, JPG): Cache-First for 0ms zero-lag playback
+  // 1. Media files (MP4, WebM, OGG, MP3, PNG, JPG): Cache-First with version query preserved
   if (isMediaFile(url.pathname)) {
-    const cleanUrl = url.origin + url.pathname;
+    const cleanUrl = url.origin + url.pathname + url.search;
     event.respondWith(
       (async () => {
         const mediaCache = await caches.open(MEDIA_CACHE);

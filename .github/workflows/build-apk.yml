@@ -663,6 +663,27 @@ jobs:
                               }
                               else
                               {
+                                  try
+                                  {
+                                      using (WebClient wc = new WebClient())
+                                      {
+                                          wc.Headers["Cache-Control"] = "no-cache";
+                                          byte[] remoteMedia = wc.DownloadData(remoteBase + pathPart);
+                                          if (remoteMedia != null && remoteMedia.Length > 0)
+                                          {
+                                              try
+                                              {
+                                                  string dirName = Path.GetDirectoryName(localFile);
+                                                  if (!string.IsNullOrEmpty(dirName)) Directory.CreateDirectory(dirName);
+                                                  File.WriteAllBytes(localFile, remoteMedia);
+                                              }
+                                              catch { }
+                                              WriteResponse(ns, "200 OK", GuessMime(pathPart), remoteMedia);
+                                              return;
+                                          }
+                                      }
+                                  }
+                                  catch { }
                                   WriteResponse(ns, "404 Not Found", "text/plain", Encoding.UTF8.GetBytes("Not Found"));
                               }
                           }

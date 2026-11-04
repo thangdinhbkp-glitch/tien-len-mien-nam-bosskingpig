@@ -269,7 +269,7 @@ const ANIME_CARD_SKINS = [
     desc: c.desc,
     price: c.skinPrice,
     crest: c.crest,
-    imgUrl: `fanart/${c.id}.jpg?v=197`,
+    imgUrl: `fanart/${c.id}.jpg?v=199`,
   })),
 ];
 
@@ -287,7 +287,7 @@ const ANIME_AVATARS = [
     name: c.name,
     desc: c.desc,
     price: c.avatarPrice,
-    imgUrl: `fanart/${c.id}.jpg?v=197`,
+    imgUrl: `fanart/${c.id}.jpg?v=199`,
   })),
 ];
 
@@ -1230,9 +1230,9 @@ const GENSHIN_BURSTS = [
     name: 'Mitya — Phân Tích: Nguyên Lý Biến Đổi',
     desc: '[Huyền Thoại] Học giả Snezhnaya phân tích Nguyên Lý Biến Đổi: Khi đang có Sám Cô trên tay, biến ngay 1 lá bài rác thành lá thứ 4 còn thiếu chất để hợp thành Tứ Quý chặt Heo/Hàng!',
     price: 165000,
-    mp4Url: 'mitya_burst.mp4?v=197',
-    audioUrl: 'mitya_burst.ogg?v=197',
-    posterUrl: 'fanart/mitya.jpg?v=197',
+    mp4Url: 'mitya_burst.mp4?v=199',
+    audioUrl: 'mitya_burst.ogg?v=199',
+    posterUrl: 'fanart/mitya.jpg?v=199',
     theme: 'theme-electro',
     sfxType: 'raiden',
     tag: '🧬 KỸ NĂNG NỘ • MITYA (ANALYSIS: GRADIENT THEORY)',
@@ -5388,6 +5388,12 @@ class TienLenGame {
         const cloudSessionToken = existingCloud.activeSessionToken || existingCloud.profile?.activeSessionToken || '';
         const cloudSessionMs = Number(existingCloud.sessionClaimedAtMs || existingCloud.profile?.sessionClaimedAtMs) || 0;
         const cloudClientId = existingCloud.activeClientId || existingCloud.profile?.activeClientId || '';
+        const wasOfflineOrHidden = Boolean(
+          this._wasDeviceInactiveOrOffline ||
+            (typeof document !== 'undefined' && document.hidden) ||
+            (typeof navigator !== 'undefined' && navigator.onLine === false) ||
+            (this._lastActiveOnlinePullMs && Date.now() - this._lastActiveOnlinePullMs > 8000)
+        );
         if (
           !claimSession &&
           usernameKey === this.currentAccountUsername &&
@@ -5397,6 +5403,11 @@ class TienLenGame {
           cloudSessionMs >= (Number(this.sessionClaimedAtMs) || 0) &&
           (!cloudClientId || cloudClientId !== this.myClientId)
         ) {
+          if (wasOfflineOrHidden) {
+            // Thiết bị 1 vừa quay lại từ trạng thái Offline/Ẩn nền sau khi Thiết bị 2 đã chơi ➔ Đồng bộ dữ liệu từ Thiết bị 2 về thay vì văng ra!
+            await this.pullAccountFromCloudAndSync(usernameKey, { forceCloud: true, isBootSessionClaim: true });
+            return true;
+          }
           this.forceLogoutDueToOtherDevice(existingCloud.activeDeviceLabel || existingCloud.profile?.activeDeviceLabel || '');
           return false;
         }
@@ -5839,38 +5850,88 @@ class TienLenGame {
   setupCrossDeviceCloudSync() {
     if (this._crossDeviceSyncInitialized) return;
     this._crossDeviceSyncInitialized = true;
+    this._wasDeviceInactiveOrOffline = false;
+    this._lastActiveOnlinePullMs = Date.now();
 
-    // Khi người chơi chuyển tab / mở màn hình điện thoại hoặc bấm vào cửa sổ game ➔ kéo dữ liệu mới nhất từ Đám Mây ngay!
+    // Khi thiết bị ẩn tab, khóa màn hình, hoặc mất mạng (Offline) ➔ đánh dấu để khi mở lại sẽ đồng bộ tiến trình từ Máy 2 thay vì bị văng ra!
+    window.addEventListener('blur', () => {
+      if (typeof document !== 'undefined' && document.hidden) {
+        this._wasDeviceInactiveOrOffline = true;
+      }
+    });
+    window.addEventListener('pagehide', () => {
+      this._wasDeviceInactiveOrOffline = true;
+    });
+    window.addEventListener('offline', () => {
+      this._wasDeviceInactiveOrOffline = true;
+    });
+
+    // Khi người chơi mở lại thiết bị / chuyển tab / có mạng lại ➔ kéo toàn bộ dữ liệu mới nhất từ Máy 2 trên Đám Mây và tiếp quản phiên!
     window.addEventListener('focus', () => {
       if (this.currentAccountUsername) {
-        this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+        const reclaimAfterOffline = Boolean(
+          this._wasDeviceInactiveOrOffline ||
+            (this._lastActiveOnlinePullMs && Date.now() - this._lastActiveOnlinePullMs > 8000)
+        );
+        this.pullAccountFromCloudAndSync(this.currentAccountUsername, {
+          forceCloud: reclaimAfterOffline,
+          isBootSessionClaim: reclaimAfterOffline,
+        });
       }
     });
     window.addEventListener('pageshow', () => {
       if (this.currentAccountUsername) {
-        this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+        this.pullAccountFromCloudAndSync(this.currentAccountUsername, {
+          forceCloud: true,
+          isBootSessionClaim: true,
+        });
       }
     });
     window.addEventListener('online', () => {
+      this._wasDeviceInactiveOrOffline = true;
       if (this.currentAccountUsername) {
-        this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+        this.pullAccountFromCloudAndSync(this.currentAccountUsername, {
+          forceCloud: true,
+          isBootSessionClaim: true,
+        });
       }
     });
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && this.currentAccountUsername) {
-        this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+      if (document.hidden) {
+        this._wasDeviceInactiveOrOffline = true;
+      } else if (this.currentAccountUsername) {
+        this.pullAccountFromCloudAndSync(this.currentAccountUsername, {
+          forceCloud: true,
+          isBootSessionClaim: true,
+        });
       }
     });
 
-    // Tự động kiểm tra ngầm mỗi 2.2 giây: nếu Máy 2 đăng nhập vào cùng tài khoản thì Máy 1 tự động đăng xuất ngay lập tức!
+    // Tự động kiểm tra ngầm mỗi 2.2 giây:
+    // - Chỉ khi Máy 1 đang thực sự Online & mở màn hình thì nếu Máy 2 đăng nhập mới bị văng ra.
+    // - Nếu Máy 1 đang Offline hoặc ẩn ở nền, không văng ra; khi mở lại sẽ tự động đồng bộ mọi thứ đã diễn ra ở Máy 2!
     this.cloudAutoPullInterval = setInterval(() => {
+      if (
+        (typeof document !== 'undefined' && document.hidden) ||
+        (typeof navigator !== 'undefined' && navigator.onLine === false)
+      ) {
+        this._wasDeviceInactiveOrOffline = true;
+        return;
+      }
       if (
         this.currentAccountUsername &&
         !this.cloudSyncDebounceTimer &&
         !this.isBurstPlaying &&
         !this.isGachaAnimPlaying
       ) {
-        this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+        const wokeUpFromOfflineOrSleep = Boolean(
+          this._wasDeviceInactiveOrOffline ||
+            (this._lastActiveOnlinePullMs && Date.now() - this._lastActiveOnlinePullMs > 8000)
+        );
+        this.pullAccountFromCloudAndSync(this.currentAccountUsername, {
+          forceCloud: wokeUpFromOfflineOrSleep,
+          isBootSessionClaim: wokeUpFromOfflineOrSleep,
+        });
         this.syncGlobalDeviceRegistry(false);
       }
     }, 2200);
@@ -5880,16 +5941,33 @@ class TienLenGame {
     const targetUser = (usernameKey || this.currentAccountUsername || '').trim().toLowerCase();
     if (!targetUser || this._isPullingCloud) return false;
     const { forceCloud = false, isBootSessionClaim = false } = options || {};
+    const isResumeFromOfflineOrHidden = Boolean(
+      isBootSessionClaim ||
+        this._wasDeviceInactiveOrOffline ||
+        (typeof document !== 'undefined' && document.hidden) ||
+        (this._lastActiveOnlinePullMs && Date.now() - this._lastActiveOnlinePullMs > 8000)
+    );
+    if (
+      typeof document !== 'undefined' &&
+      !document.hidden &&
+      (typeof navigator === 'undefined' || navigator.onLine !== false)
+    ) {
+      this._wasDeviceInactiveOrOffline = false;
+      this._lastActiveOnlinePullMs = Date.now();
+    }
 
     const migKey = `tlmn_v28_migrated_${targetUser}`;
     const alreadyMigratedV28 = localStorage.getItem(migKey) === '1';
 
-    // Nếu máy hiện tại đã qua bước đồng nhất v28 và vừa thay đổi dữ liệu đang chờ đẩy lên Cloud thì đẩy lên trước
-    if (alreadyMigratedV28 && this.cloudSyncDebounceTimer && !forceCloud && !isBootSessionClaim) {
+    // Nếu máy hiện tại đang Online liên tục (không phải vừa mở lại từ Offline) và có dữ liệu chờ đẩy lên Cloud thì đẩy lên trước
+    if (alreadyMigratedV28 && this.cloudSyncDebounceTimer && !forceCloud && !isResumeFromOfflineOrHidden) {
       clearTimeout(this.cloudSyncDebounceTimer);
       this.cloudSyncDebounceTimer = null;
       await this.pushAccountToCloud(targetUser);
       return true;
+    } else if (isResumeFromOfflineOrHidden && this.cloudSyncDebounceTimer) {
+      clearTimeout(this.cloudSyncDebounceTimer);
+      this.cloudSyncDebounceTimer = null;
     }
 
     this._isPullingCloud = true;
@@ -5909,29 +5987,32 @@ class TienLenGame {
         return false;
       }
 
-      // Kiểm tra 1 tài khoản 2 máy:
+      // Kiểm tra 1 tài khoản 2 máy (Online vs Offline):
       const cloudSessionToken = cloudAcc.activeSessionToken || cloudAcc.profile?.activeSessionToken || '';
       const cloudSessionMs = Number(cloudAcc.sessionClaimedAtMs || cloudAcc.profile?.sessionClaimedAtMs) || 0;
       const cloudClientId = cloudAcc.activeClientId || cloudAcc.profile?.activeClientId || '';
       const cloudActivity = cloudAcc.activeActivity || cloudAcc.profile?.activeActivity || null;
       let bootHandoverActivity = null;
+      let sessionHandoverFromOtherDevice = false;
 
       if (targetUser === this.currentAccountUsername) {
         const isDifferentSession =
           (cloudSessionToken && this.currentSessionToken && cloudSessionToken !== this.currentSessionToken) ||
           (cloudClientId && cloudClientId !== this.myClientId && (!this.currentSessionToken || cloudSessionToken !== this.currentSessionToken));
 
-        if (isBootSessionClaim) {
-          // Máy 2 vừa mở trang (Boot) vào tài khoản đang chơi ở Máy 1 ➔ Máy 2 chiếm quyền phiên đăng nhập và tiếp quản ván đấu của Máy 1!
+        if (isResumeFromOfflineOrHidden) {
+          // Thiết bị 1 đang Offline / Đóng app / Ẩn nền lúc Thiết bị 2 chơi và giờ mới mở lại (hoặc vừa đăng nhập):
+          // -> KHÔNG bị văng ra! Tự động đồng bộ 100% những gì đã diễn ra ở Thiết bị 2 và tiếp quản phiên!
           if (isDifferentSession || !this.currentSessionToken) {
             bootHandoverActivity = cloudActivity;
+            sessionHandoverFromOtherDevice = true;
             this.claimNewAccountSessionToken();
           }
         } else if (
           isDifferentSession &&
           cloudSessionMs >= (Number(this.sessionClaimedAtMs) || 0)
         ) {
-          // Máy 1 đang mở thì phát hiện Máy 2 vừa vào cùng tài khoản ➔ Máy 1 tự động đăng xuất ngay!
+          // Thiết bị 1 đang thực sự Online mở màn hình ngay lúc Thiết bị 2 đăng nhập ➔ Thiết bị 1 bị văng ra ngay!
           this._isPullingCloud = false;
           this.forceLogoutDueToOtherDevice(cloudAcc.activeDeviceLabel || cloudAcc.profile?.activeDeviceLabel || '');
           return false;
@@ -5971,6 +6052,7 @@ class TienLenGame {
       const needsInitialV28Reconcile = !alreadyMigratedV28 || (cloudAcc.v || 0) < 28;
       const cloudIsNewerOrForced =
         forceCloud ||
+        sessionHandoverFromOtherDevice ||
         !!bootHandoverActivity ||
         cloudRev > localRev ||
         (cloudRev === localRev && cloudTime > localTime);
@@ -5987,6 +6069,8 @@ class TienLenGame {
 
       if (
         !isBootSessionClaim &&
+        !isResumeFromOfflineOrHidden &&
+        !sessionHandoverFromOtherDevice &&
         !needsInitialV28Reconcile &&
         !cloudIsNewerOrForced &&
         !hasNewCloudUnlock &&
@@ -6111,13 +6195,23 @@ class TienLenGame {
         }
       }
 
-      if (isBootSessionClaim || needsInitialV28Reconcile || hasNewLocalUnlock || localHasMoreCoinsInMigration) {
+      if (
+        isBootSessionClaim ||
+        sessionHandoverFromOtherDevice ||
+        needsInitialV28Reconcile ||
+        hasNewLocalUnlock ||
+        localHasMoreCoinsInMigration
+      ) {
         await this.pushAccountToCloud(targetUser, {
-          claimSession: isBootSessionClaim,
+          claimSession: Boolean(isBootSessionClaim || sessionHandoverFromOtherDevice),
           overrideActivity: bootHandoverActivity !== null ? bootHandoverActivity : undefined,
         });
       }
-      if (isBootSessionClaim && bootHandoverActivity && targetUser === this.currentAccountUsername) {
+      if (
+        (isBootSessionClaim || sessionHandoverFromOtherDevice) &&
+        bootHandoverActivity &&
+        targetUser === this.currentAccountUsername
+      ) {
         await this.resumeAccountActivityFromCloud(bootHandoverActivity);
       }
       return true;
@@ -10053,14 +10147,20 @@ class TienLenGame {
         }
       };
       splashImg.onerror = () => {
+        if (!splashImg.dataset.cdnSplashTried) {
+          splashImg.dataset.cdnSplashTried = '1';
+          splashImg.src = `https://tienlenmiennamgenshin.web.app/splash/${item.id}.png?v=199`;
+          return;
+        }
         splashImg.onerror = null;
         splashImg.onload = () => {
           splashImg.onload = null;
           startRevealNow();
         };
-        splashImg.src = item.thumbUrl || `fanart/${item.id}.jpg?v=197`;
+        splashImg.src = item.thumbUrl || `https://tienlenmiennamgenshin.web.app/fanart/${item.id}.jpg?v=199`;
       };
-      splashImg.src = `splash/${item.id}.png?v=197`;
+      delete splashImg.dataset.cdnSplashTried;
+      splashImg.src = `splash/${item.id}.png?v=199`;
       this.gachaSplashImgFallbackTimer = setTimeout(startRevealNow, 900);
     } else {
       startRevealNow();
@@ -10091,7 +10191,7 @@ class TienLenGame {
       .forEach((r) => {
         try {
           const preImg = new Image();
-          preImg.src = `splash/${r.id}.png?v=197`;
+          preImg.src = `splash/${r.id}.png?v=199`;
           const ek = CHARACTER_ELEMENTS[r.id] || 'electro';
           const preVis = new Image();
           preVis.src = `assets/icon-${ek}.svg`;
@@ -10398,7 +10498,7 @@ class TienLenGame {
             : '🌠 Đang UP 5★ Hôm Nay';
         return `
           <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" style="padding:8px 12px;" data-burst-id="${b.id}" onmouseenter="window.tienLenGame.preloadBurstById('${b.id}')" ontouchstart="window.tienLenGame.preloadBurstById('${b.id}')" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [Q]: ${bSkill.name} — ${bSkill.shortDesc}">
-            <img src="fanart/${b.id}.jpg?v=66" alt="${charName}" style="width:46px;height:46px;" loading="lazy" referrerpolicy="no-referrer" />
+            <img src="fanart/${b.id}.jpg?v=199" alt="${charName}" style="width:46px;height:46px;" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name" style="font-size:13.5px;">${bannerTitleLabel}</div>
               <div class="gacha-up-chip-status" style="font-size:11.5px;">${bannerStatusLabel} • ${bSkill.icon} ${bSkill.name}</div>
@@ -10413,7 +10513,7 @@ class TienLenGame {
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.qiqi;
         return `
           <div class="gacha-up-chip" style="border-color:rgba(148,163,184,0.35);" onmouseenter="window.tienLenGame.preloadBurstById('${b.id}')" ontouchstart="window.tienLenGame.preloadBurstById('${b.id}')" onclick="window.tienLenGame.triggerGenshinBurst('${b.id}', '🎬 Xem thử Hoạt Ảnh Nộ 5★ Thường (Lệch Rate): ${b.name}!')" title="Bấm để xem thử Nộ 5★! ${bSkill.icon} Nội Tại Cược [${bSkill.name}]: ${bSkill.shortDesc}">
-            <img src="fanart/${b.id}.jpg?v=66" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
+            <img src="fanart/${b.id}.jpg?v=199" alt="${charName}" loading="lazy" referrerpolicy="no-referrer" />
             <div>
               <div class="gacha-up-chip-name">${charName}</div>
               <div class="gacha-up-chip-status">${owned ? '✅ Đã sở hữu' : '☯️ 5★ Lệch Rate'} • 💠 ${bSkill.name}</div>
@@ -10427,7 +10527,7 @@ class TienLenGame {
           const s = getCardSkinMeta(id);
           return `
             <span class="gacha-rateup-4star-pill">
-              <img src="fanart/${id}.jpg?v=66" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
+              <img src="fanart/${id}.jpg?v=199" alt="${s.name}" loading="lazy" referrerpolicy="no-referrer" />
               ${id.toUpperCase()} (4★ UP)
             </span>
           `;
@@ -31719,7 +31819,35 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 184;
+const CLIENT_BUILD_VERSION = 199;
+
+// Tự động Fallback sang Cloud CDN (tienlenmiennamgenshin.web.app) nếu bản EXE / APK trên máy tính thiếu tệp ảnh/video nhân vật mới cập nhật!
+window.addEventListener(
+  'error',
+  (e) => {
+    try {
+      const el = e && e.target;
+      if (!el || !el.tagName) return;
+      const tag = String(el.tagName).toUpperCase();
+      if (tag !== 'IMG' && tag !== 'VIDEO' && tag !== 'AUDIO') return;
+      if (el.dataset && el.dataset.cloudFallbackTried === '1') return;
+      const rawSrc = el.getAttribute('src') || el.src || '';
+      if (!rawSrc || rawSrc.startsWith('data:') || rawSrc.startsWith('blob:')) return;
+      const u = new URL(rawSrc, window.location.href);
+      if (u.hostname === 'tienlenmiennamgenshin.web.app') return;
+      const relPath = u.pathname.replace(/^\/+/, '').replace(/^tien-len-mien-nam-bosskingpig\//, '');
+      if (!relPath) return;
+      if (el.dataset) el.dataset.cloudFallbackTried = '1';
+      const fallbackUrl = `https://tienlenmiennamgenshin.web.app/${relPath}${u.search || ''}`;
+      el.src = fallbackUrl;
+      if (tag === 'VIDEO' || tag === 'AUDIO') {
+        el.load();
+        el.play().catch(() => {});
+      }
+    } catch (_) {}
+  },
+  true
+);
 
 if ('serviceWorker' in navigator) {
   if (IS_NATIVE_BUNDLED_APP) {
@@ -31736,7 +31864,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=184', { updateViaCache: 'none' })
+        .register('sw.js?v=199', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

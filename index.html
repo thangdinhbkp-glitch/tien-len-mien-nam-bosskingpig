@@ -84,6 +84,9 @@
         <button class="icon-btn hidden" id="btn-show-summary" title="Quay lại Bảng Tổng Kết &amp; Chuẩn Bị Ván Tiếp" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;color:#ffffff;font-weight:900;">
           📋 Về Tab Chuẩn Bị / Tổng Kết
         </button>
+        <button class="top-fullscreen-btn" id="btn-top-friends" onclick="window.tienLenGame.openFriendsModal()" title="Mở Danh Sách Người Chơi Toàn Server &amp; Kết Bạn / Mời Vào Bàn" style="background:linear-gradient(135deg,rgba(14,165,233,0.28),rgba(59,130,246,0.34));border-color:#38bdf8;color:#e0f2fe;font-weight:800;">
+          🤝 Bạn Bè <span id="top-friends-badge" class="hidden" style="background:#ef4444;color:#fff;font-size:10px;font-weight:900;padding:1px 5px;border-radius:999px;margin-left:3px;">0</span>
+        </button>
         <button class="top-fullscreen-btn" id="btn-top-skip-burst" onclick="window.tienLenGame.toggleSkipBurstAnimations()" title="Bấm để Tắt / Bật hoàn toàn hoạt ảnh Nộ của mọi nhân vật">
           🎬 Hoạt Ảnh Nộ: BẬT
         </button>
@@ -439,6 +442,11 @@
             <span class="dock-icon">🧭</span>
             <span class="dock-label">Nhiệm Vụ (<span id="lobby-quest-badge">0/4</span>)</span>
           </button>
+          <button class="app-dock-btn" id="btn-lobby-friends" onclick="window.tienLenGame.openFriendsModal()" title="Danh Sách Người Chơi Toàn Server • Kết Bạn &amp; Mời Bạn Bè Vào Bàn Online" style="background:linear-gradient(135deg,rgba(14,165,233,0.35),rgba(37,99,235,0.42));border-color:#38bdf8;box-shadow:0 0 12px rgba(56,189,248,0.35);position:relative;">
+            <span class="dock-icon">🤝</span>
+            <span class="dock-label" style="color:#e0f2fe;font-weight:900;">Kết Bạn &amp; Người Chơi</span>
+            <span id="lobby-friends-badge" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:10.5px;font-weight:900;padding:1px 6px;border-radius:999px;border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5);">0</span>
+          </button>
           <button class="app-dock-btn dock-ad" id="btn-lobby-watch-ad" title="Xem Video Rick Roll / Verity 30s nhận +1 Roll (1,600 Xu)!">
             <span class="dock-icon">📺</span>
             <span class="dock-label">Xem QC (+1 Roll)</span>
@@ -591,6 +599,10 @@
                   ➕ Tạo Phòng Mới (Set Pass / Không Pass)
                 </button>
 
+                <button class="primary-btn mp-open-create-btn" type="button" onclick="window.tienLenGame.openFriendsModal('directory')" style="background:linear-gradient(135deg,#0284c7,#2563eb);border:1.5px solid #7dd3fc;">
+                  🤝 Danh Sách Người Chơi &amp; Kết Bạn
+                </button>
+
                 <div class="mp-search-bar">
                   <input type="text" id="input-room-code" maxlength="8" placeholder="🔍 Nhập ID phòng cần tìm (VD: 8429)..." />
                   <button class="primary-btn btn-sm" id="btn-join-room" title="Tìm đúng bàn có ID này trong danh sách bàn">
@@ -683,6 +695,9 @@
                     <span>🔗 Link bàn:</span>
                     <input type="text" id="share-link-input" readonly />
                     <button class="primary-btn btn-sm" id="btn-copy-link">📋 Copy Link</button>
+                    <button type="button" class="primary-btn btn-sm" onclick="window.tienLenGame.openFriendsModal('friends')" style="background:linear-gradient(135deg,#0284c7,#2563eb);border:1.5px solid #7dd3fc;">
+                      🤝 Mời Bạn Bè
+                    </button>
                   </div>
                   <div class="share-hint" id="share-hint-text" style="display:none;"></div>
                 </div>
@@ -803,6 +818,9 @@
           <div class="pause-tools-grid">
             <button class="pause-tool-btn quest-top-btn" id="btn-top-quests">
               🧭 Nhiệm Vụ (<span id="top-quest-badge">0/4</span>)
+            </button>
+            <button class="pause-tool-btn icon-btn" type="button" onclick="window.tienLenGame.closePauseModal(); window.tienLenGame.openFriendsModal();" style="background:linear-gradient(135deg,rgba(14,165,233,0.32),rgba(37,99,235,0.4));border-color:#38bdf8;color:#e0f2fe;font-weight:800;">
+              🤝 Bạn Bè &amp; Người Chơi
             </button>
             <button class="pause-tool-btn ad-reward-btn" id="btn-top-watch-ad">
               📺 Xem QC 30s (+1 Roll)
@@ -1435,6 +1453,38 @@
       </div>
     </div>
 
+    <!-- THÔNG BÁO NỔI KHI CÓ LỜI MỜI KẾT BẠN HOẶC MỜI VÀO BÀN CHƠI -->
+    <div id="social-invite-toast" class="hidden" style="position:fixed;top:14px;right:14px;z-index:999990;max-width:380px;width:92vw;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(15,23,42,0.96),rgba(30,58,138,0.96));border:2px solid #38bdf8;box-shadow:0 10px 30px rgba(0,0,0,0.75);color:#f8fafc;"></div>
+
+    <!-- MODAL KẾT BẠN & DANH SÁCH NGƯỜI CHƠI TOÀN SERVER -->
+    <div class="modal-backdrop hidden" id="friends-modal" style="z-index: 9880;">
+      <div class="modal-card" style="max-width: 780px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div>
+            <h2>🤝 KẾT BẠN &amp; DANH SÁCH NGƯỜI CHƠI TOÀN SERVER</h2>
+            <p style="font-size:12.5px;color:#cbd5e1;margin:2px 0 0;">
+              Tìm kiếm &amp; Kết bạn với mọi người chơi • Xem ai đang Online / Trong Bàn • Mời bạn bè vào phòng chơi chung 1 chạm
+            </p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="button" class="tool-btn" id="btn-refresh-friends-cloud" onclick="window.tienLenGame.refreshFriendsFromCloud()" style="padding:6px 12px;font-size:12px;font-weight:800;">
+              🔄 Làm mới Cloud
+            </button>
+            <button type="button" class="close-modal-btn" onclick="window.tienLenGame.closeFriendsModal()">✕</button>
+          </div>
+        </div>
+        <div class="modal-body" id="friends-modal-body" style="overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:14px 16px;"></div>
+        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div style="font-size:12px;color:#94a3b8;">
+            💡 Mẹo: Khi đang ở trong <strong>Phòng Chờ Online</strong>, bấm <strong>📨 Mời Vào Bàn</strong> cạnh tên bạn bè để gửi lời mời trực tiếp lên màn hình của họ!
+          </div>
+          <button type="button" class="primary-btn" onclick="window.tienLenGame.closeFriendsModal()" style="padding:8px 20px;font-weight:800;">
+            ✅ Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL HỆ THỐNG TÀI KHOẢN & MẬT KHẨU (GIỮ NGUYÊN 100% DỮ LIỆU ĐANG CHƠI) -->
     <div class="modal-backdrop hidden" id="account-modal">
       <div class="modal-card account-modal-card" style="max-width: 660px;">
@@ -1878,6 +1928,6 @@
       window.__tlmnRefreshCornerAdBanner = function () {};
     })();
   </script>
-  <script src="game.js?v=190"></script>
+  <script src="game.js?v=191"></script>
 </body>
 </html>

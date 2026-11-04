@@ -5782,6 +5782,7 @@ class TienLenGame {
         !this.isGachaAnimPlaying
       ) {
         this.pullAccountFromCloudAndSync(this.currentAccountUsername);
+        this.syncGlobalDeviceRegistry(false);
       }
     }, 2200);
   }
@@ -6449,10 +6450,35 @@ class TienLenGame {
             ? now
             : Math.max(Number(prevAcc.lastSeenMs) || 0, Number(acc.updatedAtMs) || 0, Number(prof.updatedAtMs) || 0);
         mergedAccounts[u] = {
+          ...prevAcc,
           username: u,
           displayName: this.resolveCleanPlayerName(acc.displayName || prof.playerName || prevAcc.displayName, u),
           deviceIds: Array.from(devIdsSet),
           deviceCount: devIdsSet.size,
+          avatar:
+            u === this.currentAccountUsername
+              ? this.equippedAvatar || prevAcc.avatar || 'default_player'
+              : prof.avatar || prevAcc.avatar || 'default_player',
+          activeChar:
+            u === this.currentAccountUsername
+              ? this.getPlayerActiveCharId(this.getLocalPlayer()) || prevAcc.activeChar || 'raiden'
+              : prof.activeChar || prevAcc.activeChar || 'raiden',
+          currentRoomId:
+            u === this.currentAccountUsername
+              ? this.isMultiplayer && this.roomId
+                ? String(this.roomId).toUpperCase()
+                : ''
+              : prevAcc.currentRoomId || '',
+          currentRoomTitle:
+            u === this.currentAccountUsername
+              ? this.isMultiplayer && this.roomId
+                ? this.roomTitle || ''
+                : ''
+              : prevAcc.currentRoomTitle || '',
+          currentRoomHasPass:
+            u === this.currentAccountUsername
+              ? !!(this.isMultiplayer && this.roomId && this.roomPasswordHash)
+              : !!prevAcc.currentRoomHasPass,
           coins:
             u === this.currentAccountUsername
               ? this.savedCoins
@@ -6469,6 +6495,69 @@ class TienLenGame {
           lastSeenStr: new Date(accTime || now).toLocaleString('vi-VN'),
         };
       });
+
+      // Bổ sung mọi tài khoản đã từng đăng nhập trên các thiết bị trong mergedDevices (như @uiuiui, @ghbn, @hdjs...) vào mergedAccounts
+      Object.values(mergedDevices).forEach((d) => {
+        if (!d || typeof d !== 'object') return;
+        const devUsers = Array.from(
+          new Set([...(Array.isArray(d.accounts) ? d.accounts : []), d.lastAccount].filter(Boolean))
+        );
+        devUsers.forEach((rawU) => {
+          const u = String(rawU || '').trim().toLowerCase();
+          if (!u || u === 'khách' || u === 'guest') return;
+          const dLast = Number(d.lastSeenMs) || now;
+          const exAcc = mergedAccounts[u];
+          if (!exAcc) {
+            mergedAccounts[u] = {
+              username: u,
+              displayName:
+                d.lastAccount === u && d.lastPlayerName
+                  ? this.resolveCleanPlayerName(d.lastPlayerName, u)
+                  : u,
+              deviceIds: d.deviceId ? [d.deviceId] : [],
+              deviceCount: 1,
+              avatar: 'default_player',
+              activeChar: 'raiden',
+              coins: INITIAL_COINS,
+              burstCount: 0,
+              lastSeenMs: dLast,
+              lastSeenStr: d.lastSeenStr || new Date(dLast).toLocaleString('vi-VN'),
+            };
+          } else {
+            if (d.deviceId) {
+              const dSet = new Set([...(exAcc.deviceIds || []), d.deviceId]);
+              exAcc.deviceIds = Array.from(dSet);
+              exAcc.deviceCount = dSet.size;
+            }
+            if (d.lastAccount === u && dLast > (Number(exAcc.lastSeenMs) || 0)) {
+              exAcc.lastSeenMs = dLast;
+              exAcc.lastSeenStr = d.lastSeenStr || new Date(dLast).toLocaleString('vi-VN');
+            }
+          }
+        });
+      });
+
+      if (this.currentAccountUsername) {
+        const myCleanU = String(this.currentAccountUsername).trim().toLowerCase();
+        const prevMyAcc = mergedAccounts[myCleanU] || {};
+        const myDevSet = new Set([...(prevMyAcc.deviceIds || []), curDev.deviceId].filter(Boolean));
+        mergedAccounts[myCleanU] = {
+          ...prevMyAcc,
+          username: myCleanU,
+          displayName: this.resolveCleanPlayerName(this.savedPlayerName || prevMyAcc.displayName, myCleanU),
+          deviceIds: Array.from(myDevSet),
+          deviceCount: myDevSet.size || 1,
+          avatar: this.equippedAvatar || prevMyAcc.avatar || 'default_player',
+          activeChar: this.getPlayerActiveCharId(this.getLocalPlayer()) || prevMyAcc.activeChar || 'raiden',
+          currentRoomId: this.isMultiplayer && this.roomId ? String(this.roomId).toUpperCase() : '',
+          currentRoomTitle: this.isMultiplayer && this.roomId ? this.roomTitle || '' : '',
+          currentRoomHasPass: !!(this.isMultiplayer && this.roomId && this.roomPasswordHash),
+          coins: this.savedCoins,
+          burstCount: this.unlockedBursts.size,
+          lastSeenMs: now,
+          lastSeenStr: new Date(now).toLocaleString('vi-VN'),
+        };
+      }
 
       // Tự động khôi phục & đồng bộ các tài khoản lịch sử đã có trên Cloud trước v135 (như @thang.dinhbkp, @quynh2489)
       const seedCloudUsers = Array.from(new Set(['thang.dinhbkp', 'quynh2489', ...Object.keys(mergedAccounts)]));
@@ -6604,17 +6693,58 @@ class TienLenGame {
         processedSePayTxIds: mergedProcessedSePayTxIds,
       };
 
+      const localSocial = localReg.social || { relations: {}, roomInvites: {} };
+      const remoteSocial = remoteReg?.social || { relations: {}, roomInvites: {} };
+      const mergedRelations = { ...(localSocial.relations || {}), ...(remoteSocial.relations || {}) };
+      Object.keys(mergedRelations).forEach((pKey) => {
+        const lr = localSocial.relations?.[pKey];
+        const rr = remoteSocial.relations?.[pKey];
+        if (lr && rr) {
+          mergedRelations[pKey] =
+            (Number(rr.updatedAtMs) || 0) >= (Number(lr.updatedAtMs) || 0) ? rr : lr;
+        }
+      });
+      const mergedRoomInvites = {};
+      const allInviteKeys = new Set([
+        ...Object.keys(localSocial.roomInvites || {}),
+        ...Object.keys(remoteSocial.roomInvites || {}),
+      ]);
+      allInviteKeys.forEach((iKey) => {
+        const li = localSocial.roomInvites?.[iKey];
+        const ri = remoteSocial.roomInvites?.[iKey];
+        const newerInv =
+          li && ri
+            ? (Number(ri.createdAtMs) || 0) >= (Number(li.createdAtMs) || 0)
+              ? ri
+              : li
+            : li || ri;
+        if (newerInv && now - (Number(newerInv.createdAtMs) || 0) <= 10 * 60 * 1000) {
+          mergedRoomInvites[iKey] = newerInv;
+        }
+      });
+      const mergedSocial = {
+        relations: mergedRelations,
+        roomInvites: mergedRoomInvites,
+      };
+
       const finalReg = {
         v: 1,
         updatedAtMs: now,
         devices: mergedDevices,
         accounts: mergedAccounts,
         adMonetization: mergedAdMonetization,
+        social: mergedSocial,
       };
       this.globalRegistryCache = finalReg;
       this._lastGlobalRegistrySyncMs = now;
       try {
         localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(finalReg));
+      } catch (_) {}
+      try {
+        this.updateFriendsSocialBadgesAndToasts(finalReg);
+        if (!document.getElementById('friends-modal')?.classList.contains('hidden')) {
+          this.renderFriendsModalContent();
+        }
       } catch (_) {}
 
       try {
@@ -6654,6 +6784,795 @@ class TienLenGame {
       statsContainer.innerHTML = this.renderDeviceTrackerSectionHtml();
     }
     sfx.click();
+  }
+
+  // ============================================================================
+  // HỆ THỐNG KẾT BẠN & DANH SÁCH NGƯỜI CHƠI TOÀN SERVER (SOCIAL & PLAYER DIRECTORY)
+  // ============================================================================
+  getSocialPairKey(userA, userB) {
+    const a = String(userA || '').trim().toLowerCase();
+    const b = String(userB || '').trim().toLowerCase();
+    if (!a || !b || a === b) return '';
+    return [a, b].sort().join('__');
+  }
+
+  getFriendshipState(otherUsername) {
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    const otherU = String(otherUsername || '').trim().toLowerCase();
+    if (!myU || !otherU || myU === otherU) return { status: 'self', entry: null };
+    const reg = this.loadGlobalRegistryCache();
+    const pKey = this.getSocialPairKey(myU, otherU);
+    const rel = reg.social?.relations?.[pKey];
+    if (!rel || rel.status === 'removed') return { status: 'none', entry: null };
+    if (rel.status === 'accepted') return { status: 'friends', entry: rel };
+    if (rel.status === 'pending') {
+      return {
+        status: String(rel.requester || '').toLowerCase() === myU ? 'outgoing' : 'incoming',
+        entry: rel,
+      };
+    }
+    return { status: 'none', entry: null };
+  }
+
+  getSocialFriendButtonHtml(targetUsername, targetDisplayName = '', compact = false) {
+    const cleanU = String(targetUsername || '').trim().toLowerCase();
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    if (!cleanU || cleanU === 'guest' || cleanU === 'khách' || cleanU === myU) return '';
+    const safeName = String(targetDisplayName || cleanU).replace(/'/g, '').replace(/"/g, '');
+    const st = this.getFriendshipState(cleanU);
+    const pad = compact ? 'padding:4px 8px;font-size:11.5px;' : 'padding:6px 12px;font-size:12px;';
+    if (st.status === 'friends') {
+      return `<span style="${pad}border-radius:8px;background:rgba(16,185,129,0.18);border:1px solid rgba(52,211,153,0.45);color:#6ee7b7;font-weight:800;display:inline-flex;align-items:center;gap:4px;">🤝 Bạn Bè</span>`;
+    }
+    if (st.status === 'incoming') {
+      return `<button type="button" class="primary-btn" style="${pad}border-radius:8px;background:linear-gradient(135deg,#059669,#10b981);border:1px solid #6ee7b7;font-weight:800;" onclick="window.tienLenGame.acceptFriendRequest('${cleanU}')">✅ Đồng Ý KB</button>`;
+    }
+    if (st.status === 'outgoing') {
+      return `<button type="button" class="tool-btn" style="${pad}border-radius:8px;font-weight:700;color:#fde68a;border-color:rgba(250,204,21,0.4);" onclick="window.tienLenGame.cancelOrRemoveFriend('${cleanU}')">⏳ Đã Gửi KB</button>`;
+    }
+    return `<button type="button" class="primary-btn" style="${pad}border-radius:8px;background:linear-gradient(135deg,#0284c7,#2563eb);border:1px solid #7dd3fc;font-weight:800;" onclick="window.tienLenGame.sendFriendRequest('${cleanU}', '${safeName}')">➕ Kết Bạn</button>`;
+  }
+
+  getAllDirectoryPlayers() {
+    const reg = this.loadGlobalRegistryCache();
+    const now = Date.now();
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    const map = new Map();
+
+    // 1. Từ reg.accounts
+    Object.values(reg.accounts || {}).forEach((acc) => {
+      if (!acc || !acc.username) return;
+      const u = String(acc.username).trim().toLowerCase();
+      if (!u || u === 'guest' || u === 'khách') return;
+      map.set(u, {
+        username: u,
+        displayName: this.resolveCleanPlayerName(acc.displayName || u, u),
+        coins: typeof acc.coins === 'number' ? acc.coins : INITIAL_COINS,
+        burstCount: Number(acc.burstCount) || 0,
+        avatar: acc.avatar || 'default_player',
+        activeChar: acc.activeChar || 'raiden',
+        currentRoomId: acc.currentRoomId || '',
+        currentRoomTitle: acc.currentRoomTitle || '',
+        currentRoomHasPass: !!acc.currentRoomHasPass,
+        lastSeenMs: Number(acc.lastSeenMs) || 0,
+        lastSeenStr: acc.lastSeenStr || '',
+      });
+    });
+
+    // 2. Từ reg.devices (bắt toàn bộ tài khoản đã từng đăng nhập trên mọi thiết bị)
+    Object.values(reg.devices || {}).forEach((d) => {
+      if (!d || typeof d !== 'object') return;
+      const devUsers = Array.from(
+        new Set([...(Array.isArray(d.accounts) ? d.accounts : []), d.lastAccount].filter(Boolean))
+      );
+      devUsers.forEach((rawU) => {
+        const u = String(rawU || '').trim().toLowerCase();
+        if (!u || u === 'guest' || u === 'khách') return;
+        const dLast = Number(d.lastSeenMs) || 0;
+        const ex = map.get(u);
+        if (!ex) {
+          map.set(u, {
+            username: u,
+            displayName:
+              d.lastAccount === u && d.lastPlayerName
+                ? this.resolveCleanPlayerName(d.lastPlayerName, u)
+                : u,
+            coins: INITIAL_COINS,
+            burstCount: 0,
+            avatar: 'default_player',
+            activeChar: 'raiden',
+            currentRoomId: '',
+            currentRoomTitle: '',
+            currentRoomHasPass: false,
+            lastSeenMs: dLast,
+            lastSeenStr: d.lastSeenStr || (dLast ? new Date(dLast).toLocaleString('vi-VN') : ''),
+          });
+        } else if (d.lastAccount === u && dLast > (Number(ex.lastSeenMs) || 0)) {
+          ex.lastSeenMs = dLast;
+          ex.lastSeenStr = d.lastSeenStr || new Date(dLast).toLocaleString('vi-VN');
+        }
+      });
+    });
+
+    // 3. Từ các quan hệ kết bạn trong reg.social.relations
+    Object.values(reg.social?.relations || {}).forEach((rel) => {
+      if (!rel) return;
+      [rel.userA, rel.userB].forEach((rawU) => {
+        const u = String(rawU || '').trim().toLowerCase();
+        if (!u || u === 'guest' || u === 'khách' || map.has(u)) return;
+        map.set(u, {
+          username: u,
+          displayName: u,
+          coins: INITIAL_COINS,
+          burstCount: 0,
+          avatar: 'default_player',
+          activeChar: 'raiden',
+          currentRoomId: '',
+          currentRoomTitle: '',
+          currentRoomHasPass: false,
+          lastSeenMs: Number(rel.updatedAtMs) || 0,
+          lastSeenStr: rel.updatedAtMs ? new Date(Number(rel.updatedAtMs)).toLocaleString('vi-VN') : '',
+        });
+      });
+    });
+
+    // 4. Từ các bàn đang mở trên Sảnh Online (multiplayerRoomsList) và bàn hiện tại
+    const openRoomsByUser = new Map();
+    (this.multiplayerRoomsList || []).forEach((r) => {
+      if (!r || !r.roomId || r.closed) return;
+      if (now - (Number(r.updatedAtMs) || 0) > 240000) return;
+      (r.players || []).forEach((rp) => {
+        if (!rp || rp.isBot) return;
+        const u = String(rp.accountUsername || '').trim().toLowerCase();
+        if (!u) return;
+        openRoomsByUser.set(u, {
+          roomId: String(r.roomId).toUpperCase(),
+          title: r.title || `Bàn #${r.roomId}`,
+          hasPassword: !!r.hasPassword,
+        });
+        const ex = map.get(u);
+        if (!ex) {
+          map.set(u, {
+            username: u,
+            displayName: rp.name || u,
+            coins: INITIAL_COINS,
+            burstCount: 0,
+            avatar: rp.avatar || 'default_player',
+            activeChar: rp.activeChar || 'raiden',
+            currentRoomId: String(r.roomId).toUpperCase(),
+            currentRoomTitle: r.title || '',
+            currentRoomHasPass: !!r.hasPassword,
+            lastSeenMs: Number(r.updatedAtMs) || now,
+            lastSeenStr: new Date(Number(r.updatedAtMs) || now).toLocaleString('vi-VN'),
+          });
+        } else {
+          if (rp.name) ex.displayName = rp.name;
+          if (rp.avatar) ex.avatar = rp.avatar;
+          ex.lastSeenMs = Math.max(Number(ex.lastSeenMs) || 0, Number(r.updatedAtMs) || 0);
+        }
+      });
+    });
+
+    if (this.isMultiplayer && this.roomId) {
+      (this.players || []).forEach((p) => {
+        if (!p || !p.active || p.isBot) return;
+        const u = String(p.accountUsername || '').trim().toLowerCase();
+        if (!u) return;
+        openRoomsByUser.set(u, {
+          roomId: String(this.roomId).toUpperCase(),
+          title: this.roomTitle || `Bàn #${this.roomId}`,
+          hasPassword: !!this.roomPasswordHash,
+        });
+        const ex = map.get(u);
+        if (!ex) {
+          map.set(u, {
+            username: u,
+            displayName: p.name || u,
+            coins: typeof p.coins === 'number' ? p.coins : INITIAL_COINS,
+            burstCount: 0,
+            avatar: p.avatar || 'default_player',
+            activeChar: p.activeChar || 'raiden',
+            currentRoomId: String(this.roomId).toUpperCase(),
+            currentRoomTitle: this.roomTitle || '',
+            currentRoomHasPass: !!this.roomPasswordHash,
+            lastSeenMs: now,
+            lastSeenStr: new Date(now).toLocaleString('vi-VN'),
+          });
+        } else {
+          if (p.name) ex.displayName = p.name;
+          if (p.avatar) ex.avatar = p.avatar;
+          if (typeof p.coins === 'number') ex.coins = p.coins;
+          ex.lastSeenMs = now;
+        }
+      });
+    }
+
+    const result = [];
+    map.forEach((entry, u) => {
+      if (u === myU) return;
+      const liveRoom =
+        openRoomsByUser.get(u) ||
+        (entry.currentRoomId && now - (Number(entry.lastSeenMs) || 0) <= 240000
+          ? {
+              roomId: entry.currentRoomId,
+              title: entry.currentRoomTitle || `Bàn #${entry.currentRoomId}`,
+              hasPassword: !!entry.currentRoomHasPass,
+            }
+          : null);
+      const isOnline = Boolean(liveRoom) || now - (Number(entry.lastSeenMs) || 0) <= 10 * 60 * 1000;
+      const rel = this.getFriendshipState(u);
+      result.push({
+        ...entry,
+        liveRoom,
+        isOnline,
+        relationStatus: rel.status,
+      });
+    });
+
+    result.sort((a, b) => {
+      const rankRel = (s) => (s === 'incoming' ? 0 : s === 'friends' ? 1 : s === 'outgoing' ? 2 : 3);
+      if (a.relationStatus === 'incoming' || b.relationStatus === 'incoming') {
+        if (rankRel(a.relationStatus) !== rankRel(b.relationStatus)) {
+          return rankRel(a.relationStatus) - rankRel(b.relationStatus);
+        }
+      }
+      if (Boolean(a.liveRoom) !== Boolean(b.liveRoom)) return a.liveRoom ? -1 : 1;
+      if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+      return (Number(b.lastSeenMs) || 0) - (Number(a.lastSeenMs) || 0);
+    });
+    return result;
+  }
+
+  openFriendsModal(defaultTab = null) {
+    if (!this.requireAccountLogin()) return;
+    if (defaultTab) {
+      this.friendsModalTab = defaultTab;
+    } else if (!this.friendsModalTab) {
+      this.friendsModalTab = 'directory';
+    }
+    const modal = document.getElementById('friends-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    this.renderFriendsModalContent();
+    sfx.click();
+    this.syncGlobalDeviceRegistry(true);
+    this.refreshMultiplayerRoomsDirectory(false);
+  }
+
+  closeFriendsModal() {
+    document.getElementById('friends-modal')?.classList.add('hidden');
+    sfx.click();
+  }
+
+  switchFriendsModalTab(tab) {
+    this.friendsModalTab = tab || 'directory';
+    this.renderFriendsModalContent();
+    sfx.click();
+  }
+
+  onFriendsSearchInput(val) {
+    this.friendsSearchQuery = String(val || '');
+    this.renderFriendsModalContent(true);
+  }
+
+  async refreshFriendsFromCloud() {
+    const btn = document.getElementById('btn-refresh-friends-cloud');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang tải...';
+    }
+    await Promise.allSettled([
+      this.syncGlobalDeviceRegistry(true),
+      this.refreshMultiplayerRoomsDirectory(false),
+    ]);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🔄 Làm mới Cloud';
+    }
+    this.renderFriendsModalContent();
+    sfx.click();
+  }
+
+  async sendFriendRequestFromInput() {
+    if (!this.requireAccountLogin()) return;
+    const inp = document.getElementById('friends-search-input');
+    const raw = String(inp ? inp.value : this.friendsSearchQuery || '')
+      .trim()
+      .replace(/^@+/, '')
+      .toLowerCase();
+    if (!raw || raw.length < 2) {
+      alert('⚠️ Vui lòng nhập @username của người chơi bạn muốn kết bạn vào ô tìm kiếm!');
+      return;
+    }
+    if (raw === String(this.currentAccountUsername || '').trim().toLowerCase()) {
+      alert('⚠️ Bạn không thể tự kết bạn với chính mình!');
+      return;
+    }
+    await this.sendFriendRequest(raw, raw);
+  }
+
+  async sendFriendRequest(targetUsername, targetDisplayName = '') {
+    if (!this.requireAccountLogin()) return;
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    const otherU = String(targetUsername || '').trim().replace(/^@+/, '').toLowerCase();
+    if (!myU || !otherU || myU === otherU) return;
+    const pKey = this.getSocialPairKey(myU, otherU);
+    if (!pKey) return;
+
+    const reg = this.loadGlobalRegistryCache();
+    if (!reg.social) reg.social = { relations: {}, roomInvites: {} };
+    if (!reg.social.relations) reg.social.relations = {};
+    const existing = reg.social.relations[pKey];
+    const now = Date.now();
+
+    if (
+      existing &&
+      existing.status === 'pending' &&
+      String(existing.requester || '').toLowerCase() === otherU
+    ) {
+      return this.acceptFriendRequest(otherU);
+    }
+
+    const [userA, userB] = [myU, otherU].sort();
+    reg.social.relations[pKey] = {
+      pairKey: pKey,
+      userA,
+      userB,
+      status: 'pending',
+      requester: myU,
+      updatedAtMs: now,
+    };
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+    sfx.click();
+    this.showComboBanner(`🤝 ĐÃ GỬI LỜI MỜI KẾT BẠN TỚI @${otherU.toUpperCase()}!`);
+    this.renderFriendsModalContent();
+    this.renderLobbyModal();
+    await this.syncGlobalDeviceRegistry(true);
+  }
+
+  async acceptFriendRequest(targetUsername) {
+    if (!this.requireAccountLogin()) return;
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    const otherU = String(targetUsername || '').trim().replace(/^@+/, '').toLowerCase();
+    if (!myU || !otherU || myU === otherU) return;
+    const pKey = this.getSocialPairKey(myU, otherU);
+    if (!pKey) return;
+
+    const reg = this.loadGlobalRegistryCache();
+    if (!reg.social) reg.social = { relations: {}, roomInvites: {} };
+    if (!reg.social.relations) reg.social.relations = {};
+    const [userA, userB] = [myU, otherU].sort();
+    reg.social.relations[pKey] = {
+      pairKey: pKey,
+      userA,
+      userB,
+      status: 'accepted',
+      requester: reg.social.relations[pKey]?.requester || otherU,
+      updatedAtMs: Date.now(),
+    };
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+    sfx.win();
+    this.dismissSocialToast();
+    this.showComboBanner(`🎉 ĐÃ TRỞ THÀNH BẠN BÈ VỚI @${otherU.toUpperCase()}!`);
+    this.updateFriendsSocialBadgesAndToasts(reg);
+    this.renderFriendsModalContent();
+    this.renderLobbyModal();
+    await this.syncGlobalDeviceRegistry(true);
+  }
+
+  async cancelOrRemoveFriend(targetUsername) {
+    if (!this.requireAccountLogin()) return;
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    const otherU = String(targetUsername || '').trim().replace(/^@+/, '').toLowerCase();
+    if (!myU || !otherU || myU === otherU) return;
+    const pKey = this.getSocialPairKey(myU, otherU);
+    if (!pKey) return;
+
+    const reg = this.loadGlobalRegistryCache();
+    if (!reg.social) reg.social = { relations: {}, roomInvites: {} };
+    if (!reg.social.relations) reg.social.relations = {};
+    const [userA, userB] = [myU, otherU].sort();
+    reg.social.relations[pKey] = {
+      pairKey: pKey,
+      userA,
+      userB,
+      status: 'removed',
+      requester: myU,
+      updatedAtMs: Date.now(),
+    };
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+    sfx.click();
+    this.dismissSocialToast();
+    this.updateFriendsSocialBadgesAndToasts(reg);
+    this.renderFriendsModalContent();
+    this.renderLobbyModal();
+    await this.syncGlobalDeviceRegistry(true);
+  }
+
+  async sendRoomInviteToPlayer(targetUsername) {
+    if (!this.requireAccountLogin()) return;
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    const otherU = String(targetUsername || '').trim().replace(/^@+/, '').toLowerCase();
+    if (!myU || !otherU || myU === otherU) return;
+    if (!this.isMultiplayer || !this.roomId) {
+      alert('💡 Hãy tạo hoặc vào một Phòng Online trước, sau đó bấm "📨 Mời Vào Bàn" để gọi bạn bè vào phòng của bạn!');
+      this.closeFriendsModal();
+      this.openModeSetupModal('human');
+      return;
+    }
+    const reg = this.loadGlobalRegistryCache();
+    if (!reg.social) reg.social = { relations: {}, roomInvites: {} };
+    if (!reg.social.roomInvites) reg.social.roomInvites = {};
+    const invKey = `${myU}__${otherU}`;
+    const now = Date.now();
+    reg.social.roomInvites[invKey] = {
+      id: `${now}_${Math.random().toString(36).slice(2, 6)}`,
+      fromUser: myU,
+      fromName: this.resolveCleanPlayerName(this.savedPlayerName, myU),
+      toUser: otherU,
+      roomId: String(this.roomId).toUpperCase(),
+      roomTitle: this.roomTitle || `Bàn #${this.roomId}`,
+      betPerCard: this.betPerCard || 100,
+      createdAtMs: now,
+    };
+    try {
+      localStorage.setItem('tlmn_global_registry_cache_v1', JSON.stringify(reg));
+    } catch (_) {}
+    sfx.click();
+    this.showComboBanner(`📨 ĐÃ GỬI LỜI MỜI VÀO PHÒNG #${this.roomId} TỚI @${otherU.toUpperCase()}!`);
+    await this.syncGlobalDeviceRegistry(true);
+  }
+
+  joinFriendRoomFromModal(roomId) {
+    const cleanCode = String(roomId || '').trim().toUpperCase();
+    if (!cleanCode) return;
+    this.dismissSocialToast();
+    this.closeFriendsModal();
+    this.openModeSetupModal('human');
+    this.joinRoomFromDirectoryCard(cleanCode);
+  }
+
+  dismissSocialToast() {
+    document.getElementById('social-invite-toast')?.classList.add('hidden');
+  }
+
+  updateFriendsSocialBadgesAndToasts(reg = this.loadGlobalRegistryCache()) {
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    const topBadge = document.getElementById('top-friends-badge');
+    const lobbyBadge = document.getElementById('lobby-friends-badge');
+    if (!myU || !reg || !reg.social) {
+      topBadge?.classList.add('hidden');
+      lobbyBadge?.classList.add('hidden');
+      return;
+    }
+    const now = Date.now();
+    const incomingReqs = Object.values(reg.social.relations || {}).filter(
+      (r) =>
+        r &&
+        r.status === 'pending' &&
+        (r.userA === myU || r.userB === myU) &&
+        String(r.requester || '').toLowerCase() !== myU
+    );
+    const activeInvites = Object.values(reg.social.roomInvites || {}).filter(
+      (inv) =>
+        inv &&
+        String(inv.toUser || '').toLowerCase() === myU &&
+        inv.roomId &&
+        inv.roomId !== this.roomId &&
+        now - (Number(inv.createdAtMs) || 0) <= 5 * 60 * 1000
+    );
+    const totalCount = incomingReqs.length + activeInvites.length;
+    [topBadge, lobbyBadge].forEach((bEl) => {
+      if (!bEl) return;
+      if (totalCount > 0) {
+        bEl.textContent = String(totalCount);
+        bEl.classList.remove('hidden');
+      } else {
+        bEl.classList.add('hidden');
+      }
+    });
+
+    if (!this._toastedSocialIds) this._toastedSocialIds = new Set();
+    const toastEl = document.getElementById('social-invite-toast');
+    if (!toastEl) return;
+
+    const freshRoomInvite = activeInvites.find(
+      (inv) => !this._toastedSocialIds.has(inv.id) && now - (Number(inv.createdAtMs) || 0) <= 180000
+    );
+    if (freshRoomInvite) {
+      this._toastedSocialIds.add(freshRoomInvite.id);
+      sfx.coin();
+      toastEl.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div>
+            <div style="font-size:13px;font-weight:900;color:#fde047;">📨 LỜI MỜI VÀO BÀN CHƠI!</div>
+            <div style="font-size:12px;color:#e2e8f0;margin-top:3px;">
+              <strong>${freshRoomInvite.fromName || '@' + freshRoomInvite.fromUser}</strong> (@${freshRoomInvite.fromUser}) đang mời bạn vào <strong>Phòng #${freshRoomInvite.roomId}</strong> (Cược ${(freshRoomInvite.betPerCard || 100).toLocaleString()} Xu/lá)!
+            </div>
+          </div>
+          <button type="button" class="clear-log-btn" style="padding:2px 6px;" onclick="window.tienLenGame.dismissSocialToast()">✕</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+          <button type="button" class="primary-btn" style="padding:6px 14px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#059669,#10b981);" onclick="window.tienLenGame.joinFriendRoomFromModal('${freshRoomInvite.roomId}')">
+            🚀 Vào Bàn #${freshRoomInvite.roomId} Ngay
+          </button>
+        </div>
+      `;
+      toastEl.classList.remove('hidden');
+      return;
+    }
+
+    const freshFriendReq = incomingReqs.find(
+      (r) => !this._toastedSocialIds.has(`${r.pairKey}_${r.updatedAtMs}`)
+    );
+    if (freshFriendReq) {
+      const reqId = `${freshFriendReq.pairKey}_${freshFriendReq.updatedAtMs}`;
+      this._toastedSocialIds.add(reqId);
+      const fromU = freshFriendReq.requester;
+      toastEl.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div>
+            <div style="font-size:13px;font-weight:900;color:#38bdf8;">🤝 LỜI MỜI KẾT BẠN MỚI!</div>
+            <div style="font-size:12px;color:#e2e8f0;margin-top:3px;">
+              Người chơi <strong>@${fromU}</strong> vừa gửi lời mời kết bạn cho bạn!
+            </div>
+          </div>
+          <button type="button" class="clear-log-btn" style="padding:2px 6px;" onclick="window.tienLenGame.dismissSocialToast()">✕</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+          <button type="button" class="primary-btn" style="padding:6px 12px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#059669,#10b981);" onclick="window.tienLenGame.acceptFriendRequest('${fromU}')">
+            ✅ Đồng Ý Kết Bạn
+          </button>
+          <button type="button" class="tool-btn" style="padding:6px 10px;font-size:12px;" onclick="window.tienLenGame.openFriendsModal('requests'); window.tienLenGame.dismissSocialToast();">
+            📋 Xem Danh Sách
+          </button>
+        </div>
+      `;
+      toastEl.classList.remove('hidden');
+    }
+  }
+
+  renderFriendsModalContent(preserveFocus = false) {
+    const bodyEl = document.getElementById('friends-modal-body');
+    if (!bodyEl) return;
+
+    const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
+    const allPlayers = this.getAllDirectoryPlayers();
+    const myFriends = allPlayers.filter((p) => p.relationStatus === 'friends');
+    const incomingReqs = allPlayers.filter((p) => p.relationStatus === 'incoming');
+    const outgoingReqs = allPlayers.filter((p) => p.relationStatus === 'outgoing');
+
+    const reg = this.loadGlobalRegistryCache();
+    const now = Date.now();
+    const activeRoomInvites = Object.values(reg.social?.roomInvites || {}).filter(
+      (inv) =>
+        inv &&
+        String(inv.toUser || '').toLowerCase() === myU &&
+        inv.roomId &&
+        now - (Number(inv.createdAtMs) || 0) <= 10 * 60 * 1000
+    );
+
+    const activeTab = this.friendsModalTab || 'directory';
+    const q = String(this.friendsSearchQuery || '').trim().toLowerCase().replace(/^@+/, '');
+
+    const renderPlayerRow = (p) => {
+      const charId = p.activeChar && CHARACTER_SKILLS[p.activeChar] ? p.activeChar : 'raiden';
+      const sk = CHARACTER_SKILLS[charId] || CHARACTER_SKILLS.raiden;
+      const canInviteToMyRoom = Boolean(this.isMultiplayer && this.roomId);
+      const roomBadgeHtml = p.liveRoom
+        ? `<span style="background:rgba(16,185,129,0.2);border:1px solid #34d399;color:#6ee7b7;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;">🏠 Đang ở Phòng #${p.liveRoom.roomId}</span>`
+        : p.isOnline
+          ? `<span style="background:rgba(14,165,233,0.2);border:1px solid #38bdf8;color:#7dd3fc;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;">🟢 Đang Online</span>`
+          : `<span style="color:#94a3b8;font-size:11px;">🕒 ${p.lastSeenStr || 'Gần đây'}</span>`;
+
+      let actionButtons = '';
+      if (p.liveRoom && p.liveRoom.roomId !== this.roomId) {
+        actionButtons += `
+          <button type="button" class="primary-btn" style="padding:6px 11px;font-size:11.5px;border-radius:8px;background:linear-gradient(135deg,#059669,#10b981);border:1px solid #6ee7b7;font-weight:800;" onclick="window.tienLenGame.joinFriendRoomFromModal('${p.liveRoom.roomId}')">
+            🚀 Vào Bàn #${p.liveRoom.roomId}
+          </button>
+        `;
+      }
+      if (canInviteToMyRoom && (!p.liveRoom || p.liveRoom.roomId !== this.roomId)) {
+        actionButtons += `
+          <button type="button" class="tool-btn" style="padding:6px 10px;font-size:11.5px;border-radius:8px;border-color:#fde047;color:#fef08a;font-weight:800;" onclick="window.tienLenGame.sendRoomInviteToPlayer('${p.username}')">
+            📨 Mời Vào Bàn #${this.roomId}
+          </button>
+        `;
+      }
+      if (p.relationStatus === 'friends') {
+        actionButtons += `
+          <span style="padding:6px 10px;font-size:11.5px;border-radius:8px;background:rgba(16,185,129,0.16);border:1px solid rgba(52,211,153,0.4);color:#6ee7b7;font-weight:800;">🤝 Bạn Bè</span>
+          <button type="button" class="clear-log-btn" style="padding:5px 8px;font-size:11px;" title="Hủy kết bạn với @${p.username}" onclick="window.tienLenGame.cancelOrRemoveFriend('${p.username}')">✕</button>
+        `;
+      } else if (p.relationStatus === 'incoming') {
+        actionButtons += `
+          <button type="button" class="primary-btn" style="padding:6px 12px;font-size:11.5px;border-radius:8px;background:linear-gradient(135deg,#059669,#10b981);border:1px solid #6ee7b7;font-weight:800;" onclick="window.tienLenGame.acceptFriendRequest('${p.username}')">
+            ✅ Đồng Ý Kết Bạn
+          </button>
+          <button type="button" class="clear-log-btn" style="padding:5px 9px;font-size:11px;" onclick="window.tienLenGame.cancelOrRemoveFriend('${p.username}')">✕ Từ chối</button>
+        `;
+      } else if (p.relationStatus === 'outgoing') {
+        actionButtons += `
+          <button type="button" class="tool-btn" style="padding:6px 10px;font-size:11.5px;border-radius:8px;color:#fde68a;border-color:rgba(250,204,21,0.4);" onclick="window.tienLenGame.cancelOrRemoveFriend('${p.username}')">
+            ⏳ Đã Gửi KB (Hủy)
+          </button>
+        `;
+      } else {
+        const safeDisp = String(p.displayName || p.username).replace(/'/g, '').replace(/"/g, '');
+        actionButtons += `
+          <button type="button" class="primary-btn" style="padding:6px 12px;font-size:11.5px;border-radius:8px;background:linear-gradient(135deg,#0284c7,#2563eb);border:1px solid #7dd3fc;font-weight:800;" onclick="window.tienLenGame.sendFriendRequest('${p.username}', '${safeDisp}')">
+            ➕ Kết Bạn
+          </button>
+        `;
+      }
+
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:rgba(15,23,42,0.82);border:1px solid ${
+          p.relationStatus === 'friends'
+            ? 'rgba(52,211,153,0.45)'
+            : p.isOnline
+              ? 'rgba(56,189,248,0.38)'
+              : 'rgba(148,163,184,0.2)'
+        };">
+          <div style="display:flex;align-items:center;gap:10px;min-width:210px;flex:1;">
+            <img src="fanart/${charId}.jpg?v=66" alt="${p.displayName}" style="width:42px;height:42px;border-radius:10px;object-fit:cover;border:1.5px solid ${
+              p.isOnline ? '#38bdf8' : '#64748b'
+            };" />
+            <div style="min-width:0;flex:1;">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <span style="font-size:13.5px;font-weight:900;color:#f8fafc;">${p.displayName}</span>
+                <span style="font-size:11.5px;font-weight:700;color:#38bdf8;">@${p.username}</span>
+                ${roomBadgeHtml}
+              </div>
+              <div style="font-size:11.5px;color:#cbd5e1;margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;">
+                <span>🪙 <strong style="color:#fde047;">${(Number(p.coins) || 0).toLocaleString()}</strong> Xu</span>
+                <span>🌠 <strong style="color:#c084fc;">${Number(p.burstCount) || 0}</strong> Tướng 5★</span>
+                <span>${sk.icon} ${sk.charName}</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            ${actionButtons}
+          </div>
+        </div>
+      `;
+    };
+
+    let tabBodyHtml = '';
+    if (activeTab === 'directory') {
+      const filtered = q
+        ? allPlayers.filter(
+            (p) =>
+              p.username.toLowerCase().includes(q) ||
+              String(p.displayName || '').toLowerCase().includes(q)
+          )
+        : allPlayers;
+      tabBodyHtml =
+        filtered.length > 0
+          ? `<div style="display:flex;flex-direction:column;gap:8px;">${filtered.map(renderPlayerRow).join('')}</div>`
+          : `<div style="padding:20px;text-align:center;color:#cbd5e1;background:rgba(15,23,42,0.6);border-radius:12px;border:1px dashed rgba(148,163,184,0.3);">
+              Không tìm thấy người chơi khớp với từ khóa <strong>"${q}"</strong> — Bạn có thể bấm nút <strong>➕ Kết Bạn Theo @ID</strong> phía trên để gửi lời mời trực tiếp tới <strong>@${q}</strong>!
+            </div>`;
+    } else if (activeTab === 'friends') {
+      tabBodyHtml =
+        myFriends.length > 0
+          ? `<div style="display:flex;flex-direction:column;gap:8px;">${myFriends.map(renderPlayerRow).join('')}</div>`
+          : `<div style="padding:22px;text-align:center;color:#cbd5e1;background:rgba(15,23,42,0.6);border-radius:12px;border:1px dashed rgba(148,163,184,0.3);">
+              Bạn chưa có người bạn nào trong danh sách.<br/>Hãy chuyển sang tab <strong>🌐 Danh Sách Người Chơi</strong> và bấm <strong>➕ Kết Bạn</strong> nhé!
+            </div>`;
+    } else {
+      const roomInvitesHtml =
+        activeRoomInvites.length > 0
+          ? `
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+              <div style="font-size:12.5px;font-weight:900;color:#fde047;">📨 Lời Mời Vào Bàn Đang Mở (${activeRoomInvites.length}):</div>
+              ${activeRoomInvites
+                .map(
+                  (inv) => `
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:10px;background:rgba(6,78,59,0.55);border:1.5px solid #34d399;">
+                    <div>
+                      <div style="font-size:13px;font-weight:900;color:#ecfdf5;">
+                        🏠 <strong>${inv.fromName || '@' + inv.fromUser}</strong> (@${inv.fromUser}) mời bạn vào <strong>Phòng #${inv.roomId}</strong>
+                      </div>
+                      <div style="font-size:11.5px;color:#a7f3d0;margin-top:2px;">
+                        ${inv.roomTitle || ''} • Mức cược: <strong>${(inv.betPerCard || 100).toLocaleString()} Xu/lá</strong>
+                      </div>
+                    </div>
+                    <button type="button" class="primary-btn" style="padding:7px 14px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#059669,#10b981);" onclick="window.tienLenGame.joinFriendRoomFromModal('${inv.roomId}')">
+                      🚀 Vào Bàn #${inv.roomId} Ngay
+                    </button>
+                  </div>
+                `
+                )
+                .join('')}
+            </div>
+          `
+          : '';
+
+      const incHtml =
+        incomingReqs.length > 0
+          ? `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+              <div style="font-size:12.5px;font-weight:900;color:#38bdf8;">🤝 Lời Mời Kết Bạn Gửi Đến Bạn (${incomingReqs.length}):</div>
+              ${incomingReqs.map(renderPlayerRow).join('')}
+            </div>`
+          : '';
+
+      const outHtml =
+        outgoingReqs.length > 0
+          ? `<div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="font-size:12.5px;font-weight:800;color:#94a3b8;">⏳ Lời Mời Bạn Đã Gửi Đi (${outgoingReqs.length}):</div>
+              ${outgoingReqs.map(renderPlayerRow).join('')}
+            </div>`
+          : '';
+
+      tabBodyHtml =
+        roomInvitesHtml || incHtml || outHtml
+          ? `${roomInvitesHtml}${incHtml}${outHtml}`
+          : `<div style="padding:22px;text-align:center;color:#cbd5e1;background:rgba(15,23,42,0.6);border-radius:12px;border:1px dashed rgba(148,163,184,0.3);">
+              Hiện không có lời mời kết bạn hay lời mời vào phòng nào đang chờ.
+            </div>`;
+    }
+
+    const reqCount = incomingReqs.length + activeRoomInvites.length;
+    bodyEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,rgba(15,23,42,0.9),rgba(30,58,138,0.65));border:1px solid rgba(56,189,248,0.35);">
+        <div style="font-size:12.5px;color:#e2e8f0;">
+          👤 Tài khoản của bạn: <strong style="color:#fde047;">${this.resolveCleanPlayerName(this.savedPlayerName, myU)}</strong>
+          <span style="color:#38bdf8;font-weight:800;margin-left:4px;">@${myU}</span>
+        </div>
+        <div style="font-size:12px;color:#94a3b8;">
+          Tổng người chơi trên Server: <strong style="color:#4ade80;">${allPlayers.length + 1}</strong> người • Bạn bè: <strong style="color:#38bdf8;">${myFriends.length}</strong>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="shop-tab ${activeTab === 'directory' ? 'active' : ''}" onclick="window.tienLenGame.switchFriendsModalTab('directory')" style="flex:1;min-width:170px;">
+          🌐 Danh Sách Người Chơi (${allPlayers.length})
+        </button>
+        <button type="button" class="shop-tab ${activeTab === 'friends' ? 'active' : ''}" onclick="window.tienLenGame.switchFriendsModalTab('friends')" style="flex:1;min-width:140px;">
+          💚 Bạn Bè Của Tôi (${myFriends.length})
+        </button>
+        <button type="button" class="shop-tab ${activeTab === 'requests' ? 'active' : ''}" onclick="window.tienLenGame.switchFriendsModalTab('requests')" style="flex:1;min-width:140px;position:relative;">
+          🔔 Lời Mời (${reqCount})
+        </button>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input
+          type="text"
+          id="friends-search-input"
+          value="${String(this.friendsSearchQuery || '').replace(/"/g, '&quot;')}"
+          placeholder="🔍 Tìm tên người chơi hoặc nhập @username để kết bạn..."
+          oninput="window.tienLenGame.onFriendsSearchInput(this.value)"
+          style="flex:1;min-width:210px;padding:9px 12px;border-radius:10px;border:1.5px solid rgba(56,189,248,0.45);background:rgba(15,23,42,0.9);color:#f8fafc;font-size:13px;"
+        />
+        <button type="button" class="primary-btn" onclick="window.tienLenGame.sendFriendRequestFromInput()" style="padding:9px 14px;font-size:12.5px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#0284c7,#2563eb);">
+          ➕ Kết Bạn Theo @ID
+        </button>
+      </div>
+
+      <div style="max-height:52vh;overflow-y:auto;padding-right:2px;">
+        ${tabBodyHtml}
+      </div>
+    `;
+
+    if (preserveFocus) {
+      const inp = document.getElementById('friends-search-input');
+      if (inp) {
+        inp.focus();
+        const len = inp.value.length;
+        try {
+          inp.setSelectionRange(len, len);
+        } catch (_) {}
+      }
+    }
   }
 
   renderDeviceTrackerSectionHtml() {
@@ -15234,8 +16153,9 @@ class TienLenGame {
             <div style="font-size:11px;font-weight:900;color:#fde047;letter-spacing:0.5px;text-transform:uppercase;">
               ${isMe ? '👑 NHÂN VẬT 5★ BẠN ĐANG SỬ DỤNG' : `🎭 NHÂN VẬT ĐANG XÀI CỦA ${p.name.toUpperCase()}`}
             </div>
-            <div style="font-size:18px;font-weight:900;color:#fff;margin-top:2px;">
-              ${sk.icon} ${sk.charName}
+            <div style="font-size:18px;font-weight:900;color:#fff;margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span>${sk.icon} ${sk.charName}</span>
+              ${!isMe && !p.isBot && p.accountUsername ? this.getSocialFriendButtonHtml(p.accountUsername, p.name, true) : ''}
             </div>
             <div style="font-size:12px;margin-top:3px;">${statusBadge}</div>
             ${
@@ -22617,8 +23537,14 @@ class TienLenGame {
               </div>
             `;
           } else {
-            actionHtml = `<button class="clear-log-btn" onclick="window.tienLenGame.toggleBotInLobby(${idx}, false)">✕ Bỏ ghế</button>`;
+            const friendBtn =
+              !p.isBot && p.accountUsername
+                ? this.getSocialFriendButtonHtml(p.accountUsername, p.name, true)
+                : '';
+            actionHtml = `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">${friendBtn}<button class="clear-log-btn" onclick="window.tienLenGame.toggleBotInLobby(${idx}, false)">✕ Bỏ ghế</button></div>`;
           }
+        } else if (this.isMultiplayer && idx !== this.mySeatId && p.active && !p.isBot && p.accountUsername) {
+          actionHtml = this.getSocialFriendButtonHtml(p.accountUsername, p.name, true);
         }
 
         const botSkill = p.active && p.isBot && CHARACTER_SKILLS[p.cardSkin] ? CHARACTER_SKILLS[p.cardSkin] : null;

@@ -181,6 +181,7 @@ const BANNER_4STAR_RATEUPS = {
   arlecchino: ['arlecchino', 'columbina', 'sandrone'],
   ineffa: ['ineffa', 'varesa', 'clorinde'],
   flins: ['flins', 'vesna', 'odette'],
+  mitya: ['mitya', 'sandrone', 'odette'],
 };
 
 const GENSHIN_FANART_ROSTER = [
@@ -250,6 +251,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'arlecchino', name: 'Arlecchino (The Knave Fatui #4)', desc: '[Thần Thoại] Quan Chấp Hành thứ 4 khắc Khế Ước Sinh Mệnh: Đối thủ nào Bỏ Lượt bị nhét 1 lá rác và phạt 2× cược.', avatarPrice: 95000, skinPrice: 145000, crest: '🩸' },
   { id: 'ineffa', name: 'Ineffa (Cơ Khí Đồng Bộ Lôi)', desc: '[Huyền Thoại] Phát xung nhịp điện từ làm đoản mạch 1 lá bài trùng bậc số chủ lực trên tay đối thủ tụt thẳng về 3♠.', avatarPrice: 82000, skinPrice: 125000, crest: '🤖' },
   { id: 'flins', name: 'Flins (Người Giữ Đèn Ratniki)', desc: '[Huyền Thoại] Treo Ngọn Đèn Dẫn Hồn: Ngay khi có bất kỳ đối thủ nào Bỏ Lượt sẽ lập tức kết thúc vòng và cướp Cái.', avatarPrice: 88000, skinPrice: 135000, crest: '🏮' },
+  { id: 'mitya', name: 'Mitya (Học Giả Nguyên Lý Biến Đổi)', desc: '[Huyền Thoại] Học giả Snezhnaya phân tích Nguyên Lý Biến Đổi: Khi đang có Sám Cô trên tay, biến 1 lá bài rác thành Tứ Quý và kích hoạt Tinh Siêu Dẫn (×10 cược).', avatarPrice: 88000, skinPrice: 135000, crest: '🧬' },
 ];
 
 const ANIME_CARD_SKINS = [
@@ -1223,6 +1225,20 @@ const GENSHIN_BURSTS = [
     title: 'NGƯỜI GIỮ ĐÈN RATNIKI: NGỌN ĐÈN CƯỚP CÁI',
     quote: '“Ngọn Đèn Đêm Khuya Đã Cháy — Màn Đêm Này Thuộc Về Ta!”',
   },
+  {
+    id: 'mitya',
+    name: 'Mitya — Phân Tích: Nguyên Lý Biến Đổi',
+    desc: '[Huyền Thoại] Học giả Snezhnaya phân tích Nguyên Lý Biến Đổi: Khi đang có Sám Cô trên tay, biến ngay 1 lá bài rác thành lá thứ 4 còn thiếu chất để hợp thành Tứ Quý chặt Heo/Hàng!',
+    price: 165000,
+    mp4Url: 'mitya_burst.mp4?v=195',
+    audioUrl: 'mitya_burst.ogg?v=195',
+    posterUrl: 'fanart/mitya.jpg?v=195',
+    theme: 'theme-electro',
+    sfxType: 'raiden',
+    tag: '🧬 KỸ NĂNG NỘ • MITYA (ANALYSIS: GRADIENT THEORY)',
+    title: 'NGUYÊN LÝ BIẾN ĐỔI: ĐÚC TỨ QUÝ ĐIỆN TỪ',
+    quote: '“ストレス試験を始めようか — Bắt Đầu Bài Kiểm Tra Áp Suất Cao Thôi Nào!”',
+  },
 ];
 
 // ============================================================================
@@ -1295,6 +1311,7 @@ const CHARACTER_ELEMENTS = {
   arlecchino: 'pyro',
   ineffa: 'electro',
   flins: 'electro',
+  mitya: 'electro',
 };
 
 // attackerElem: nguyên tố của người ĐANG ĐÁNH (người kích hoạt phản ứng)
@@ -1902,6 +1919,13 @@ const CHARACTER_SKILLS = {
     icon: '🏮',
     name: 'Ngọn Đèn Dẫn Hồn',
     shortDesc: 'Treo Ngọn Đèn Linh Hồn lên bàn trong vòng này: Ngay khoảnh khắc có bất kỳ 1 đối thủ nào Bỏ Lượt, lập tức kết thúc vòng đấu và trao thẳng quyền Mở Vòng Mới về cho Flins!',
+  },
+  mitya: {
+    id: 'mitya',
+    charName: 'Mitya',
+    icon: '🧬',
+    name: 'Nguyên Lý Biến Đổi: Đúc Tứ Quý',
+    shortDesc: 'Khi đang có Sám Cô (3 lá cùng số dưới 2) trên tay, biến ngay 1 lá bài rác thành lá thứ 4 còn thiếu chất để hợp thành Tứ Quý chặt Heo/Hàng! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Băng)',
   },
 };
 
@@ -9027,20 +9051,26 @@ class TienLenGame {
 
   getServerDailyBannerInfo() {
     const limitedList = GENSHIN_BURSTS.filter((b) => !b.isStandard);
-    const totalLimited = limitedList.length; // 50 nhân vật 5★ giới hạn
-    const bannersPerDay = 2;
-    const daysPerCycle = Math.ceil(totalLimited / bannersPerDay); // 25 ngày / 1 chu kỳ (50 nhân vật)
     const vnDay = this.getVietnamDayNumber();
     const epochOffset = 20750;
     const relDay = Math.max(0, vnDay - epochOffset);
-    const cycleIndex = Math.floor(relDay / daysPerCycle);
-    const dayInCycle = relDay % daysPerCycle; // 0 .. (daysPerCycle - 1)
+    // Trong chu kỳ đầu tiên (relDay < 25), giữ nguyên danh sách 50 tướng xoay tua 25 ngày và ghim thêm Banner Mitya chạy xuyên suốt đến hết chu kỳ hiện tại!
+    const isInitialMityaCycle = relDay < 25;
+    const baseRotationList = isInitialMityaCycle
+      ? limitedList.filter((b) => b.id !== 'mitya')
+      : limitedList;
+    const totalLimited = baseRotationList.length;
+    const bannersPerDay = 2;
+    const daysPerCycle = Math.ceil(totalLimited / bannersPerDay);
+    const cycleIndex = isInitialMityaCycle ? 0 : Math.floor(relDay / daysPerCycle);
+    const dayInCycle = isInitialMityaCycle ? relDay : relDay % daysPerCycle;
 
     // Hoán vị tất định (Deterministic Seeded Fisher-Yates) theo từng chu kỳ:
     // - Mọi người chơi trên toàn Server đều nhận đúng 2 Banner giống hệt nhau mỗi ngày.
-    // - Trong suốt 1 chu kỳ (25 ngày = 50 Banner), tuyệt đối KHÔNG CÓ nhân vật nào bị lặp lại!
+    // - Trong suốt 1 chu kỳ, tuyệt đối KHÔNG CÓ nhân vật nào bị lặp lại!
     const buildCycleOrder = (cycIdx) => {
-      const arr = [...limitedList];
+      const pool = cycIdx === 0 ? limitedList.filter((b) => b.id !== 'mitya') : limitedList;
+      const arr = [...pool];
       let seed = ((cycIdx + 1) * 0x9e3779b9) >>> 0;
       const nextRand = () => {
         seed = (seed + 0x6d2b79f5) >>> 0;
@@ -9070,18 +9100,29 @@ class TienLenGame {
       }
     }
 
+    // Banner Mitya chạy xuyên suốt đến hết chu kỳ banner hiện tại (cycleIndex === 0)
+    if (isInitialMityaCycle) {
+      const mityaBurst = limitedList.find((b) => b.id === 'mitya');
+      if (mityaBurst && !todayBanners.some((b) => b.id === 'mitya')) {
+        todayBanners.unshift(mityaBurst);
+      }
+    }
+
     const vnNowMs = Date.now() + 7 * 3600 * 1000;
     const nextResetMs = (vnDay + 1) * 86400000;
     const remainSec = Math.max(0, Math.floor((nextResetMs - vnNowMs) / 1000));
     const hoursLeft = Math.floor(remainSec / 3600);
     const minsLeft = Math.floor((remainSec % 3600) / 60);
+    const cycleDaysRemaining = Math.max(1, daysPerCycle - dayInCycle);
 
     return {
       vnDay,
       cycleIndex: cycleIndex + 1,
       dayInCycle: dayInCycle + 1,
       daysPerCycle,
-      totalLimited,
+      cycleDaysRemaining,
+      isInitialMityaCycle,
+      totalLimited: limitedList.length,
       todayBanners,
       todayBannerIds: todayBanners.map((b) => b.id),
       cycleOrder,
@@ -10349,12 +10390,21 @@ class TienLenGame {
         const owned = this.unlockedBursts.has(b.id);
         const charName = b.name.split('—')[0].trim();
         const bSkill = CHARACTER_SKILLS[b.id] || CHARACTER_SKILLS.raiden;
+        const isMityaCycleBanner = b.id === 'mitya' && dailyInfo.isInitialMityaCycle;
+        const bannerTitleLabel = isMityaCycleBanner
+          ? `⚡ BANNER RA MẮT 7.2 (ĐẾN HẾT CHU KỲ • CÒN ${dailyInfo.cycleDaysRemaining} NGÀY): ${charName}`
+          : `🔥 BANNER #${bIdx + 1} HÔM NAY: ${charName}`;
+        const bannerStatusLabel = owned
+          ? '✅ Đã sở hữu'
+          : isMityaCycleBanner
+            ? `🌟 UP Xuyên Suốt Chu Kỳ #${dailyInfo.cycleIndex}`
+            : '🌠 Đang UP 5★ Hôm Nay';
         return `
-          <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" style="padding:8px 12px;" data-burst-id="${b.id}" onmouseenter="window.tienLenGame.preloadBurstById('${b.id}')" ontouchstart="window.tienLenGame.preloadBurstById('${b.id}')" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [E]: ${bSkill.name} — ${bSkill.shortDesc}">
+          <div class="gacha-up-chip ${isCurrent ? 'active' : ''}" style="padding:8px 12px;" data-burst-id="${b.id}" onmouseenter="window.tienLenGame.preloadBurstById('${b.id}')" ontouchstart="window.tienLenGame.preloadBurstById('${b.id}')" onclick="window.tienLenGame.selectBannerUp('${b.id}')" title="${bSkill.icon} Kỹ Năng [Q]: ${bSkill.name} — ${bSkill.shortDesc}">
             <img src="fanart/${b.id}.jpg?v=66" alt="${charName}" style="width:46px;height:46px;" loading="lazy" referrerpolicy="no-referrer" />
             <div>
-              <div class="gacha-up-chip-name" style="font-size:13.5px;">🔥 BANNER #${bIdx + 1} HÔM NAY: ${charName}</div>
-              <div class="gacha-up-chip-status" style="font-size:11.5px;">${owned ? '✅ Đã sở hữu' : '🌠 Đang UP 5★ Hôm Nay'} • ${bSkill.icon} ${bSkill.name}</div>
+              <div class="gacha-up-chip-name" style="font-size:13.5px;">${bannerTitleLabel}</div>
+              <div class="gacha-up-chip-status" style="font-size:11.5px;">${bannerStatusLabel} • ${bSkill.icon} ${bSkill.name}</div>
             </div>
           </div>
         `;
@@ -15918,10 +15968,12 @@ class TienLenGame {
 
     // 3. Phản Ứng Tinh (×10 cược): CHỈ khi người đánh đè (attackerCharId) là:
     // - Sandrone, Odette kích hoạt phản ứng lên bài hệ Lôi (electro) -> Tinh Siêu Dẫn (×10 cược)
+    // - Mitya kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Siêu Dẫn (×10 cược)
     // - Vesna kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Khuếch Tán (×10 cược)
     const ASTRAL_SUPERCONDUCT_CHARS = new Set(['sandrone', 'odette']);
     const isAstralSuperconduct =
-      ASTRAL_SUPERCONDUCT_CHARS.has(attackerCharId) && defenderElem === 'electro';
+      (ASTRAL_SUPERCONDUCT_CHARS.has(attackerCharId) && defenderElem === 'electro') ||
+      (attackerCharId === 'mitya' && defenderElem === 'cryo');
     if (isAstralSuperconduct) {
       return {
         id: 'astral_superconduct',
@@ -17750,7 +17802,93 @@ class TienLenGame {
         return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để thắp Ngọn Đèn Đêm Cướp Cái!' };
       }
     }
+    if (charId === 'mitya') {
+      if (player.hand.length < 4) {
+        return { ok: false, reason: 'Cần còn ít nhất 4 lá bài trên tay (1 Sám Cô + 1 lá rác) để đúc Tứ Quý!' };
+      }
+      const mityaPlan = this.findMityaTripleAndJunk(player.hand, this.selectedCardIds);
+      if (!mityaPlan) {
+        return {
+          ok: false,
+          reason: 'Cần đang có sẵn ít nhất 1 bộ Sám Cô (3 lá cùng số dưới 2) và 1 lá bài rác trên tay để biến đổi thành Tứ Quý!',
+        };
+      }
+    }
     return { ok: true, charId };
+  }
+
+  findMityaTripleAndJunk(hand, selectedIds = null) {
+    if (!Array.isArray(hand) || hand.length < 4) return null;
+    const selSet =
+      selectedIds instanceof Set
+        ? selectedIds
+        : Array.isArray(selectedIds)
+          ? new Set(selectedIds)
+          : new Set();
+    const byRank = new Map();
+    for (const c of hand) {
+      if (c.rankIndex >= 12) continue;
+      if (!byRank.has(c.rankIndex)) byRank.set(c.rankIndex, []);
+      byRank.get(c.rankIndex).push(c);
+    }
+    const tripleRanks = [];
+    for (const [rIdx, cards] of byRank.entries()) {
+      if (cards.length === 3) {
+        tripleRanks.push(rIdx);
+      }
+    }
+    if (tripleRanks.length === 0) return null;
+
+    tripleRanks.sort((a, b) => {
+      const aSel = byRank.get(a).filter((c) => selSet.has(c.id)).length;
+      const bSel = byRank.get(b).filter((c) => selSet.has(c.id)).length;
+      if (bSel !== aSel) return bSel - aSel;
+      return b - a;
+    });
+
+    const targetRankIdx = tripleRanks[0];
+    const tripleCards = byRank.get(targetRankIdx);
+    const tripleIdSet = new Set(tripleCards.map((c) => c.id));
+    const otherCards = hand.filter((c) => !tripleIdSet.has(c.id));
+    if (otherCards.length === 0) return null;
+
+    const selectedJunk = otherCards.find((c) => selSet.has(c.id));
+    let junkCard = selectedJunk || null;
+    if (!junkCard) {
+      const freq = new Map();
+      for (const c of otherCards) {
+        freq.set(c.rankIndex, (freq.get(c.rankIndex) || 0) + 1);
+      }
+      const sortedCandidates = [...otherCards].sort((a, b) => {
+        const aIsTwo = a.rankIndex === 12 ? 1 : 0;
+        const bIsTwo = b.rankIndex === 12 ? 0 : -1;
+        if ((a.rankIndex === 12) !== (b.rankIndex === 12)) {
+          return a.rankIndex === 12 ? 1 : -1;
+        }
+        const aCount = freq.get(a.rankIndex) || 1;
+        const bCount = freq.get(b.rankIndex) || 1;
+        if (aCount !== bCount) return aCount - bCount;
+        if (a.rankIndex !== b.rankIndex) return a.rankIndex - b.rankIndex;
+        return a.suitIndex - b.suitIndex;
+      });
+      junkCard = sortedCandidates[0];
+    }
+    if (!junkCard) return null;
+
+    const existingSuits = new Set(tripleCards.map((c) => c.suitIndex));
+    let missingSuitIdx = 3;
+    for (const s of [3, 2, 1, 0]) {
+      if (!existingSuits.has(s)) {
+        missingSuitIdx = s;
+        break;
+      }
+    }
+    return {
+      targetRankIdx,
+      tripleCards,
+      junkCard,
+      missingSuitIdx,
+    };
   }
 
   getSkillTargetSelectionSpec(player, charId) {
@@ -19524,6 +19662,27 @@ class TienLenGame {
     } else if (charId === 'flins') {
       this.flinsLanternOwnerId = player.id;
       skillSummary = `🏮 [Ngọn Đèn Đêm Cướp Cái] ${player.name} thắp sáng Ngọn Đèn Ratniki: Trong vòng này, ngay khoảnh khắc có BẤT KỲ đối thủ nào bấm BỎ LƯỢT, vòng đấu lập tức kết thúc và ${player.name} CƯỚP QUYỀN CẦM CÁI mở vòng mới ngay!`;
+    } else if (charId === 'mitya') {
+      const mityaPlan = this.findMityaTripleAndJunk(
+        player.hand,
+        preferredCardIds.length > 0 ? preferredCardIds : this.selectedCardIds
+      );
+      if (mityaPlan) {
+        const { targetRankIdx, tripleCards, junkCard, missingSuitIdx } = mityaPlan;
+        const oldJunkStr = `${junkCard.rank}${junkCard.suit}`;
+        const newRankStr = RANKS[targetRankIdx];
+        const newSuitStr = SUITS[missingSuitIdx];
+        junkCard.rankIndex = targetRankIdx;
+        junkCard.rank = newRankStr;
+        junkCard.suitIndex = missingSuitIdx;
+        junkCard.suit = newSuitStr;
+        junkCard.isRed = missingSuitIdx >= 2;
+        junkCard.value = targetRankIdx * 4 + missingSuitIdx;
+        junkCard.id = `${newRankStr}${newSuitStr}_mitya_${Date.now()}`;
+        const fourIds = [...tripleCards.map((c) => c.id), junkCard.id];
+        this.selectedCardIds = new Set(fourIds);
+        skillSummary = `🧬 [Nguyên Lý Biến Đổi] ${player.name} phân tích cấu trúc Sám Cô ${newRankStr}, biến đổi lá bài rác ${oldJunkStr} ➔ ${newRankStr}${newSuitStr} để hợp thành TỨ QUÝ ${newRankStr} hoàn chỉnh ngay trên tay!`;
+      }
     }
 
     // Lưu lại các lá bài vừa được Kỹ Năng tạo ra / nâng cấp để Bot ưu tiên đánh ngay sau khi hết Hoạt Ảnh Nộ,
@@ -19556,6 +19715,7 @@ class TienLenGame {
           'odette',
           'eula',
           'lauma',
+          'mitya',
         ].includes(charId)
       ) {
         player._skillForcedComboIds = createdBySkillIds;
@@ -20892,6 +21052,22 @@ class TienLenGame {
         (bot.hand.length <= 9 || minOppCards <= 8)
       ) {
         shouldCast = true;
+      }
+    } else if (charId === 'mitya') {
+      const mityaPlan = this.findMityaTripleAndJunk(bot.hand);
+      if (mityaPlan) {
+        const canChopTableNow =
+          this.currentCombo &&
+          (this.currentCombo.highRank === 12 ||
+            this.currentCombo.type === COMBO_TYPES.THREE_PAIR_STRAIGHT ||
+            (this.currentCombo.type === COMBO_TYPES.FOUR_OF_KIND &&
+              this.currentCombo.highRank < mityaPlan.targetRankIdx));
+        const goodLeadOrFinish =
+          !this.currentCombo && (bot.hand.length <= 8 || minOppCards <= 6);
+        if (canChopTableNow || goodLeadOrFinish) {
+          shouldCast = true;
+          preferredIds = [...mityaPlan.tripleCards.map((c) => c.id), mityaPlan.junkCard.id];
+        }
       }
     }
 

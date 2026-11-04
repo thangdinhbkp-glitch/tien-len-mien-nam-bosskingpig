@@ -616,7 +616,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'linnea',
     name: 'Linnea — Cẩm Nang Sinh Tồn Cực Hạn',
-    desc: '[Sử Thi] Ảo thuật gia tinh linh biến lá bài rác lẻ nhỏ nhất thành cùng số với 1 lá bài lẻ thường (≤ A) trên tay để tạo thành Đôi (Video + Giọng lồng tiếng thật).',
+    desc: '[Sử Thi] Ảo thuật gia tinh linh: Chọn 1 lá bài bất kỳ trên tay rồi bấm Nộ [Q] để biến lá đó thành cùng số với 1 lá bài lẻ thường (≤ A) khác trên tay tạo thành Đôi (Video + Giọng lồng tiếng thật).',
     price: 115000,
     mp4Url: 'linnea_burst.mp4',
     audioUrl: 'linnea_burst.ogg?v=55',
@@ -630,7 +630,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'nefer',
     name: 'Nefer — Thánh Thệ Chân Nhãn',
-    desc: '[Huyền Thoại] Nữ hoàng sa mạc dùng Ảo Ảnh Sa Mạc biến 1 lá bài rác nhỏ nhất nhập vào 1 bộ Đôi sẵn có trên tay để nâng cấp thành Sám Cô (Video + Giọng lồng tiếng thật).',
+    desc: '[Huyền Thoại] Nữ hoàng sa mạc dùng Ảo Ảnh Sa Mạc: Chọn 1 lá bài bất kỳ trên tay rồi bấm Nộ [Q] để biến lá đó nhập vào 1 bộ Đôi sẵn có trên tay nâng cấp thành Sám Cô (Video + Giọng lồng tiếng thật).',
     price: 130000,
     mp4Url: 'nefer_burst.mp4',
     audioUrl: 'nefer_burst.ogg?v=55',
@@ -1240,7 +1240,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'mitya',
     name: 'Mitya — Phân Tích: Nguyên Lý Biến Đổi',
-    desc: '[Huyền Thoại] Học giả Snezhnaya phân tích Nguyên Lý Biến Đổi: Khi đang có Sám Cô trên tay, biến ngay 1 lá bài rác thành lá thứ 4 còn thiếu chất để hợp thành Tứ Quý chặt Heo/Hàng!',
+    desc: '[Huyền Thoại] Học giả Snezhnaya phân tích Nguyên Lý Biến Đổi: Khi đang có Sám Cô trên tay, chọn 1 lá bài ngoài Sám Cô rồi bấm Nộ [Q] để biến lá đó thành lá thứ 4 còn thiếu chất hợp thành Tứ Quý chặt Heo/Hàng!',
     price: 165000,
     mp4Url: 'mitya_burst.mp4?v=199',
     audioUrl: 'mitya_burst.ogg?v=199',
@@ -1576,7 +1576,7 @@ const CHARACTER_SKILLS = {
     charName: 'Shenhe',
     icon: '❄️',
     name: 'Lễ Cống Heo Tiên Nhân',
-    shortDesc: 'Nếu ván trước Shenhe Về Nhất: Khi bấm [Q], đối thủ Đứng Bét bắt buộc phải CỐNG con Heo (2) có chất cao nhất (không có Heo thì phải cống quân bài lớn nhất) cho Shenhe, sau đó Shenhe tự động trả lại quân bài rác nhất trên tay cho đối thủ đó!',
+    shortDesc: 'Nếu ván trước Shenhe Về Nhất: Chọn 1 lá bài trên tay rồi bấm [Q] để trả lá đó cho đối thủ Đứng Bét, đồng thời ép đối thủ đó CỐNG con Heo (2) chất cao nhất (hoặc quân bài lớn nhất) cho Shenhe!',
   },
   ganyu: {
     id: 'ganyu',
@@ -1653,14 +1653,14 @@ const CHARACTER_SKILLS = {
     charName: 'Linnea',
     icon: '🎩',
     name: 'Ảo Thuật Ghép Đôi',
-    shortDesc: 'Biến 1 lá bài rác lẻ nhỏ nhất trên tay thành cùng bậc số với 1 lá bài lẻ thường (≤ A) khác trên tay để tạo ngay 1 bộ Đôi',
+    shortDesc: 'Chọn 1 lá bài trên tay rồi bấm [Q] để biến lá đã chọn thành cùng bậc số với 1 lá bài lẻ thường (≤ A) khác trên tay tạo ngay 1 bộ Đôi!',
   },
   nefer: {
     id: 'nefer',
     charName: 'Nefer',
     icon: '🌙',
     name: 'Ảo Ảnh Sa Mạc',
-    shortDesc: 'Biến 1 lá bài rác nhỏ nhất trên tay nhập vào 1 bộ Đôi sẵn có trên tay bạn để nâng cấp lên thành Sám Cô (3 lá cùng số)',
+    shortDesc: 'Chọn 1 lá bài trên tay rồi bấm [Q] để biến lá đã chọn nhập vào 1 bộ Đôi sẵn có trên tay bạn nâng cấp lên thành Sám Cô (3 lá cùng số)!',
   },
   odette: {
     id: 'odette',
@@ -1969,7 +1969,7 @@ const CHARACTER_SKILLS = {
     charName: 'Mitya',
     icon: '🧬',
     name: 'Nguyên Lý Biến Đổi: Đúc Tứ Quý',
-    shortDesc: 'Khi đang có Sám Cô (3 lá cùng số dưới 2) trên tay, biến ngay 1 lá bài rác thành lá thứ 4 còn thiếu chất để hợp thành Tứ Quý chặt Heo/Hàng! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Băng)',
+    shortDesc: 'Khi đang có Sám Cô (3 lá cùng số dưới 2) trên tay, chọn 1 lá bài ngoài Sám Cô rồi bấm [Q] để biến lá đó thành lá thứ 4 còn thiếu chất hợp thành Tứ Quý chặt Heo/Hàng! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Băng)',
   },
   lyney: {
     id: 'lyney',
@@ -17709,8 +17709,16 @@ class TienLenGame {
     };
   }
 
-  canUseCharacterSkill(player) {
+  canUseCharacterSkill(player, customSelectedIds = null) {
     if (!player || !player.active || player.skillUsed || this.isGameOver) return { ok: false, reason: 'Đã dùng kỹ năng trong ván này' };
+    const rawSel = customSelectedIds !== null ? customSelectedIds : this.selectedCardIds;
+    const selSet =
+      rawSel instanceof Set
+        ? rawSel
+        : Array.isArray(rawSel)
+          ? new Set(rawSel)
+          : new Set();
+    const isHumanManualCheck = !player.isBot && player.id === this.mySeatId && customSelectedIds === null;
 
     const charId = this.getPlayerActiveCharId(player);
     const canBaizhuReviveOutTurn = charId === 'baizhu' && player.passed && this.currentCombo !== null;
@@ -17827,7 +17835,22 @@ class TienLenGame {
         };
       }
       if (player.hand.length === 0) {
-        return { ok: false, reason: 'Không còn bài trên tay để trả bài rác!' };
+        return { ok: false, reason: 'Không còn bài trên tay để trả bài!' };
+      }
+      if (isHumanManualCheck) {
+        const selCards = player.hand.filter((c) => selSet.has(c.id));
+        if (selCards.length !== 1) {
+          return {
+            ok: false,
+            reason: `Hãy bấm chọn đúng 1 lá bài trên tay (cầm lá đó lên) rồi bấm Kỹ Năng [Q] để trả cho đối thủ đổi lấy Heo (đang chọn ${selCards.length}/1 lá)!`,
+          };
+        }
+        if (this.mustPlay3Spade && selCards[0].value === 0) {
+          return {
+            ok: false,
+            reason: 'Ván đầu bắt buộc đánh 3♠ nên không thể chọn 3♠ để đưa cho đối thủ!',
+          };
+        }
       }
     }
     if (charId === 'ganyu') {
@@ -17902,17 +17925,63 @@ class TienLenGame {
     }
     if (charId === 'linnea') {
       if (player.hand.length < 2) {
-        return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá lẻ nhỏ nhất ghép thành Đôi' };
+        return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá đang chọn ghép thành Đôi!' };
       }
-      const rc = new Array(13).fill(0);
-      player.hand.forEach((c) => rc[c.rankIndex]++);
-      const singleNormals = player.hand.filter((c) => c.rankIndex <= 11 && rc[c.rankIndex] === 1);
-      if (singleNormals.length < 1) {
-        return { ok: false, reason: 'Cần ít nhất 1 lá bài lẻ thường (3→A) trên tay để Linnea ghép thành Đôi!' };
+      const normals = player.hand.filter((c) => c.rankIndex <= 11);
+      if (normals.length < 1) {
+        return { ok: false, reason: 'Cần ít nhất 1 lá bài thường (3→A) trên tay để Linnea ghép thành Đôi!' };
+      }
+      if (isHumanManualCheck) {
+        const selCards = player.hand.filter((c) => selSet.has(c.id));
+        if (selCards.length !== 1) {
+          return {
+            ok: false,
+            reason: `Hãy bấm chọn đúng 1 lá bài trên tay (cầm lá đó lên) rồi bấm Kỹ Năng [Q] để Linnea biến lá đó thành Đôi (đang chọn ${selCards.length}/1 lá)!`,
+          };
+        }
+        const chosen = selCards[0];
+        if (this.mustPlay3Spade && chosen.value === 0) {
+          return {
+            ok: false,
+            reason: 'Ván đầu bắt buộc đánh 3♠ nên không thể biến đổi lá 3♠!',
+          };
+        }
+        const otherNormals = player.hand.filter((c) => c.id !== chosen.id && c.rankIndex <= 11);
+        if (otherNormals.length < 1) {
+          return {
+            ok: false,
+            reason: 'Cần có ít nhất 1 lá bài thường khác (3→A) trên tay để Linnea lấy bậc số ghép thành Đôi!',
+          };
+        }
       }
     }
-    if (charId === 'nefer' && player.hand.length < 2) {
-      return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá rác ghép thành Sám Cô / Đôi' };
+    if (charId === 'nefer') {
+      if (player.hand.length < 2) {
+        return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để biến lá đang chọn ghép thành Sám Cô / Đôi!' };
+      }
+      if (isHumanManualCheck) {
+        const selCards = player.hand.filter((c) => selSet.has(c.id));
+        if (selCards.length !== 1) {
+          return {
+            ok: false,
+            reason: `Hãy bấm chọn đúng 1 lá bài trên tay (cầm lá đó lên) rồi bấm Kỹ Năng [Q] để Nefer biến lá đó thành Sám Cô / Đôi (đang chọn ${selCards.length}/1 lá)!`,
+          };
+        }
+        const chosen = selCards[0];
+        if (this.mustPlay3Spade && chosen.value === 0) {
+          return {
+            ok: false,
+            reason: 'Ván đầu bắt buộc đánh 3♠ nên không thể biến đổi lá 3♠!',
+          };
+        }
+        const otherNormals = player.hand.filter((c) => c.id !== chosen.id && c.rankIndex <= 11);
+        if (otherNormals.length < 1) {
+          return {
+            ok: false,
+            reason: 'Cần có ít nhất 1 Đôi hoặc 1 lá bài thường khác (3→A) trên tay để Nefer nâng cấp thành Sám Cô / Đôi!',
+          };
+        }
+      }
     }
     if (charId === 'odette') {
       if (this.odetteAnyFourPairsTurn) {
@@ -18203,14 +18272,36 @@ class TienLenGame {
     }
     if (charId === 'mitya') {
       if (player.hand.length < 4) {
-        return { ok: false, reason: 'Cần còn ít nhất 4 lá bài trên tay (1 Sám Cô + 1 lá rác) để đúc Tứ Quý!' };
+        return { ok: false, reason: 'Cần còn ít nhất 4 lá bài trên tay (1 Sám Cô + 1 lá chọn thêm) để đúc Tứ Quý!' };
       }
-      const mityaPlan = this.findMityaTripleAndJunk(player.hand, this.selectedCardIds);
-      if (!mityaPlan) {
+      const anyMityaPlan = this.findMityaTripleAndJunk(player.hand);
+      if (!anyMityaPlan) {
         return {
           ok: false,
-          reason: 'Cần đang có sẵn ít nhất 1 bộ Sám Cô (3 lá cùng số dưới 2) và 1 lá bài rác trên tay để biến đổi thành Tứ Quý!',
+          reason: 'Cần đang có sẵn ít nhất 1 bộ Sám Cô (3 lá cùng số dưới 2) và 1 lá bài khác trên tay để biến đổi thành Tứ Quý!',
         };
+      }
+      if (isHumanManualCheck) {
+        const selCards = player.hand.filter((c) => selSet.has(c.id));
+        if (selCards.length !== 1) {
+          return {
+            ok: false,
+            reason: `Hãy bấm chọn đúng 1 lá bài ngoài bộ Sám Cô trên tay (cầm lá đó lên) rồi bấm Kỹ Năng [Q] để Mitya biến lá đó thành Tứ Quý (đang chọn ${selCards.length}/1 lá)!`,
+          };
+        }
+        if (this.mustPlay3Spade && selCards[0].value === 0) {
+          return {
+            ok: false,
+            reason: 'Ván đầu bắt buộc đánh 3♠ nên không thể biến đổi lá 3♠!',
+          };
+        }
+        const exactMityaPlan = this.findMityaTripleAndJunk(player.hand, selSet, true);
+        if (!exactMityaPlan) {
+          return {
+            ok: false,
+            reason: 'Lá bài bạn đang chọn thuộc bộ Sám Cô duy nhất trên tay — Hãy bấm chọn 1 lá bài KHÁC ngoài bộ Sám Cô đó để biến thành lá thứ 4 của Tứ Quý!',
+          };
+        }
       }
     }
     if (charId === 'lyney') {
@@ -18261,12 +18352,12 @@ class TienLenGame {
           reason: 'Cần đang có sẵn 2 bộ Sảnh 3 lá RIÊNG BIỆT không trùng bậc nhau (VD: 3-4-5 và 6-7-8; không tính 3-4-5 và 5-6-7) dưới Heo trên tay!',
         };
       }
-      if (!player.isBot) {
-        const exactSixPlan = this.parseChioriExactSixSelectedCards(player.hand, this.selectedCardIds);
+      if (isHumanManualCheck) {
+        const exactSixPlan = this.parseChioriExactSixSelectedCards(player.hand, selSet);
         if (!exactSixPlan) {
           return {
             ok: false,
-            reason: `Hãy tự bấm chọn đúng 6 lá bài gồm 2 bộ Sảnh 3 lá RIÊNG BIỆT không trùng bậc (VD: 3-4-5 và 6-7-8) trên tay để kích hoạt Kỹ Năng [Q] (đang chọn ${this.selectedCardIds ? this.selectedCardIds.size : 0}/6 lá)!`,
+            reason: `Hãy tự bấm chọn đúng 6 lá bài gồm 2 bộ Sảnh 3 lá RIÊNG BIỆT không trùng bậc (VD: 3-4-5 và 6-7-8) trên tay để kích hoạt Kỹ Năng [Q] (đang chọn ${selSet.size}/6 lá)!`,
           };
         }
       }
@@ -18397,7 +18488,7 @@ class TienLenGame {
     return candidates[0];
   }
 
-  findMityaTripleAndJunk(hand, selectedIds = null) {
+  findMityaTripleAndJunk(hand, selectedIds = null, requireSingleSelected = false) {
     if (!Array.isArray(hand) || hand.length < 4) return null;
     const selSet =
       selectedIds instanceof Set
@@ -18418,6 +18509,36 @@ class TienLenGame {
       }
     }
     if (tripleRanks.length === 0) return null;
+
+    const singleSelectedCard =
+      selSet.size === 1 ? hand.find((c) => selSet.has(c.id)) : null;
+
+    if (singleSelectedCard) {
+      const validTripleRanks = tripleRanks
+        .filter((rIdx) => rIdx !== singleSelectedCard.rankIndex)
+        .sort((a, b) => b - a);
+      if (validTripleRanks.length === 0) {
+        return null;
+      }
+      const targetRankIdx = validTripleRanks[0];
+      const tripleCards = byRank.get(targetRankIdx);
+      const existingSuits = new Set(tripleCards.map((c) => c.suitIndex));
+      let missingSuitIdx = 3;
+      for (const s of [3, 2, 1, 0]) {
+        if (!existingSuits.has(s)) {
+          missingSuitIdx = s;
+          break;
+        }
+      }
+      return {
+        targetRankIdx,
+        tripleCards,
+        junkCard: singleSelectedCard,
+        missingSuitIdx,
+      };
+    }
+
+    if (requireSingleSelected) return null;
 
     tripleRanks.sort((a, b) => {
       const aSel = byRank.get(a).filter((c) => selSet.has(c.id)).length;
@@ -18699,7 +18820,10 @@ class TienLenGame {
   }
 
   useCharacterSkill(player, preferredCardIds = [], preferredTargetId = null) {
-    const check = this.canUseCharacterSkill(player);
+    const check = this.canUseCharacterSkill(
+      player,
+      preferredCardIds && preferredCardIds.length > 0 ? preferredCardIds : null
+    );
     if (!check.ok) return false;
 
     const charId = check.charId;
@@ -19000,7 +19124,16 @@ class TienLenGame {
 
         const struct = this.analyzeBotHandStructure(player.hand);
         const mySorted = sortCardsAsc(player.hand);
+        const activeSelSet =
+          preferredCardIds && preferredCardIds.length > 0
+            ? new Set(preferredCardIds)
+            : savedHumanSelectedIds;
+        const chosenGiveCard =
+          !player.isBot && activeSelSet.size === 1
+            ? player.hand.find((c) => activeSelSet.has(c.id) && !(this.mustPlay3Spade && c.value === 0))
+            : null;
         const trashCard =
+          chosenGiveCard ||
           mySorted.find(
             (c) =>
               c.rankIndex < 12 &&
@@ -19271,9 +19404,20 @@ class TienLenGame {
       const sorted = sortCardsAsc(player.hand);
       const rc = new Array(13).fill(0);
       sorted.forEach((c) => rc[c.rankIndex]++);
-      const lowest = sorted.find((c) => rc[c.rankIndex] === 1 && c.rankIndex < 12) || sorted[0];
+      const activeSelSet =
+        preferredCardIds && preferredCardIds.length > 0
+          ? new Set(preferredCardIds)
+          : savedHumanSelectedIds;
+      const humanChosenCard =
+        !player.isBot && activeSelSet.size === 1
+          ? player.hand.find((c) => activeSelSet.has(c.id) && !(this.mustPlay3Spade && c.value === 0))
+          : null;
+      const lowest =
+        humanChosenCard ||
+        sorted.find((c) => rc[c.rankIndex] === 1 && c.rankIndex < 12) ||
+        sorted[0];
       let matchTarget = null;
-      if (preferredCardIds && preferredCardIds.length > 0) {
+      if (player.isBot && preferredCardIds && preferredCardIds.length > 0) {
         matchTarget = player.hand.find(
           (c) =>
             preferredCardIds.includes(c.id) &&
@@ -19290,6 +19434,7 @@ class TienLenGame {
           singleNormals.length > 0
             ? singleNormals[singleNormals.length - 1]
             : sorted.filter((c) => c.id !== lowest?.id && c.rankIndex <= 11).pop() ||
+              sorted.filter((c) => c.id !== lowest?.id).pop() ||
               sorted[sorted.length - 1];
       }
       if (lowest && matchTarget && lowest.id !== matchTarget.id) {
@@ -19305,12 +19450,23 @@ class TienLenGame {
         player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
         this.selectedCardIds = new Set([lowest.id, matchTarget.id]);
         this.companionCardIds.clear();
-        skillSummary = `🎩 [Ảo Thuật Ghép Đôi] ${player.name} biến lá lẻ ${oldStr} thành ${lowest.rank}${lowest.suit} để tạo thành Đôi ${RANKS[targetRank]} (${lowest.rank}${lowest.suit} ${matchTarget.rank}${matchTarget.suit})!`;
+        skillSummary = `🎩 [Ảo Thuật Ghép Đôi] ${player.name} biến lá ${oldStr} thành ${lowest.rank}${lowest.suit} để tạo thành Đôi ${RANKS[targetRank]} (${lowest.rank}${lowest.suit} ${matchTarget.rank}${matchTarget.suit})!`;
       }
     } else if (charId === 'nefer') {
       const sorted = sortCardsAsc(player.hand);
+      const activeSelSet =
+        preferredCardIds && preferredCardIds.length > 0
+          ? new Set(preferredCardIds)
+          : savedHumanSelectedIds;
+      const humanChosenCard =
+        !player.isBot && activeSelSet.size === 1
+          ? player.hand.find((c) => activeSelSet.has(c.id) && !(this.mustPlay3Spade && c.value === 0))
+          : null;
+      const otherHand = humanChosenCard
+        ? sorted.filter((c) => c.id !== humanChosenCard.id)
+        : sorted;
       const rankCounts = new Array(13).fill(0);
-      sorted.forEach((c) => rankCounts[c.rankIndex]++);
+      otherHand.forEach((c) => rankCounts[c.rankIndex]++);
       let targetPairRank = -1;
       for (let r = 11; r >= 0; r--) {
         if (rankCounts[r] === 2) {
@@ -19320,12 +19476,15 @@ class TienLenGame {
       }
       if (targetPairRank >= 0) {
         const trashCand =
+          humanChosenCard ||
           sorted.find((c) => c.rankIndex !== targetPairRank && rankCounts[c.rankIndex] === 1) ||
           sorted.find((c) => c.rankIndex !== targetPairRank);
         if (trashCand) {
           const oldStr = `${trashCand.rank}${trashCand.suit}`;
           const existingSuits = new Set(
-            player.hand.filter((c) => c.rankIndex === targetPairRank).map((c) => c.suitIndex)
+            player.hand
+              .filter((c) => c.id !== trashCand.id && c.rankIndex === targetPairRank)
+              .map((c) => c.suitIndex)
           );
           let newSuitIdx = 3;
           for (const s of [3, 2, 1, 0]) {
@@ -19345,12 +19504,15 @@ class TienLenGame {
           const tripleCards = player.hand.filter((c) => c.rankIndex === targetPairRank).slice(0, 3);
           this.selectedCardIds = new Set(tripleCards.map((c) => c.id));
           this.companionCardIds.clear();
-          skillSummary = `🐍 [Ảo Ảnh Sa Mạc] ${player.name} biến lá rác ${oldStr} thành ${trashCand.rank}${trashCand.suit} để nâng cấp Đôi ${RANKS[targetPairRank]} lên thành Sám Cô ${RANKS[targetPairRank]}!`;
+          skillSummary = `🐍 [Ảo Ảnh Sa Mạc] ${player.name} biến lá ${oldStr} thành ${trashCand.rank}${trashCand.suit} để nâng cấp Đôi ${RANKS[targetPairRank]} lên thành Sám Cô ${RANKS[targetPairRank]}!`;
         }
       } else {
-        const lowest = sorted[0];
+        const lowest = humanChosenCard || sorted[0];
         const highNormals = sorted.filter((c) => c.id !== lowest?.id && c.rankIndex <= 11);
-        const matchTarget = highNormals.length > 0 ? highNormals[highNormals.length - 1] : sorted[sorted.length - 1];
+        const matchTarget =
+          highNormals.length > 0
+            ? highNormals[highNormals.length - 1]
+            : sorted.filter((c) => c.id !== lowest?.id).pop() || sorted[sorted.length - 1];
         if (lowest && matchTarget && lowest.id !== matchTarget.id) {
           const oldStr = `${lowest.rank}${lowest.suit}`;
           const targetRank = Math.min(11, matchTarget.rankIndex);
@@ -19364,7 +19526,7 @@ class TienLenGame {
           player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
           this.selectedCardIds = new Set([lowest.id, matchTarget.id]);
           this.companionCardIds.clear();
-          skillSummary = `🐍 [Ảo Ảnh Sa Mạc] ${player.name} biến lá rác ${oldStr} thành ${lowest.rank}${lowest.suit} để tạo Đôi ${RANKS[targetRank]}!`;
+          skillSummary = `🐍 [Ảo Ảnh Sa Mạc] ${player.name} biến lá ${oldStr} thành ${lowest.rank}${lowest.suit} để tạo Đôi ${RANKS[targetRank]}!`;
         }
       }
     } else if (charId === 'odette') {
@@ -29984,11 +30146,17 @@ class TienLenGame {
       return;
     }
 
-    // 1. NẾU MÌNH LÀ NGƯỜI ĐI TRƯỚC (MỞ VÒNG MỚI) HOẶC ĐANG DÙNG CHIORI CHƯA TUNG NỘ (ĐỂ TỰ CHỌN 6 LÁ BÀI MỤC TIÊU):
+    // 1. NẾU MÌNH LÀ NGƯỜI ĐI TRƯỚC (MỞ VÒNG MỚI) HOẶC ĐANG DÙNG CHIORI / MITYA / SHENHE / LINNEA / NEFER CHƯA TUNG NỘ (ĐỂ TỰ CHỌN LÁ BÀI MỤC TIÊU TRÊN TAY):
     const humanActiveCharId = this.getPlayerActiveCharId(human);
     const isChioriManualTargeting =
       humanActiveCharId === 'chiori' && !human.skillUsed && this.findChioriTwoDisjointStraights(human.hand);
-    if (!this.currentCombo || isChioriManualTargeting) {
+    const isSingleCardSkillTargeting =
+      !human.skillUsed &&
+      ((humanActiveCharId === 'mitya' && this.findMityaTripleAndJunk(human.hand)) ||
+        (humanActiveCharId === 'shenhe' && this.lastWinnerId === human.id) ||
+        humanActiveCharId === 'linnea' ||
+        humanActiveCharId === 'nefer');
+    if (!this.currentCombo || isChioriManualTargeting || isSingleCardSkillTargeting) {
       this.companionCardIds.clear();
       if (this.selectedCardIds.has(cardId)) {
         this.selectedCardIds.delete(cardId);
@@ -30277,6 +30445,16 @@ class TienLenGame {
             this.elCharSkillLabel.textContent = chioriSix
               ? `✂️ Đúc 3 Đôi Thông (${RANKS[chioriSix.lowStart]}→${RANKS[chioriSix.lowStart + 2]}) [Q]`
               : `✂️ Chọn 6 Lá (2 Sảnh 3) [Q]`;
+          } else if (
+            ['mitya', 'shenhe', 'linnea', 'nefer'].includes(charId) &&
+            !human.skillUsed
+          ) {
+            const oneCard = selectedCards.length === 1 ? selectedCards[0] : null;
+            if (oneCard && skillCheck.ok) {
+              this.elCharSkillLabel.textContent = `${skill.icon} Dùng ${oneCard.rank}${oneCard.suit} ➔ ${skill.name} [Q]`;
+            } else {
+              this.elCharSkillLabel.textContent = `${skill.icon} Chọn 1 Lá ➔ ${skill.name} [Q]`;
+            }
           } else {
             this.elCharSkillLabel.textContent = `${skill.icon} ${skill.name} [Q]`;
           }
@@ -30295,6 +30473,13 @@ class TienLenGame {
         ? this.parseChioriExactSixSelectedCards(human.hand, this.selectedCardIds)
         : null;
 
+    const singleTargetCharId = this.getPlayerActiveCharId(human);
+    const isSingleSkillReadyOnCard =
+      !human.skillUsed &&
+      selectedCards.length === 1 &&
+      ['mitya', 'shenhe', 'linnea', 'nefer'].includes(singleTargetCharId) &&
+      this.canUseCharacterSkill(human).ok;
+
     if (selectedCards.length === 0) {
       this.elSelectedPreview.textContent = 'Chọn bài để đánh';
       this.elSelectedPreview.classList.remove('invalid');
@@ -30303,6 +30488,11 @@ class TienLenGame {
       const highLbl = chioriTargetPlan.highCards.map((c) => `${c.rank}${c.suit}`).join('-');
       const outLbl = `${RANKS[chioriTargetPlan.lowStart]}→${RANKS[chioriTargetPlan.lowStart + 2]}`;
       this.elSelectedPreview.textContent = `✂️ Đã chọn 2 Sảnh riêng biệt (${lowLbl} & ${highLbl}) ➔ Bấm Kỹ Năng [Q] để đúc 3 Đôi Thông (${outLbl})!`;
+      this.elSelectedPreview.classList.remove('invalid');
+    } else if (isSingleSkillReadyOnCard) {
+      const c1 = selectedCards[0];
+      const skMeta = CHARACTER_SKILLS[singleTargetCharId];
+      this.elSelectedPreview.textContent = `${skMeta ? skMeta.icon : '🔮'} Đang cầm ${c1.rank}${c1.suit} trên tay ➔ Bấm Kỹ Năng [Q] để kích hoạt ${skMeta ? skMeta.name : 'Chiêu Nộ'} (hoặc bấm Đánh bài nếu hợp lệ)!`;
       this.elSelectedPreview.classList.remove('invalid');
     } else if (!combo) {
       if (

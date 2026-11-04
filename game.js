@@ -7448,6 +7448,7 @@ class TienLenGame {
     this.hostClaimEpoch = 1;
     this.roomStateVersion = 1;
     this.processedEventIds = new Set();
+    this.processedClientEventIds = new Set();
     if (this.players?.[0]) {
       this.players[0].clientId = this.myClientId;
       this.players[0].accountUsername = this.currentAccountUsername || '';
@@ -7959,6 +7960,24 @@ class TienLenGame {
     const bodyEl = document.getElementById('friends-modal-body');
     if (!bodyEl) return;
 
+    const prevDirScrollEl = document.getElementById('friends-directory-scroll-box');
+    const prevDirScrollTop = prevDirScrollEl ? prevDirScrollEl.scrollTop : 0;
+    const prevPartnersScrollEl = document.getElementById('friend-chat-partners-box');
+    const prevPartnersScrollTop = prevPartnersScrollEl ? prevPartnersScrollEl.scrollTop : 0;
+    const prevMsgBoxEl = document.getElementById('friend-chat-messages-box');
+    const prevMsgScrollTop = prevMsgBoxEl ? prevMsgBoxEl.scrollTop : null;
+    const wasAtBottomMsg = prevMsgBoxEl
+      ? prevMsgBoxEl.scrollHeight - prevMsgBoxEl.scrollTop - prevMsgBoxEl.clientHeight <= 36
+      : true;
+    const existingChatInput = document.getElementById('friend-chat-input');
+    const isChatInputFocused = Boolean(existingChatInput && document.activeElement === existingChatInput);
+    const savedChatDraft = existingChatInput ? existingChatInput.value : '';
+    const savedChatPartner = existingChatInput ? existingChatInput.getAttribute('data-chat-partner') || '' : '';
+    const isSearchInputFocused = Boolean(
+      document.getElementById('friends-search-input') &&
+        document.activeElement === document.getElementById('friends-search-input')
+    );
+
     const myU = String(this.currentAccountUsername || '').trim().toLowerCase();
     const allPlayers = this.getAllDirectoryPlayers();
     const myFriends = allPlayers.filter((p) => p.relationStatus === 'friends');
@@ -8183,9 +8202,29 @@ class TienLenGame {
               .join('')
           : `<div style="text-align:center;color:#94a3b8;font-size:12px;padding:24px 10px;">Chưa có tin nhắn nào với <strong>@${activePartner ? activePartner.username : '...'}</strong>. Hãy gửi lời chào hoặc mời vào bàn đánh ngay!</div>`;
 
+      // Nếu đang ở tab Chat và ô nhập chat đang mở cùng người nhận: chỉ cập nhật khung tin nhắn & danh sách bên trái, TUYỆT ĐỐI không ghi đè làm mất focus ô chat!
+      if (
+        existingChatInput &&
+        activePartner &&
+        savedChatPartner === activePartner.username &&
+        (isChatInputFocused || savedChatDraft.length > 0)
+      ) {
+        const msgBox = document.getElementById('friend-chat-messages-box');
+        if (msgBox && msgBox.innerHTML !== messagesHtml) {
+          msgBox.innerHTML = messagesHtml;
+          msgBox.scrollTop = wasAtBottomMsg ? msgBox.scrollHeight : (prevMsgScrollTop ?? msgBox.scrollHeight);
+        }
+        const partnersBox = document.getElementById('friend-chat-partners-box');
+        if (partnersBox) {
+          partnersBox.innerHTML = partnerListHtml;
+          partnersBox.scrollTop = prevPartnersScrollTop;
+        }
+        return;
+      }
+
       tabBodyHtml = `
         <div style="display:grid;grid-template-columns:minmax(175px, 230px) 1fr;gap:10px;min-height:300px;">
-          <div style="display:flex;flex-direction:column;gap:6px;max-height:330px;overflow-y:auto;padding-right:4px;border-right:1px solid rgba(148,163,184,0.2);">
+          <div id="friend-chat-partners-box" style="display:flex;flex-direction:column;gap:6px;max-height:330px;overflow-y:auto;padding-right:4px;border-right:1px solid rgba(148,163,184,0.2);">
             ${partnerListHtml}
           </div>
           <div style="display:flex;flex-direction:column;justify-content:space-between;background:rgba(15,23,42,0.7);border:1px solid rgba(56,189,248,0.28);border-radius:12px;padding:10px;">
@@ -8220,15 +8259,17 @@ class TienLenGame {
                   </div>
                   <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;">
                     <button type="button" class="tool-btn" style="padding:3px 8px;font-size:10.5px;" onclick="window.tienLenGame.sendFriendChatMessage('👋 Vào bàn làm ván Tiến Lên nè bạn ơi!', true)">👋 Rủ vào bàn</button>
-                    <button type="button" class="tool-btn" style="padding:3px 8px;font-size:10.5px;" onclick="window.tienLenGame.sendFriendChatMessage('🤖 Bàn mình đang đánh với Bot, vào ngồi xem hết ván rồi thế chỗ Bot luôn nè!', true)">🤖 Vào thế chỗ Bot</button>
+                    <button type="button" class="tool-btn" style="padding:3px 8px;font-size:10.5px;" onclick="window.tienLenGame.sendFriendChatMessage('🤖 Bàn mình đang đánh với Bot, vào thế chỗ Bot luôn nè!', true)">🤖 Vào thế chỗ Bot</button>
                     <button type="button" class="tool-btn" style="padding:3px 8px;font-size:10.5px;" onclick="window.tienLenGame.sendFriendChatMessage('⏳ Đợi mình nốt ván này rồi vào chơi chung nhé!', false)">⏳ Đợi hết ván</button>
                   </div>
                   <div style="display:flex;gap:6px;">
                     <input
                       type="text"
                       id="friend-chat-input"
+                      data-chat-partner="${activePartner.username}"
+                      value="${String(savedChatPartner === activePartner.username ? savedChatDraft : '').replace(/"/g, '&quot;')}"
                       placeholder="Nhập tin nhắn gửi @${activePartner.username} (Enter để gửi)..."
-                      onkeydown="if(event.key==='Enter'){event.preventDefault();window.tienLenGame.sendFriendChatMessage();}"
+                      onkeydown="event.stopPropagation();if(event.key==='Enter'){event.preventDefault();window.tienLenGame.sendFriendChatMessage();}"
                       style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(56,189,248,0.45);background:rgba(15,23,42,0.95);color:#f8fafc;font-size:12.5px;"
                     />
                     <button type="button" class="primary-btn" style="padding:8px 14px;font-size:12px;font-weight:800;border-radius:8px;background:linear-gradient(135deg,#0284c7,#2563eb);" onclick="window.tienLenGame.sendFriendChatMessage()">
@@ -8335,18 +8376,40 @@ class TienLenGame {
         </button>
       </div>
 
-      <div style="max-height:52vh;overflow-y:auto;padding-right:2px;">
+      <div id="friends-directory-scroll-box" style="max-height:52vh;overflow-y:auto;padding-right:2px;">
         ${tabBodyHtml}
       </div>
     `;
 
-    if (preserveFocus) {
+    const newDirScrollEl = document.getElementById('friends-directory-scroll-box');
+    if (newDirScrollEl && prevDirScrollTop > 0) {
+      newDirScrollEl.scrollTop = prevDirScrollTop;
+    }
+    const newPartnersScrollEl = document.getElementById('friend-chat-partners-box');
+    if (newPartnersScrollEl && prevPartnersScrollTop > 0) {
+      newPartnersScrollEl.scrollTop = prevPartnersScrollTop;
+    }
+    const newMsgBoxEl = document.getElementById('friend-chat-messages-box');
+    if (newMsgBoxEl) {
+      newMsgBoxEl.scrollTop = wasAtBottomMsg ? newMsgBoxEl.scrollHeight : (prevMsgScrollTop ?? newMsgBoxEl.scrollHeight);
+    }
+
+    if (preserveFocus || isSearchInputFocused) {
       const inp = document.getElementById('friends-search-input');
       if (inp) {
         inp.focus();
         const len = inp.value.length;
         try {
           inp.setSelectionRange(len, len);
+        } catch (_) {}
+      }
+    } else if (isChatInputFocused) {
+      const chatInp = document.getElementById('friend-chat-input');
+      if (chatInp) {
+        chatInp.focus();
+        const len = chatInp.value.length;
+        try {
+          chatInp.setSelectionRange(len, len);
         } catch (_) {}
       }
     }
@@ -15468,6 +15531,26 @@ class TienLenGame {
     });
 
     window.addEventListener('keydown', (e) => {
+      const activeEl = document.activeElement;
+      const isTypingInInput =
+        activeEl &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          activeEl.tagName === 'SELECT' ||
+          activeEl.isContentEditable);
+      if (isTypingInInput) {
+        if (e.code === 'Escape') {
+          activeEl.blur();
+        }
+        return;
+      }
+      const friendsModal = document.getElementById('friends-modal');
+      if (friendsModal && !friendsModal.classList.contains('hidden')) {
+        if (e.code === 'Escape') {
+          this.closeFriendsModal();
+        }
+        return;
+      }
       const pauseModal = document.getElementById('pause-modal');
       const invModal = document.getElementById('inventory-modal');
 
@@ -16184,7 +16267,7 @@ class TienLenGame {
         : 'none';
     }
     // Người chơi chính: PHẢI TRANG BỊ nhân vật trong Kho Đồ mới sử dụng được Kỹ Năng [E], Nguyên Tố & Hoạt Ảnh Nộ 5★!
-    if (player.id === this.mySeatId && !player.isBot) {
+    if (player.id === this.mySeatId) {
       if (!this.tutorialCompleted && this.tutorialStep === 1 && !this.beginnerBannerUsed) {
         return 'none';
       }
@@ -16962,15 +17045,15 @@ class TienLenGame {
     const me = this.getLocalPlayer();
     const myCharId = this.getPlayerActiveCharId(me);
 
-    // Đồng bộ nhân vật của người chơi vào cả activeChar, chopBurst và winBurst
-    if (me) {
+    // Đồng bộ nhân vật của người chơi vào cả activeChar, chopBurst và winBurst (chỉ khi không phải ghế Bot!)
+    if (me && !me.isBot) {
       me.activeChar = myCharId;
       me.chopBurst = myCharId;
       me.winBurst = myCharId;
+      this.equippedActiveChar = myCharId;
+      this.equippedChopBurst = myCharId;
+      this.equippedWinBurst = myCharId;
     }
-    this.equippedActiveChar = myCharId;
-    this.equippedChopBurst = myCharId;
-    this.equippedWinBurst = myCharId;
 
     const leftEl = document.getElementById('arena-char-left');
     const rightEl = document.getElementById('arena-char-right');
@@ -22330,13 +22413,18 @@ class TienLenGame {
   async fetchCloudRoomsDirectory() {
     const now = Date.now();
     const mapById = new Map();
+    const recentlyLeft = this._recentlyLeftRoomIds instanceof Map ? this._recentlyLeftRoomIds : null;
     const ingestArr = (arr) => {
       if (!Array.isArray(arr)) return;
       arr.forEach((r) => {
         if (!r || !r.roomId || r.closed) return;
+        const key = String(r.roomId).toUpperCase();
+        if (recentlyLeft && recentlyLeft.has(key) && now - recentlyLeft.get(key) < 180000) {
+          return;
+        }
         const age = now - (Number(r.updatedAtMs) || 0);
-        if (age <= 240000 && Number(r.playerCount) > 0) {
-          const key = String(r.roomId).toUpperCase();
+        const hCount = Number(r.humanCount ?? r.playerCount ?? 0);
+        if (age <= 240000 && Number(r.playerCount) > 0 && hCount > 0) {
           const prev = mapById.get(key);
           if (!prev || (Number(r.updatedAtMs) || 0) >= (Number(prev.updatedAtMs) || 0)) {
             mapById.set(key, r);
@@ -23683,6 +23771,18 @@ class TienLenGame {
     this._lastObservedHostBeatVal = Number(cloudRoom?.hostHeartbeatMs) || 0;
     this._lastObservedHostBeatLocalMs = Date.now();
     this._autoRestoreTakeoverCheck = !!isAutoRestore;
+    this._lastSyncedStateSig = '';
+    this.isLocalAfkBotPlaying = false;
+    if (this._recentlyLeftRoomIds instanceof Map) {
+      this._recentlyLeftRoomIds.delete(cleanCode);
+    }
+
+    const mySavedCharBeforeJoin =
+      this.equippedActiveChar && this.equippedActiveChar !== 'none' && CHARACTER_SKILLS[this.equippedActiveChar]
+        ? this.equippedActiveChar
+        : 'none';
+    const mySavedAvatarBeforeJoin = this.equippedAvatar || 'default_player';
+    const mySavedSkinBeforeJoin = this.equippedSkin || 'classic';
 
     this.isGameOver = false;
     this.isBurstPlaying = false;
@@ -23701,6 +23801,13 @@ class TienLenGame {
       this.applySyncedStateOnGuest(cloudRoom.state);
     }
 
+    // Khôi phục 100% nhân vật của chính Khách trước khi chiếm ghế (chống bị nhân vật của Bot ghi đè!)
+    this.equippedActiveChar = mySavedCharBeforeJoin;
+    this.equippedChopBurst = mySavedCharBeforeJoin;
+    this.equippedWinBurst = mySavedCharBeforeJoin;
+    this.equippedAvatar = mySavedAvatarBeforeJoin;
+    this.equippedSkin = mySavedSkinBeforeJoin;
+
     // Đảm bảo Khách mới vào bàn hoặc Máy 2 tiếp quản ghế Khách của Máy 1 được khớp đúng ghế!
     let myExistingSeat =
       this.players.find((p) => p.clientId === this.myClientId) ||
@@ -23717,11 +23824,11 @@ class TienLenGame {
       if (myExistingSeat) {
         this.mySeatId = myExistingSeat.id;
         myExistingSeat.name = myName;
-        myExistingSeat.avatar = this.equippedAvatar;
-        myExistingSeat.cardSkin = this.equippedSkin;
-        myExistingSeat.chopBurst = this.equippedChopBurst;
-        myExistingSeat.winBurst = this.equippedWinBurst;
-        myExistingSeat.activeChar = this.equippedActiveChar || 'none';
+        myExistingSeat.avatar = mySavedAvatarBeforeJoin;
+        myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
+        myExistingSeat.chopBurst = mySavedCharBeforeJoin;
+        myExistingSeat.winBurst = mySavedCharBeforeJoin;
+        myExistingSeat.activeChar = mySavedCharBeforeJoin;
         myExistingSeat.coins = this.savedCoins;
         myExistingSeat.isBot = false;
         myExistingSeat.active = true;
@@ -23734,6 +23841,12 @@ class TienLenGame {
       this.mySeatId = myExistingSeat.id;
       myExistingSeat.clientId = this.myClientId;
       myExistingSeat.accountUsername = this.currentAccountUsername || myExistingSeat.accountUsername || '';
+      myExistingSeat.isBot = false;
+      myExistingSeat.activeChar = mySavedCharBeforeJoin;
+      myExistingSeat.chopBurst = mySavedCharBeforeJoin;
+      myExistingSeat.winBurst = mySavedCharBeforeJoin;
+      myExistingSeat.avatar = mySavedAvatarBeforeJoin;
+      myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
     }
     this._hasConfirmedSeatInRoom = true;
 
@@ -23748,11 +23861,11 @@ class TienLenGame {
       preferredSeatId: this.mySeatId,
       accountUsername: this.currentAccountUsername || '',
       name: myName,
-      avatar: this.equippedAvatar,
-      cardSkin: this.equippedSkin,
-      chopBurst: this.equippedChopBurst,
-      winBurst: this.equippedWinBurst,
-      activeChar: this.equippedActiveChar || 'none',
+      avatar: mySavedAvatarBeforeJoin,
+      cardSkin: mySavedSkinBeforeJoin,
+      chopBurst: mySavedCharBeforeJoin,
+      winBurst: mySavedCharBeforeJoin,
+      activeChar: mySavedCharBeforeJoin,
       coins: this.savedCoins,
       sentAtMs: Date.now(),
     };
@@ -23783,58 +23896,23 @@ class TienLenGame {
   async leaveWifiRoom(isAutoAfkKick = false, customBannerMsg = '') {
     clearTimeout(this.afkAutoLeaveTimer);
     clearTimeout(this.postMatchIdleTimer);
-    const oldRoomId = this.roomId;
+    clearTimeout(this.botTimer);
+    this.stopTurnCountdown();
+    const oldRoomId = this.roomId ? String(this.roomId).trim().toUpperCase() : null;
     const wasHost = this.isHost;
+    const wasMultiplayer = this.isMultiplayer;
+    const myCleanUser = String(this.currentAccountUsername || '').trim().toLowerCase();
 
-    if (this.isMultiplayer && oldRoomId) {
-      if (!wasHost) {
-        await this.sendClientEvent({
-          id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-          type: 'LEAVE',
-          clientId: this.myClientId,
-          reason: isAutoAfkKick ? 'afk' : 'manual',
-        });
-      } else {
-        // Nếu Chủ phòng rời bàn (hoặc AFK bị đá): giải phóng ghế của Chủ phòng. Nếu còn người chơi khác online trong bàn thì nhường quyền Chủ phòng cho họ!
-        const mySeat = this.players[this.mySeatId];
-        if (mySeat) {
-          mySeat.active = false;
-          mySeat.isBot = false;
-          mySeat.name = `Ghế trống ${mySeat.id + 1}`;
-          mySeat.clientId = null;
-          mySeat.hand = [];
-          mySeat.passed = true;
-          mySeat.readyForNextMatch = false;
-        }
-        const remainingHuman = this.players.find(
-          (p) => p && p.active && !p.isBot && p.id !== this.mySeatId && p.clientId && (p.afkAutoTurns || 0) < 2
-        );
-        if (remainingHuman) {
-          if (this.matchCount >= 1 && !this.isGameOver && this.currentTurn === this.mySeatId) {
-            this.advanceTurn();
-          }
-          this.hostClientId = remainingHuman.clientId;
-          this.roomTitle = `Bàn của ${remainingHuman.name}`;
-          this.hostClaimEpoch = (Number(this.hostClaimEpoch) || 1) + 1;
-          this.hostPeerId = `tlmn-bkp-room-${oldRoomId}-${this.hostClaimEpoch}`;
-          this.roomStateVersion = (Number(this.roomStateVersion) || 1) + 1;
-          const nextState = this.serializeRoomState();
-          this.peerConnections.forEach((conn) => {
-            if (conn && conn.open) {
-              try {
-                conn.send(nextState);
-              } catch (_) {}
-            }
-          });
-          await this.pushRoomStateToCloud([], false);
-          await this.publishRoomToDirectory(false);
-        } else {
-          await this.pushRoomStateToCloud([], true);
-          await this.removeRoomFromDirectory(oldRoomId);
-        }
-      }
+    if (!this._recentlyLeftRoomIds) {
+      this._recentlyLeftRoomIds = new Map();
+    }
+    if (oldRoomId) {
+      this._recentlyLeftRoomIds.set(oldRoomId, Date.now());
     }
 
+    // Xóa trạng thái phòng ở máy local TRƯỚC khi cập nhật danh mục để tuyệt đối không tự chèn lại phòng cũ!
+    this.isLocalAfkBotPlaying = false;
+    this._lastSyncedStateSig = '';
     this.stopMultiplayerSync();
     this.clearMultiplayerSessionFromLocal();
     this.isMultiplayer = false;
@@ -23843,11 +23921,129 @@ class TienLenGame {
     this.roomPassword = '';
     this.roomPasswordHash = '';
     this.roomTitle = '';
+    const prevSeatId = this.mySeatId;
     this.mySeatId = 0;
+
+    if (wasMultiplayer && oldRoomId) {
+      const scrubPlayerFromSeat = (p) => {
+        if (!p) return;
+        const pUser = String(p.accountUsername || '').trim().toLowerCase();
+        const isMyClone =
+          p.clientId === this.myClientId ||
+          (myCleanUser && pUser === myCleanUser) ||
+          p.id === prevSeatId;
+        if (p.queuedHumanReplacement) {
+          const qUser = String(p.queuedHumanReplacement.accountUsername || '').trim().toLowerCase();
+          if (
+            p.queuedHumanReplacement.clientId === this.myClientId ||
+            (myCleanUser && qUser === myCleanUser)
+          ) {
+            p.queuedHumanReplacement = null;
+          }
+        }
+        if (isMyClone && !p.isBot) {
+          p.active = false;
+          p.isBot = false;
+          p.name = `Ghế trống ${(p.id ?? 0) + 1}`;
+          p.avatar = '🐯';
+          p.cardSkin = 'classic';
+          p.activeChar = 'none';
+          p.chopBurst = 'none';
+          p.winBurst = 'none';
+          p.clientId = null;
+          p.accountUsername = '';
+          p.hand = [];
+          p.passed = true;
+          p.readyForNextMatch = false;
+          p.isAfkBotPlaying = false;
+        }
+      };
+
+      (this.players || []).forEach(scrubPlayerFromSeat);
+
+      try {
+        if (!wasHost) {
+          // Gửi sự kiện LEAVE và đồng thời dọn thẳng bản sao của mình trên Cloud Room (nếu không còn người thật nào thì xóa luôn phòng!)
+          await fetch(`https://textdb.dev/api/data/tlmn_bkp_ev_${oldRoomId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: this.encodeCloudPayload([
+              {
+                id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                type: 'LEAVE',
+                clientId: this.myClientId,
+                accountUsername: this.currentAccountUsername || '',
+                reason: isAutoAfkKick ? 'afk' : 'manual',
+                sentAtMs: Date.now(),
+              },
+            ]),
+          }).catch(() => null);
+        }
+
+        const cloudRoom = await this.fetchRoomStateFromCloud(oldRoomId);
+        const targetPlayers = Array.isArray(cloudRoom?.state?.players)
+          ? cloudRoom.state.players
+          : this.players || [];
+        targetPlayers.forEach(scrubPlayerFromSeat);
+
+        const remainingHumans = targetPlayers.filter(
+          (p) =>
+            p &&
+            p.active &&
+            !p.isBot &&
+            p.clientId &&
+            p.clientId !== this.myClientId &&
+            (!myCleanUser || String(p.accountUsername || '').trim().toLowerCase() !== myCleanUser)
+        );
+
+        if (remainingHumans.length === 0) {
+          // Không còn người chơi thật nào trong bàn ➔ Xóa hẳn bàn khỏi Cloud và Sảnh!
+          const closedPayload = {
+            roomId: oldRoomId,
+            closed: true,
+            updatedAtMs: Date.now(),
+            version: (Number(cloudRoom?.version || this.roomStateVersion) || 1) + 10,
+            state: { closed: true, players: [] },
+            events: [],
+          };
+          await fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${oldRoomId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: this.encodeCloudPayload(closedPayload),
+          }).catch(() => null);
+          await this.removeRoomFromDirectory(oldRoomId);
+        } else if (cloudRoom && cloudRoom.state) {
+          // Còn người chơi khác trong bàn ➔ Xóa sạch bản sao của người vừa rời và nhường Host nếu cần
+          const nextHost =
+            wasHost || cloudRoom.hostClientId === this.myClientId ? remainingHumans[0] : null;
+          if (nextHost) {
+            cloudRoom.hostClientId = nextHost.clientId;
+            cloudRoom.title = `Bàn của ${nextHost.name}`;
+            cloudRoom.hostClaimEpoch = (Number(cloudRoom.hostClaimEpoch) || 1) + 1;
+            cloudRoom.hostPeerId = `tlmn-bkp-room-${oldRoomId}-${cloudRoom.hostClaimEpoch}`;
+            cloudRoom.state.hostClientId = nextHost.clientId;
+            cloudRoom.state.hostClaimEpoch = cloudRoom.hostClaimEpoch;
+          }
+          cloudRoom.version = (Number(cloudRoom.version) || 1) + 1;
+          cloudRoom.state.version = cloudRoom.version;
+          cloudRoom.updatedAtMs = Date.now();
+          await fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${oldRoomId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: this.encodeCloudPayload(cloudRoom),
+          }).catch(() => null);
+        }
+      } catch (_) {}
+    }
 
     document.getElementById('wifi-room-box')?.classList.add('hidden');
     document.getElementById('human-create-join-row')?.classList.remove('hidden');
     document.getElementById('mode-setup-bet-section')?.classList.remove('hidden');
+    this.modalSummary?.classList.add('hidden');
+    this.btnShowSummary?.classList.add('hidden');
+    document.getElementById('peek-return-summary-bar')?.classList.add('hidden');
+    this.syncAfkBotTakeoverUI?.();
+
     const statusLbl = document.getElementById('wifi-status-label');
     if (statusLbl) statusLbl.textContent = 'Sảnh Chờ / Đổi Chế Độ';
 
@@ -23855,9 +24051,11 @@ class TienLenGame {
       this.showComboBanner(customBannerMsg);
       this.addLog(`💤 <strong>${customBannerMsg}</strong>`, 'log-chop');
     } else if (oldRoomId) {
+      this.showComboBanner(`👋 ĐÃ RỜI PHÒNG #${oldRoomId}`);
       this.addLog(`👋 Bạn đã rời khỏi <strong>Phòng #${oldRoomId}</strong>.`, 'log-pass');
     }
 
+    this.syncGlobalDeviceRegistry?.(true);
     this.openModeSetupModal('human');
     this.modalWifi?.classList.remove('hidden');
     await this.refreshMultiplayerRoomsDirectory(false);
@@ -23984,9 +24182,6 @@ class TienLenGame {
     this.updateBetBadges();
     this.tighnariBonusByPlayer = {};
     this.startNewMatch(true);
-    if (this.currentAccountUsername) {
-      this.ensureLiveRoomForCurrentTable().catch(() => {});
-    }
   }
 
   stopMultiplayerSync() {
@@ -24183,6 +24378,9 @@ class TienLenGame {
         readyForNextMatch: p.isBot ? true : !!p.readyForNextMatch,
         manualActionsInMatch: Number(p.manualActionsInMatch) || 0,
         afkAutoTurns: Number(p.afkAutoTurns) || 0,
+        isAfkBotPlaying: !!p.isAfkBotPlaying,
+        spectatingCurrentMatch: !!p.spectatingCurrentMatch,
+        queuedHumanReplacement: p.queuedHumanReplacement || null,
       })),
     };
   }
@@ -24422,8 +24620,19 @@ class TienLenGame {
         }
         if (cloudRoom.state && Array.isArray(cloudRoom.state.players)) {
           const v = Number(cloudRoom.version) || 0;
-          if (v >= this.lastSyncedVersion) {
+          const stateSig = `${v}:${cloudRoom.state.matchCount}:${cloudRoom.state.currentTurn}:${cloudRoom.state.isGameOver}:${
+            cloudRoom.state.currentCombo?.highValue ?? 'n'
+          }:${cloudRoom.state.lastBurstEffect?.id || ''}:${cloudRoom.state.players
+            .map(
+              (p) =>
+                `${p.id}_${p.clientId || ''}_${p.isBot ? 1 : 0}_${p.active ? 1 : 0}_${p.hand?.length || 0}_${
+                  p.passed ? 1 : 0
+                }_${p.readyForNextMatch ? 1 : 0}_${p.isAfkBotPlaying ? 1 : 0}_${p.activeChar || ''}`
+            )
+            .join('|')}`;
+          if (v > this.lastSyncedVersion || (v === this.lastSyncedVersion && stateSig !== this._lastSyncedStateSig)) {
             this.lastSyncedVersion = v;
+            this._lastSyncedStateSig = stateSig;
             this.applySyncedStateOnGuest(cloudRoom.state);
           }
         }
@@ -24573,70 +24782,13 @@ class TienLenGame {
             ? evt.winBurst
             : 'none';
 
-        // Nếu đang đánh dở ván bài (matchCount >= 1 && !isGameOver) và không phải Rejoin của ghế người thật đang đánh:
-        // Người nhảy vào sẽ NGỒI XEM đến khi ván hiện tại kết thúc rồi mới vào ghế / thế chỗ Bot!
-        if (!isRejoin && this.matchCount >= 1 && !this.isGameOver) {
-          const guestName = evt.name || `Người chơi ${seat.id + 1}`;
-          if (wasBotSeat) {
-            // Giữ nguyên Bot đánh hết ván hiện tại, đặt hàng chờ thế chỗ Bot ngay khi ván kết thúc
-            seat.queuedHumanReplacement = {
-              clientId: evt.clientId,
-              accountUsername: evt.accountUsername || '',
-              name: guestName,
-              avatar: evt.avatar || 'default_player',
-              cardSkin: evt.cardSkin || 'classic',
-              activeChar: resolvedGuestChar,
-              coins: typeof evt.coins === 'number' ? evt.coins : INITIAL_COINS,
-            };
-            this.showComboBanner(
-              `👁️ ${guestName.toUpperCase()} VÀO NGỒI XEM — SẼ THẾ CHỖ ${seat.name.toUpperCase()} VÁN SAU!`
-            );
-            this.addLog(
-              `👁️ <strong>${guestName}</strong> vừa vào bàn ngồi xem và sẽ <strong>thế chỗ ${seat.name} (Ghế #${seat.id + 1})</strong> ngay khi ván bài này kết thúc!`,
-              'log-win'
-            );
-          } else {
-            // Ghế đang trống: cho ngồi vào ghế ở chế độ Ngồi Xem (spectatingCurrentMatch = true) chờ hết ván
-            seat.name = guestName;
-            seat.avatar = evt.avatar || 'default_player';
-            seat.cardSkin = evt.cardSkin || 'classic';
-            seat.activeChar = resolvedGuestChar;
-            seat.chopBurst = resolvedGuestChar;
-            seat.winBurst = resolvedGuestChar;
-            if (typeof evt.coins === 'number') seat.coins = evt.coins;
-            seat.accountUsername = evt.accountUsername || '';
-            seat.isBot = false;
-            seat.active = true;
-            seat.spectatingCurrentMatch = true;
-            seat.hand = [];
-            seat.passed = true;
-            seat.finishRank = null;
-            seat.readyForNextMatch = true;
-            seat.manualActionsInMatch = 1;
-            seat.afkAutoTurns = 0;
-            seat.clientId = evt.clientId;
-            this.showComboBanner(
-              `👁️ ${guestName.toUpperCase()} VỪA VÀO GHẾ #${seat.id + 1} NGỒI XEM CHỜ HẾT VÁN!`
-            );
-            this.addLog(
-              `👁️ <strong>${guestName}</strong> vừa vào <strong>Ghế #${seat.id + 1}</strong> ngồi xem chờ ván bài hiện tại kết thúc!`,
-              'log-win'
-            );
-          }
-          sfx.win();
-          this.renderLobbyModal();
-          this.renderSummaryReadyStateUI();
-          this.renderAll();
-          this.broadcastState();
-          this.publishRoomToDirectory(false);
-          return;
-        }
-
+        // Cho phép người chơi nhảy vào bàn thế chỗ Bot (giữ nguyên bài của ghế Bot đang cầm) hoặc nhận bài vào ghế trống ngay lập tức, dùng đúng nhân vật của chính người chơi!
         const oldSeatClientId = seat.clientId;
         if (oldSeatClientId && evt.clientId && oldSeatClientId !== evt.clientId) {
           if (!this.displacedClientIds) this.displacedClientIds = {};
           this.displacedClientIds[oldSeatClientId] = evt.clientId;
         }
+        const oldBotName = wasBotSeat ? seat.name : '';
         seat.name = evt.name || seat.name || `Người chơi ${seat.id + 1}`;
         seat.avatar = evt.avatar || seat.avatar || 'default_player';
         seat.cardSkin = evt.cardSkin || seat.cardSkin || 'classic';
@@ -24649,13 +24801,34 @@ class TienLenGame {
         seat.active = true;
         seat.spectatingCurrentMatch = false;
         seat.queuedHumanReplacement = null;
+        seat.isAfkBotPlaying = false;
         if (!isRejoin) {
-          seat.finishRank = null;
-          seat.passed = false;
+          if (this.matchCount >= 1 && !this.isGameOver) {
+            if (!Array.isArray(seat.hand) || seat.hand.length === 0) {
+              seat.hand = this.dealDropInHandForMidMatchSeat(seat);
+              seat.finishRank = null;
+              seat.passed = false;
+              seat.skillUsed = false;
+            }
+            this.showComboBanner(
+              wasBotSeat
+                ? `🚀 ${seat.name.toUpperCase()} ĐÃ THẾ CHỖ ${oldBotName.toUpperCase()} (GHẾ #${seat.id + 1})!`
+                : `🚀 ${seat.name.toUpperCase()} ĐÃ NHẢY VÀO BÀN (GHẾ #${seat.id + 1})!`
+            );
+            this.addLog(
+              wasBotSeat
+                ? `🚀 <strong>${seat.name}</strong> đã nhảy vào thế chỗ <strong>${oldBotName} (Ghế #${seat.id + 1})</strong> và tham chiến ngay!`
+                : `🚀 <strong>${seat.name}</strong> đã nhảy vào <strong>Ghế #${seat.id + 1}</strong> và tham chiến ngay!`,
+              'log-win'
+            );
+          } else {
+            seat.finishRank = null;
+            seat.passed = false;
+            this.addLog(`👋 <strong>${seat.name}</strong> đã vào bàn (Ghế #${seat.id + 1})!`, 'log-win');
+          }
           seat.readyForNextMatch = true;
-          seat.manualActionsInMatch = 0;
+          seat.manualActionsInMatch = 1;
           seat.afkAutoTurns = 0;
-          this.addLog(`👋 <strong>${seat.name}</strong> đã vào bàn (Ghế #${seat.id + 1})!`, 'log-win');
           sfx.win();
         }
         seat.clientId = evt.clientId;
@@ -24675,20 +24848,29 @@ class TienLenGame {
         this.publishRoomToDirectory(false);
       }
     } else if (evt.type === 'LEAVE') {
-      const queuedSeat = this.players.find((p) => p.queuedHumanReplacement?.clientId === evt.clientId);
+      const cleanLeaveUser = String(evt.accountUsername || '').trim().toLowerCase();
+      const queuedSeat = this.players.find(
+        (p) =>
+          p.queuedHumanReplacement?.clientId === evt.clientId ||
+          (cleanLeaveUser &&
+            String(p.queuedHumanReplacement?.accountUsername || '').trim().toLowerCase() === cleanLeaveUser)
+      );
       if (queuedSeat) {
         const qName = queuedSeat.queuedHumanReplacement.name || 'Khách';
         queuedSeat.queuedHumanReplacement = null;
-        this.addLog(`👋 <strong>${qName}</strong> (đang ngồi xem) đã rời khỏi bàn.`, 'log-pass');
-        this.renderLobbyModal();
-        this.renderAll();
-        this.broadcastState();
-        this.publishRoomToDirectory(false);
-        return;
+        this.addLog(`👋 <strong>${qName}</strong> đã rời khỏi bàn.`, 'log-pass');
       }
-      const seat = this.players.find((p) => p.clientId === evt.clientId);
-      if (seat && seat.id !== this.mySeatId) {
+      const matchingSeats = this.players.filter(
+        (p) =>
+          p &&
+          p.id !== this.mySeatId &&
+          !p.isBot &&
+          (p.clientId === evt.clientId ||
+            (cleanLeaveUser && String(p.accountUsername || '').trim().toLowerCase() === cleanLeaveUser))
+      );
+      matchingSeats.forEach((seat) => {
         const leftName = seat.name;
+        const wasTurn = this.currentTurn === seat.id;
         seat.active = false;
         seat.isBot = false;
         seat.name = `Ghế trống ${seat.id + 1}`;
@@ -24698,15 +24880,47 @@ class TienLenGame {
         seat.chopBurst = 'none';
         seat.winBurst = 'none';
         seat.clientId = null;
+        seat.accountUsername = '';
         seat.hand = [];
         seat.passed = true;
         seat.readyForNextMatch = false;
+        seat.isAfkBotPlaying = false;
         this.addLog(`👋 <strong>${leftName}</strong> đã rời khỏi bàn.`, 'log-pass');
-        this.renderLobbyModal();
-        this.renderSummaryReadyStateUI();
-        this.renderAll();
+        if (wasTurn && !this.isGameOver && this.matchCount >= 1) {
+          this.advanceTurn();
+        }
+      });
+      const activeHumansNow = this.players.filter((p) => p && p.active && !p.isBot);
+      if (activeHumansNow.length === 0) {
+        this.closeAndDeleteAbandonedRoom('🏠 Phòng đã tự động xóa do không còn người chơi trong bàn!');
+        return;
+      }
+      this.renderLobbyModal();
+      this.renderSummaryReadyStateUI();
+      this.renderAll();
+      this.broadcastState();
+      this.publishRoomToDirectory(false);
+    } else if (evt.type === 'GUEST_TIMEOUT') {
+      const seat = this.players.find((p) => p.clientId === evt.clientId);
+      if (!seat || this.isGameOver) return;
+      seat.isAfkBotPlaying = true;
+      seat.afkAutoTurns = (seat.afkAutoTurns || 0) + 1;
+      if (this.currentTurn === seat.id) {
+        this.autoPlayForSeatOnHost(seat);
+      } else {
         this.broadcastState();
-        this.publishRoomToDirectory(false);
+      }
+    } else if (evt.type === 'RESUME_FROM_AFK') {
+      const seat = this.players.find((p) => p.clientId === evt.clientId);
+      if (!seat) return;
+      seat.isAfkBotPlaying = false;
+      seat.afkAutoTurns = 0;
+      seat.manualActionsInMatch = (seat.manualActionsInMatch || 0) + 1;
+      this.addLog(`✋ <strong>${seat.name}</strong> đã bấm <strong>Tự Đánh Tiếp</strong> (tắt Bot đánh hộ)!`, 'log-win');
+      this.broadcastState();
+      if (!this.isGameOver && this.currentTurn === seat.id) {
+        clearTimeout(this.botTimer);
+        this.startTurnCountdown(true);
       }
     } else if (evt.type === 'UPDATE_COSMETICS') {
       const seat = this.players.find((p) => p.clientId === evt.clientId && p.id !== this.mySeatId);
@@ -24767,6 +24981,7 @@ class TienLenGame {
       if (evt.manual !== false) {
         seat.manualActionsInMatch = (seat.manualActionsInMatch || 0) + 1;
         seat.afkAutoTurns = 0;
+        seat.isAfkBotPlaying = false;
       }
       const cardIdSet = new Set(evt.cardIds || []);
       const chosenCards = seat.hand.filter((c) => cardIdSet.has(c.id));
@@ -24780,6 +24995,7 @@ class TienLenGame {
       if (evt.manual !== false) {
         seat.manualActionsInMatch = (seat.manualActionsInMatch || 0) + 1;
         seat.afkAutoTurns = 0;
+        seat.isAfkBotPlaying = false;
       }
       this.passTurn(seat);
     }
@@ -24899,6 +25115,7 @@ class TienLenGame {
         if (me.clientId === this.myClientId || me.queuedHumanReplacement?.clientId === this.myClientId) {
           this._hasConfirmedSeatInRoom = true;
         }
+        this.isLocalAfkBotPlaying = !!me.isAfkBotPlaying;
         if (Array.isArray(me.hand)) {
           const handIds = new Set(me.hand.map((c) => c.id));
           Array.from(this.selectedCardIds).forEach((id) => {
@@ -24966,9 +25183,14 @@ class TienLenGame {
     if (isSpectatingNow) {
       this.elTurnBanner.textContent = `👁️ Bạn đang ngồi xem ván bài hiện tại — Sẽ tự động vào bàn (Ghế #${this.mySeatId + 1}) ngay khi ván này kết thúc!`;
     } else if (this.currentTurn === this.mySeatId && !this.isGameOver) {
-      this.elTurnBanner.textContent = this.currentCombo
-        ? `👉 Lượt của bạn! Đánh chặn ${this.currentCombo.label} hoặc Bỏ lượt.`
-        : '👉 Lượt của bạn mở vòng mới! Bạn được đánh bộ bất kỳ.';
+      if (mySeatObj?.isAfkBotPlaying || this.isLocalAfkBotPlaying) {
+        this.elTurnBanner.textContent =
+          '🤖 Bot đang đánh hộ bạn (không chờ 30s)... Bấm nút "✋ Tự Đánh Tiếp" để tự đánh!';
+      } else {
+        this.elTurnBanner.textContent = this.currentCombo
+          ? `👉 Lượt của bạn! Đánh chặn ${this.currentCombo.label} hoặc Bỏ lượt.`
+          : '👉 Lượt của bạn mở vòng mới! Bạn được đánh bộ bất kỳ.';
+      }
     } else if (state.turnBannerText) {
       this.elTurnBanner.textContent = state.turnBannerText;
     }
@@ -25086,8 +25308,9 @@ class TienLenGame {
     this.renderRoundSkillStatusBar();
     this.renderLobbyModal();
     this.renderSummaryReadyStateUI();
+    this.syncAfkBotTakeoverUI();
     this.renderAll();
-    if (this.isGameOver) {
+    if (this.isGameOver || mySeatObj?.isAfkBotPlaying || this.isLocalAfkBotPlaying) {
       this.stopTurnCountdown();
     } else {
       this.startTurnCountdown(false);
@@ -25501,12 +25724,15 @@ class TienLenGame {
       p.readyForNextMatch = !!p.isBot;
       p.manualActionsInMatch = 0;
       p.afkAutoTurns = 0;
+      p.isAfkBotPlaying = false;
       p.wasFullMatchAfk = false;
       const cid = this.getPlayerActiveCharId(p);
       p.activeChar = cid;
       p.chopBurst = cid;
       p.winBurst = cid;
     });
+    this.isLocalAfkBotPlaying = false;
+    this.syncAfkBotTakeoverUI();
     this.preloadActiveBurstVideos();
 
     this.currentCombo = null;
@@ -25931,6 +26157,56 @@ class TienLenGame {
     }, 1000);
   }
 
+  syncAfkBotTakeoverUI() {
+    const bannerEl = document.getElementById('afk-bot-takeover-banner');
+    const me = this.getLocalPlayer();
+    const isAfkActive =
+      !this.isGameOver &&
+      !this.inInitialLobby &&
+      Boolean(this.isLocalAfkBotPlaying || (me && me.isAfkBotPlaying));
+    if (bannerEl) {
+      bannerEl.classList.toggle('hidden', !isAfkActive);
+    }
+    const showLeaveBtns = Boolean(this.isMultiplayer && this.roomId);
+    document.getElementById('btn-hud-leave-room')?.classList.toggle('hidden', !showLeaveBtns);
+    document.getElementById('btn-peek-leave-room')?.classList.toggle('hidden', !showLeaveBtns);
+    document.getElementById('btn-summary-leave-room')?.classList.toggle('hidden', !showLeaveBtns);
+  }
+
+  resumeManualPlayFromAfk() {
+    clearTimeout(this.botTimer);
+    this.isLocalAfkBotPlaying = false;
+    const me = this.getLocalPlayer();
+    if (me) {
+      me.isAfkBotPlaying = false;
+      me.afkAutoTurns = 0;
+      me.manualActionsInMatch = (me.manualActionsInMatch || 0) + 1;
+    }
+    this._lastRoomHumanActivityLocalMs = Date.now();
+    this.syncAfkBotTakeoverUI();
+    this.showComboBanner('✋ ĐÃ CHUYỂN VỀ CHẾ ĐỘ TỰ ĐÁNH TIẾP!');
+    this.addLog('✋ <strong>Bạn đã bấm Tự Đánh Tiếp</strong> — Đã tắt Bot đánh hộ!', 'log-win');
+    sfx.click();
+
+    if (this.isMultiplayer) {
+      if (!this.isHost) {
+        this.sendClientEvent({
+          type: 'RESUME_FROM_AFK',
+          clientId: this.myClientId,
+        });
+      } else {
+        this.broadcastState();
+      }
+    }
+
+    if (!this.isGameOver && this.currentTurn === this.mySeatId) {
+      this.startTurnCountdown(true);
+      this.promptCurrentTurn();
+    } else {
+      this.renderAll();
+    }
+  }
+
   handleTurnTimeout() {
     if (this.isGameOver) return;
     if (this.isBurstPlaying) {
@@ -25951,10 +26227,12 @@ class TienLenGame {
     const currentPlayer = this.players[this.currentTurn];
     if (!currentPlayer || !currentPlayer.active) return;
 
-    // CHỐNG CHẠY 2 BÀN SONG SONG: Ở chế độ Multiplayer, Khách (Guest) KHÔNG TỰ ĐÁNH LOCAL khi hết 15s,
-    // mà gửi tín hiệu GUEST_TIMEOUT lên Chủ phòng (Host) để Host là nguồn chân lý duy nhất đánh thay & đồng bộ cho cả bàn!
+    // CHỐNG CHẠY 2 BÀN SONG SONG: Ở chế độ Multiplayer, Khách (Guest) bật chế độ Bot đánh hộ và gửi tín hiệu GUEST_TIMEOUT lên Chủ phòng (Host)!
     if (this.isMultiplayer && !this.isHost) {
       if (this.currentTurn === this.mySeatId) {
+        this.isLocalAfkBotPlaying = true;
+        currentPlayer.isAfkBotPlaying = true;
+        this.syncAfkBotTakeoverUI();
         this.sendClientEvent({
           type: 'GUEST_TIMEOUT',
           clientId: this.myClientId,
@@ -25965,36 +26243,21 @@ class TienLenGame {
 
     const prevTurn = this.currentTurn;
     if (this.currentTurn === this.mySeatId) {
+      this.isLocalAfkBotPlaying = true;
+      currentPlayer.isAfkBotPlaying = true;
       currentPlayer.afkAutoTurns = (currentPlayer.afkAutoTurns || 0) + 1;
+      this.syncAfkBotTakeoverUI();
       this.autoPlayForHuman(true);
-      if (this.isMultiplayer && this.isHost && (currentPlayer.afkAutoTurns || 0) >= 2) {
-        const remainingHuman = (this.players || []).find(
-          (p) => p && p.active && !p.isBot && p.id !== this.mySeatId && p.clientId && (p.afkAutoTurns || 0) < 2
-        );
-        setTimeout(() => {
-          if (!this.isMultiplayer || !this.isHost) return;
-          if (remainingHuman) {
-            this.leaveWifiRoom(
-              true,
-              `💤 Bạn đã AFK 2 lượt liên tiếp — Quyền Chủ phòng đã chuyển cho ${remainingHuman.name}!`
-            );
-          } else {
-            this.closeAndDeleteAbandonedRoom(
-              `🧹 Bàn #${this.roomId} đã tự động xóa khỏi Sảnh do Chủ phòng AFK và không còn ai chơi!`
-            );
-          }
-        }, 250);
-        return;
-      }
     } else if (currentPlayer.isBot && (!this.isMultiplayer || this.isHost)) {
       this.executeBotTurn(currentPlayer);
     } else if (this.isMultiplayer && this.isHost && !currentPlayer.isBot) {
-      // Nếu khách trong phòng Multiplayer treo máy quá 15s (cộng 0.6s trễ mạng), Chủ phòng tự động đánh thay để bàn không bị kẹt
+      // Nếu khách trong phòng Multiplayer quá 30s không đánh -> Bật chế độ Bot đánh hộ ngay cho khách đó (các lượt sau đánh luôn không chờ 30s!)
+      currentPlayer.isAfkBotPlaying = true;
       setTimeout(() => {
         if (!this.isGameOver && this.currentTurn === currentPlayer.id) {
           this.autoPlayForSeatOnHost(currentPlayer);
         }
-      }, 600);
+      }, 350);
     }
     if (!this.isGameOver && this.currentTurn === prevTurn && !this.turnCountdownInterval) {
       this.startTurnCountdown(true);
@@ -26003,6 +26266,7 @@ class TienLenGame {
 
   autoPlayForSeatOnHost(seatPlayer) {
     if (this.isGameOver || !seatPlayer || !seatPlayer.active || this.currentTurn !== seatPlayer.id) return;
+    seatPlayer.isAfkBotPlaying = true;
     seatPlayer.afkAutoTurns = (seatPlayer.afkAutoTurns || 0) + 1;
     const onlyFourPairs = seatPlayer.passed && this.canPlayerCutWithFourPairs(seatPlayer);
     const validMoves = getValidMoves(seatPlayer.hand, this.currentCombo, this.mustPlay3Spade, onlyFourPairs);
@@ -26015,12 +26279,12 @@ class TienLenGame {
       } catch (_) {}
       if (!chosen) chosen = validMoves[0];
       this.addLog(
-        `⏰ <strong>[Hết 30s - AFK]</strong> Hệ thống tự động đánh <strong>${chosen.label}</strong> cho <strong>${seatPlayer.name}</strong>!`,
+        `🤖 <strong>[Bot Đánh Hộ AFK]</strong> Tự động đánh <strong>${chosen.label}</strong> cho <strong>${seatPlayer.name}</strong>!`,
         'log-play'
       );
       this.playCombo(seatPlayer, chosen);
     } else if (this.currentCombo) {
-      this.addLog(`⏰ <strong>[Hết 30s - AFK]</strong> Tự động bỏ lượt cho <strong>${seatPlayer.name}</strong>.`, 'log-pass');
+      this.addLog(`🤖 <strong>[Bot Đánh Hộ AFK]</strong> Tự động bỏ lượt cho <strong>${seatPlayer.name}</strong>.`, 'log-pass');
       this.passTurn(seatPlayer);
     } else if (seatPlayer.hand.length > 0) {
       const fallback = classifyCombo([seatPlayer.hand[0]]);
@@ -26042,9 +26306,9 @@ class TienLenGame {
       (!onlyFourPairs || selCombo.type === COMBO_TYPES.FOUR_PAIRS) &&
       canBeatCombo(selCombo, this.currentCombo).ok
     ) {
-      this.showComboBanner(`⏰ HẾT 30 GIÂY! TỰ ĐỘNG ĐÁNH: ${selCombo.label.toUpperCase()}`);
+      this.showComboBanner(`🤖 BOT ĐÁNH HỘ: ${selCombo.label.toUpperCase()}`);
       this.addLog(
-        `⏰ <strong>[Hết 30s suy nghĩ]</strong> Tự động đánh bộ bài đang chọn: <strong>${selCombo.label}</strong>!`,
+        `🤖 <strong>[Bot Đánh Hộ]</strong> Tự động đánh bộ bài: <strong>${selCombo.label}</strong>!`,
         'log-play'
       );
       this.onHumanPlay(isAutoTimeout);
@@ -26069,9 +26333,9 @@ class TienLenGame {
 
       this.selectedCardIds = new Set(chosenMove.cards.map((c) => c.id));
       this.companionCardIds.clear();
-      this.showComboBanner(`⏰ HẾT 30 GIÂY! TỰ ĐỘNG ĐÁNH: ${chosenMove.label.toUpperCase()}`);
+      this.showComboBanner(`🤖 BOT ĐÁNH HỘ: ${chosenMove.label.toUpperCase()}`);
       this.addLog(
-        `⏰ <strong>[Hết 30s suy nghĩ]</strong> Hệ thống tự động chọn &amp; đánh <strong>${chosenMove.label}</strong>!`,
+        `🤖 <strong>[Bot Đánh Hộ]</strong> Hệ thống tự động chọn &amp; đánh <strong>${chosenMove.label}</strong>!`,
         'log-play'
       );
       this.onHumanPlay(isAutoTimeout);
@@ -26080,9 +26344,9 @@ class TienLenGame {
 
     // 3. Nếu đang đỡ bài và không có bộ nào chặn được (hoặc từ chối chặt 4 đôi thông) -> Tự động Bỏ lượt
     if (this.currentCombo) {
-      this.showComboBanner('⏰ HẾT 30 GIÂY! TỰ ĐỘNG BỎ LƯỢT');
+      this.showComboBanner('🤖 BOT ĐÁNH HỘ: TỰ ĐỘNG BỎ LƯỢT');
       this.addLog(
-        '⏰ <strong>[Hết 30s suy nghĩ]</strong> Không có bộ bài chặn được ➔ Tự động <strong>Bỏ lượt</strong>.',
+        '🤖 <strong>[Bot Đánh Hộ]</strong> Không có bộ bài chặn được ➔ Tự động <strong>Bỏ lượt</strong>.',
         'log-pass'
       );
       this.onHumanPass(isAutoTimeout);
@@ -26100,6 +26364,7 @@ class TienLenGame {
 
   promptCurrentTurn() {
     clearTimeout(this.botTimer);
+    this.syncAfkBotTakeoverUI();
     if (this.isGameOver) {
       this.stopTurnCountdown();
       this.clearActiveMatchSnapshot();
@@ -26117,6 +26382,54 @@ class TienLenGame {
     this.saveActiveMatchSnapshot();
     this.updateMidMatchLockUI();
     this.renderAll();
+
+    // Nếu người chơi đang ở chế độ AFK (Bot đang đánh hộ): KHÔNG CHỜ 30s mà cho Bot đánh hộ ngay lập tức!
+    const isMyAfkAutoPlay =
+      currentPlayer.id === this.mySeatId && (currentPlayer.isAfkBotPlaying || this.isLocalAfkBotPlaying);
+    const isRemoteGuestAfkOnHost =
+      this.isMultiplayer &&
+      this.isHost &&
+      !currentPlayer.isBot &&
+      currentPlayer.id !== this.mySeatId &&
+      !!currentPlayer.isAfkBotPlaying;
+
+    if (isMyAfkAutoPlay) {
+      this.stopTurnCountdown();
+      this.elTurnBanner.textContent =
+        '🤖 Bot đang đánh hộ bạn (không chờ 30s)... Bấm nút "✋ Tự Đánh Tiếp" để tự đánh!';
+      if (this.isMultiplayer && !this.isHost) {
+        return;
+      }
+      if (this.isBurstPlaying) {
+        return;
+      }
+      this.botTimer = setTimeout(() => {
+        if (
+          !this.isGameOver &&
+          this.currentTurn === this.mySeatId &&
+          (this.isLocalAfkBotPlaying || this.players[this.mySeatId]?.isAfkBotPlaying)
+        ) {
+          this.autoPlayForHuman(true);
+        }
+      }, 550);
+      return;
+    }
+
+    if (isRemoteGuestAfkOnHost) {
+      this.stopTurnCountdown();
+      this.elTurnBanner.textContent = `🤖 Bot đang đánh hộ ${currentPlayer.name} (AFK - không chờ 30s)...`;
+      if (this.isBurstPlaying) {
+        return;
+      }
+      const afkSeatId = currentPlayer.id;
+      this.botTimer = setTimeout(() => {
+        if (!this.isGameOver && this.currentTurn === afkSeatId && this.players[afkSeatId]?.isAfkBotPlaying) {
+          this.autoPlayForSeatOnHost(this.players[afkSeatId]);
+        }
+      }, 550);
+      return;
+    }
+
     this.startTurnCountdown(false);
 
     if (this.isMultiplayer && !this.isHost) {
@@ -30670,6 +30983,9 @@ class TienLenGame {
       this._lastRoomHumanActivityLocalMs = Date.now();
       human.manualActionsInMatch = (human.manualActionsInMatch || 0) + 1;
       human.afkAutoTurns = 0;
+      human.isAfkBotPlaying = false;
+      this.isLocalAfkBotPlaying = false;
+      this.syncAfkBotTakeoverUI();
     }
 
     const cardIds = combo.cards.map((c) => c.id);
@@ -30721,6 +31037,9 @@ class TienLenGame {
       this._lastRoomHumanActivityLocalMs = Date.now();
       human.manualActionsInMatch = (human.manualActionsInMatch || 0) + 1;
       human.afkAutoTurns = 0;
+      human.isAfkBotPlaying = false;
+      this.isLocalAfkBotPlaying = false;
+      this.syncAfkBotTakeoverUI();
     }
     this.selectedCardIds.clear();
     this.companionCardIds.clear();
@@ -30987,6 +31306,7 @@ class TienLenGame {
 
   showSummaryModal(coinChanges, detailsByPlayer, bannerText) {
     this.hideBurstEffectBanner();
+    this.syncAfkBotTakeoverUI();
     document.getElementById('peek-return-summary-bar')?.classList.add('hidden');
     this.btnShowSummary.classList.remove('hidden');
     const tbody = document.getElementById('summary-tbody');
@@ -32631,7 +32951,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 200;
+const CLIENT_BUILD_VERSION = 205;
 
 // Tự động Fallback sang Cloud CDN (tienlenmiennamgenshin.web.app) nếu bản EXE / APK trên máy tính thiếu tệp ảnh/video nhân vật mới cập nhật!
 window.addEventListener(
@@ -32676,7 +32996,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=200', { updateViaCache: 'none' })
+        .register('sw.js?v=205', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

@@ -179,10 +179,14 @@ body {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 255px;
+  grid-template-columns: 1fr;
   gap: 12px;
   padding: 10px 14px;
   overflow: hidden;
+}
+
+.log-sidebar {
+  display: none !important;
 }
 
 .casino-table {

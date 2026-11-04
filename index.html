@@ -55,7 +55,7 @@
     }
   }
   </script>
-  <link rel="stylesheet" href="styles.css?v=204" />
+  <link rel="stylesheet" href="styles.css?v=205" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -83,6 +83,9 @@
         </div>
         <button class="icon-btn hidden" id="btn-show-summary" title="Quay lại Bảng Tổng Kết &amp; Chuẩn Bị Ván Tiếp" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;color:#ffffff;font-weight:900;">
           📋 Về Tab Chuẩn Bị / Tổng Kết
+        </button>
+        <button class="top-fullscreen-btn hidden" id="btn-hud-leave-room" onclick="window.tienLenGame.leaveWifiRoom(false)" title="Rời khỏi phòng hiện tại và xóa ghế của bạn khỏi bàn" style="background:linear-gradient(135deg,rgba(220,38,38,0.85),rgba(153,27,27,0.9));border-color:#fca5a5;color:#fff;font-weight:900;">
+          🚪 Rời Phòng
         </button>
         <button class="top-fullscreen-btn" id="btn-top-friends" onclick="window.tienLenGame.openFriendsModal()" title="Mở Danh Sách Người Chơi Toàn Server &amp; Kết Bạn / Mời Vào Bàn" style="background:linear-gradient(135deg,rgba(14,165,233,0.28),rgba(59,130,246,0.34));border-color:#38bdf8;color:#e0f2fe;font-weight:800;">
           🤝 Bạn Bè <span id="top-friends-badge" class="hidden" style="background:#ef4444;color:#fff;font-size:10px;font-weight:900;padding:1px 5px;border-radius:999px;margin-left:3px;">0</span>
@@ -226,9 +229,18 @@
             </div>
 
             <div class="trick-owner-label" id="trick-owner-label"></div>
-            <div class="peek-return-summary-bar hidden" id="peek-return-summary-bar">
+            <div class="peek-return-summary-bar hidden" id="peek-return-summary-bar" style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;">
               <button type="button" class="primary-btn btn-lg" id="btn-return-summary-from-peek" onclick="window.tienLenGame.reopenSummaryFromPeek()" style="pointer-events:auto !important;background:linear-gradient(135deg,#059669,#10b981);border:2px solid #fde047;color:#ffffff;font-weight:900;font-size:14px;padding:10px 22px;border-radius:999px;box-shadow:0 6px 20px rgba(16,185,129,0.55);cursor:pointer;">
                 📋 QUAY LẠI BẢNG TỔNG KẾT &amp; CHUẨN BỊ VÁN TIẾP ▸
+              </button>
+              <button type="button" class="primary-btn btn-lg hidden" id="btn-peek-leave-room" onclick="window.tienLenGame.leaveWifiRoom(false)" style="pointer-events:auto !important;background:linear-gradient(135deg,#dc2626,#991b1b);border:2px solid #fca5a5;color:#ffffff;font-weight:900;font-size:14px;padding:10px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(220,38,38,0.5);cursor:pointer;">
+                🚪 RỜI PHÒNG
+              </button>
+            </div>
+            <div class="afk-bot-takeover-banner hidden" id="afk-bot-takeover-banner" style="margin:6px auto 0;padding:8px 16px;border-radius:999px;background:linear-gradient(135deg,rgba(220,38,38,0.94),rgba(153,27,27,0.96));border:2px solid #fde047;color:#ffffff;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;box-shadow:0 6px 22px rgba(220,38,38,0.6);z-index:45;pointer-events:auto;">
+              <span style="font-size:13.5px;font-weight:900;letter-spacing:0.2px;">🤖 Bot đang đánh hộ bạn (do quá 30s không đánh) — Tự động ra bài ngay không chờ 30s!</span>
+              <button type="button" class="primary-btn" id="btn-resume-from-afk" onclick="window.tienLenGame.resumeManualPlayFromAfk()" style="padding:6px 16px;font-size:13px;font-weight:900;border-radius:999px;background:linear-gradient(135deg,#059669,#10b981);border:2px solid #fef08a;color:#fff;cursor:pointer;box-shadow:0 0 14px rgba(16,185,129,0.7);">
+                ✋ Tự Đánh Tiếp
               </button>
             </div>
           </div>
@@ -981,6 +993,9 @@
             </button>
             <button class="icon-btn" id="btn-summary-change-bet">
               🏠 Đổi Chế Độ / Đổi Mức Cược
+            </button>
+            <button type="button" class="icon-btn hidden" id="btn-summary-leave-room" onclick="window.tienLenGame.leaveWifiRoom(false)" style="background:linear-gradient(135deg,#dc2626,#991b1b);border:1.5px solid #fca5a5;color:#ffffff;font-weight:900;">
+              🚪 Rời Phòng
             </button>
           </div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -1928,6 +1943,6 @@
       window.__tlmnRefreshCornerAdBanner = function () {};
     })();
   </script>
-  <script src="game.js?v=204"></script>
+  <script src="game.js?v=205"></script>
 </body>
 </html>

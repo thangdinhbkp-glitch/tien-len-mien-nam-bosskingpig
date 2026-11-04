@@ -190,6 +190,8 @@ const BANNER_4STAR_RATEUPS = {
   ineffa: ['ineffa', 'varesa', 'clorinde'],
   flins: ['flins', 'vesna', 'odette'],
   mitya: ['mitya', 'sandrone', 'odette'],
+  lyney: ['lyney', 'furina', 'navia'],
+  chiori: ['chiori', 'navia', 'furina'],
 };
 
 const GENSHIN_FANART_ROSTER = [
@@ -260,6 +262,8 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'ineffa', name: 'Ineffa (Cơ Khí Đồng Bộ Lôi)', desc: '[Huyền Thoại] Phát xung nhịp điện từ làm đoản mạch 1 lá bài trùng bậc số chủ lực trên tay đối thủ tụt thẳng về 3♠.', avatarPrice: 82000, skinPrice: 125000, crest: '🤖' },
   { id: 'flins', name: 'Flins (Người Giữ Đèn Ratniki)', desc: '[Huyền Thoại] Treo Ngọn Đèn Dẫn Hồn: Ngay khi có bất kỳ đối thủ nào Bỏ Lượt sẽ lập tức kết thúc vòng và cướp Cái.', avatarPrice: 88000, skinPrice: 135000, crest: '🏮' },
   { id: 'mitya', name: 'Mitya (Học Giả Nguyên Lý Biến Đổi)', desc: '[Huyền Thoại] Học giả Snezhnaya phân tích Nguyên Lý Biến Đổi: Khi đang có Sám Cô trên tay, biến 1 lá bài rác thành Tứ Quý và kích hoạt Tinh Siêu Dẫn (×10 cược).', avatarPrice: 88000, skinPrice: 135000, crest: '🧬' },
+  { id: 'lyney', name: 'Lyney (Đại Ảo Thuật Gia Fontaine)', desc: '[Huyền Thoại] Đại ảo thuật gia Đại Viện Opera Epiclese tung Trò Bịp Ba Lá: Ghép 3 lá bài bất kỳ cùng chất (Thùng 3 lá) chặt Heo (2) và đè Lẻ/Đôi/Sám/Sảnh 3 lá.', avatarPrice: 88000, skinPrice: 135000, crest: '🎩' },
+  { id: 'chiori', name: 'Chiori (Nhà Thiết Kế Chioriya)', desc: '[Huyền Thoại] Chủ tiệm Chioriya Boutique vung Song Đao: Khi có 2 bộ Sảnh 3 lá riêng biệt (VD: 3-4-5 và 6-7-8), cắt ghép Sảnh lớn nhập vào Sảnh nhỏ thành 3 Đôi Thông!', avatarPrice: 88000, skinPrice: 135000, crest: '✂️' },
 ];
 
 const ANIME_CARD_SKINS = [
@@ -1247,6 +1251,34 @@ const GENSHIN_BURSTS = [
     title: 'NGUYÊN LÝ BIẾN ĐỔI: ĐÚC TỨ QUÝ ĐIỆN TỪ',
     quote: '“ストレス試験を始めようか — Bắt Đầu Bài Kiểm Tra Áp Suất Cao Thôi Nào!”',
   },
+  {
+    id: 'lyney',
+    name: 'Lyney — Ảo Thuật Kỳ Diệu: Diễu Hành Phép Màu',
+    desc: '[Huyền Thoại] Đại ảo thuật gia Fontaine tung Trò Bịp Ba Lá: Trong lượt này, chỉ cần chọn 3 lá bài bất kỳ có CÙNG CHẤT không cần liên tiếp (Thùng 3 lá, dưới 2) là chặt đè được Heo lẻ (2) hoặc đè Bài Lẻ / Đôi / Sám Cô / Sảnh 3 lá trên bàn!',
+    price: 165000,
+    mp4Url: 'lyney_burst.mp4?v=202',
+    audioUrl: 'lyney_burst.ogg?v=202',
+    posterUrl: 'fanart/lyney.jpg?v=202',
+    theme: 'theme-pyro',
+    sfxType: 'raiden',
+    tag: '🎩 KỸ NĂNG NỘ • LYNEY (WONDROUS TRICK: MIRACLE PARADE)',
+    title: 'ĐẠI ẢO THUẬT GIA: THÙNG BA LÁ CHẶT HEO',
+    quote: '“Đã Đến Lúc Khép Màn — Chào Mừng Đến Với Buổi Diễu Hành Phép Màu!”',
+  },
+  {
+    id: 'chiori',
+    name: 'Chiori — Hiyoku: Song Đao Cắt Vải',
+    desc: '[Huyền Thoại] Nhà thiết kế Chioriya Boutique vung Song Đao: Khi trên tay có 2 bộ Sảnh 3 lá riêng biệt không trùng bậc số (VD: 3-4-5 và 6-7-8), cắt may 3 lá Sảnh lớn nhập vào 3 lá Sảnh nhỏ để tạo thành 3 Đôi Thông của Sảnh nhỏ (33-44-55) chặt Heo!',
+    price: 165000,
+    mp4Url: 'chiori_burst.mp4?v=202',
+    audioUrl: 'chiori_burst.ogg?v=202',
+    posterUrl: 'fanart/chiori.jpg?v=202',
+    theme: 'theme-geo',
+    sfxType: 'skirk',
+    tag: '✂️ KỸ NĂNG NỘ • CHIORI (HIYOKU: TWIN BLADES)',
+    title: 'CHIORIYA BOUTIQUE: CẮT SẢNH ĐÚC ĐÔI THÔNG',
+    quote: '“Theo Đúng Số Đo Của Ngươi — Một Nhát Cắt Dứt Khoát!”',
+  },
 ];
 
 // ============================================================================
@@ -1320,6 +1352,8 @@ const CHARACTER_ELEMENTS = {
   ineffa: 'electro',
   flins: 'electro',
   mitya: 'electro',
+  lyney: 'pyro',
+  chiori: 'geo',
 };
 
 // attackerElem: nguyên tố của người ĐANG ĐÁNH (người kích hoạt phản ứng)
@@ -1455,6 +1489,7 @@ let activeBaizhuShield = false;
 let activeMavuikaWrapStraight = false;
 let activeNaviaFlushStraight = false;
 let activeOdetteAnyFourPairs = false;
+let activeLyneyThreeFlush = false;
 let activeXiaoKarmaMaxRank = null;
 let activeEmilieRequiredSuit = null;
 
@@ -1935,6 +1970,20 @@ const CHARACTER_SKILLS = {
     icon: '🧬',
     name: 'Nguyên Lý Biến Đổi: Đúc Tứ Quý',
     shortDesc: 'Khi đang có Sám Cô (3 lá cùng số dưới 2) trên tay, biến ngay 1 lá bài rác thành lá thứ 4 còn thiếu chất để hợp thành Tứ Quý chặt Heo/Hàng! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Băng)',
+  },
+  lyney: {
+    id: 'lyney',
+    charName: 'Lyney',
+    icon: '🎩',
+    name: 'Trò Bịp Ba Lá: Thùng 3 Lá Chặt Heo',
+    shortDesc: 'Trong lượt này: Thay vì cần 3 Đôi Thông hay Tứ Quý, cho phép Lyney ghép 3 lá bài bất kỳ có CÙNG CHẤT không cần liên tiếp (Thùng 3 lá dưới Heo, VD: 4♥ - 9♥ - K♥) thành Bộ Bài Ảo Thuật để CHẶT HEO (2) hoặc đè Bài Lẻ / Đôi / Sám Cô / Sảnh 3 lá!',
+  },
+  chiori: {
+    id: 'chiori',
+    charName: 'Chiori',
+    icon: '✂️',
+    name: 'Song Đao Cắt Vải: Đúc Đôi Thông',
+    shortDesc: 'Khi trên tay có 2 bộ Sảnh 3 lá riêng biệt không trùng bậc số (VD: 3-4-5 và 6-7-8, không tính 3-4-5 với 5-6-7), cắt ghép 3 lá của Sảnh lớn nhập vào 3 lá của Sảnh nhỏ để tạo thành ngay bộ 3 Đôi Thông của Sảnh nhỏ (33-44-55) chặt Heo!',
   },
 };
 
@@ -2765,6 +2814,25 @@ function classifyCombo(cards) {
     }
   }
 
+  // Trò Bịp Ba Lá (Lyney): Cho phép ghép 3 lá bài bất kỳ CÙNG CHẤT dưới Heo (2) thành Thùng 3 Lá Ảo Thuật chặt Heo như 3 Đôi Thông
+  if (n === 3 && highRank < 12 && activeLyneyThreeFlush) {
+    const isSameSuit3 = sorted.every((c) => c.suitIndex === sorted[0].suitIndex);
+    if (isSameSuit3) {
+      const flushCardsLabel = sorted.map((c) => `${c.rank}${c.suit}`).join('-');
+      return {
+        type: COMBO_TYPES.THREE_PAIRS,
+        cards: sorted,
+        length: 3,
+        highCard,
+        highValue,
+        highRank,
+        isBomb: true,
+        isLyneyThreeFlush: true,
+        label: `Thùng 3 Lá Ảo Thuật (${flushCardsLabel} 🎩)`,
+      };
+    }
+  }
+
   if (n >= 3 && highRank < 12) {
     let isStraight = true;
     for (let i = 1; i < n; i++) {
@@ -3137,6 +3205,21 @@ function canBeatCombo(candidate, current) {
       };
     }
     return { ok: false, isChop: false };
+  }
+
+  // Trò Bịp Ba Lá (Lyney): Thùng 3 Lá Ảo Thuật ngoài chặt Heo (2) và đè 3 Đôi Thông nhỏ hơn còn có thể đè các bộ bài thường (Lẻ, Đôi, Sám Cô, Sảnh 3 lá dưới Heo) có lá cao nhất nhỏ hơn!
+  if (
+    activeLyneyThreeFlush &&
+    candidate.isLyneyThreeFlush &&
+    !current.isBomb &&
+    current.highRank < 12 &&
+    current.length <= 3 &&
+    candidate.highValue > current.highValue
+  ) {
+    return {
+      ok: true,
+      isChop: false,
+    };
   }
 
   // Cá Mập Đè Khác Loại (Mualani): Dùng bộ nhiều lá hơn (Đôi đè Lẻ, Sám/Sảnh đè Đôi, Sảnh dài đè Sảnh ngắn) có giá trị >= bộ trên bàn
@@ -3559,6 +3642,30 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     }
   }
 
+  // Trò Bịp Ba Lá (Lyney): Sinh các bộ Thùng 3 Lá cùng chất bất kỳ (dưới Heo)
+  if (activeLyneyThreeFlush) {
+    const bySuit = [[], [], [], []];
+    for (const c of sorted) {
+      if (c.rankIndex <= 11) {
+        bySuit[c.suitIndex].push(c);
+      }
+    }
+    for (let s = 0; s < 4; s++) {
+      const suitCards = bySuit[s];
+      if (suitCards.length < 3) continue;
+      for (let a = 0; a < suitCards.length - 2; a++) {
+        for (let b = a + 1; b < suitCards.length - 1; b++) {
+          for (let cIdx = b + 1; cIdx < suitCards.length; cIdx++) {
+            const cards = [suitCards[a], suitCards[b], suitCards[cIdx]];
+            if (preferredCard && !cards.some((x) => x.id === preferredCard.id)) continue;
+            const fc = classifyCombo(cards);
+            if (fc) combos.push(fc);
+          }
+        }
+      }
+    }
+  }
+
   return combos.filter(Boolean);
 }
 
@@ -3819,6 +3926,8 @@ class TienLenGame {
     activeZibaiGallopStraight = false;
     this.odetteAnyFourPairsTurn = false;
     activeOdetteAnyFourPairs = false;
+    this.lyneyThreeFlushTurn = false;
+    activeLyneyThreeFlush = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -9220,8 +9329,8 @@ class TienLenGame {
     const vnDay = this.getVietnamDayNumber();
     const epochOffset = 20750;
     const relDay = Math.max(0, vnDay - epochOffset);
-    // Trong chu kỳ đầu tiên (relDay < 25), giữ nguyên danh sách 50 tướng xoay tua 25 ngày và ghim thêm Banner Mitya chạy xuyên suốt đến hết chu kỳ hiện tại!
-    const isInitialMityaCycle = relDay < 25;
+    // Trong chu kỳ đầu tiên (relDay < 26), giữ nguyên danh sách 50 tướng xoay tua 25 ngày đầu + Lyney & Chiori ở ngày thứ 26, đồng thời ghim thêm Banner Mitya chạy xuyên suốt đến hết chu kỳ hiện tại!
+    const isInitialMityaCycle = relDay < 26;
     const baseRotationList = isInitialMityaCycle
       ? limitedList.filter((b) => b.id !== 'mitya')
       : limitedList;
@@ -9235,8 +9344,28 @@ class TienLenGame {
     // - Mọi người chơi trên toàn Server đều nhận đúng 2 Banner giống hệt nhau mỗi ngày.
     // - Trong suốt 1 chu kỳ, tuyệt đối KHÔNG CÓ nhân vật nào bị lặp lại!
     const buildCycleOrder = (cycIdx) => {
-      const pool = cycIdx === 0 ? limitedList.filter((b) => b.id !== 'mitya') : limitedList;
-      const arr = [...pool];
+      if (cycIdx === 0) {
+        const core50 = limitedList.filter(
+          (b) => b.id !== 'mitya' && b.id !== 'lyney' && b.id !== 'chiori'
+        );
+        const tailNew = limitedList.filter((b) => b.id === 'lyney' || b.id === 'chiori');
+        const arr = [...core50];
+        let seed = ((cycIdx + 1) * 0x9e3779b9) >>> 0;
+        const nextRand = () => {
+          seed = (seed + 0x6d2b79f5) >>> 0;
+          let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(nextRand() * (i + 1));
+          const tmp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = tmp;
+        }
+        return [...arr, ...tailNew];
+      }
+      const arr = [...limitedList];
       let seed = ((cycIdx + 1) * 0x9e3779b9) >>> 0;
       const nextRand = () => {
         seed = (seed + 0x6d2b79f5) >>> 0;
@@ -9274,6 +9403,31 @@ class TienLenGame {
       }
     }
 
+    // Đặc quyền mở FULL toàn bộ Banner 5★ Limited (bao gồm Lyney & Chiori ở đầu danh sách) cho tài khoản test thang.dinhbkp
+    const curUserLower = String(
+      this.currentAccountUsername ||
+        (typeof localStorage !== 'undefined' ? localStorage.getItem('tlmn_account_username') : '') ||
+        ''
+    )
+      .trim()
+      .toLowerCase();
+    const isFullBannerTestAcc = curUserLower === 'thang.dinhbkp';
+    if (isFullBannerTestAcc) {
+      const priorityIds = ['lyney', 'chiori', 'mitya'];
+      const priorityBanners = priorityIds
+        .map((id) => limitedList.find((b) => b.id === id))
+        .filter(Boolean);
+      const merged = [...priorityBanners, ...todayBanners, ...limitedList];
+      const seenIds = new Set();
+      todayBanners.length = 0;
+      for (const b of merged) {
+        if (b && !seenIds.has(b.id)) {
+          seenIds.add(b.id);
+          todayBanners.push(b);
+        }
+      }
+    }
+
     const vnNowMs = Date.now() + 7 * 3600 * 1000;
     const nextResetMs = (vnDay + 1) * 86400000;
     const remainSec = Math.max(0, Math.floor((nextResetMs - vnNowMs) / 1000));
@@ -9288,6 +9442,7 @@ class TienLenGame {
       daysPerCycle,
       cycleDaysRemaining,
       isInitialMityaCycle,
+      isFullBannerTestAcc,
       totalLimited: limitedList.length,
       todayBanners,
       todayBannerIds: todayBanners.map((b) => b.id),
@@ -10544,7 +10699,7 @@ class TienLenGame {
       if (!this.isGachaAnimPlaying) {
         this.preloadBurstById(featuredBurst.id);
         if (Array.isArray(dailyInfo.todayBannerIds)) {
-          dailyInfo.todayBannerIds.forEach((bid) => this.preloadBurstById(bid));
+          dailyInfo.todayBannerIds.slice(0, 4).forEach((bid) => this.preloadBurstById(bid));
         }
       }
       const rateUp4Ids = BANNER_4STAR_RATEUPS[featuredBurst.id] || ['raiden', 'furina', 'skirk'];
@@ -17105,6 +17260,11 @@ class TienLenGame {
         `<span class="round-skill-pill">🦢 Vũ Khúc Bốn Đôi Thiên Nga (Odette): Lượt này được ghép 4 bộ Đôi bất kỳ không cần liên tiếp để chặt Heo (2) hoặc đè 3 Đôi Thông!</span>`
       );
     }
+    if (this.lyneyThreeFlushTurn) {
+      pills.push(
+        `<span class="round-skill-pill">🎩 Trò Bịp Ba Lá (Lyney): Lượt này được ghép 3 lá bất kỳ CÙNG CHẤT (dưới Heo) thành Thùng 3 Lá Ảo Thuật để chặt Heo (2) hoặc đè 3 Đôi Thông!</span>`
+      );
+    }
     if (this.varkaSumSlashTurn) {
       pills.push(
         `<span class="round-skill-pill">🗡️ Song Kiếm Varka: Lượt này được ghép 2 Lá Lẻ khác số cộng điểm đè Bài Lẻ trên bàn!</span>`
@@ -17220,6 +17380,7 @@ class TienLenGame {
     activeNaviaFlushStraight = Boolean(this.naviaFlushStraightTurn);
     activeZibaiGallopStraight = Boolean(this.zibaiGallopStraightTurn);
     activeOdetteAnyFourPairs = Boolean(this.odetteAnyFourPairsTurn);
+    activeLyneyThreeFlush = Boolean(this.lyneyThreeFlushTurn);
     activeBaizhuShield = Boolean(
       this.baizhuShieldOwnerId !== null && this.trickOwnerId === this.baizhuShieldOwnerId
     );
@@ -18035,7 +18196,136 @@ class TienLenGame {
         };
       }
     }
+    if (charId === 'lyney') {
+      if (this.lyneyThreeFlushTurn) {
+        return { ok: false, reason: 'Trò Bịp Ba Lá đã bật trong lượt này' };
+      }
+      const suitCounts = [0, 0, 0, 0];
+      player.hand.forEach((c) => {
+        if (c.rankIndex <= 11) suitCounts[c.suitIndex]++;
+      });
+      if (!suitCounts.some((cnt) => cnt >= 3)) {
+        return {
+          ok: false,
+          reason: 'Cần có ít nhất 3 lá bài CÙNG CHẤT (♠/♣/♦/♥, dưới Heo) trên tay để Lyney ghép Thùng 3 Lá Ảo Thuật chặt Heo!',
+        };
+      }
+      const prevLyney = activeLyneyThreeFlush;
+      activeLyneyThreeFlush = true;
+      const flushMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isLyneyThreeFlush
+      );
+      activeLyneyThreeFlush = prevLyney;
+      if (flushMoves.length === 0) {
+        return {
+          ok: false,
+          reason: 'Chỉ kích hoạt khi trên bàn đang là Heo (2), 3 Đôi Thông nhỏ hơn, bộ bài ≤ 3 lá nhỏ hơn hoặc khi mở vòng mới để đánh Thùng 3 Lá!',
+        };
+      }
+    }
+    if (charId === 'chiori') {
+      if (player.hand.length < 6) {
+        return {
+          ok: false,
+          reason: 'Cần còn ít nhất 6 lá bài trên tay (2 bộ Sảnh 3 lá riêng biệt) để Chiori cắt ghép thành 3 Đôi Thông!',
+        };
+      }
+      const chioriPlan = this.findChioriTwoDisjointStraights(player.hand, this.selectedCardIds);
+      if (!chioriPlan) {
+        return {
+          ok: false,
+          reason: 'Cần đang có sẵn 2 bộ Sảnh 3 lá RIÊNG BIỆT không trùng bậc nhau (VD: 3-4-5 và 6-7-8; không tính 3-4-5 và 5-6-7) dưới Heo để cắt ghép thành 3 Đôi Thông!',
+        };
+      }
+    }
     return { ok: true, charId };
+  }
+
+  findChioriTwoDisjointStraights(hand, selectedIds = null) {
+    if (!Array.isArray(hand) || hand.length < 6) return null;
+    const selSet =
+      selectedIds instanceof Set
+        ? selectedIds
+        : Array.isArray(selectedIds)
+          ? new Set(selectedIds)
+          : new Set();
+    const byRank = Array.from({ length: 12 }, () => []);
+    for (const c of hand) {
+      if (c.rankIndex >= 0 && c.rankIndex <= 11) {
+        byRank[c.rankIndex].push(c);
+      }
+    }
+    for (let r = 0; r < 12; r++) {
+      byRank[r].sort((a, b) => a.suitIndex - b.suitIndex);
+    }
+
+    const candidates = [];
+    // lowStart chạy từ 0 (3-4-5) đến 6 (9-10-J), highStart bắt buộc >= lowStart + 3 để 2 Sảnh 3 lá hoàn toàn RIÊNG BIỆT không chạm bậc nhau!
+    for (let lowStart = 0; lowStart <= 6; lowStart++) {
+      if (
+        byRank[lowStart].length < 1 ||
+        byRank[lowStart + 1].length < 1 ||
+        byRank[lowStart + 2].length < 1
+      ) {
+        continue;
+      }
+      for (let highStart = lowStart + 3; highStart <= 9; highStart++) {
+        if (
+          byRank[highStart].length < 1 ||
+          byRank[highStart + 1].length < 1 ||
+          byRank[highStart + 2].length < 1
+        ) {
+          continue;
+        }
+        const pickCardForLow = (r) => {
+          const group = byRank[r];
+          const sel = group.find((c) => selSet.has(c.id));
+          return sel || group[group.length - 1];
+        };
+        const pickCardForHigh = (r) => {
+          const group = byRank[r];
+          const sel = group.find((c) => selSet.has(c.id));
+          return sel || group[0];
+        };
+        const lowCards = [
+          pickCardForLow(lowStart),
+          pickCardForLow(lowStart + 1),
+          pickCardForLow(lowStart + 2),
+        ];
+        const highCards = [
+          pickCardForHigh(highStart),
+          pickCardForHigh(highStart + 1),
+          pickCardForHigh(highStart + 2),
+        ];
+        const all6 = [...lowCards, ...highCards];
+        const selMatches = all6.filter((c) => selSet.has(c.id)).length;
+        const touchesQuad =
+          [lowStart, lowStart + 1, lowStart + 2, highStart, highStart + 1, highStart + 2].some(
+            (r) => byRank[r].length === 4
+          )
+            ? 1
+            : 0;
+        candidates.push({
+          lowStart,
+          highStart,
+          lowCards,
+          highCards,
+          selMatches,
+          touchesQuad,
+        });
+      }
+    }
+
+    if (candidates.length === 0) return null;
+
+    candidates.sort((a, b) => {
+      if (b.selMatches !== a.selMatches) return b.selMatches - a.selMatches;
+      if (a.touchesQuad !== b.touchesQuad) return a.touchesQuad - b.touchesQuad;
+      if (b.lowStart !== a.lowStart) return b.lowStart - a.lowStart;
+      return a.highStart - b.highStart;
+    });
+
+    return candidates[0];
   }
 
   findMityaTripleAndJunk(hand, selectedIds = null) {
@@ -19897,6 +20187,63 @@ class TienLenGame {
         this.selectedCardIds = new Set(fourIds);
         skillSummary = `🧬 [Nguyên Lý Biến Đổi] ${player.name} phân tích cấu trúc Sám Cô ${newRankStr}, biến đổi lá bài rác ${oldJunkStr} ➔ ${newRankStr}${newSuitStr} để hợp thành TỨ QUÝ ${newRankStr} hoàn chỉnh ngay trên tay!`;
       }
+    } else if (charId === 'lyney') {
+      this.lyneyThreeFlushTurn = true;
+      activeLyneyThreeFlush = true;
+      this.syncRoundRuleGlobals(player.id);
+      const flushMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isLyneyThreeFlush
+      );
+      const chosenFlush = flushMoves[0];
+      let flushNote = '';
+      if (chosenFlush) {
+        const flushIds = chosenFlush.cards.map((c) => c.id);
+        this.selectedCardIds = new Set(flushIds);
+        this.companionCardIds.clear();
+        player._skillForcedComboIds = flushIds;
+        flushNote = ` — Sẵn sàng tung ${chosenFlush.label}`;
+      }
+      skillSummary = `🎩 [Trò Bịp Ba Lá] ${player.name} trình diễn ảo thuật Đại Ảo Thuật Gia: Cho phép ghép 3 lá bất kỳ CÙNG CHẤT (dưới Heo) thành Thùng 3 Lá Ảo Thuật để chặt Heo (2) hoặc đè 3 Đôi Thông${flushNote}!`;
+    } else if (charId === 'chiori') {
+      const chioriPlan = this.findChioriTwoDisjointStraights(
+        player.hand,
+        preferredCardIds.length > 0 ? preferredCardIds : this.selectedCardIds
+      );
+      if (chioriPlan) {
+        const { lowStart, lowCards, highCards } = chioriPlan;
+        const oldLowStr = lowCards.map((c) => `${c.rank}${c.suit}`).join('-');
+        const oldHighStr = highCards.map((c) => `${c.rank}${c.suit}`).join('-');
+        const tailoredLogs = [];
+        for (let k = 0; k < 3; k++) {
+          const targetRankIdx = lowStart + k;
+          const targetRankStr = RANKS[targetRankIdx];
+          const lowCard = lowCards[k];
+          const highCard = highCards[k];
+          const oldCardStr = `${highCard.rank}${highCard.suit}`;
+          let newSuitIdx = 3;
+          for (const s of [3, 2, 1, 0]) {
+            if (s !== lowCard.suitIndex) {
+              newSuitIdx = s;
+              break;
+            }
+          }
+          const newSuitStr = SUITS[newSuitIdx];
+          highCard.rankIndex = targetRankIdx;
+          highCard.rank = targetRankStr;
+          highCard.suitIndex = newSuitIdx;
+          highCard.suit = newSuitStr;
+          highCard.isRed = newSuitIdx >= 2;
+          highCard.value = targetRankIdx * 4 + newSuitIdx;
+          highCard.id = `${targetRankStr}${newSuitStr}_chiori_${Date.now()}_${k}`;
+          tailoredLogs.push(`${oldCardStr}➔${targetRankStr}${newSuitStr}`);
+        }
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+        const pairRunIds = [...lowCards.map((c) => c.id), ...highCards.map((c) => c.id)];
+        this.selectedCardIds = new Set(pairRunIds);
+        this.companionCardIds.clear();
+        const lowRangeLabel = `${RANKS[lowStart]}→${RANKS[lowStart + 2]}`;
+        skillSummary = `✂️ [Song Đao Cắt Vải: Đúc Đôi Thông] ${player.name} vung song đao cắt 3 lá Sảnh lớn (${oldHighStr}: ${tailoredLogs.join(', ')}) ghép với Sảnh nhỏ (${oldLowStr}) thành 3 ĐÔI THÔNG (${lowRangeLabel}) ngay trên tay!`;
+      }
     }
 
     // Lưu lại các lá bài vừa được Kỹ Năng tạo ra / nâng cấp để Bot ưu tiên đánh ngay sau khi hết Hoạt Ảnh Nộ,
@@ -19930,6 +20277,8 @@ class TienLenGame {
           'eula',
           'lauma',
           'mitya',
+          'lyney',
+          'chiori',
         ].includes(charId)
       ) {
         player._skillForcedComboIds = createdBySkillIds;
@@ -21285,6 +21634,46 @@ class TienLenGame {
         if (canChopTableNow || goodLeadOrFinish) {
           shouldCast = true;
           preferredIds = [...mityaPlan.tripleCards.map((c) => c.id), mityaPlan.junkCard.id];
+        }
+      }
+    } else if (charId === 'lyney') {
+      const prevLyney = activeLyneyThreeFlush;
+      activeLyneyThreeFlush = true;
+      const flushMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isLyneyThreeFlush && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+      );
+      activeLyneyThreeFlush = prevLyney;
+      if (flushMoves.length > 0) {
+        const isChoppingHeoOr3Pairs =
+          this.currentCombo &&
+          ((this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank === 12) ||
+            this.currentCombo.type === COMBO_TYPES.THREE_PAIRS);
+        const needFlushToBeat =
+          this.currentCombo &&
+          !plannedMove &&
+          (this.currentCombo.highRank >= 7 || minOppCards <= 5);
+        const canInstantWinOrEndgame = !this.currentCombo && (bot.hand.length <= 6 || minOppCards <= 5);
+        if (isChoppingHeoOr3Pairs || needFlushToBeat || canInstantWinOrEndgame) {
+          shouldCast = true;
+        }
+      }
+    } else if (charId === 'chiori') {
+      const chioriPlan = this.findChioriTwoDisjointStraights(bot.hand);
+      if (chioriPlan) {
+        const pairRunHighRank = chioriPlan.lowStart + 2;
+        const canChopHeoOr3Pairs =
+          this.currentCombo &&
+          ((this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank === 12) ||
+            (this.currentCombo.type === COMBO_TYPES.THREE_PAIRS &&
+              this.currentCombo.highRank < pairRunHighRank));
+        const goodLeadOrFinish =
+          !this.currentCombo && (bot.hand.length <= 9 || minOppCards <= 7);
+        if (canChopHeoOr3Pairs || goodLeadOrFinish) {
+          shouldCast = true;
+          preferredIds = [
+            ...chioriPlan.lowCards.map((c) => c.id),
+            ...chioriPlan.highCards.map((c) => c.id),
+          ];
         }
       }
     }
@@ -24950,6 +25339,8 @@ class TienLenGame {
     activeZibaiGallopStraight = false;
     this.odetteAnyFourPairsTurn = false;
     activeOdetteAnyFourPairs = false;
+    this.lyneyThreeFlushTurn = false;
+    activeLyneyThreeFlush = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -25578,6 +25969,7 @@ class TienLenGame {
       this.xianyunStepStraightTurn ||
       this.zibaiGallopStraightTurn ||
       this.odetteAnyFourPairsTurn ||
+      this.lyneyThreeFlushTurn ||
       this.wriothesleyPairSmashTurn ||
       this.varkaSumSlashTurn
     ) {
@@ -25595,6 +25987,8 @@ class TienLenGame {
       activeZibaiGallopStraight = false;
       this.odetteAnyFourPairsTurn = false;
       activeOdetteAnyFourPairs = false;
+      this.lyneyThreeFlushTurn = false;
+      activeLyneyThreeFlush = false;
       this.wriothesleyPairSmashTurn = false;
       activeWriothesleyPairSmash = false;
       this.varkaSumSlashTurn = false;
@@ -26185,6 +26579,7 @@ class TienLenGame {
       this.xianyunStepStraightTurn ||
       this.zibaiGallopStraightTurn ||
       this.odetteAnyFourPairsTurn ||
+      this.lyneyThreeFlushTurn ||
       this.varkaSumSlashTurn ||
       this.ayatoCloneReady
     ) {
@@ -26204,6 +26599,8 @@ class TienLenGame {
       activeZibaiGallopStraight = false;
       this.odetteAnyFourPairsTurn = false;
       activeOdetteAnyFourPairs = false;
+      this.lyneyThreeFlushTurn = false;
+      activeLyneyThreeFlush = false;
       this.varkaSumSlashTurn = false;
       activeVarkaSumSlash = false;
       this.ayatoCloneReady = false;
@@ -26430,6 +26827,8 @@ class TienLenGame {
     activeZibaiGallopStraight = false;
     this.odetteAnyFourPairsTurn = false;
     activeOdetteAnyFourPairs = false;
+    this.lyneyThreeFlushTurn = false;
+    activeLyneyThreeFlush = false;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -29266,6 +29665,9 @@ class TienLenGame {
         if (this.odetteAnyFourPairsTurn && move.isOdetteAnyFourPairs) {
           skillSynergyBonus -= 650;
         }
+        if (this.lyneyThreeFlushTurn && move.isLyneyThreeFlush) {
+          skillSynergyBonus -= 650;
+        }
         if (this.varkaSumSlashTurn && move.isVarkaSumSlash) {
           skillSynergyBonus -= 340;
         }
@@ -29342,6 +29744,7 @@ class TienLenGame {
       (this.xianyunStepStraightTurn && activeCharId === 'xianyun') ||
       (this.zibaiGallopStraightTurn && activeCharId === 'zibai') ||
       (this.odetteAnyFourPairsTurn && activeCharId === 'odette') ||
+      (this.lyneyThreeFlushTurn && activeCharId === 'lyney') ||
       (this.mualaniCrossBeatTurn && activeCharId === 'mualani') ||
       (this.columbinaExtraTurnReady && activeCharId === 'columbina') ||
       (this.ayatoCloneReady && activeCharId === 'ayato') ||
@@ -29351,6 +29754,10 @@ class TienLenGame {
       if (this.odetteAnyFourPairsTurn && activeCharId === 'odette') {
         const odetteCand = candidates.find((c) => c.move.isOdetteAnyFourPairs) || candidates[0];
         if (odetteCand) return odetteCand.move;
+      }
+      if (this.lyneyThreeFlushTurn && activeCharId === 'lyney') {
+        const lyneyCand = candidates.find((c) => c.move.isLyneyThreeFlush) || candidates[0];
+        if (lyneyCand) return lyneyCand.move;
       }
       const skillCand =
         candidates.find((c) => !c.touchesBomb || sit.shouldBreakBombForEndgame) || candidates[0];

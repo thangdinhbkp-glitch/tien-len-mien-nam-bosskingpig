@@ -1,5 +1,5 @@
-const CORE_CACHE = 'tienlen-genshin-core-v195';
-const MEDIA_CACHE = 'tienlen-genshin-media-v1';
+const CORE_CACHE = 'tienlen-genshin-core-v196';
+const MEDIA_CACHE = 'tienlen-genshin-media-v2';
 
 const CORE_ASSETS = [
   './',
@@ -94,14 +94,15 @@ self.addEventListener('fetch', (event) => {
           const coreCache = await caches.open(CORE_CACHE);
           cached = await coreCache.match(cleanUrl);
         }
-        if (cached) {
+        if (cached && !(cached.headers.get('content-type') || '').includes('text/html')) {
           return createRangeResponse(req, cached);
         }
 
         try {
-          const fetchReq = new Request(cleanUrl, { method: 'GET' });
+          const fetchReq = new Request(cleanUrl, { method: 'GET', cache: 'no-cache' });
           const netRes = await fetch(fetchReq);
-          if (netRes && netRes.ok && netRes.status === 200) {
+          const cType = (netRes && netRes.headers && netRes.headers.get('content-type')) || '';
+          if (netRes && netRes.ok && netRes.status === 200 && !cType.includes('text/html')) {
             mediaCache.put(cleanUrl, netRes.clone()).catch(() => {});
             return createRangeResponse(req, netRes);
           }

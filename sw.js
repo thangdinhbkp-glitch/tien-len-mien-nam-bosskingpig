@@ -1,4 +1,4 @@
-﻿const CORE_CACHE = 'tienlen-genshin-core-v208';
+const CORE_CACHE = 'tienlen-genshin-core-v208';
 const MEDIA_CACHE = 'tienlen-genshin-media-v6';
 
 const CORE_ASSETS = [
@@ -135,4 +135,3 @@ self.addEventListener('fetch', (event) => {
 function resIsCachable(res) {
   return res && res.status === 200 && res.type === 'basic';
 }
-

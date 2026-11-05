@@ -229,7 +229,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'xiao', name: 'Xiao (Hộ Pháp Dạ Xoa)', desc: '[Huyền Thoại] Hộ Pháp Dạ Xoa phóng thích Ách Nạn Nghiệp Chướng ép đối thủ chỉ được đánh bài thấp theo số lá còn trên tay.', avatarPrice: 85000, skinPrice: 130000, crest: '👹' },
   { id: 'wanderer', name: 'Wanderer (Kẻ Lang Thang)', desc: '[Huyền Thoại] Chân Không Tự Tại triệu hồi cuồng phong xáo trộn toàn bộ bài của tất cả người chơi trên bàn.', avatarPrice: 85000, skinPrice: 130000, crest: '🌀' },
   { id: 'kinich', name: 'Kinich (Thợ Săn Saurian & Rồng Ajaw)', desc: '[Huyền Thoại] Thợ săn Natlan gài Bom Hẹn Giờ Pixel Ajaw phát nổ nhét bài rác cho kẻ dám đè bài.', avatarPrice: 85000, skinPrice: 130000, crest: '🦖' },
-  { id: 'venti', name: 'Venti (Phong Thần Barbatos)', desc: '[Thần Thoại] Phong Thần tạo Hố Đen hút lá bài lớn nhất của mọi đối thủ và thổi trả lá rác cho họ.', avatarPrice: 95000, skinPrice: 145000, crest: '🌪️' },
+  { id: 'venti', name: 'Venti (Phong Thần Barbatos)', desc: '[Thần Thoại] Phong Thần mở Mắt Bão Nuốt Bàn: Hút trực tiếp bộ bài của đối thủ trên bàn nhập chung với bài trên tay Venti để ghép thành bộ lớn hơn (Đôi, Sám Cô, Sảnh Dài, 3 Đôi Thông, Tứ Quý) đánh đè ngay lập tức!', avatarPrice: 95000, skinPrice: 145000, crest: '🌪️' },
   { id: 'qiqi', name: 'Qiqi (Cương Thi Độ Ách)', desc: '[5★ Thường • Lệch Rate] Tiểu cương thi Nhà Thuốc Bubu với Bùa Độ Ách giảm 15% tiền phạt đếm lá khi thua.', avatarPrice: 60000, skinPrice: 95000, crest: '❄️' },
   { id: 'keqing', name: 'Keqing (Yuheng Thất Tinh Liyue)', desc: '[5★ Thường • Lệch Rate] Ngọc Hành Tinh tốc độ sấm sét thu thêm +2× cược từ mỗi nhà thua khi Về Nhất.', avatarPrice: 65000, skinPrice: 100000, crest: '⚡' },
   { id: 'mona', name: 'Mona (Thuật Sĩ Chiêm Tinh)', desc: '[5★ Thường • Lệch Rate] Đại chiêm tinh gia gieo Quỹ Đạo Tinh Mệnh cộng thưởng khi thắng và giảm phạt khi thua.', avatarPrice: 65000, skinPrice: 100000, crest: '💧' },
@@ -784,7 +784,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'venti',
     name: 'Venti — Bài Thơ Thần Gió',
-    desc: '[Thần Thoại] Phong Thần tạo Hố Đen hút 1 lá bài lớn nhất (≤ A) của mọi đối thủ gom chung với các lá rác của Venti, giữ lại các lá lớn nhất và thổi trả lá rác cho đối thủ (Video + Giọng lồng tiếng thật).',
+    desc: '[Thần Thoại] Phong Thần mở Mắt Bão Nuốt Bàn: Hút trực tiếp các lá bài đối thủ vừa đánh trên bàn nhập chung với các lá trên tay Venti để ghép thành bộ lớn hơn (Đôi, Sám Cô, Sảnh Dài, 3 Đôi Thông, Tứ Quý) đánh đè ngược lại ngay lập tức (Video + Giọng lồng tiếng thật).',
     price: 175000,
     mp4Url: 'venti_burst.mp4?v=57',
     audioUrl: 'venti_burst.ogg?v=62',
@@ -1490,6 +1490,8 @@ let activeMavuikaWrapStraight = false;
 let activeNaviaFlushStraight = false;
 let activeOdetteAnyFourPairs = false;
 let activeLyneyThreeFlush = false;
+let activeVentiVortexMerge = false;
+let activeVentiSuckedCardIds = new Set();
 let activeXiaoKarmaMaxRank = null;
 let activeEmilieRequiredSuit = null;
 
@@ -1736,8 +1738,8 @@ const CHARACTER_SKILLS = {
     id: 'venti',
     charName: 'Venti',
     icon: '🌪️',
-    name: 'Hố Đen Phong Thần',
-    shortDesc: 'Hố đen hút 1 lá bài lớn nhất (≤ A) từ tay MỌI đối thủ gom chung với các lá rác nhỏ nhất của Venti: Venti giữ lại các lá lớn nhất còn thổi trả toàn bộ lá rác về tay từng đối thủ!',
+    name: 'Mắt Bão Nuốt Bàn',
+    shortDesc: 'Khi trên bàn đang có bài thường của đối thủ (Lẻ, Đôi, Sám Cô, Sảnh dưới Heo): Bấm [Q] để hút trực tiếp các lá bài đang nằm trên bàn nhập chung với bài trên tay Venti, ghép thành bộ lớn hơn (Đôi, Sám Cô, Sảnh Dài, 3 Đôi Thông hoặc Tứ Quý) đánh đè ngược lại ngay lập tức!',
   },
   qiqi: {
     id: 'qiqi',
@@ -3059,6 +3061,33 @@ function canBeatCombo(candidate, current) {
     };
   }
 
+  // Mắt Bão Nuốt Bàn (Venti): Khi Venti đã hút các lá bài thường trên bàn về tay, cho phép dùng bộ bài vừa ghép (chứa các lá đã hút + bài của Venti, nhiều lá hơn bộ trên bàn) đánh đè ngay lập tức!
+  if (
+    activeVentiVortexMerge &&
+    current &&
+    !current.isBomb &&
+    current.highRank < 12 &&
+    candidate.length > current.length
+  ) {
+    if (current.baizhuShielded || activeBaizhuShield) {
+      return {
+        ok: false,
+        isChop: false,
+        reason: '🐍 Khiên Trường Sinh (Baizhu): Bộ bài này đang được Khiên Ngọc bảo hộ — Miễn nhiễm bị chặt!',
+      };
+    }
+    const hasAllSucked =
+      !activeVentiSuckedCardIds ||
+      activeVentiSuckedCardIds.size === 0 ||
+      Array.from(activeVentiSuckedCardIds).every((sid) => candidate.cards.some((c) => c.id === sid));
+    if (hasAllSucked) {
+      return {
+        ok: true,
+        isChop: false,
+      };
+    }
+  }
+
   // Lục Đạo Độc Tôn (Shenhe): Cấm đánh Đôi, Sám Cô, Sảnh trong vòng hiện tại (chỉ được đánh Bài Lẻ hoặc Hàng chặt Heo)
   if (activeShenheSingleOnly && !candidate.isBomb && candidate.type !== COMBO_TYPES.SINGLE) {
     return {
@@ -3436,6 +3465,10 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     if (byRank[start].length === 0) continue;
     const pickCardForRank = (r) => {
       if (preferredCard && preferredCard.rankIndex === r) return preferredCard;
+      if (activeVentiVortexMerge && activeVentiSuckedCardIds && activeVentiSuckedCardIds.size > 0) {
+        const suckedAtR = byRank[r].find((c) => activeVentiSuckedCardIds.has(c.id));
+        if (suckedAtR) return suckedAtR;
+      }
       return byRank[r][0];
     };
 
@@ -3599,7 +3632,17 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
           break;
         }
         const group = byRank[r];
-        if (preferredCard && preferredCard.rankIndex === r) {
+        const suckedInGroup =
+          activeVentiVortexMerge && activeVentiSuckedCardIds && activeVentiSuckedCardIds.size > 0
+            ? group.filter((c) => activeVentiSuckedCardIds.has(c.id))
+            : [];
+        if (suckedInGroup.length >= 2) {
+          cards.push(suckedInGroup[0], suckedInGroup[1]);
+        } else if (suckedInGroup.length === 1) {
+          const others = group.filter((c) => c.id !== suckedInGroup[0].id);
+          const partner = r === start + pairCount - 1 ? others[others.length - 1] : others[0];
+          cards.push(suckedInGroup[0], partner);
+        } else if (preferredCard && preferredCard.rankIndex === r) {
           const others = group.filter((c) => c.id !== preferredCard.id);
           const partner =
             r === start + pairCount - 1 ? others[others.length - 1] : others[0];
@@ -3945,6 +3988,10 @@ class TienLenGame {
     activeOdetteAnyFourPairs = false;
     this.lyneyThreeFlushTurn = false;
     activeLyneyThreeFlush = false;
+    this.ventiVortexMergeTurn = false;
+    activeVentiVortexMerge = false;
+    this.ventiSuckedCardIds = new Set();
+    activeVentiSuckedCardIds = this.ventiSuckedCardIds;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -3977,6 +4024,8 @@ class TienLenGame {
     this.roundSkillActivatedSeatIds = new Set();
     this.turnDirection = 1;
     this.mualaniCrossBeatTurn = false;
+    this.ventiVortexMergeTurn = false;
+    this.ventiSuckedCardIds = new Set();
 
     this.selectedCardIds = new Set();
     this.companionCardIds = new Set();
@@ -17462,6 +17511,11 @@ class TienLenGame {
         `<span class="round-skill-pill">🎩 Ảo Thuật Năm Lá (Lyney): Lượt này được ghép 5 lá bất kỳ ĐỒNG CHẤT (dưới Heo) thành Thùng 5 Lá Ảo Thuật đè mọi bộ bài thường trừ Heo (2)!</span>`
       );
     }
+    if (this.ventiVortexMergeTurn) {
+      pills.push(
+        `<span class="round-skill-pill">🌪️ Mắt Bão Nuốt Bàn (Venti): Đã hút bộ bài trên bàn nhập vào tay — Ghép thành bộ lớn hơn đánh đè ngay lập tức!</span>`
+      );
+    }
     if (this.varkaSumSlashTurn) {
       pills.push(
         `<span class="round-skill-pill">🗡️ Song Kiếm Varka: Lượt này được ghép 2 Lá Lẻ khác số cộng điểm đè Bài Lẻ trên bàn!</span>`
@@ -17578,6 +17632,8 @@ class TienLenGame {
     activeZibaiGallopStraight = Boolean(this.zibaiGallopStraightTurn);
     activeOdetteAnyFourPairs = Boolean(this.odetteAnyFourPairsTurn);
     activeLyneyThreeFlush = Boolean(this.lyneyThreeFlushTurn);
+    activeVentiVortexMerge = Boolean(this.ventiVortexMergeTurn);
+    activeVentiSuckedCardIds = this.ventiSuckedCardIds || new Set();
     activeBaizhuShield = Boolean(
       this.baizhuShieldOwnerId !== null && this.trickOwnerId === this.baizhuShieldOwnerId
     );
@@ -18288,8 +18344,23 @@ class TienLenGame {
         return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để gài Bom Hẹn Giờ Ajaw!' };
       }
     }
-    if (charId === 'venti' && player.hand.length < 1) {
-      return { ok: false, reason: 'Cần còn bài trên tay để tạo Hố Đen Phong Thần!' };
+    if (charId === 'venti') {
+      if (
+        !this.currentCombo ||
+        this.currentCombo.isBomb ||
+        this.currentCombo.highRank >= 12 ||
+        this.trickOwnerId === null ||
+        this.trickOwnerId === player.id
+      ) {
+        return {
+          ok: false,
+          reason:
+            'Mắt Bão Nuốt Bàn chỉ kích hoạt khi trên bàn đang có bộ bài thường (Lẻ, Đôi, Sám Cô, Sảnh dưới Heo) của đối thủ để hút về ghép với bài trên tay Venti!',
+        };
+      }
+      if (player.hand.length < 1) {
+        return { ok: false, reason: 'Cần còn ít nhất 1 lá bài trên tay để mở Mắt Bão Nuốt Bàn ghép bài!' };
+      }
     }
     if (charId === 'albedo' && player.hand.length < 1) {
       return { ok: false, reason: 'Cần ít nhất 1 lá bài trên tay để Giả Kim Mộ Bài tái tạo lá mạnh nhất!' };
@@ -19903,39 +19974,195 @@ class TienLenGame {
       this.kinichBombOwnerId = player.id;
       skillSummary = `🎮 [Gài Bom Hẹn Giờ Ajaw] ${player.name} đặt Bom Pixel Ajaw lên bàn suốt cả vòng này: Miễn là còn trong vòng và đối thủ còn đánh bài ra bàn, mỗi lần đánh đều sẽ nổ bom và bốc thêm 1 lá bài rác từ tay ${player.name}!`;
     } else if (charId === 'venti') {
-      const suckedFromOpps = [];
-      const oppTargets = [];
-      activeOpponents.forEach((opp) => {
-        if (opp.hand.length > 0) {
-          const oppSorted = sortCardsAsc(opp.hand);
-          const oppNormals = oppSorted.filter((c) => c.rankIndex <= 11);
-          const highCard = oppNormals.length > 0 ? oppNormals[oppNormals.length - 1] : oppSorted[oppSorted.length - 1];
-          opp.hand = opp.hand.filter((c) => c.id !== highCard.id);
-          suckedFromOpps.push(highCard);
-          oppTargets.push(opp);
+      if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12) {
+        const oldLabel = this.currentCombo.label;
+        const tableCards = sortCardsAsc(this.currentCombo.cards);
+        if (Array.isArray(this.matchGraveyardCards) && this.matchGraveyardCards.length > 0) {
+          tableCards.forEach((tc) => {
+            const gIdx = this.matchGraveyardCards.findIndex((gc) => gc.id === tc.id || gc.value === tc.value);
+            if (gIdx !== -1) this.matchGraveyardCards.splice(gIdx, 1);
+          });
         }
-      });
-      const k = Math.min(suckedFromOpps.length, player.hand.length);
-      if (k > 0) {
-        const mySorted = sortCardsAsc(player.hand);
-        const myTrash = mySorted.slice(0, k);
-        const myTrashIds = new Set(myTrash.map((c) => c.id));
-        player.hand = player.hand.filter((c) => !myTrashIds.has(c.id));
-        const vortexPool = sortCardsAsc([...suckedFromOpps, ...myTrash]);
-        const returnToOpps = vortexPool.slice(0, oppTargets.length);
-        const keepForVenti = vortexPool.slice(oppTargets.length);
-        player.hand.push(...keepForVenti);
-        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-        oppTargets.forEach((opp, idx) => {
-          if (returnToOpps[idx]) {
-            opp.hand.push(returnToOpps[idx]);
-            opp.hand = sortHandByMode(opp.hand, opp.id === this.mySeatId ? this.sortMode : 'asc');
+
+        const origHandIds = new Set(player.hand.map((c) => c.id));
+        const activeSelSet =
+          preferredCardIds && preferredCardIds.length > 0
+            ? new Set(preferredCardIds)
+            : savedHumanSelectedIds;
+        const humanChosenCards =
+          !player.isBot && activeSelSet && activeSelSet.size > 0
+            ? player.hand.filter((c) => activeSelSet.has(c.id))
+            : [];
+
+        const suckedCards = [];
+        tableCards.forEach((tc, idx) => {
+          const usedSuitsAtRank = new Set(
+            [...player.hand, ...suckedCards]
+              .filter((c) => c.rankIndex === tc.rankIndex)
+              .map((c) => c.suitIndex)
+          );
+          let chosenSuit = tc.suitIndex;
+          if (usedSuitsAtRank.has(chosenSuit) && usedSuitsAtRank.size < 4) {
+            for (const s of [3, 2, 1, 0]) {
+              if (!usedSuitsAtRank.has(s)) {
+                chosenSuit = s;
+                break;
+              }
+            }
           }
+          const suitSym = SUITS[chosenSuit];
+          const rankSym = RANKS[tc.rankIndex];
+          suckedCards.push({
+            rank: rankSym,
+            suit: suitSym,
+            rankIndex: tc.rankIndex,
+            suitIndex: chosenSuit,
+            value: tc.rankIndex * 4 + chosenSuit,
+            isRed: chosenSuit >= 2,
+            isVentiSucked: true,
+            id: `${rankSym}${suitSym}_venti_suck_${Date.now()}_${idx}`,
+          });
         });
-        this.selectedCardIds = new Set(keepForVenti.map((c) => c.id));
-        this.companionCardIds.clear();
-        const gainedStr = keepForVenti.map((c) => `${c.rank}${c.suit}`).join(', ');
-        skillSummary = `🌪️ [Hố Đen Phong Thần] ${player.name} hút lá bài lớn nhất của ${oppTargets.length} đối thủ vào tâm bão, thu về (${gainedStr}) và thổi trả toàn bộ lá bài rác cho các đối thủ!`;
+
+        player.hand.push(...suckedCards);
+        player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
+
+        this.ventiVortexMergeTurn = true;
+        activeVentiVortexMerge = true;
+        this.ventiSuckedCardIds = new Set(suckedCards.map((c) => c.id));
+        activeVentiSuckedCardIds = this.ventiSuckedCardIds;
+        this.syncRoundRuleGlobals(player.id);
+
+        const findMergedMoves = () =>
+          getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+            (m) =>
+              m.length > tableCards.length &&
+              suckedCards.every((sc) => m.cards.some((mc) => mc.id === sc.id))
+          );
+
+        let mergedMoves = findMergedMoves();
+        const hasMoveWithHumanSelection =
+          humanChosenCards.length > 0 &&
+          mergedMoves.some((m) =>
+            humanChosenCards.every((hc) => m.cards.some((mc) => mc.id === hc.id))
+          );
+
+        let harmonizedNote = '';
+        if (mergedMoves.length === 0 || (humanChosenCards.length === 1 && !hasMoveWithHumanSelection)) {
+          const origStruct = this.analyzeBotHandStructure(
+            player.hand.filter((c) => origHandIds.has(c.id))
+          );
+          const origSorted = sortCardsAsc(player.hand.filter((c) => origHandIds.has(c.id)));
+          const targetHandCard =
+            humanChosenCards[0] ||
+            origSorted.find(
+              (c) =>
+                !(this.mustPlay3Spade && c.value === 0) &&
+                c.rankIndex < 12 &&
+                !origStruct.bombRanks.has(c.rankIndex) &&
+                origStruct.rankCounts[c.rankIndex] === 1
+            ) ||
+            origSorted.find(
+              (c) => !(this.mustPlay3Spade && c.value === 0) && c.rankIndex < 12
+            ) ||
+            origSorted[0];
+
+          if (targetHandCard) {
+            const oldCardStr = `${targetHandCard.rank}${targetHandCard.suit}`;
+            const otherCards = player.hand.filter((c) => c.id !== targetHandCard.id);
+            const rcOther = new Array(13).fill(0);
+            otherCards.forEach((c) => rcOther[c.rankIndex]++);
+
+            let targetRank = tableCards[tableCards.length - 1].rankIndex;
+            if (this.currentCombo.type === COMBO_TYPES.PAIR) {
+              const pairR = tableCards[0].rankIndex;
+              let pairRunMissingRank = -1;
+              for (let s = Math.max(0, pairR - 2); s <= Math.min(9, pairR); s++) {
+                const windowRanks = [s, s + 1, s + 2];
+                const twoPlusCount = windowRanks.filter((r) => rcOther[r] >= 2).length;
+                const oneCount = windowRanks.filter((r) => rcOther[r] === 1);
+                if (twoPlusCount === 2 && oneCount.length === 1) {
+                  pairRunMissingRank = oneCount[0];
+                  break;
+                }
+              }
+              targetRank = pairRunMissingRank !== -1 ? pairRunMissingRank : pairR;
+            } else if (this.currentCombo.type === COMBO_TYPES.TRIPLE) {
+              targetRank = tableCards[0].rankIndex;
+            } else if (this.currentCombo.type === COMBO_TYPES.STRAIGHT) {
+              const lowR = tableCards[0].rankIndex;
+              const highR = tableCards[tableCards.length - 1].rankIndex;
+              targetRank = highR < 11 ? highR + 1 : Math.max(0, lowR - 1);
+            } else {
+              const r = tableCards[0].rankIndex;
+              if (r >= 1 && r <= 10 && rcOther[r - 1] >= 1 && rcOther[r + 1] === 0) {
+                targetRank = r + 1;
+              } else if (r >= 1 && r <= 10 && rcOther[r + 1] >= 1 && rcOther[r - 1] === 0) {
+                targetRank = r - 1;
+              } else {
+                targetRank = r;
+              }
+            }
+
+            const usedSuits = new Set(
+              otherCards.filter((c) => c.rankIndex === targetRank).map((c) => c.suitIndex)
+            );
+            let newSuit = 3;
+            for (const s of [3, 2, 1, 0]) {
+              if (!usedSuits.has(s)) {
+                newSuit = s;
+                break;
+              }
+            }
+            targetHandCard.rankIndex = targetRank;
+            targetHandCard.suitIndex = newSuit;
+            targetHandCard.rank = RANKS[targetRank];
+            targetHandCard.suit = SUITS[newSuit];
+            targetHandCard.isRed = newSuit >= 2;
+            targetHandCard.value = targetRank * 4 + newSuit;
+            targetHandCard.id = `${targetHandCard.rank}${targetHandCard.suit}_venti_harm_${Date.now()}`;
+            harmonizedNote = ` (đồng hóa ${oldCardStr} ➔ ${targetHandCard.rank}${targetHandCard.suit})`;
+            player.hand = sortHandByMode(
+              player.hand,
+              player.id === this.mySeatId ? this.sortMode : 'asc'
+            );
+            mergedMoves = findMergedMoves();
+          }
+        }
+
+        const suckedStr = suckedCards.map((c) => `${c.rank}${c.suit}`).join('-');
+        this.currentCombo.label = `${oldLabel} [🌪️ Venti đã hút vào Mắt Bão — Ghép bài đánh đè ngay!]`;
+
+        if (mergedMoves.length > 0) {
+          mergedMoves.sort((a, b) => {
+            if (humanChosenCards.length > 0) {
+              const aHasH = humanChosenCards.every((hc) => a.cards.some((mc) => mc.id === hc.id)) ? 1 : 0;
+              const bHasH = humanChosenCards.every((hc) => b.cards.some((mc) => mc.id === hc.id)) ? 1 : 0;
+              if (aHasH !== bHasH) return bHasH - aHasH;
+            }
+            const aBomb = a.isBomb ? 1 : 0;
+            const bBomb = b.isBomb ? 1 : 0;
+            if (aBomb !== bBomb) return bBomb - aBomb;
+            return b.length - a.length || a.highValue - b.highValue;
+          });
+          const bestMerge = mergedMoves[0];
+          const mergeIds = bestMerge.cards.map((c) => c.id);
+          this.selectedCardIds = new Set(mergeIds);
+          this.companionCardIds.clear();
+          player._skillForcedComboIds = mergeIds;
+          player._skillBoostedCardIds = mergeIds;
+          skillSummary = `🌪️ [Mắt Bão Nuốt Bàn] ${player.name} mở Mắt Bão hút trọn bộ ${oldLabel} (${suckedStr}) trên bàn nhập vào bài trên tay${harmonizedNote}, ghép thành ${bestMerge.label} đánh đè ngược lại ngay lập tức!`;
+        } else {
+          const allValid = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false);
+          if (allValid.length > 0) {
+            const fbIds = allValid[0].cards.map((c) => c.id);
+            this.selectedCardIds = new Set(fbIds);
+            this.companionCardIds.clear();
+            player._skillForcedComboIds = fbIds;
+            player._skillBoostedCardIds = fbIds;
+          }
+          skillSummary = `🌪️ [Mắt Bão Nuốt Bàn] ${player.name} mở Mắt Bão hút trọn bộ ${oldLabel} (${suckedStr}) trên bàn nhập vào tay${harmonizedNote} để ghép bài đánh đè ngay trong lượt!`;
+        }
       }
     } else if (charId === 'klee') {
       const target = resolveTargetOpponent(
@@ -21634,26 +21861,27 @@ class TienLenGame {
         shouldCast = true;
       }
     } else if (charId === 'venti') {
-      const nonBombCards = sortCardsAsc(bot.hand).filter((c) => !struct.bombRanks.has(c.rankIndex));
-      const lowestNonBomb = nonBombCards[0];
-      if (lowestNonBomb && lowestNonBomb.rankIndex <= 8) {
-        const canBeatSingleWithWind =
-          this.currentCombo &&
-          this.currentCombo.type === COMBO_TYPES.SINGLE &&
-          this.currentCombo.highRank <= 10 &&
-          (!plannedMove || plannedMove.highRank === 12 || this.evaluateMoveBreakCost(plannedMove, struct) >= 75);
-        const canBeatPairWithWind =
-          this.currentCombo &&
-          this.currentCombo.type === COMBO_TYPES.PAIR &&
-          this.currentCombo.highRank <= 10 &&
-          (!plannedMove || plannedMove.highRank === 12) &&
-          rankCounts[this.currentCombo.highRank + 1] >= 1;
-        const canUpgradeTrashOnLead =
-          !this.currentCombo &&
-          lowestNonBomb.rankIndex <= 5 &&
-          struct.rankCounts[lowestNonBomb.rankIndex] === 1 &&
-          (bot.hand.length <= 8 || minOppCards <= 7);
-        if (canBeatSingleWithWind || canBeatPairWithWind || canUpgradeTrashOnLead) {
+      if (
+        this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank < 12 &&
+        this.trickOwnerId !== null &&
+        this.trickOwnerId !== bot.id &&
+        bot.hand.length >= 1
+      ) {
+        const tableCards = sortCardsAsc(this.currentCombo.cards);
+        const rLow = tableCards[0].rankIndex;
+        const rHigh = tableCards[tableCards.length - 1].rankIndex;
+        const hasNaturalConnect =
+          rankCounts[rLow] >= 1 ||
+          rankCounts[rHigh] >= 1 ||
+          (rLow >= 1 && rankCounts[rLow - 1] >= 1) ||
+          (rHigh < 11 && rankCounts[rHigh + 1] >= 1);
+        const noGoodNormalBeat =
+          !plannedMove ||
+          plannedMove.highRank === 12 ||
+          this.evaluateMoveBreakCost(plannedMove, struct) >= 75;
+        if (hasNaturalConnect || noGoodNormalBeat || bot.hand.length <= 8 || minOppCards <= 6) {
           shouldCast = true;
         }
       }
@@ -25954,6 +26182,10 @@ class TienLenGame {
     activeOdetteAnyFourPairs = false;
     this.lyneyThreeFlushTurn = false;
     activeLyneyThreeFlush = false;
+    this.ventiVortexMergeTurn = false;
+    activeVentiVortexMerge = false;
+    this.ventiSuckedCardIds = new Set();
+    activeVentiSuckedCardIds = this.ventiSuckedCardIds;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -25986,6 +26218,8 @@ class TienLenGame {
     this.roundSkillActivatedSeatIds = new Set();
     this.turnDirection = 1;
     this.mualaniCrossBeatTurn = false;
+    this.ventiVortexMergeTurn = false;
+    this.ventiSuckedCardIds = new Set();
     activeMualaniCrossBeat = false;
     this.turnTimerComboSig = '';
     this.isGameOver = false;
@@ -26670,6 +26904,7 @@ class TienLenGame {
       this.zibaiGallopStraightTurn ||
       this.odetteAnyFourPairsTurn ||
       this.lyneyThreeFlushTurn ||
+      this.ventiVortexMergeTurn ||
       this.wriothesleyPairSmashTurn ||
       this.varkaSumSlashTurn
     ) {
@@ -26689,6 +26924,10 @@ class TienLenGame {
       activeOdetteAnyFourPairs = false;
       this.lyneyThreeFlushTurn = false;
       activeLyneyThreeFlush = false;
+      this.ventiVortexMergeTurn = false;
+      activeVentiVortexMerge = false;
+      this.ventiSuckedCardIds = new Set();
+      activeVentiSuckedCardIds = this.ventiSuckedCardIds;
       this.wriothesleyPairSmashTurn = false;
       activeWriothesleyPairSmash = false;
       this.varkaSumSlashTurn = false;
@@ -27252,15 +27491,20 @@ class TienLenGame {
     if (this.isGameOver || !player || !player.active || this.currentTurn !== player.id || !this.currentCombo) {
       return;
     }
-    // Hồ Ly Dụ Hoặc của Yae Miko: Nếu còn bài chặn được thì cấm Bỏ lượt giấu bài!
-    if (this.yaeForcePlayRound && !player.passed) {
+    // Hồ Ly Dụ Hoặc của Yae Miko hoặc Mắt Bão Nuốt Bàn của Venti: Nếu còn bài chặn được thì cấm Bỏ lượt!
+    if ((this.yaeForcePlayRound || this.ventiVortexMergeTurn) && !player.passed) {
       const validMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false);
       if (validMoves.length > 0) {
         if (player.isBot) {
           this.playCombo(player, validMoves[0]);
           return;
         }
-        this.showComboBanner('🌸 HỒ LY DỤ HOẶC: CÒN BÀI CHẶN ĐƯỢC KHÔNG ĐƯỢC BỎ LƯỢT!', 'reaction-overloaded');
+        this.showComboBanner(
+          this.ventiVortexMergeTurn
+            ? '🌪️ MẮT BÃO NUỐT BÀN: ĐÃ HÚT BÀI TRÊN BÀN VỀ GHÉP — HÃY ĐÁNH BỘ BÀI VỪA GHÉP!'
+            : '🌸 HỒ LY DỤ HOẶC: CÒN BÀI CHẶN ĐƯỢC KHÔNG ĐƯỢC BỎ LƯỢT!',
+          this.ventiVortexMergeTurn ? 'reaction-swirl' : 'reaction-overloaded'
+        );
         return;
       }
     }
@@ -27280,6 +27524,7 @@ class TienLenGame {
       this.zibaiGallopStraightTurn ||
       this.odetteAnyFourPairsTurn ||
       this.lyneyThreeFlushTurn ||
+      this.ventiVortexMergeTurn ||
       this.varkaSumSlashTurn ||
       this.ayatoCloneReady
     ) {
@@ -27301,6 +27546,10 @@ class TienLenGame {
       activeOdetteAnyFourPairs = false;
       this.lyneyThreeFlushTurn = false;
       activeLyneyThreeFlush = false;
+      this.ventiVortexMergeTurn = false;
+      activeVentiVortexMerge = false;
+      this.ventiSuckedCardIds = new Set();
+      activeVentiSuckedCardIds = this.ventiSuckedCardIds;
       this.varkaSumSlashTurn = false;
       activeVarkaSumSlash = false;
       this.ayatoCloneReady = false;
@@ -27529,6 +27778,10 @@ class TienLenGame {
     activeOdetteAnyFourPairs = false;
     this.lyneyThreeFlushTurn = false;
     activeLyneyThreeFlush = false;
+    this.ventiVortexMergeTurn = false;
+    activeVentiVortexMerge = false;
+    this.ventiSuckedCardIds = new Set();
+    activeVentiSuckedCardIds = this.ventiSuckedCardIds;
     this.wriothesleyNoSingleOwnerId = null;
     this.wriothesleyNoSingleRound = false;
     activeWriothesleyNoSingle = false;
@@ -30372,12 +30625,11 @@ class TienLenGame {
           skillSynergyBonus -= 340;
         }
         if (
-          this.mualaniCrossBeatTurn &&
+          (this.mualaniCrossBeatTurn || this.ventiVortexMergeTurn) &&
           this.currentCombo &&
-          move.length > this.currentCombo.length &&
-          move.highRank < 12
+          move.length > this.currentCombo.length
         ) {
-          skillSynergyBonus -= 340;
+          skillSynergyBonus -= 450;
         }
         if (this.columbinaExtraTurnReady) {
           // Khi đã bật Khúc Ca Thiên Thần: Ưu tiên xả bộ bài NHỎ NHẤT (đặc biệt khi phần bài còn lại là 1 bộ về thẳng) thay vì đánh bài to!
@@ -30445,6 +30697,7 @@ class TienLenGame {
       (this.zibaiGallopStraightTurn && activeCharId === 'zibai') ||
       (this.odetteAnyFourPairsTurn && activeCharId === 'odette') ||
       (this.lyneyThreeFlushTurn && activeCharId === 'lyney') ||
+      (this.ventiVortexMergeTurn && activeCharId === 'venti') ||
       (this.mualaniCrossBeatTurn && activeCharId === 'mualani') ||
       (this.columbinaExtraTurnReady && activeCharId === 'columbina') ||
       (this.ayatoCloneReady && activeCharId === 'ayato') ||
@@ -30458,6 +30711,20 @@ class TienLenGame {
       if (this.lyneyThreeFlushTurn && activeCharId === 'lyney') {
         const lyneyCand = candidates.find((c) => c.move.isLyneyThreeFlush) || candidates[0];
         if (lyneyCand) return lyneyCand.move;
+      }
+      if (this.ventiVortexMergeTurn && activeCharId === 'venti') {
+        const ventiCand =
+          candidates.find(
+            (c) =>
+              this.currentCombo &&
+              c.move.length > this.currentCombo.length &&
+              (!this.ventiSuckedCardIds ||
+                this.ventiSuckedCardIds.size === 0 ||
+                Array.from(this.ventiSuckedCardIds).every((sid) =>
+                  c.move.cards.some((mc) => mc.id === sid)
+                ))
+          ) || candidates[0];
+        if (ventiCand) return ventiCand.move;
       }
       const skillCand =
         candidates.find((c) => !c.touchesBomb || sit.shouldBreakBombForEndgame) || candidates[0];
@@ -30790,8 +31057,8 @@ class TienLenGame {
       };
 
       movesWithClicked.sort((a, b) => {
-        // Khi Mualani bật Cá Mập Đè Khác Loại: ưu tiên bộ nhiều lá đè khác loại lên đầu
-        if (activeMualaniCrossBeat && this.currentCombo) {
+        // Khi Mualani bật Cá Mập Đè Khác Loại hoặc Venti bật Mắt Bão Nuốt Bàn: ưu tiên bộ nhiều lá lên đầu
+        if ((activeMualaniCrossBeat || activeVentiVortexMerge) && this.currentCombo) {
           const aCross = a.length > this.currentCombo.length ? 0 : 1;
           const bCross = b.length > this.currentCombo.length ? 0 : 1;
           if (aCross !== bCross) return aCross - bCross;
@@ -31005,10 +31272,14 @@ class TienLenGame {
     const canBeatAny =
       this.currentCombo &&
       getValidMoves(human.hand, this.currentCombo, this.mustPlay3Spade, false).length > 0;
-    const forcePlayLocked = this.yaeForcePlayRound && !human.passed && canBeatAny;
+    const forcePlayLocked =
+      (this.yaeForcePlayRound && !human.passed && canBeatAny) ||
+      (this.ventiVortexMergeTurn && canBeatAny);
     this.btnPass.disabled = !isMyTurn || this.currentCombo === null || forcePlayLocked;
     if (forcePlayLocked) {
-      this.btnPass.title = '🌸 Hồ Ly Dụ Hoặc (Yae Miko): Bạn đang có bài chặn được nên không thể Bỏ lượt!';
+      this.btnPass.title = this.ventiVortexMergeTurn
+        ? '🌪️ Mắt Bão Nuốt Bàn (Venti): Bạn vừa hút bài trên bàn về ghép — hãy đánh bộ bài vừa ghép!'
+        : '🌸 Hồ Ly Dụ Hoặc (Yae Miko): Bạn đang có bài chặn được nên không thể Bỏ lượt!';
     } else {
       this.btnPass.title = 'Bỏ qua vòng hiện tại (Phím P)';
     }
@@ -33151,7 +33422,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=206', { updateViaCache: 'none' })
+        .register('sw.js?v=207', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

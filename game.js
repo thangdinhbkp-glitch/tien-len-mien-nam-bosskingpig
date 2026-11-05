@@ -20947,6 +20947,35 @@ class TienLenGame {
               }
             }
           }
+        : charId === 'venti'
+        ? () => {
+            player._justUsedSkillThisTurn = false;
+            if (!this.isGameOver && this.currentTurn === player.id) {
+              this.syncRoundRuleGlobals(player.id);
+              const forcedIds = player._skillForcedComboIds || [];
+              player._skillForcedComboIds = null;
+              player._skillBoostedCardIds = null;
+              let comboToSlam = null;
+              if (forcedIds.length > 0) {
+                const forcedCards = player.hand.filter((c) => forcedIds.includes(c.id));
+                const cand = classifyCombo(forcedCards);
+                if (cand && (!this.currentCombo || canBeatCombo(cand, this.currentCombo).ok)) {
+                  comboToSlam = cand;
+                }
+              }
+              if (!comboToSlam) {
+                const validMerged = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false);
+                if (validMerged.length > 0) {
+                  comboToSlam = validMerged[0];
+                }
+              }
+              if (comboToSlam) {
+                this.selectedCardIds.clear();
+                this.companionCardIds.clear();
+                this.playCombo(player, comboToSlam);
+              }
+            }
+          }
         : (charId === 'lauma' && laumaAutoPassAfterBurst) || (charId === 'xilonen' && xilonenAutoPassAfterBurst)
         ? () => {
             player._justUsedSkillThisTurn = false;

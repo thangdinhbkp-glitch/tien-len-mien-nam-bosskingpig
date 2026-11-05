@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://thangdinhbkp-glitch.github.io/tien-len-mien-nam-bosskingpig/sitemap.xml
+Sitemap: https://tienlenmiennamgenshin.web.app/sitemap.xml
+Sitemap: https://tienlengenshin.web.app/sitemap-short.xml
+Sitemap: https://thangdinhbkp-glitch.github.io/tien-len-mien-nam-bosskingpig/sitemap-github.xml

@@ -7569,6 +7569,7 @@ class TienLenGame {
       document.getElementById('input-player-name')?.value.trim() ||
       this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    this.inInitialLobby = false;
     this.isMultiplayer = true;
     this.isHost = true;
     this.roomId = code;
@@ -19225,11 +19226,9 @@ class TienLenGame {
         target.hand = sortHandByMode(target.hand, target.id === this.mySeatId ? this.sortMode : 'asc');
         this.selectedCardIds.clear();
         this.companionCardIds.clear();
-        if (player.id === this.mySeatId) {
-          this.selectedCardIds.add(oppCard.id);
-        }
+        this.selectedCardIds.add(oppCard.id);
 
-        if (player.id === this.mySeatId || target.id === this.mySeatId) {
+        if (player.id === this.mySeatId || target.id === this.mySeatId || this.isMultiplayer) {
           skillSummary = `🌌 [Khe Nứt Vực Sâu] ${player.name} tráo ${myCard.rank}${myCard.suit} lấy ${oppCard.rank}${oppCard.suit} của ${target.name}!`;
         } else {
           skillSummary = `🌌 [Khe Nứt Vực Sâu] ${player.name} mở cổng Hư Vô tráo đổi 1 lá bài ngẫu nhiên với ${target.name}!`;
@@ -20564,10 +20563,8 @@ class TienLenGame {
             }
             if (bestFollowUp) {
               player._skillForcedComboIds = bestFollowUp.cards.map((c) => c.id);
-              if (player.id === this.mySeatId) {
-                this.selectedCardIds = new Set(player._skillForcedComboIds);
-                this.companionCardIds.clear();
-              }
+              this.selectedCardIds = new Set(player._skillForcedComboIds);
+              this.companionCardIds.clear();
             }
           }
           skillSummary = `🥊 [Thiết Quyền Đối Xứng] ${player.name} tung cú đấm đối xứng lật ngược toàn bộ bài trên sân từ [${oldText}] thành đối xứng gương [${newText}] (3 ⇄ A, 4 ⇄ K, 5 ⇄ Q, 6 ⇄ J, 7 ⇄ 10, 8 ⇄ 9, 2 ➔ 3; ♠ ⇄ ♥, ♣ ⇄ ♦)!`;
@@ -20601,7 +20598,7 @@ class TienLenGame {
         healedIds.push(c.id);
       });
       player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-      if (healedIds.length > 0 && player.id === this.mySeatId) {
+      if (healedIds.length > 0) {
         this.selectedCardIds = new Set([healedIds[healedIds.length - 1]]);
         this.companionCardIds.clear();
       }
@@ -20970,8 +20967,10 @@ class TienLenGame {
                 }
               }
               if (comboToSlam) {
-                this.selectedCardIds.clear();
-                this.companionCardIds.clear();
+                if (player.id === this.mySeatId) {
+                  this.selectedCardIds.clear();
+                  this.companionCardIds.clear();
+                }
                 this.playCombo(player, comboToSlam);
               }
             }
@@ -23262,6 +23261,7 @@ class TienLenGame {
       clearTimeout(this.botTimer);
       this.stopTurnCountdown();
       this.clearActiveMatchSnapshot();
+      this.inInitialLobby = true;
     }
     if (this.isMultiplayer && this.roomId && this.isMidMatch()) {
       this.modalWifi?.classList.add('hidden');
@@ -23292,6 +23292,7 @@ class TienLenGame {
       clearTimeout(this.botTimer);
       this.stopTurnCountdown();
       this.clearActiveMatchSnapshot();
+      this.inInitialLobby = true;
     }
     if (this.isMultiplayer && this.roomId && this.roomId !== cleanId && this.isMidMatch()) {
       const humanCountInMyRoom = (this.players || []).filter((p) => p && p.active && !p.isBot).length;
@@ -23328,7 +23329,6 @@ class TienLenGame {
     }
 
     this.closeRoomPasswordPrompt();
-    this.inInitialLobby = false;
     await this.joinWifiRoom(cleanId, '');
   }
 
@@ -23347,7 +23347,6 @@ class TienLenGame {
     }
     const targetRoomId = target.roomId;
     this.closeRoomPasswordPrompt();
-    this.inInitialLobby = false;
     await this.joinWifiRoom(targetRoomId, pass);
   }
 
@@ -23383,16 +23382,26 @@ class TienLenGame {
   }
 
   async refreshServerInfo() {
-    if (this.isStaticCloudHost()) return;
+    if (this.isStaticCloudHost()) {
+      this.hasLocalRoomApi = false;
+      return;
+    }
     try {
       const res = await fetch('/api/info');
       if (res.ok) {
         const data = await res.json();
-        if (data.ip) this.lanServerIp = data.ip;
-        if (data.port) this.lanServerPort = data.port;
-        if (data.publicUrl) this.publicTunnelUrl = data.publicUrl;
+        if (data && data.ip) {
+          this.hasLocalRoomApi = true;
+          this.lanServerIp = data.ip;
+        }
+        if (data && data.port) this.lanServerPort = data.port;
+        if (data && data.publicUrl) this.publicTunnelUrl = data.publicUrl;
+      } else {
+        this.hasLocalRoomApi = false;
       }
-    } catch (_) {}
+    } catch (_) {
+      this.hasLocalRoomApi = false;
+    }
   }
 
   async detectLanInfoAndUrlRoom() {
@@ -23719,6 +23728,13 @@ class TienLenGame {
         }
       }
     }
+    if (
+      this.matchCount >= 1 &&
+      !this.isGameOver &&
+      (!this.players[this.currentTurn] || !this.players[this.currentTurn].active)
+    ) {
+      this.advanceTurn();
+    }
 
     const me = this.getLocalPlayer();
     if (me && me.name) {
@@ -23784,6 +23800,61 @@ class TienLenGame {
     this.turnDirection = state.turnDirection === -1 ? -1 : 1;
     this.mualaniCrossBeatTurn = !!state.mualaniCrossBeatTurn;
     activeMualaniCrossBeat = this.mualaniCrossBeatTurn;
+    this.nicoleSuitOnlyRound = !!state.nicoleSuitOnlyRound;
+    activeNicoleSuitOnlyRound = this.nicoleSuitOnlyRound;
+    this.xianyunStepStraightTurn = !!state.xianyunStepStraightTurn;
+    activeXianyunStepStraight = this.xianyunStepStraightTurn;
+    this.zibaiGallopStraightTurn = !!state.zibaiGallopStraightTurn;
+    activeZibaiGallopStraight = this.zibaiGallopStraightTurn;
+    this.odetteAnyFourPairsTurn = !!state.odetteAnyFourPairsTurn;
+    activeOdetteAnyFourPairs = this.odetteAnyFourPairsTurn;
+    this.lyneyThreeFlushTurn = !!state.lyneyThreeFlushTurn;
+    activeLyneyThreeFlush = this.lyneyThreeFlushTurn;
+    this.ventiVortexMergeTurn = !!state.ventiVortexMergeTurn;
+    activeVentiVortexMerge = this.ventiVortexMergeTurn;
+    this.ventiSuckedCardIds = new Set(Array.isArray(state.ventiSuckedCardIds) ? state.ventiSuckedCardIds : []);
+    activeVentiSuckedCardIds = this.ventiSuckedCardIds;
+    this.varkaSumSlashTurn = !!state.varkaSumSlashTurn;
+    activeVarkaSumSlash = this.varkaSumSlashTurn;
+    this.zhongliPetrifiedCardIds = new Set(
+      Array.isArray(state.zhongliPetrifiedCardIds) ? state.zhongliPetrifiedCardIds : []
+    );
+    activeZhongliPetrifiedCardIds = this.zhongliPetrifiedCardIds;
+    this.wriothesleyNoSingleOwnerId = state.wriothesleyNoSingleOwnerId ?? null;
+    this.wriothesleyNoSingleRound = !!state.wriothesleyNoSingleRound;
+    this.cynoRoyalBanOwnerId = state.cynoRoyalBanOwnerId ?? null;
+    this.cynoRoyalBanRound = !!state.cynoRoyalBanRound;
+    this.sigewinneCareOwnerId = state.sigewinneCareOwnerId ?? null;
+    this.yelanParityOwnerId = state.yelanParityOwnerId ?? null;
+    this.yelanParityRound = !!state.yelanParityRound;
+    this.yelanRevealedByPlayer = state.yelanRevealedByPlayer || {};
+    this.baizhuShieldOwnerId = state.baizhuShieldOwnerId ?? null;
+    this.ittoUshiOwnerId = state.ittoUshiOwnerId ?? null;
+    this.alhaithamOwnerId = state.alhaithamOwnerId ?? null;
+    this.alhaithamAllowedRanks = Array.isArray(state.alhaithamAllowedRanks)
+      ? new Set(state.alhaithamAllowedRanks)
+      : null;
+    this.zibaiMinStepOwnerId = state.zibaiMinStepOwnerId ?? null;
+    this.zibaiRedirectTargetId = state.zibaiRedirectTargetId ?? null;
+    this.vesnaSpringOwnerId = state.vesnaSpringOwnerId ?? null;
+    this.columbinaExtraTurnReady = !!state.columbinaExtraTurnReady;
+    this.ayatoCloneReady = !!state.ayatoCloneReady;
+    this.arlecchinoBondOwnerId = state.arlecchinoBondOwnerId ?? null;
+    this.flinsLanternOwnerId = state.flinsLanternOwnerId ?? null;
+    this.kinichBombOwnerId = state.kinichBombOwnerId ?? null;
+    this.roundPlayedSeatIds = new Set(Array.isArray(state.roundPlayedSeatIds) ? state.roundPlayedSeatIds : []);
+    this.roundSkillActivatedSeatIds = new Set(
+      Array.isArray(state.roundSkillActivatedSeatIds) ? state.roundSkillActivatedSeatIds : []
+    );
+    if (Array.isArray(state.matchGraveyardCards)) {
+      this.matchGraveyardCards = state.matchGraveyardCards;
+    }
+    if (typeof state.chopPot === 'number') this.chopPot = state.chopPot;
+    this.lastChoppedPlayerId = state.lastChoppedPlayerId ?? null;
+    if (Array.isArray(state.roundChoppableStack)) {
+      this.roundChoppableStack = state.roundChoppableStack;
+    }
+    this.syncRoundRuleGlobals(this.currentTurn);
     this.lastSummaryData = state.lastSummaryData || null;
     this.lastBurstEffect = state.lastBurstEffect || null;
     if (this.lastBurstEffect && this.lastBurstEffect.id) {
@@ -23882,6 +23953,7 @@ class TienLenGame {
     this.stopMultiplayerSync();
     this.clearActiveMatchSnapshot();
 
+    this.inInitialLobby = false;
     this.isMultiplayer = true;
     this.isHost = true;
     this.roomId = code;
@@ -24053,6 +24125,7 @@ class TienLenGame {
     this.stopMultiplayerSync();
     this.clearActiveMatchSnapshot();
 
+    this.inInitialLobby = false;
     this.isMultiplayer = true;
     this.roomId = cleanCode;
     this.roomPassword = passwordPlain || '';
@@ -24286,6 +24359,23 @@ class TienLenGame {
       this._recentlyLeftRoomIds.set(oldRoomId, Date.now());
     }
 
+    const leaveEvt =
+      wasMultiplayer && oldRoomId && !wasHost
+        ? {
+            id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+            type: 'LEAVE',
+            clientId: this.myClientId,
+            accountUsername: this.currentAccountUsername || '',
+            reason: isAutoAfkKick ? 'afk' : 'manual',
+            sentAtMs: Date.now(),
+          }
+        : null;
+    if (leaveEvt && this.hostConn && this.hostConn.open) {
+      try {
+        this.hostConn.send(leaveEvt);
+      } catch (_) {}
+    }
+
     // Xóa trạng thái phòng ở máy local TRƯỚC khi cập nhật danh mục để tuyệt đối không tự chèn lại phòng cũ!
     this.isLocalAfkBotPlaying = false;
     this._lastSyncedStateSig = '';
@@ -24338,21 +24428,22 @@ class TienLenGame {
       (this.players || []).forEach(scrubPlayerFromSeat);
 
       try {
-        if (!wasHost) {
-          // Gửi sự kiện LEAVE và đồng thời dọn thẳng bản sao của mình trên Cloud Room (nếu không còn người thật nào thì xóa luôn phòng!)
+        if (leaveEvt) {
+          // Gửi sự kiện LEAVE vào hàng đợi sự kiện (giữ nguyên các sự kiện khác chưa xử lý) và Local Server nếu có
+          if (this.hasLocalRoomApi) {
+            fetch(`/api/room/${oldRoomId}/event`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(leaveEvt),
+            }).catch(() => null);
+          }
+          const existingEvts = await this.fetchCloudRoomEvents(oldRoomId);
+          const recentEvts = existingEvts.filter((e) => e && e.id).slice(-19);
+          recentEvts.push(leaveEvt);
           await fetch(`https://textdb.dev/api/data/tlmn_bkp_ev_${oldRoomId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
-            body: this.encodeCloudPayload([
-              {
-                id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-                type: 'LEAVE',
-                clientId: this.myClientId,
-                accountUsername: this.currentAccountUsername || '',
-                reason: isAutoAfkKick ? 'afk' : 'manual',
-                sentAtMs: Date.now(),
-              },
-            ]),
+            body: this.encodeCloudPayload(recentEvts.slice(-20)),
           }).catch(() => null);
         }
 
@@ -24380,7 +24471,7 @@ class TienLenGame {
             updatedAtMs: Date.now(),
             version: (Number(cloudRoom?.version || this.roomStateVersion) || 1) + 10,
             state: { closed: true, players: [] },
-            events: [],
+            events: leaveEvt ? [leaveEvt] : [],
           };
           await fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${oldRoomId}`, {
             method: 'POST',
@@ -24399,6 +24490,10 @@ class TienLenGame {
             cloudRoom.hostPeerId = `tlmn-bkp-room-${oldRoomId}-${cloudRoom.hostClaimEpoch}`;
             cloudRoom.state.hostClientId = nextHost.clientId;
             cloudRoom.state.hostClaimEpoch = cloudRoom.hostClaimEpoch;
+          }
+          if (leaveEvt) {
+            if (!Array.isArray(cloudRoom.events)) cloudRoom.events = [];
+            cloudRoom.events = [...cloudRoom.events.slice(-11), leaveEvt];
           }
           cloudRoom.version = (Number(cloudRoom.version) || 1) + 1;
           cloudRoom.state.version = cloudRoom.version;
@@ -24717,11 +24812,39 @@ class TienLenGame {
       nicoleSuitOnlyRound: !!this.nicoleSuitOnlyRound,
       xianyunStepStraightTurn: !!this.xianyunStepStraightTurn,
       zibaiGallopStraightTurn: !!this.zibaiGallopStraightTurn,
+      odetteAnyFourPairsTurn: !!this.odetteAnyFourPairsTurn,
+      lyneyThreeFlushTurn: !!this.lyneyThreeFlushTurn,
+      ventiVortexMergeTurn: !!this.ventiVortexMergeTurn,
+      ventiSuckedCardIds: Array.from(this.ventiSuckedCardIds || []),
+      varkaSumSlashTurn: !!this.varkaSumSlashTurn,
+      zhongliPetrifiedCardIds: Array.from(this.zhongliPetrifiedCardIds || []),
+      wriothesleyNoSingleOwnerId: this.wriothesleyNoSingleOwnerId ?? null,
+      wriothesleyNoSingleRound: !!this.wriothesleyNoSingleRound,
       wriothesleyPairSmashTurn: !!this.wriothesleyPairSmashTurn,
+      cynoRoyalBanOwnerId: this.cynoRoyalBanOwnerId ?? null,
+      cynoRoyalBanRound: !!this.cynoRoyalBanRound,
+      sigewinneCareOwnerId: this.sigewinneCareOwnerId ?? null,
+      yelanParityOwnerId: this.yelanParityOwnerId ?? null,
+      yelanParityRound: !!this.yelanParityRound,
+      yelanRevealedByPlayer: this.yelanRevealedByPlayer || {},
+      baizhuShieldOwnerId: this.baizhuShieldOwnerId ?? null,
+      ittoUshiOwnerId: this.ittoUshiOwnerId ?? null,
+      alhaithamOwnerId: this.alhaithamOwnerId ?? null,
+      alhaithamAllowedRanks: this.alhaithamAllowedRanks ? Array.from(this.alhaithamAllowedRanks) : null,
+      zibaiMinStepOwnerId: this.zibaiMinStepOwnerId ?? null,
+      zibaiRedirectTargetId: this.zibaiRedirectTargetId ?? null,
+      vesnaSpringOwnerId: this.vesnaSpringOwnerId ?? null,
+      columbinaExtraTurnReady: !!this.columbinaExtraTurnReady,
       ayatoCloneReady: !!this.ayatoCloneReady,
       arlecchinoBondOwnerId: this.arlecchinoBondOwnerId ?? null,
       flinsLanternOwnerId: this.flinsLanternOwnerId ?? null,
       kinichBombOwnerId: this.kinichBombOwnerId ?? null,
+      roundPlayedSeatIds: Array.from(this.roundPlayedSeatIds || []),
+      roundSkillActivatedSeatIds: Array.from(this.roundSkillActivatedSeatIds || []),
+      matchGraveyardCards: Array.isArray(this.matchGraveyardCards) ? this.matchGraveyardCards : [],
+      chopPot: this.chopPot || 0,
+      lastChoppedPlayerId: this.lastChoppedPlayerId ?? null,
+      roundChoppableStack: Array.isArray(this.roundChoppableStack) ? this.roundChoppableStack : [],
       turnBannerText: this.elTurnBanner?.textContent || '',
       firstTurnBadgeText: this.elFirstTurnBadge?.textContent || '',
       comboBannerText:
@@ -24743,6 +24866,9 @@ class TienLenGame {
         winBurst: p.winBurst || 'none',
         activeChar: p.activeChar || p.chopBurst || 'none',
         skillUsed: !!p.skillUsed,
+        _justUsedSkillThisTurn: !!p._justUsedSkillThisTurn,
+        _skillBoostedCardIds: Array.isArray(p._skillBoostedCardIds) ? p._skillBoostedCardIds : null,
+        _skillForcedComboIds: Array.isArray(p._skillForcedComboIds) ? p._skillForcedComboIds : null,
         isBot: p.isBot,
         active: p.active,
         hand: p.hand,
@@ -24781,8 +24907,8 @@ class TienLenGame {
       this.publishRoomToDirectory(false);
     }
 
-    // 3. Gửi qua Local WiFi Server (nếu chạy trên localhost)
-    if (!this.isStaticCloudHost()) {
+    // 3. Gửi qua Local WiFi Server (nếu chạy trên localhost có LAN server)
+    if (this.hasLocalRoomApi) {
       try {
         await fetch(`/api/room/${this.roomId}/state`, {
           method: 'POST',
@@ -24836,7 +24962,7 @@ class TienLenGame {
         });
       } catch (_) {}
     }
-    if (this.roomId && !this.isStaticCloudHost()) {
+    if (this.roomId && this.hasLocalRoomApi) {
       try {
         await fetch(`/api/room/${this.roomId}/event`, {
           method: 'POST',
@@ -24942,7 +25068,7 @@ class TienLenGame {
       }
 
       // 2. Local server (nếu chạy LAN)
-      if (!this.isStaticCloudHost()) {
+      if (this.hasLocalRoomApi) {
         const res = await fetch(`/api/room/${this.roomId}/poll?host=1`);
         if (res.ok) {
           const data = await res.json();
@@ -25014,7 +25140,7 @@ class TienLenGame {
         }
       }
 
-      if (!this.isStaticCloudHost()) {
+      if (this.hasLocalRoomApi) {
         const res = await fetch(`/api/room/${this.roomId}/poll?host=0`);
         if (res.ok) {
           const data = await res.json();
@@ -25345,7 +25471,13 @@ class TienLenGame {
       }
     } else if (evt.type === 'USE_CHAR_SKILL') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
-      if (!seat || this.currentTurn !== seat.id || this.isGameOver) return;
+      if (!seat || this.isGameOver) return;
+      const seatCharId = evt.charId || this.getPlayerActiveCharId(seat);
+      const canBaizhuOutTurn = seatCharId === 'baizhu' && seat.passed && this.currentCombo !== null;
+      if (this.currentTurn !== seat.id && !canBaizhuOutTurn) return;
+      if (this.isBurstPlaying && typeof this._activeFinishBurstFn === 'function') {
+        this._activeFinishBurstFn();
+      }
       seat.manualActionsInMatch = (seat.manualActionsInMatch || 0) + 1;
       seat.afkAutoTurns = 0;
       if (evt.charId && CHARACTER_SKILLS[evt.charId]) {
@@ -25361,11 +25493,15 @@ class TienLenGame {
     } else if (evt.type === 'PLAY_CARDS') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
       if (!seat || this.isGameOver) return;
+      if (this.isBurstPlaying && typeof this._activeFinishBurstFn === 'function') {
+        this._activeFinishBurstFn();
+      }
       if (evt.manual !== false) {
         seat.manualActionsInMatch = (seat.manualActionsInMatch || 0) + 1;
         seat.afkAutoTurns = 0;
         seat.isAfkBotPlaying = false;
       }
+      this.syncRoundRuleGlobals(seat.id);
       const cardIdSet = new Set(evt.cardIds || []);
       const chosenCards = seat.hand.filter((c) => cardIdSet.has(c.id));
       const combo = classifyCombo(chosenCards);
@@ -25375,11 +25511,15 @@ class TienLenGame {
     } else if (evt.type === 'PASS_TURN') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
       if (!seat || this.currentTurn !== seat.id || this.isGameOver || !this.currentCombo) return;
+      if (this.isBurstPlaying && typeof this._activeFinishBurstFn === 'function') {
+        this._activeFinishBurstFn();
+      }
       if (evt.manual !== false) {
         seat.manualActionsInMatch = (seat.manualActionsInMatch || 0) + 1;
         seat.afkAutoTurns = 0;
         seat.isAfkBotPlaying = false;
       }
+      this.syncRoundRuleGlobals(seat.id);
       this.passTurn(seat);
     }
   }
@@ -25464,12 +25604,56 @@ class TienLenGame {
     activeXianyunStepStraight = this.xianyunStepStraightTurn;
     this.zibaiGallopStraightTurn = !!state.zibaiGallopStraightTurn;
     activeZibaiGallopStraight = this.zibaiGallopStraightTurn;
+    this.odetteAnyFourPairsTurn = !!state.odetteAnyFourPairsTurn;
+    activeOdetteAnyFourPairs = this.odetteAnyFourPairsTurn;
+    this.lyneyThreeFlushTurn = !!state.lyneyThreeFlushTurn;
+    activeLyneyThreeFlush = this.lyneyThreeFlushTurn;
+    this.ventiVortexMergeTurn = !!state.ventiVortexMergeTurn;
+    activeVentiVortexMerge = this.ventiVortexMergeTurn;
+    this.ventiSuckedCardIds = new Set(Array.isArray(state.ventiSuckedCardIds) ? state.ventiSuckedCardIds : []);
+    activeVentiSuckedCardIds = this.ventiSuckedCardIds;
+    this.varkaSumSlashTurn = !!state.varkaSumSlashTurn;
+    activeVarkaSumSlash = this.varkaSumSlashTurn;
+    this.zhongliPetrifiedCardIds = new Set(
+      Array.isArray(state.zhongliPetrifiedCardIds) ? state.zhongliPetrifiedCardIds : []
+    );
+    activeZhongliPetrifiedCardIds = this.zhongliPetrifiedCardIds;
+    this.wriothesleyNoSingleOwnerId = state.wriothesleyNoSingleOwnerId ?? null;
+    this.wriothesleyNoSingleRound = !!state.wriothesleyNoSingleRound;
     this.wriothesleyPairSmashTurn = !!state.wriothesleyPairSmashTurn;
     activeWriothesleyPairSmash = this.wriothesleyPairSmashTurn;
+    this.cynoRoyalBanOwnerId = state.cynoRoyalBanOwnerId ?? null;
+    this.cynoRoyalBanRound = !!state.cynoRoyalBanRound;
+    this.sigewinneCareOwnerId = state.sigewinneCareOwnerId ?? null;
+    this.yelanParityOwnerId = state.yelanParityOwnerId ?? null;
+    this.yelanParityRound = !!state.yelanParityRound;
+    this.yelanRevealedByPlayer = state.yelanRevealedByPlayer || {};
+    this.baizhuShieldOwnerId = state.baizhuShieldOwnerId ?? null;
+    this.ittoUshiOwnerId = state.ittoUshiOwnerId ?? null;
+    this.alhaithamOwnerId = state.alhaithamOwnerId ?? null;
+    this.alhaithamAllowedRanks = Array.isArray(state.alhaithamAllowedRanks)
+      ? new Set(state.alhaithamAllowedRanks)
+      : null;
+    this.zibaiMinStepOwnerId = state.zibaiMinStepOwnerId ?? null;
+    this.zibaiRedirectTargetId = state.zibaiRedirectTargetId ?? null;
+    this.vesnaSpringOwnerId = state.vesnaSpringOwnerId ?? null;
+    this.columbinaExtraTurnReady = !!state.columbinaExtraTurnReady;
     this.ayatoCloneReady = !!state.ayatoCloneReady;
     this.arlecchinoBondOwnerId = state.arlecchinoBondOwnerId ?? null;
     this.flinsLanternOwnerId = state.flinsLanternOwnerId ?? null;
     this.kinichBombOwnerId = state.kinichBombOwnerId ?? null;
+    this.roundPlayedSeatIds = new Set(Array.isArray(state.roundPlayedSeatIds) ? state.roundPlayedSeatIds : []);
+    this.roundSkillActivatedSeatIds = new Set(
+      Array.isArray(state.roundSkillActivatedSeatIds) ? state.roundSkillActivatedSeatIds : []
+    );
+    if (Array.isArray(state.matchGraveyardCards)) {
+      this.matchGraveyardCards = state.matchGraveyardCards;
+    }
+    if (typeof state.chopPot === 'number') this.chopPot = state.chopPot;
+    this.lastChoppedPlayerId = state.lastChoppedPlayerId ?? null;
+    if (Array.isArray(state.roundChoppableStack)) {
+      this.roundChoppableStack = state.roundChoppableStack;
+    }
     const wasGameOver = this.isGameOver;
     this.isGameOver = !!(state.isGameOver && this.matchCount >= 1);
 
@@ -25532,6 +25716,20 @@ class TienLenGame {
           Array.from(this.selectedCardIds).forEach((id) => {
             if (!handIds.has(id)) this.selectedCardIds.delete(id);
           });
+          const boostSig =
+            Array.isArray(me._skillBoostedCardIds) && me._skillBoostedCardIds.length > 0
+              ? `${this.matchCount}_${me._skillBoostedCardIds.join(',')}`
+              : '';
+          if (boostSig && boostSig !== this._lastAppliedSkillBoostSig && this.currentTurn === this.mySeatId) {
+            this._lastAppliedSkillBoostSig = boostSig;
+            const validBoostIds = me._skillBoostedCardIds.filter((id) => handIds.has(id));
+            if (validBoostIds.length > 0) {
+              this.selectedCardIds = new Set(validBoostIds);
+              this.companionCardIds.clear();
+            }
+          } else if (!boostSig) {
+            this._lastAppliedSkillBoostSig = '';
+          }
         }
         if (!me.isBot) {
           this.saveShopProfile();

@@ -6599,16 +6599,40 @@ class TienLenGame {
 
       if (this.players) {
         const me = this.getLocalPlayer();
+        const myCleanUser = String(this.currentAccountUsername || '').trim().toLowerCase();
+        const meCleanUser = String(me?.accountUsername || '').trim().toLowerCase();
+        const hasForeignIdentity =
+          Boolean(me) &&
+          ((me.clientId && me.clientId !== 'host' && me.clientId !== this.myClientId) ||
+            (myCleanUser && meCleanUser && meCleanUser !== myCleanUser));
+        if (!this.isMultiplayer && me && (hasForeignIdentity || me.isBot)) {
+          me.isBot = false;
+          me.clientId = this.myClientId || 'host';
+          me.accountUsername = this.currentAccountUsername || '';
+          me.name = this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
+          me.coins = this.savedCoins;
+        }
         const isTrulyMe =
-          !this.isMultiplayer ||
-          (me && me.clientId === this.myClientId) ||
-          (this.isHost && this.mySeatId === 0);
+          Boolean(me) &&
+          !me.isBot &&
+          !hasForeignIdentity &&
+          (!this.isMultiplayer ||
+            me.clientId === this.myClientId ||
+            (myCleanUser && meCleanUser === myCleanUser) ||
+            (this.isHost && this.mySeatId === 0));
         if (me && isTrulyMe && typeof me.coins === 'number') {
           if (preserveSavedCoins || !bumpTimestamp) {
             me.coins = this.savedCoins;
           } else {
             this.savedCoins = me.coins;
           }
+        } else if (
+          this.isMultiplayer &&
+          me &&
+          me.queuedHumanReplacement &&
+          me.queuedHumanReplacement.clientId === this.myClientId
+        ) {
+          me.queuedHumanReplacement.coins = this.savedCoins;
         }
       }
 
@@ -22842,25 +22866,31 @@ class TienLenGame {
 
   async pushRoomStateToCloud(overrideEvents = null, markClosed = false) {
     if (!this.roomId) return false;
-    const code = String(this.roomId).trim().toUpperCase();
-    const stateObj = this.serializeRoomState();
-    const payload = {
-      roomId: code,
-      title: this.roomTitle || '',
-      hasPassword: !!this.roomPasswordHash,
-      passwordHash: this.roomPasswordHash || '',
-      hostClientId: this.hostClientId || this.myClientId,
-      hostPeerId: this.hostPeerId || `tlmn-bkp-room-${code}-${this.hostClaimEpoch || 1}`,
-      hostClaimEpoch: Number(this.hostClaimEpoch) || 1,
-      hostHeartbeatMs: Date.now(),
-      hostPaused: !!document.hidden,
-      version: Number(this.roomStateVersion) || 1,
-      updatedAtMs: Date.now(),
-      closed: !!markClosed,
-      state: stateObj,
-      events: Array.isArray(overrideEvents) ? overrideEvents : (this.cloudPendingEvents || []).slice(-12),
-    };
+    if (this._isPushingRoomCloud && !markClosed) {
+      this._pendingRoomCloudPush = { overrideEvents };
+      return true;
+    }
+    this._isPushingRoomCloud = true;
     try {
+      const code = String(this.roomId).trim().toUpperCase();
+      const stateObj = this.serializeRoomState();
+      const pushVer = Number(this.roomStateVersion) || 1;
+      const payload = {
+        roomId: code,
+        title: this.roomTitle || '',
+        hasPassword: !!this.roomPasswordHash,
+        passwordHash: this.roomPasswordHash || '',
+        hostClientId: this.hostClientId || this.myClientId,
+        hostPeerId: this.hostPeerId || `tlmn-bkp-room-${code}-${this.hostClaimEpoch || 1}`,
+        hostClaimEpoch: Number(this.hostClaimEpoch) || 1,
+        hostHeartbeatMs: Date.now(),
+        hostPaused: !!document.hidden,
+        version: pushVer,
+        updatedAtMs: Date.now(),
+        closed: !!markClosed,
+        state: stateObj,
+        events: Array.isArray(overrideEvents) ? overrideEvents : (this.cloudPendingEvents || []).slice(-12),
+      };
       const res = await fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${code}`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -22869,6 +22899,15 @@ class TienLenGame {
       return res.ok;
     } catch (_) {
       return false;
+    } finally {
+      this._isPushingRoomCloud = false;
+      if (this._pendingRoomCloudPush && this.isMultiplayer && this.isHost && this.roomId) {
+        const nextReq = this._pendingRoomCloudPush;
+        this._pendingRoomCloudPush = null;
+        this.pushRoomStateToCloud(nextReq.overrideEvents, false);
+      } else {
+        this._pendingRoomCloudPush = null;
+      }
     }
   }
 
@@ -23094,8 +23133,8 @@ class TienLenGame {
           ? `<span class="mp-table-pass-badge locked">🔒 Có Pass</span>`
           : `<span class="mp-table-pass-badge open">🔓 Tự Do • Còn ${emptySlots} chỗ</span>`;
         const statusText = r.inMatch
-          ? `⚔️ Đang đánh Ván #${r.matchCount || 1} (${emptySlots > 0 ? `Còn ${emptySlots} chỗ trống — Vào chơi luôn!` : 'Đủ 4/4 người'})`
-          : `🟢 Đang chờ (${humanCnt}/4 người — Vào là chia bài luôn!)`;
+          ? `⚔️ Đang đánh Ván #${r.matchCount || 1} (${emptySlots > 0 ? `Còn ${emptySlots} chỗ trống — Vào xem/chơi ván sau` : 'Đủ 4/4 người'})`
+          : `⏳ Phòng chờ (${humanCnt}/4 người — Chờ Chủ phòng bắt đầu)`;
         const seatChips = Array.from({ length: 4 }, (_, idx) => {
           const pName = r.seatNames?.[idx];
           return pName
@@ -23129,8 +23168,10 @@ class TienLenGame {
                   : isFull
                   ? '🔒 Đủ 4/4 (Vào lại nếu cùng bàn)'
                   : r.hasPassword
-                  ? '🔑 Nhập Pass & Nhảy Vào Chơi'
-                  : '⚡ Nhảy Vào Chơi Luôn'
+                  ? '🔑 Nhập Pass & Vào Phòng'
+                  : r.inMatch
+                  ? '⚡ Nhảy Vào Bàn'
+                  : '🚪 Vào Phòng Chờ'
               }</span>
             </div>
           </div>
@@ -23776,8 +23817,8 @@ class TienLenGame {
           ? this.players.find(
               (p) => p.active && !p.isBot && String(p.accountUsername || '').trim().toLowerCase() === myCleanUser
             )
-          : null) ||
-        this.players.find((p) => !p.isBot && p.name === myName && (!p.clientId || p.clientId === this.myClientId));
+          : null);
+      const isConfirmedOwnSeat = Boolean(mySeat);
 
       if (!mySeat) {
         mySeat = this.players.find((p) => !p.active);
@@ -23794,7 +23835,8 @@ class TienLenGame {
         mySeat.chopBurst = this.equippedChopBurst || mySeat.chopBurst;
         mySeat.winBurst = this.equippedWinBurst || mySeat.winBurst;
         mySeat.activeChar = mySeat.activeChar && mySeat.activeChar !== 'none' ? mySeat.activeChar : this.equippedActiveChar || 'none';
-        mySeat.coins = typeof mySeat.coins === 'number' ? mySeat.coins : this.savedCoins;
+        mySeat.coins =
+          isConfirmedOwnSeat && typeof mySeat.coins === 'number' ? mySeat.coins : this.savedCoins;
         mySeat.isBot = false;
         mySeat.active = true;
         this.mySeatId = mySeat.id;
@@ -24255,12 +24297,21 @@ class TienLenGame {
 
     this.initGuestPeer(cleanCode, myName);
     this.pollTimer = setInterval(() => this.pollRoomAsGuest(), 850);
-    if (!isAutoRestore || options.isAccountHandover || (this.matchCount >= 1 && !this.isGameOver)) {
+    if (this.matchCount >= 1 && !this.isGameOver) {
       this.hideAllLobbyModalsForActiveMatch();
       this.showComboBanner(
         this.isLocalSpectatorNow()
           ? `👁️ ĐÃ VÀO BÀN #${cleanCode} — ĐANG NGỒI XEM, HẾT VÁN SẼ TỰ ĐỘNG VÀO CHƠI!`
           : `⚡ ĐÃ VÀO BÀN #${cleanCode} — SẴN SÀNG THAM CHIẾN!`
+      );
+    } else {
+      document.getElementById('mode-setup-modal')?.classList.add('hidden');
+      this.modalWifi?.classList.remove('hidden');
+      document.getElementById('wifi-room-box')?.classList.remove('hidden');
+      this.showComboBanner(`🚪 ĐÃ VÀO PHÒNG CHỜ #${cleanCode} — CHỜ CHỦ PHÒNG BẮT ĐẦU!`);
+      this.addLog(
+        `🚪 Bạn đã vào <strong>Phòng Chờ #${cleanCode}</strong> (Ghế #${this.mySeatId + 1}). Đang chờ Chủ phòng bấm <strong>"🃏 Bắt Đầu Chia Bài"</strong>!`,
+        'log-win'
       );
     }
     this.renderLobbyModal();
@@ -24292,9 +24343,6 @@ class TienLenGame {
     if (!this._recentlyLeftRoomIds) {
       this._recentlyLeftRoomIds = new Map();
     }
-    if (oldRoomId) {
-      this._recentlyLeftRoomIds.set(oldRoomId, Date.now());
-    }
 
     const leaveEvt =
       wasMultiplayer && oldRoomId && !wasHost
@@ -24313,7 +24361,7 @@ class TienLenGame {
       } catch (_) {}
     }
 
-    // Xóa trạng thái phòng ở máy local TRƯỚC khi cập nhật danh mục để tuyệt đối không tự chèn lại phòng cũ!
+    // Xóa trạng thái phòng ở máy local TRƯỚC khi cập nhật danh mục
     this.isLocalAfkBotPlaying = false;
     this._lastSyncedStateSig = '';
     this.stopMultiplayerSync();
@@ -24326,6 +24374,9 @@ class TienLenGame {
     this.roomTitle = '';
     const prevSeatId = this.mySeatId;
     this.mySeatId = 0;
+
+    let roomStillHasHumans = false;
+    let updatedRemainingCard = null;
 
     if (wasMultiplayer && oldRoomId) {
       const scrubPlayerFromSeat = (p) => {
@@ -24402,6 +24453,7 @@ class TienLenGame {
 
         if (remainingHumans.length === 0) {
           // Không còn người chơi thật nào trong bàn ➔ Xóa hẳn bàn khỏi Cloud và Sảnh!
+          this._recentlyLeftRoomIds.set(oldRoomId, Date.now());
           const closedPayload = {
             roomId: oldRoomId,
             closed: true,
@@ -24417,7 +24469,9 @@ class TienLenGame {
           }).catch(() => null);
           await this.removeRoomFromDirectory(oldRoomId);
         } else if (cloudRoom && cloudRoom.state) {
-          // Còn người chơi khác trong bàn ➔ Xóa sạch bản sao của người vừa rời và nhường Host nếu cần
+          // Còn người chơi khác trong bàn ➔ Giữ nguyên phòng trên Sảnh Bàn, xóa bản sao của người vừa rời và nhường Host nếu cần
+          roomStillHasHumans = true;
+          this._recentlyLeftRoomIds.delete(oldRoomId);
           const nextHost =
             wasHost || cloudRoom.hostClientId === this.myClientId ? remainingHumans[0] : null;
           if (nextHost) {
@@ -24435,14 +24489,108 @@ class TienLenGame {
           cloudRoom.version = (Number(cloudRoom.version) || 1) + 1;
           cloudRoom.state.version = cloudRoom.version;
           cloudRoom.updatedAtMs = Date.now();
+          cloudRoom.hostHeartbeatMs = Date.now();
           await fetch(`https://textdb.dev/api/data/tlmn_bkp_rm_${oldRoomId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: this.encodeCloudPayload(cloudRoom),
           }).catch(() => null);
+          updatedRemainingCard = this.convertCloudRoomToDirectoryCard(cloudRoom);
+          if (updatedRemainingCard) {
+            if (!this._dirRoomBeatTracker) this._dirRoomBeatTracker = new Map();
+            this._dirRoomBeatTracker.set(oldRoomId, {
+              beat: cloudRoom.hostHeartbeatMs,
+              seenAtLocalMs: Date.now(),
+            });
+            const others = (this.multiplayerRoomsList || []).filter((r) => r && r.roomId !== oldRoomId);
+            this.multiplayerRoomsList = [updatedRemainingCard, ...others];
+            const bodyStr = this.encodeCloudPayload(this.multiplayerRoomsList.slice(0, 25));
+            fetch(`https://textdb.dev/api/data/tlmn_bkp_rooms_dir_v2`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: bodyStr,
+            }).catch(() => null);
+          }
         }
       } catch (_) {}
     }
+
+    // QUAN TRỌNG: Khôi phục ngay Ghế 0 (this.players[0]) về đúng hồ sơ & số Xu của chính người chơi local,
+    // tuyệt đối không để dữ liệu Ghế 0 của Chủ phòng cũ lưu lại trong this.players[0] gây nhân bản Xu sang tài khoản Khách!
+    const myLocalName = this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
+    const botBankroll = Math.max(INITIAL_COINS, (this.betPerCard || 100) * 500);
+    const soloCount = this.soloPlayerCount || 4;
+    this.players = [
+      {
+        id: 0,
+        name: myLocalName,
+        avatar: this.equippedAvatar || 'default_player',
+        cardSkin: this.equippedSkin || 'classic',
+        chopBurst: this.equippedChopBurst || 'none',
+        winBurst: this.equippedWinBurst || 'none',
+        activeChar: this.equippedActiveChar || 'none',
+        skillUsed: false,
+        isBot: false,
+        active: true,
+        hand: [],
+        coins: typeof this.savedCoins === 'number' ? this.savedCoins : INITIAL_COINS,
+        passed: false,
+        finishRank: null,
+        clientId: this.myClientId || 'host',
+        accountUsername: this.currentAccountUsername || '',
+      },
+      {
+        id: 1,
+        name: 'Bot Furina 💧',
+        avatar: 'furina',
+        cardSkin: 'furina',
+        chopBurst: 'furina',
+        winBurst: 'furina',
+        activeChar: 'furina',
+        skillUsed: false,
+        isBot: true,
+        active: soloCount >= 3,
+        hand: [],
+        coins: botBankroll,
+        passed: false,
+        finishRank: null,
+        clientId: null,
+      },
+      {
+        id: 2,
+        name: 'Bot Raiden ⚡',
+        avatar: 'raiden',
+        cardSkin: 'raiden',
+        chopBurst: 'raiden',
+        winBurst: 'raiden',
+        activeChar: 'raiden',
+        skillUsed: false,
+        isBot: true,
+        active: true,
+        hand: [],
+        coins: botBankroll,
+        passed: false,
+        finishRank: null,
+        clientId: null,
+      },
+      {
+        id: 3,
+        name: 'Bot Skirk ❄️',
+        avatar: 'skirk',
+        cardSkin: 'skirk',
+        chopBurst: 'skirk',
+        winBurst: 'skirk',
+        activeChar: 'skirk',
+        skillUsed: false,
+        isBot: true,
+        active: soloCount >= 4,
+        hand: [],
+        coins: botBankroll,
+        passed: false,
+        finishRank: null,
+        clientId: null,
+      },
+    ];
 
     document.getElementById('wifi-room-box')?.classList.add('hidden');
     document.getElementById('human-create-join-row')?.classList.remove('hidden');
@@ -24467,7 +24615,15 @@ class TienLenGame {
     this.openModeSetupModal('human');
     this.modalWifi?.classList.remove('hidden');
     await this.refreshMultiplayerRoomsDirectory(false);
+    if (roomStillHasHumans && updatedRemainingCard && oldRoomId) {
+      const hasCard = (this.multiplayerRoomsList || []).some((r) => r && r.roomId === oldRoomId);
+      if (!hasCard) {
+        this.multiplayerRoomsList = [updatedRemainingCard, ...(this.multiplayerRoomsList || [])];
+      }
+      this.renderMultiplayerTablesList();
+    }
     this.renderLobbyModal();
+    this.renderAll();
     this.updateBetBadges();
     this.tighnariBonusByPlayer = {};
     sfx.click();
@@ -25347,11 +25503,9 @@ class TienLenGame {
         this.renderSummaryReadyStateUI();
         this.renderAll();
 
-        // Nếu bàn đang chờ ở Ván #0 (chưa chia bài) và vừa có người nhảy vào ➔ Tự động đóng mọi bảng chờ & chia bài chơi luôn!
-        if (!isPlayingHumanRejoin && this.matchCount === 0 && this.players.filter((p) => p.active).length >= 2) {
-          this.hideAllLobbyModalsForActiveMatch();
-          this.startNewMatch(true);
-          return;
+        // Nếu bàn đang chờ ở Ván #0 (chưa chia bài) ➔ Giữ ở Phòng Chờ để Chủ phòng chủ động bấm "🃏 Bắt Đầu Chia Bài"!
+        if (!isPlayingHumanRejoin && this.matchCount === 0) {
+          this.showComboBanner(`👋 ${seat.name.toUpperCase()} ĐÃ VÀO PHÒNG CHỜ (GHẾ #${seat.id + 1})!`);
         }
 
         this.broadcastState();
@@ -25552,6 +25706,13 @@ class TienLenGame {
     if (state.closed) {
       this.leaveWifiRoom(false, '🏠 Bàn chơi đã tự động đóng và xóa khỏi Sảnh.');
       return;
+    }
+    const incomingVer = Number(state.version) || 0;
+    if (incomingVer > 0) {
+      if (this.lastSyncedVersion && incomingVer < this.lastSyncedVersion) {
+        return;
+      }
+      this.lastSyncedVersion = Math.max(Number(this.lastSyncedVersion) || 0, incomingVer);
     }
     if (
       state.displacedClientIds &&
@@ -25754,7 +25915,11 @@ class TienLenGame {
             this._lastAppliedSkillBoostSig = '';
           }
         }
-        if (!me.isBot) {
+        const isConfirmedMyHumanSeat =
+          !me.isBot &&
+          (me.clientId === this.myClientId ||
+            (myCleanUser && String(me.accountUsername || '').trim().toLowerCase() === myCleanUser));
+        if (isConfirmedMyHumanSeat) {
           this.saveShopProfile();
         }
       } else {
@@ -25769,6 +25934,9 @@ class TienLenGame {
           this.players.find((p, idx) => idx > 0 && p.isBot && !p.queuedHumanReplacement);
         if (firstGuestSeat) {
           this.mySeatId = firstGuestSeat.id;
+          if (!firstGuestSeat.isBot || !firstGuestSeat.active || this.matchCount === 0 || this.isGameOver) {
+            firstGuestSeat.coins = this.savedCoins;
+          }
           const myName =
             document.getElementById('input-player-name')?.value.trim() ||
             this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername) ||
@@ -31141,7 +31309,28 @@ class TienLenGame {
   // HUMAN INTERACTION (LOCAL PLAYER AT mySeatId)
   // ============================================================================
   getLocalPlayer() {
-    return this.players[this.mySeatId] || this.players[0];
+    if (!this.players) return null;
+    const p = this.players[this.mySeatId] || this.players[0];
+    if (!this.isMultiplayer && p && this.mySeatId === 0) {
+      const myCleanUser = String(this.currentAccountUsername || '').trim().toLowerCase();
+      const pCleanUser = String(p.accountUsername || '').trim().toLowerCase();
+      const hasForeignIdentity =
+        (p.clientId && p.clientId !== 'host' && p.clientId !== this.myClientId) ||
+        (myCleanUser && pCleanUser && pCleanUser !== myCleanUser);
+      if (hasForeignIdentity || p.isBot) {
+        p.isBot = false;
+        p.clientId = this.myClientId || 'host';
+        p.accountUsername = this.currentAccountUsername || '';
+        p.name = this.resolveCleanPlayerName(this.savedPlayerName, this.currentAccountUsername);
+        p.coins = typeof this.savedCoins === 'number' ? this.savedCoins : INITIAL_COINS;
+        p.avatar = this.equippedAvatar || 'default_player';
+        p.cardSkin = this.equippedSkin || 'classic';
+        p.activeChar = this.equippedActiveChar || 'none';
+        p.chopBurst = this.equippedChopBurst || 'none';
+        p.winBurst = this.equippedWinBurst || 'none';
+      }
+    }
+    return p;
   }
 
   toggleCardSelection(cardId) {
@@ -32361,6 +32550,30 @@ class TienLenGame {
   }
 
   renderCenterTrick() {
+    const prevSig = this.previousCombo
+      ? `${this.previousCombo.ownerSkin || 'classic'}:${this.previousCombo.cards.map((c) => c.id).join('-')}`
+      : '';
+    const owner = this.currentCombo ? this.players[this.trickOwnerId] : null;
+    const curSkin = this.currentCombo
+      ? this.currentCombo.ownerSkin || (owner && owner.cardSkin) || 'classic'
+      : 'classic';
+    const curSig = this.currentCombo
+      ? `${this.trickOwnerId}:${curSkin}:${this.currentCombo.cards.map((c) => c.id).join('-')}`
+      : '';
+
+    if (
+      curSig === (this.lastRenderedTrickSig || '') &&
+      prevSig === (this.lastRenderedPrevTrickSig || '') &&
+      this.elCurrentTrick &&
+      this.elCurrentTrick.children.length > 0
+    ) {
+      if (this.currentCombo) {
+        this.elTrickOwnerLabel.textContent = `${owner ? owner.name : ''} đánh: ${this.currentCombo.label}`;
+      }
+      return;
+    }
+    this.lastRenderedPrevTrickSig = prevSig;
+
     this.elPreviousTrick.innerHTML = '';
     if (this.previousCombo) {
       const prevSkin = this.previousCombo.ownerSkin || 'classic';
@@ -32373,9 +32586,7 @@ class TienLenGame {
     this.elCurrentTrick.classList.remove('impact-normal', 'impact-heavy', 'impact-ultra');
 
     if (this.currentCombo) {
-      const owner = this.players[this.trickOwnerId];
-      const curSkin = this.currentCombo.ownerSkin || (owner && owner.cardSkin) || 'classic';
-      const sig = `${this.trickOwnerId}:${this.currentCombo.cards.map((c) => c.id).join('-')}`;
+      const sig = curSig;
       const isNewPlay = sig !== this.lastRenderedTrickSig;
       this.lastRenderedTrickSig = sig;
 
@@ -33797,7 +34008,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=213', { updateViaCache: 'none' })
+        .register('sw.js?v=214', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

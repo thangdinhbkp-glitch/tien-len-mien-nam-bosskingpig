@@ -13,8 +13,8 @@ const AVATARS = ['😎', '🐯', '🦊', '🐼'];
 
 // Vốn cấp sẵn: 17,000 xu (Đủ 16,000 xu roll Banner Tân Thủ ×10 + dư 1,000 xu vốn đánh bài) & Hồi phục mỗi ngày: +1,000 xu
 const INITIAL_COINS = 17000;
-const DAILY_RECOVERY_COINS = 1000;
-const MAX_DAILY_RELIEF_CLAIMS = 3;
+const DAILY_RECOVERY_COINS = 0;
+const MAX_DAILY_RELIEF_CLAIMS = 0;
 const MIN_BET_PER_CARD = 10;
 const MAX_BET_PER_CARD = 200;
 
@@ -4115,12 +4115,6 @@ class TienLenGame {
       });
     }
     this.setupCrossDeviceCloudSync();
-    if (this.dailyRecoveredOnLoad) {
-      this.addLog(
-        `🌅 <strong>Quà Hồi Phục Hàng Ngày:</strong> Tài khoản của bạn vừa được hồi <strong>+${DAILY_RECOVERY_COINS.toLocaleString()} xu</strong> cho ngày mới!`,
-        'log-win'
-      );
-    }
   }
 
   hideAllLobbyModalsForActiveMatch() {
@@ -5012,6 +5006,12 @@ class TienLenGame {
         Number(data.lastRickRollAdClaimMs) || 0
       );
     }
+    if (typeof data.lastShopeeMerchClaimMs === 'number') {
+      this.lastShopeeMerchClaimMs = Math.max(
+        Number(this.lastShopeeMerchClaimMs) || 0,
+        Number(data.lastShopeeMerchClaimMs) || 0
+      );
+    }
     if (typeof data.tutorialCompleted === 'boolean') {
       this.tutorialCompleted = Boolean(this.tutorialCompleted || data.tutorialCompleted);
     }
@@ -5082,6 +5082,7 @@ class TienLenGame {
     this.dailyReliefUsed = 0;
     this.lastSponsor2RollClaimMs = 0;
     this.lastRickRollAdClaimMs = 0;
+    this.lastShopeeMerchClaimMs = 0;
     this.dailyRecoveredOnLoad = false;
     this.dailyQuestsDate = today;
     this.dailyQuestsState = this.getDefaultDailyQuestsState();
@@ -5190,7 +5191,7 @@ class TienLenGame {
         this.autoRandomizeBots = true;
       }
 
-      // Nếu bước sang ngày mới: tự động reset 4 Nhiệm Vụ Hàng Ngày & lượt cứu trợ
+      // Nếu bước sang ngày mới: tự động reset 4 Nhiệm Vụ Hàng Ngày (đã bỏ trợ cấp 1,000 Xu)
       let dayChanged = false;
       if (this.lastDailyDate !== today) {
         dayChanged = true;
@@ -5198,10 +5199,6 @@ class TienLenGame {
         this.dailyReliefUsed = 0;
         this.dailyQuestsDate = today;
         this.dailyQuestsState = this.getDefaultDailyQuestsState();
-        if (this.savedCoins < INITIAL_COINS) {
-          this.savedCoins = Math.min(INITIAL_COINS, this.savedCoins + DAILY_RECOVERY_COINS);
-          this.dailyRecoveredOnLoad = true;
-        }
       }
 
       // QUAN TRỌNG: Khi vừa mở trang (Boot), KHÔNG tự ý gán Date.now() đè lên updatedAtMs cũ của máy này,
@@ -6692,6 +6689,7 @@ class TienLenGame {
         dailyReliefUsed: this.dailyReliefUsed || 0,
         lastSponsor2RollClaimMs: Number(this.lastSponsor2RollClaimMs) || 0,
         lastRickRollAdClaimMs: Number(this.lastRickRollAdClaimMs) || 0,
+        lastShopeeMerchClaimMs: Number(this.lastShopeeMerchClaimMs) || 0,
         dailyQuestsDate: this.dailyQuestsDate || today,
         dailyQuestsState: this.dailyQuestsState,
       };
@@ -9484,7 +9482,7 @@ class TienLenGame {
   }
 
   checkAndTriggerAutoRelief() {
-    // Tự động hồi vốn nếu người chơi hoặc Bot cạn tiền sau ván bài
+    // Tự động hồi vốn cho Bot nếu Bot cạn tiền sau ván bài; Người chơi hết tiền sẽ vượt link nhập Giftcode (+3,200 Xu)
     const today = this.getTodayKey();
     if (this.lastDailyDate !== today) {
       this.lastDailyDate = today;
@@ -9502,16 +9500,16 @@ class TienLenGame {
             'log-play'
           );
         }
-      } else if (p.coins < 500) {
-        p.coins = Math.max(0, p.coins) + DAILY_RECOVERY_COINS;
-        if (p.id === this.mySeatId) {
-          this.dailyReliefUsed = Math.min(MAX_DAILY_RELIEF_CLAIMS, this.dailyReliefUsed + 1);
+      } else {
+        p.coins = Math.max(0, p.coins);
+        if (p.id === this.mySeatId && p.coins < (this.betPerCard || 100)) {
+          this.savedCoins = p.coins;
           this.saveShopProfile();
+          this.addLog(
+            `🎟️ <strong>Hết Xu Đặt Cược:</strong> <strong>${p.name}</strong> đã cạn Xu! Hãy bấm <strong>Vượt Link Nhập Giftcode (+3,200 Xu • Không giới hạn thời gian)</strong> để nhận Xu chơi tiếp!`,
+            'log-win'
+          );
         }
-        this.addLog(
-          `💖 <strong>Trợ Cấp Hồi Vốn Mỗi Ngày:</strong> <strong>${p.name}</strong> cạn xu nên được hệ thống hồi ngay <strong>+${DAILY_RECOVERY_COINS.toLocaleString()} xu</strong> để chơi tiếp!`,
-          'log-win'
-        );
       }
     });
   }
@@ -11956,20 +11954,17 @@ class TienLenGame {
       lastMs = Math.max(lastMs, lsGlobal, lsUser);
     } catch (_) {}
     if (!lastMs) return 0;
-    const COOLDOWN_MS = 60 * 60 * 1000; // 1 tiếng nhận thưởng +1 Roll từ kệ hàng 1 lần (vẫn xem hàng tự do mọi lúc)
-    return Math.max(0, lastMs + COOLDOWN_MS - Date.now());
+    // Giới hạn nhận thưởng bấm link sản phẩm Shopee đúng 1 lần duy nhất cho mỗi người chơi
+    return 36500 * 24 * 60 * 60 * 1000;
   }
 
   buildShopeeMerchShelfHtml(compact = false) {
     const items = this.getShopeeMerchItems();
     const remMs = this.getShopeeMerchCooldownRemainingMs();
-    const totalSec = Math.ceil(remMs / 1000);
-    const mins = Math.floor(totalSec / 60);
-    const secs = totalSec % 60;
     const rewardStatusHtml =
       remMs > 0
-        ? `<span style="color:#fde68a;font-weight:800;">⏳ Đã nhận +1,600 Xu (Nhận lại sau ${mins}p ${String(secs).padStart(2, '0')}s • Vẫn xem &amp; mua hàng tự do!)</span>`
-        : `<span style="color:#4ade80;font-weight:900;">🎁 Bấm xem bất kỳ món nào bên dưới để nhận ngay +1,600 Xu miễn phí!</span>`;
+        ? `<span style="color:#fde68a;font-weight:800;">✅ Đã nhận +1,600 Xu (Giới hạn 1 lần duy nhất • Vẫn xem &amp; mua hàng tự do!)</span>`
+        : `<span style="color:#4ade80;font-weight:900;">🎁 Bấm xem bất kỳ món nào bên dưới để nhận ngay +1,600 Xu miễn phí (Giới hạn 1 lần)!</span>`;
 
     const cardsHtml = items
       .map((item) => {
@@ -12722,29 +12717,16 @@ class TienLenGame {
   }
 
   getPersonalGiftcodeCooldownRemainingMs() {
-    if (this.isAdminAccount()) return 0;
-    const lastMs = Number(localStorage.getItem('tlmn_personal_gc_last_claim_ms_v1')) || 0;
-    if (!lastMs) return 0;
-    const rem = lastMs + 60 * 60 * 1000 - Date.now();
-    return rem > 0 ? rem : 0;
+    // Không giới hạn thời gian Vượt Link Giftcode (+3,200 Xu / lần)
+    return 0;
   }
 
   onClickStartPersonalGiftcodeStep1(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
     sfx.click();
 
-    const remMs = this.getPersonalGiftcodeCooldownRemainingMs();
-    if (remMs > 0) {
-      const mins = Math.ceil(remMs / 60000);
-      alert(`⏳ Bạn vừa nhận +8,000 Xu từ Vượt Link Giftcode gần đây!\nVui lòng quay lại nhận tiếp sau ${mins} phút nữa nhé.`);
-      return false;
-    }
-
     try {
       localStorage.setItem('tlmn_personal_gc_step1_ms_v1', String(Date.now() - 16000));
-      if (!this.isAdminAccount()) {
-        localStorage.setItem('tlmn_personal_gc_last_claim_ms_v1', String(Date.now()));
-      }
     } catch (_) {}
     this.recordAdMonetizationEvent('click');
 
@@ -12774,7 +12756,7 @@ class TienLenGame {
       }
     }
 
-    const rewardCoins = WISH_COST_SINGLE * 5; // +8,000 Xu
+    const rewardCoins = WISH_COST_SINGLE * 2; // +3,200 Xu
     const me = this.getLocalPlayer();
     if (me) {
       me.coins += rewardCoins;
@@ -12842,7 +12824,7 @@ class TienLenGame {
     const redeemInp = document.getElementById('input-redeem-giftcode');
     if (redeemInp) redeemInp.value = code;
     sfx.click();
-    alert(`📋 Đã copy Mã Giftcode Cá Nhân: ${code}\n\n👉 Hãy dán vào ô Nhập Mã Giftcode trong game của tài khoản @${this._lastGeneratedPersonalTarget || this.getPersonalGiftcodeIdentityKey()} để nhận +8,000 Xu!`);
+    alert(`📋 Đã copy Mã Giftcode Cá Nhân: ${code}\n\n👉 Hãy dán vào ô Nhập Mã Giftcode trong game của tài khoản @${this._lastGeneratedPersonalTarget || this.getPersonalGiftcodeIdentityKey()} để nhận +3,200 Xu!`);
   }
 
   async saveAdminQuickGiftcodeShortUrl() {
@@ -13905,7 +13887,7 @@ class TienLenGame {
       ? `
         <div style="padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(6,78,59,0.92),rgba(15,23,42,0.96));border:2px solid #34d399;box-shadow:0 0 22px rgba(16,185,129,0.35);">
           <div style="font-size:15px;font-weight:900;color:#6ee7b7;margin-bottom:6px;">
-            🎉 BẠN ĐÃ VƯỢT LINK THÀNH CÔNG! LẤY MÃ GIFTCODE CÁ NHÂN (+8,000 XU)
+            🎉 BẠN ĐÃ VƯỢT LINK THÀNH CÔNG! LẤY MÃ GIFTCODE CÁ NHÂN (+3,200 XU)
           </div>
           <div style="font-size:12px;color:#e2e8f0;line-height:1.45;margin-bottom:8px;">
             Nhập đúng <strong>Tên tài khoản (@username)</strong> (hoặc Mã máy) của bạn trong game để hệ thống mã hóa Mã Giftcode riêng cho bạn:
@@ -13929,7 +13911,7 @@ class TienLenGame {
                       📋 Copy Mã Giftcode
                     </button>
                     <button type="button" class="primary-btn" onclick="document.getElementById('input-redeem-giftcode').value='${this._lastGeneratedPersonalGiftcode}'; window.tienLenGame.redeemGiftcodeNow();" style="padding:8px 14px;font-weight:900;font-size:12.5px;background:linear-gradient(135deg,#059669,#10b981);">
-                      ⚡ Đổi Nhận Ngay +8,000 Xu
+                      ⚡ Đổi Nhận Ngay +3,200 Xu
                     </button>
                   </div>
                 </div>
@@ -13964,34 +13946,24 @@ class TienLenGame {
     body.innerHTML = `
       ${landingBoxHtml}
 
-      <!-- Khung Săn Giftcode Cá Nhân Chống Share (+8,000 Xu) -->
+      <!-- Khung Săn Giftcode Cá Nhân Chống Share (+3,200 Xu) -->
       <div style="padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(88,28,135,0.68),rgba(15,23,42,0.96));border:1.5px solid #f472b6;box-shadow:0 6px 18px rgba(236,72,153,0.18);">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
           <div style="flex:1;min-width:220px;">
             <div style="display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;background:rgba(236,72,153,0.25);border:1px solid #f472b6;color:#fbcfe8;font-size:11px;font-weight:900;margin-bottom:5px;">
-              🪙 BẤM MỞ LINK NHẬN NGAY +8,000 XU MIỄN PHÍ
+              🪙 BẤM MỞ LINK NHẬN NGAY +3,200 XU MIỄN PHÍ (KHÔNG GIỚI HẠN THỜI GIAN)
             </div>
             <div style="font-size:15px;font-weight:900;color:#fdf2f8;">
-              🎟️ MỞ LINK NHẬN XU &amp; GIFTCODE CÁ NHÂN (+8,000 XU)
+              🎟️ MỞ LINK NHẬN XU &amp; GIFTCODE CÁ NHÂN (+3,200 XU)
             </div>
             <div style="font-size:12px;color:#e2e8f0;margin-top:4px;line-height:1.45;">
-              • Bấm nút bên phải để mở Link Tài Trợ và cộng nóng <strong>+8,000 Xu</strong> vào tài khoản <strong style="color:#fde047;">@${myIdentity}</strong> (1 lần / giờ)!<br/>
-              • Hoặc bấm trực tiếp vào các <strong>Mã Tân Thủ miễn phí</strong> bên dưới để nhận thêm Xu ngay lập tức!
+              • Bấm nút bên phải để mở Link Tài Trợ và cộng nóng <strong>+3,200 Xu</strong> vào tài khoản <strong style="color:#fde047;">@${myIdentity}</strong> (Không giới hạn số lần)!<br/>
+              • Khi hết Xu đặt cược, bạn có thể vào đây Vượt Link lấy Giftcode nhận <strong>+3,200 Xu</strong> bất kỳ lúc nào!
             </div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:210px;">
-            <button type="button" id="btn-personal-gc-step1" class="primary-btn" onclick="return window.tienLenGame.onClickStartPersonalGiftcodeStep1(event)" ${
-              remCooldownMs > 0 ? 'disabled' : ''
-            } style="padding:10px 16px;font-weight:900;font-size:13px;background:${
-              remCooldownMs > 0
-                ? 'rgba(71,85,105,0.75)'
-                : 'linear-gradient(135deg,#db2777,#9333ea)'
-            };border:1.5px solid #f9a8d4;box-shadow:0 0 14px rgba(219,39,119,0.45);">
-              ${
-                remCooldownMs > 0
-                  ? `⏳ Đã Nhận +8,000 Xu (Chờ ${cooldownMins}p)`
-                  : `🔗 Mở Link Nhận Ngay (+8,000 Xu) ↗`
-              }
+            <button type="button" id="btn-personal-gc-step1" class="primary-btn" onclick="return window.tienLenGame.onClickStartPersonalGiftcodeStep1(event)" style="padding:10px 16px;font-weight:900;font-size:13px;background:linear-gradient(135deg,#db2777,#9333ea);border:1.5px solid #f9a8d4;box-shadow:0 0 14px rgba(219,39,119,0.45);">
+              🔗 Mở Link Nhận Ngay (+3,200 Xu) ↗
             </button>
             <div style="font-size:11px;color:#cbd5e1;text-align:center;">
               👤 Tài khoản nhận Xu: <strong style="color:#38bdf8;">@${myIdentity}</strong>
@@ -14083,30 +14055,14 @@ class TienLenGame {
         }
       }
 
-      if (!this.isAdminAccount() && !this.isWelkinActive()) {
-        const remCooldown = this.getPersonalGiftcodeCooldownRemainingMs();
-        if (remCooldown > 0) {
-          alert(`⏳ Bạn vừa nhận +5 Vé Roll từ Giftcode Vượt Link gần đây! Vui lòng chờ ${Math.ceil(remCooldown / 60000)} phút nữa để nhập mã mới.`);
-          return;
-        }
-        const step1Ms = Number(localStorage.getItem('tlmn_personal_gc_step1_ms_v1')) || 0;
-        if (!step1Ms || Date.now() - step1Ms < 14000) {
-          alert(
-            `⚠️ Bạn chưa bấm "🔗 Bước 1: Mở Link Lấy Mã (+5 Roll)" hoặc chưa hoàn thành vượt link (tối thiểu 15 giây)!\n👉 Hãy bấm Bước 1 trước rồi nhập mã nhận thưởng nhé!`
-          );
-          return;
-        }
-      }
-
       usedLocal.push(code);
       try {
         localStorage.setItem('tlmn_redeemed_codes_v1', JSON.stringify(usedLocal.slice(-80)));
-        localStorage.setItem('tlmn_personal_gc_last_claim_ms_v1', String(Date.now()));
         localStorage.removeItem('tlmn_personal_gc_step1_ms_v1');
       } catch (_) {}
       this._lastGeneratedPersonalGiftcode = '';
 
-      const rewardCoins = 5 * WISH_COST_SINGLE; // +8,000 Xu
+      const rewardCoins = 2 * WISH_COST_SINGLE; // +3,200 Xu
       const me = this.getLocalPlayer();
       if (me) {
         me.coins += rewardCoins;
@@ -14115,7 +14071,6 @@ class TienLenGame {
         this.savedCoins = (this.savedCoins || INITIAL_COINS) + rewardCoins;
       }
       sfx.win();
-      sfx.coin();
       this.saveShopProfile();
       this.renderSeats();
       this.renderShopModal();
@@ -14531,14 +14486,8 @@ class TienLenGame {
   }
 
   showCenterToast(msg) {
-    if (typeof this.showComboAnnouncement === 'function') {
-      this.showComboAnnouncement(msg);
-    }
-  }
-
-  showComboBanner(msg) {
-    if (typeof this.showComboAnnouncement === 'function') {
-      this.showComboAnnouncement(msg);
+    if (typeof this.showComboBanner === 'function') {
+      this.showComboBanner(msg);
     }
   }
 
@@ -26388,6 +26337,21 @@ class TienLenGame {
     this.tighnariBonusByPlayer = {};
 
     const activePlayers = this.getActivePlayers();
+    const localHuman = this.getLocalPlayer();
+    if (
+      this.tutorialCompleted &&
+      localHuman &&
+      localHuman.active &&
+      !localHuman.isBot &&
+      (Number(localHuman.coins) || 0) < Math.min(10, Number(this.betPerCard) || 10)
+    ) {
+      alert(
+        '🪙 Bạn đã hết Xu đặt cược!\n\n👉 Hệ thống sẽ mở mục Săn Giftcode để bạn Vượt Link / Nhập Giftcode nhận ngay +3,200 Xu (Không giới hạn số lần) rồi vào đánh tiếp nhé!'
+      );
+      this.openGiftcodeModal();
+      this.renderAll();
+      return;
+    }
     if (activePlayers.length < 2) {
       this.elTurnBanner.textContent = '⏳ Cần tối thiểu 2 người chơi trong phòng để chia bài!';
       if (this.isMultiplayer) {

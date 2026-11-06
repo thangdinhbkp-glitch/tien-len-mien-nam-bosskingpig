@@ -94,9 +94,14 @@
     }
   ]
   </script>
-  <link rel="stylesheet" href="styles.css?v=212" />
+  <link rel="stylesheet" href="styles.css?v=213" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+  <script>
+    if (window.location.search.indexOf('getcode=1') !== -1) {
+      document.head.insertAdjacentHTML('beforeend', '<style>body > .app-container, body > .modal-backdrop { display: none !important; } body { background: #020617 !important; }</style>');
+    }
+  </script>
 </head>
 <body>
   <div class="app-container">
@@ -1982,6 +1987,6 @@
       window.__tlmnRefreshCornerAdBanner = function () {};
     })();
   </script>
-  <script src="game.js?v=212"></script>
+  <script src="game.js?v=213"></script>
 </body>
 </html>

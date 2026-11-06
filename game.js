@@ -12696,6 +12696,7 @@ class TienLenGame {
       candidateIds.add(this.normalizeGiftcodeIdentity(devId));
     }
     candidateIds.add(this.getPersonalGiftcodeIdentityKey());
+    candidateIds.add('link4m');
 
     let matchedAccount = false;
     for (const cid of candidateIds) {
@@ -12756,42 +12757,12 @@ class TienLenGame {
       }
     }
 
-    const rewardCoins = WISH_COST_SINGLE * 2; // +3,200 Xu
-    const me = this.getLocalPlayer();
-    if (me) {
-      me.coins += rewardCoins;
-      this.savedCoins = me.coins;
-    } else {
-      this.savedCoins = (this.savedCoins || INITIAL_COINS) + rewardCoins;
-    }
-    const personalCode = this.generatePersonalGiftcodeForUser(myId);
-    this._lastGeneratedPersonalGiftcode = personalCode;
-    try {
-      const usedLocalRaw = localStorage.getItem('tlmn_redeemed_codes_v1') || '[]';
-      const usedLocal = JSON.parse(usedLocalRaw);
-      if (Array.isArray(usedLocal)) {
-        usedLocal.push(personalCode);
-        localStorage.setItem('tlmn_redeemed_codes_v1', JSON.stringify(usedLocal.slice(-80)));
-      }
-    } catch (_) {}
-
-    sfx.win();
-    this.saveShopProfile();
-    this.renderSeats();
-    this.renderShopModal();
-    this.renderGiftcodeModal();
-    this.syncCosmeticsInRoom();
-    this.showComboBanner(`🎟️ VƯỢT LINK THÀNH CÔNG: +${rewardCoins.toLocaleString()} XU!`);
-    this.showCenterToast(`🎉 Đã mở Link & cộng ngay +${rewardCoins.toLocaleString()} Xu vào túi!`);
-    this.addLog(
-      `🎟️ <strong>Vượt Link Giftcode:</strong> Tài khoản <strong>@${myId}</strong> vừa nhận ngay <strong>+${rewardCoins.toLocaleString()} Xu</strong>!`,
-      'log-win'
-    );
     const statusEl = document.getElementById('personal-gc-step1-status');
     if (statusEl) {
-      statusEl.innerHTML = `🎉 <strong style="color:#4ade80;">Đã mở Link &amp; cộng ngay +${rewardCoins.toLocaleString()} Xu vào tài khoản @${myId}!</strong>`;
+      statusEl.innerHTML = `🔗 <strong style="color:#fde047;">Đã mở Link Lấy Mã!</strong> Hãy vượt link để lấy mã <strong>GC-...</strong> rồi dán vào ô <strong>Nhập Mã Giftcode</strong> bên dưới để nhận <strong>+3,200 Xu</strong>!`;
       statusEl.classList.remove('hidden');
     }
+    this.showCenterToast('🔗 Đã mở Link! Hãy vượt link lấy mã Giftcode rồi dán vào ô Nhập Mã để nhận +3,200 Xu!');
     return false;
   }
 
@@ -13951,19 +13922,19 @@ class TienLenGame {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
           <div style="flex:1;min-width:220px;">
             <div style="display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;background:rgba(236,72,153,0.25);border:1px solid #f472b6;color:#fbcfe8;font-size:11px;font-weight:900;margin-bottom:5px;">
-              🪙 BẤM MỞ LINK NHẬN NGAY +3,200 XU MIỄN PHÍ (KHÔNG GIỚI HẠN THỜI GIAN)
+              🪙 VƯỢT LINK LẤY MÃ GIFTCODE (+3,200 XU • KHÔNG GIỚI HẠN SỐ LẦN)
             </div>
             <div style="font-size:15px;font-weight:900;color:#fdf2f8;">
-              🎟️ MỞ LINK NHẬN XU &amp; GIFTCODE CÁ NHÂN (+3,200 XU)
+              🎟️ VƯỢT LINK NHẬN MÃ GIFTCODE (+3,200 XU)
             </div>
             <div style="font-size:12px;color:#e2e8f0;margin-top:4px;line-height:1.45;">
-              • Bấm nút bên phải để mở Link Tài Trợ và cộng nóng <strong>+3,200 Xu</strong> vào tài khoản <strong style="color:#fde047;">@${myIdentity}</strong> (Không giới hạn số lần)!<br/>
-              • Khi hết Xu đặt cược, bạn có thể vào đây Vượt Link lấy Giftcode nhận <strong>+3,200 Xu</strong> bất kỳ lúc nào!
+              • <strong>Bước 1:</strong> Bấm nút bên phải để mở Link Rút Gọn và vượt link lấy Mã Giftcode (<code>GC-...</code>).<br/>
+              • <strong>Bước 2:</strong> Copy mã vừa nhận ở trang đích rồi dán vào ô <strong>Nhập Mã Giftcode</strong> bên dưới để nhận ngay <strong>+3,200 Xu</strong> (Không giới hạn số lần)!
             </div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:210px;">
             <button type="button" id="btn-personal-gc-step1" class="primary-btn" onclick="return window.tienLenGame.onClickStartPersonalGiftcodeStep1(event)" style="padding:10px 16px;font-weight:900;font-size:13px;background:linear-gradient(135deg,#db2777,#9333ea);border:1.5px solid #f9a8d4;box-shadow:0 0 14px rgba(219,39,119,0.45);">
-              🔗 Mở Link Nhận Ngay (+3,200 Xu) ↗
+              🔗 Bước 1: Mở Link Lấy Mã (+3,200 Xu) ↗
             </button>
             <div style="font-size:11px;color:#cbd5e1;text-align:center;">
               👤 Tài khoản nhận Xu: <strong style="color:#38bdf8;">@${myIdentity}</strong>
@@ -33781,7 +33752,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 212;
+const CLIENT_BUILD_VERSION = 213;
 
 // Tự động Fallback sang Cloud CDN (tienlenmiennamgenshin.web.app) nếu bản EXE / APK trên máy tính thiếu tệp ảnh/video nhân vật mới cập nhật!
 window.addEventListener(
@@ -33826,7 +33797,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=212', { updateViaCache: 'none' })
+        .register('sw.js?v=213', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })
@@ -33853,7 +33824,94 @@ try {
     .catch(() => {});
 } catch (_) {}
 
+function generateStandaloneLink4mGiftcode() {
+  const idClean = 'link4m';
+  const slot36 = Math.floor(Date.now() / 60000).toString(36).toUpperCase();
+  const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let nonce4 = '';
+  for (let i = 0; i < 4; i++) {
+    nonce4 += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  const payload = `TLMN5S_GC_V178::${idClean}::${slot36}::${nonce4}::BKP_SALT_9981`;
+  let h1 = 0x811c9dc5;
+  let h2 = 0x1b873593;
+  for (let i = 0; i < payload.length; i++) {
+    const ch = payload.charCodeAt(i);
+    h1 ^= ch;
+    h1 = Math.imul(h1, 0x01000193) >>> 0;
+    h2 ^= (ch + i * 31) & 0xff;
+    h2 = Math.imul(h2, 0x85ebca6b) >>> 0;
+  }
+  const part1 = (h1 >>> 0).toString(36).toUpperCase().padStart(6, '0').slice(-3);
+  const part2 = (h2 >>> 0).toString(36).toUpperCase().padStart(6, '0').slice(-3);
+  return `GC-${slot36}-${nonce4}-${part1}${part2}`;
+}
+
+function renderStandaloneGetCodePage() {
+  const code = generateStandaloneLink4mGiftcode();
+  document.title = 'Mã Giftcode (+3,200 Xu) • Tiến Lên 5★';
+  document.body.style.cssText =
+    'margin:0;min-height:100vh;background:radial-gradient(circle at top,#3b0764 0%,#0f172a 65%,#020617 100%);color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+  document.body.innerHTML = `
+    <div style="max-width:480px;width:100%;background:rgba(15,23,42,0.95);border:2px solid #f472b6;border-radius:20px;padding:24px 20px;box-shadow:0 16px 45px rgba(0,0,0,0.65);text-align:center;">
+      <div style="display:inline-block;padding:4px 12px;border-radius:999px;background:rgba(16,185,129,0.2);border:1px solid #34d399;color:#6ee7b7;font-size:12px;font-weight:900;margin-bottom:10px;">
+        ✅ VƯỢT LINK THÀNH CÔNG
+      </div>
+      <h1 style="margin:0 0 8px;font-size:20px;font-weight:900;color:#fdf2f8;">
+        🎟️ MÃ GIFTCODE CỦA BẠN (+3,200 XU)
+      </h1>
+      <p style="margin:0 0 16px;font-size:13.5px;color:#cbd5e1;line-height:1.5;">
+        Hãy <strong>Sao chép mã Giftcode</strong> bên dưới, sau đó quay lại <strong>tab Game đang mở</strong> và dán vào ô <strong>Nhập Mã Giftcode</strong> để nhận ngay <strong style="color:#fde047;">+3,200 Xu</strong>!
+      </p>
+      <div style="padding:14px 12px;border-radius:14px;background:#020617;border:2px dashed #fde047;margin-bottom:14px;">
+        <div style="font-size:11.5px;color:#94a3b8;margin-bottom:4px;">MÃ GIFTCODE (DÙNG 1 LẦN • HIỆU LỰC 30 PHÚT):</div>
+        <div id="standalone-gc-code-text" style="font-size:22px;font-weight:900;color:#fde047;letter-spacing:1.2px;user-select:all;word-break:break-all;">${code}</div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button id="btn-standalone-copy-gc" type="button" style="padding:12px 22px;border-radius:12px;border:1.5px solid #fde047;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-size:14.5px;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(16,185,129,0.4);">
+          📋 Sao Chép Mã Giftcode
+        </button>
+        <button id="btn-standalone-new-gc" type="button" style="padding:12px 16px;border-radius:12px;border:1.5px solid #94a3b8;background:rgba(30,41,59,0.9);color:#e2e8f0;font-size:13px;font-weight:800;cursor:pointer;">
+          🔄 Đổi Mã Khác
+        </button>
+      </div>
+      <div id="standalone-gc-copy-msg" style="margin-top:12px;font-size:13px;font-weight:800;color:#4ade80;min-height:20px;"></div>
+    </div>
+  `;
+  const copyBtn = document.getElementById('btn-standalone-copy-gc');
+  const newBtn = document.getElementById('btn-standalone-new-gc');
+  const codeEl = document.getElementById('standalone-gc-code-text');
+  const msgEl = document.getElementById('standalone-gc-copy-msg');
+  if (copyBtn && codeEl) {
+    copyBtn.onclick = () => {
+      const c = codeEl.textContent.trim();
+      try {
+        navigator.clipboard?.writeText(c);
+      } catch (_) {}
+      if (msgEl) {
+        msgEl.textContent = `✅ Đã copy mã ${c}! Hãy quay lại Game và dán vào ô Nhập Mã Giftcode!`;
+      }
+    };
+  }
+  if (newBtn && codeEl) {
+    newBtn.onclick = () => {
+      const nextCode = generateStandaloneLink4mGiftcode();
+      codeEl.textContent = nextCode;
+      if (msgEl) {
+        msgEl.textContent = '✨ Đã tạo mã mới! Bấm Sao Chép Mã Giftcode để copy.';
+      }
+    };
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('getcode') === '1') {
+      renderStandaloneGetCodePage();
+      return;
+    }
+  } catch (_) {}
   if (IS_NATIVE_BUNDLED_APP) {
     if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
       document.getElementById('btn-lobby-download-apk')?.classList.add('hidden');
@@ -33861,13 +33919,4 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-lobby-download-exe')?.classList.add('hidden');
   }
   window.tienLenGame = new TienLenGame();
-  try {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('getcode') === '1') {
-      window.tienLenGame._isGetCodeLandingMode = true;
-      setTimeout(() => {
-        window.tienLenGame?.openGiftcodeModal();
-      }, 280);
-    }
-  } catch (_) {}
 });

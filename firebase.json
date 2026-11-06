@@ -16,7 +16,11 @@
         "**/*.cmd",
         "**/*.ps1",
         "**/*.msi",
-        "**/*.zip"
+        "**/*.zip",
+        "**/*.log",
+        "Short_*.mp4",
+        "Video_*.mp4",
+        "TienLen_Online_1File.html"
       ],
       "cleanUrls": true
     },
@@ -36,7 +40,11 @@
         "**/*.cmd",
         "**/*.ps1",
         "**/*.msi",
-        "**/*.zip"
+        "**/*.zip",
+        "**/*.log",
+        "Short_*.mp4",
+        "Video_*.mp4",
+        "TienLen_Online_1File.html"
       ],
       "cleanUrls": true
     }

@@ -8749,7 +8749,7 @@ class TienLenGame {
           </div>
           <div>
             <label style="display:block;font-weight:800;color:#f472b6;margin-bottom:3px;">
-              🎟️ Link Rút Gọn Nhận Giftcode +5 Roll (Link4m / Yeumoney trỏ về <code>https://tienlenmiennamgenshin.web.app/?getcode=1</code>):
+              🎟️ Link Rút Gọn Nhận Giftcode +3,200 Xu (Link4m / Yeumoney trỏ về <code>https://tienlenmiennamgenshin.web.app/?getcode=1</code>):
             </label>
             <input type="url" id="admin-input-giftcode-short-url" value="${curGiftcodeShortUrl}" placeholder="Dán link rút gọn Link4m / Yeumoney (VD: https://link4m.com/xxxx) hoặc để trống dùng chế độ 15s mặc định..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(244,114,182,0.55);background:rgba(15,23,42,0.9);color:#fff;font-size:12px;" />
           </div>
@@ -12627,7 +12627,7 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // HỆ THỐNG GIFTCODE CÁ NHÂN VƯỢT LINK (+5 ROLL = 8,000 XU • CHỐNG SHARE 100%)
+  // HỆ THỐNG GIFTCODE CÁ NHÂN VƯỢT LINK (+2 ROLL = 3,200 XU • CHỐNG SHARE 100%)
   // Mã có định dạng: GC-<Slot36>-<Nonce4>-<Sig6>
   // Trong đó <Sig6> được băm mật mã từ (Tài khoản nhận thưởng + Slot36 + Nonce4)
   // ➔ Nick A vượt link lấy mã đưa cho Nick B nhập sẽ bị từ chối 100%!
@@ -12846,7 +12846,7 @@ class TienLenGame {
     this.renderGiftcodeModal();
     alert(
       shortUrl
-        ? `✅ Đã lưu Link Rút Gọn nhận Giftcode +5 Roll toàn Server:\n🔗 ${shortUrl}\n\nKhi người chơi bấm Bước 1 sẽ mở link rút gọn này!`
+        ? `✅ Đã lưu Link Rút Gọn nhận Giftcode +3,200 Xu toàn Server:\n🔗 ${shortUrl}\n\nKhi người chơi bấm Bước 1 sẽ mở link rút gọn này!`
         : `✅ Đã chuyển về Chế độ Mặc định (Mở Link Tài Trợ 15s & Cấp mã GC-... tự động)!`
     );
   }
@@ -13986,8 +13986,8 @@ class TienLenGame {
         </div>
         <div style="font-size:11.5px;color:#cbd5e1;margin-top:6px;">
           💡 Mã Tân Thủ miễn phí (Bấm vào để nhận Xu ngay):
-          <strong style="color:#fde047;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='RAIDEN5SAO';window.tienLenGame.redeemGiftcodeNow();">RAIDEN5SAO</strong> (+8,000 Xu) •
-          <strong style="color:#6ee7b7;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TANTHU10ROLL';window.tienLenGame.redeemGiftcodeNow();">TANTHU10ROLL</strong> (+16,000 Xu) •
+          <strong style="color:#fde047;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='RAIDEN5SAO';window.tienLenGame.redeemGiftcodeNow();">RAIDEN5SAO</strong> (+3,200 Xu) •
+          <strong style="color:#6ee7b7;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TANTHU10ROLL';window.tienLenGame.redeemGiftcodeNow();">TANTHU10ROLL</strong> (+3,200 Xu) •
           <strong style="color:#38bdf8;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TIENLEN5SAO';window.tienLenGame.redeemGiftcodeNow();">TIENLEN5SAO</strong> (+3,200 Xu)
         </div>
       </div>
@@ -14045,7 +14045,7 @@ class TienLenGame {
       if (!check.valid) {
         if (check.reason === 'wrong_account') {
           alert(
-            `❌ CHỐNG SHARE GIFTCODE: Mã "${code}" được mã hóa riêng cho một tài khoản khác!\n\n🔒 Mỗi mã Vượt Link chỉ dùng được cho đúng 1 tài khoản duy nhất (@${this.getPersonalGiftcodeIdentityKey()}).\n👉 Vui lòng bấm "🔗 Bước 1: Mở Link Lấy Mã (+5 Roll)" trên máy của bạn để lấy mã riêng nhé!`
+            `❌ CHỐNG SHARE GIFTCODE: Mã "${code}" được mã hóa riêng cho một tài khoản khác!\n\n🔒 Mỗi mã Vượt Link chỉ dùng được cho đúng 1 tài khoản duy nhất (@${this.getPersonalGiftcodeIdentityKey()}).\n👉 Vui lòng bấm "🔗 Mở Link Nhận Ngay (+3,200 Xu)" trên máy của bạn để lấy mã riêng nhé!`
           );
           return;
         }
@@ -14085,8 +14085,8 @@ class TienLenGame {
 
     // 1. Kiểm tra bộ mã Tân Thủ & TikTok miễn phí (RAIDEN5SAO / TANTHU10ROLL / TIENLEN5SAO / TANTHUGENSHIN)
     const starterCodesMap = {
-      RAIDEN5SAO: 5,
-      TANTHU10ROLL: 10,
+      RAIDEN5SAO: 2,
+      TANTHU10ROLL: 2,
       TIENLEN5SAO: 2,
       TANTHUGENSHIN: 2,
     };
@@ -14583,7 +14583,7 @@ class TienLenGame {
       const secs = totalSec % 60;
       sfx.pass();
       this.showCenterToast(
-        `⏳ Xem Quảng Cáo (+1,600 Xu) giới hạn 1 tiếng / 1 lần! Còn ${mins} phút ${secs} giây nữa (hoặc bấm Mở Web +3,200 Xu / Săn Giftcode +8,000 Xu)!`
+        `⏳ Xem Quảng Cáo (+1,600 Xu) giới hạn 1 tiếng / 1 lần! Còn ${mins} phút ${secs} giây nữa (hoặc bấm Mở Web +3,200 Xu / Săn Giftcode +3,200 Xu)!`
       );
       this.syncRickRollAdButtonsUI();
       return;
@@ -33781,7 +33781,7 @@ const IS_NATIVE_BUNDLED_APP =
   window.location.search.includes('source=exe') ||
   window.location.hostname === '127.0.0.1';
 
-const CLIENT_BUILD_VERSION = 205;
+const CLIENT_BUILD_VERSION = 212;
 
 // Tự động Fallback sang Cloud CDN (tienlenmiennamgenshin.web.app) nếu bản EXE / APK trên máy tính thiếu tệp ảnh/video nhân vật mới cập nhật!
 window.addEventListener(
@@ -33826,7 +33826,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=207', { updateViaCache: 'none' })
+        .register('sw.js?v=212', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })
@@ -33837,7 +33837,7 @@ if ('serviceWorker' in navigator) {
 
 // Tự động phát hiện và tải bản mới nhất trên Server (chống kẹt cache 10 phút của GitHub Pages trên App APK / Điện thoại)
 try {
-  fetch('index.html?_cb=' + Date.now(), { cache: 'no-store' })
+  fetch('./?_cb=' + Date.now(), { cache: 'no-store' })
     .then((r) => (r && r.ok ? r.text() : ''))
     .then((html) => {
       const m = html && html.match(/game\.js\?v=(\d+)/);

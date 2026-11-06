@@ -1805,7 +1805,7 @@ const CHARACTER_SKILLS = {
     icon: '🍃',
     isPassiveBet: true,
     name: 'Liệu Pháp Mộng Đẹp',
-    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Kết thúc mỗi ván bài (dù thắng hay thua), Baku của Mizuki luôn hồi cố định +1.5× Mức cược bàn Xu an ủi (kèm Hoạt Ảnh Nộ 5★ & kích hoạt Tinh Khuếch Tán ×10 cược với hệ Băng).',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Kết thúc mỗi ván bài (dù thắng hay thua), Baku của Mizuki luôn hồi cố định +1.5× Mức cược bàn Xu an ủi (kèm Hoạt Ảnh Nộ 5★).',
   },
   klee: {
     id: 'klee',
@@ -16469,12 +16469,13 @@ class TienLenGame {
       }
     }
 
-    // 3. Phản Ứng Tinh (×10 cược): CHỈ khi người đánh đè (attackerCharId) là:
-    // - Sandrone, Odette, Wriothesley, Qiqi, Diona kích hoạt phản ứng lên bài hệ Lôi (electro) -> Tinh Siêu Dẫn (×10 cược)
-    // - Mitya, Cyno, Yae Miko, Beidou kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Siêu Dẫn (×10 cược)
-    // - Vesna, Mizuki kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Khuếch Tán (×10 cược)
-    const ASTRAL_SUPERCONDUCT_CRYO_CHARS = new Set(['sandrone', 'odette', 'wriothesley', 'qiqi', 'diona']);
-    const ASTRAL_SUPERCONDUCT_ELECTRO_CHARS = new Set(['mitya', 'cyno', 'yaemiko', 'beidou']);
+    // 3. Phản Ứng Tinh (×10 cược): CHỈ khi người đánh đè (attackerCharId) có khả năng tự kích hoạt / gây ST Phản Ứng Tinh trong bộ kỹ năng:
+    // - Sandrone, Odette, Wriothesley, Qiqi kích hoạt phản ứng lên bài hệ Lôi (electro) -> Tinh Siêu Dẫn (×10 cược)
+    // - Mitya, Cyno, Yae Miko kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Siêu Dẫn (×10 cược)
+    // - Vesna kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Khuếch Tán (×10 cược)
+    // (Beidou, Diona chỉ buff hỗ trợ không tự chuyển hóa ST Tinh Siêu Dẫn; Yumemizuki Mizuki chỉ cường hóa Khuếch Tán thường)
+    const ASTRAL_SUPERCONDUCT_CRYO_CHARS = new Set(['sandrone', 'odette', 'wriothesley', 'qiqi']);
+    const ASTRAL_SUPERCONDUCT_ELECTRO_CHARS = new Set(['mitya', 'cyno', 'yaemiko']);
     const isAstralSuperconduct =
       (ASTRAL_SUPERCONDUCT_CRYO_CHARS.has(attackerCharId) && defenderElem === 'electro') ||
       (ASTRAL_SUPERCONDUCT_ELECTRO_CHARS.has(attackerCharId) && defenderElem === 'cryo');
@@ -16488,7 +16489,7 @@ class TienLenGame {
       };
     }
 
-    const ASTRAL_SWIRL_CHARS = new Set(['vesna', 'mizuki']);
+    const ASTRAL_SWIRL_CHARS = new Set(['vesna']);
     if (ASTRAL_SWIRL_CHARS.has(attackerCharId) && defenderElem === 'cryo') {
       return {
         id: 'astral_swirl',
@@ -19050,6 +19051,9 @@ class TienLenGame {
 
     if (charId === 'raiden') {
       const oldLabel = this.currentCombo ? this.currentCombo.label : 'bộ bài trên bàn';
+      player._raidenCutComboType = this.currentCombo ? this.currentCombo.type : null;
+      player._raidenCutComboLen = this.currentCombo ? this.currentCombo.length : 0;
+      player._raidenCutHighRank = this.currentCombo ? this.currentCombo.highRank : 0;
       this.lastSkillCutTargetId = prevTrickOwner ? prevTrickOwner.id : null;
       this.previousCombo = this.currentCombo;
       this.currentCombo = null;
@@ -21098,19 +21102,45 @@ class TienLenGame {
     let preferredIds = [];
 
     if (charId === 'raiden') {
-      // Cắt vòng khi trên bàn là Lẻ/Đôi/Sảnh 3 lá <= J mà Bot không muốn/không thể đỡ (hoặc phải tốn Heo/xé bộ mới đỡ được), hoặc khi cần cướp cái mở vòng mới
-      const wouldSpendTwo = plannedMove && plannedMove.highRank === 12;
-      const expensiveBreak = plannedMove && this.evaluateMoveBreakCost(plannedMove, struct) >= 70;
-      if (
+      // Cắt vòng [Q] Tịnh Thổ Cắt Vòng thông minh:
+      // 1. KHÔNG BAO GIỜ cắt khi đang có nước đỡ thường vừa tầm (!wouldSpendTwo && !expensiveBreak && !wouldSpendAceEarly), trừ khi có đối thủ còn 1 lá cần đổi sang đánh Bộ để khóa cửa!
+      // 2. Nếu trên bàn là Bài Lẻ (SINGLE), chỉ cắt khi Raiden có sẵn Bộ nhiều lá (Đôi/Sám/Sảnh) để chuyển hệ vòng đấu, hoặc chỉ còn <= 3 nhịp là hết bài.
+      // 3. Không phí Nộ cắt bài nhỏ đầu ván khi cả bàn còn nhiều bài (ownerCards >= 6 && minOppCards >= 6 && bot.hand.length >= 8).
+      const canRaidenCutCombo =
         this.currentCombo &&
+        !this.currentCombo.isBomb &&
+        this.currentCombo.highRank <= 8 &&
         (this.currentCombo.type === COMBO_TYPES.SINGLE ||
           this.currentCombo.type === COMBO_TYPES.PAIR ||
-          (this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3)) &&
-        this.currentCombo.highRank <= 8 &&
-        !this.currentCombo.isBomb &&
-        (!plannedMove || wouldSpendTwo || expensiveBreak || bot.hand.length <= 7 || minOppCards <= 6)
-      ) {
-        shouldCast = true;
+          (this.currentCombo.type === COMBO_TYPES.STRAIGHT && this.currentCombo.length === 3));
+      if (canRaidenCutCombo) {
+        const wouldSpendTwo = plannedMove && plannedMove.highRank === 12;
+        const wouldSpendAceEarly =
+          plannedMove &&
+          plannedMove.highRank === 11 &&
+          this.currentCombo.highRank <= 6 &&
+          minOppCards >= 4 &&
+          beforeChess.plan.totalTurns >= 3;
+        const expensiveBreak = plannedMove && this.evaluateMoveBreakCost(plannedMove, struct) >= 70;
+        const cannotBeatCleanly = !plannedMove || wouldSpendTwo || wouldSpendAceEarly || expensiveBreak;
+        const hasCleanMultiComboToLead = beforeChess.plan.multiCombosCount >= 1;
+        const lockOutOneCardOpp =
+          minOppCards === 1 &&
+          this.currentCombo.type === COMBO_TYPES.SINGLE &&
+          hasCleanMultiComboToLead;
+        const isMeaningfulStage =
+          this.currentCombo.highRank >= 5 ||
+          ownerCards <= 5 ||
+          minOppCards <= 5 ||
+          bot.hand.length <= 7;
+        const hasValidFollowUpPlan =
+          this.currentCombo.type === COMBO_TYPES.SINGLE
+            ? hasCleanMultiComboToLead || beforeChess.plan.totalTurns <= 3
+            : hasCleanMultiComboToLead || beforeChess.plan.totalTurns <= 2 || minOppCards <= 3;
+
+        if (lockOutOneCardOpp || (cannotBeatCleanly && isMeaningfulStage && hasValidFollowUpPlan)) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'eula') {
       // Chế độ 1: Trên bàn có bộ bài thường (Bộ >= 2 lá hoặc Lẻ >= 8) mà Bot không đỡ được (hoặc phải tốn bài lớn >= K / xé bộ),
@@ -30668,6 +30698,27 @@ class TienLenGame {
         score -= is1v1Mode ? 190 : 120;
       }
 
+      // 8.6. PHỐI HỢP SAU KHI RAIDEN VỪA BẬT [Q] TỊNH THỔ CẮT VÒNG:
+      // Nếu vừa cắt Bài Lẻ (SINGLE) để cướp Cái -> Ưu tiên tuyệt đối mở vòng bằng Bộ nhiều lá (Sảnh / Sám Cô / Đôi) để đổi nhịp bàn đấu, cấm quăng lá lẻ nhỏ vô nghĩa!
+      if (bot._justUsedSkillThisTurn && this.getPlayerActiveCharId(bot) === 'raiden') {
+        if (bot._raidenCutComboType === COMBO_TYPES.SINGLE && sit.minOpponentCards > 1) {
+          if (move.length >= 2 && turnsAdded <= 0 && !touchesBomb) {
+            score += 340 + move.length * 18;
+          } else if (move.type === COMBO_TYPES.SINGLE && effHighRank <= 8 && !hasSameTypeEscortInRem && beforePlan.multiCombosCount >= 1) {
+            score -= 320;
+          }
+        } else if (
+          (bot._raidenCutComboType === COMBO_TYPES.PAIR || bot._raidenCutComboType === COMBO_TYPES.STRAIGHT) &&
+          beforePlan.multiCombosCount >= 1
+        ) {
+          if (move.length >= 2 && turnsAdded <= 0 && !touchesBomb) {
+            score += 220 + move.length * 15;
+          } else if (move.type === COMBO_TYPES.SINGLE && effHighRank <= 6 && !hasSameTypeEscortInRem) {
+            score -= 220;
+          }
+        }
+      }
+
       // 9. BẮT BÀI NGƯỜI CHƠI TỪ LỊCH SỬ BỎ LƯỢT & THÓI QUEN ĐÃ HỌC:
       if (targetMem && turnsAdded <= 0 && !touchesBomb) {
         if (move.type === COMBO_TYPES.PAIR && targetMem.pairPassCount > 0) {
@@ -32476,27 +32527,10 @@ class TienLenGame {
       }
 
       // Khi ván bài kết thúc (isGameOver), lật ngửa toàn bộ bài còn lại của các đối thủ ngay trên bàn!
-      // Hoặc khi Yelan / Nahida kích hoạt kỹ năng, lộ diện 3 lá của đối thủ!
-      // Hoặc khi Zhongli (Thiên Tinh Hoá Đá) / Xilonen (Bàn Xoay DJ) khóa bài đối thủ, hiển thị bài đối thủ bị khóa ngay trên bàn!
+      // Hoặc khi Yelan / Nahida kích hoạt kỹ năng, lộ diện các lá bài được thấu thị của đối thủ!
       if (revealEl) {
         const yelanEntry = !this.isGameOver && this.yelanRevealedByPlayer?.[p.id];
         const yelanCards = Array.isArray(yelanEntry) ? yelanEntry : yelanEntry?.cards;
-        const zhongliLockedCards =
-          !this.isGameOver &&
-          p.id !== this.mySeatId &&
-          activeZhongliPetrifiedCardIds &&
-          activeZhongliPetrifiedCardIds.size > 0 &&
-          Array.isArray(p.hand)
-            ? p.hand.filter((c) => activeZhongliPetrifiedCardIds.has(c.id))
-            : [];
-        const naviaLockedCards =
-          !this.isGameOver &&
-          p.id !== this.mySeatId &&
-          activeNaviaLockedCardIds &&
-          activeNaviaLockedCardIds.size > 0 &&
-          Array.isArray(p.hand)
-            ? p.hand.filter((c) => activeNaviaLockedCardIds.has(c.id))
-            : [];
 
         if (this.isGameOver && p.hand.length > 0) {
           const penSet = this.penaltyCardIdsByPlayer[p.id] || new Set();
@@ -32511,29 +32545,6 @@ class TienLenGame {
               </div>`;
             })
             .join('');
-          revealEl.classList.remove('hidden');
-        } else if (zhongliLockedCards.length > 0 || naviaLockedCards.length > 0) {
-          const isZhongli = zhongliLockedCards.length > 0;
-          const lockedSet = isZhongli ? activeZhongliPetrifiedCardIds : activeNaviaLockedCardIds;
-          const badgeTitle = isZhongli
-            ? `☄️ HOÁ ĐÁ KHÓA (${zhongliLockedCards.length} LÁ)`
-            : `🔒 BỊ KHÓA (${naviaLockedCards.length} LÁ)`;
-          const cardsMarkup = p.hand
-            .map((c) => {
-              const isLocked = lockedSet.has(c.id);
-              if (isLocked) {
-                return `<div class="mini-open-card zhongli-petrified-card ${c.isRed ? 'red-card' : 'black-card'} penalty-card" style="border:2px dashed #f59e0b;background:#fef3c7;box-shadow:0 0 10px rgba(245,158,11,0.85);position:relative;" title="☄️ Bị khóa cứng trong vòng này!">
-                  <span style="font-size:10.5px;font-weight:900;">${c.rank}${c.suit}</span>
-                  <span style="font-size:8px;font-weight:900;color:#fef08a;background:#78350f;padding:0 3px;border-radius:3px;line-height:1.1;">🔒</span>
-                </div>`;
-              }
-              return `<div class="mini-open-card ${c.isRed ? 'red-card' : 'black-card'}" style="opacity:0.88;">
-                <span>${c.rank}</span>
-                <span>${c.suit}</span>
-              </div>`;
-            })
-            .join('');
-          revealEl.innerHTML = `<div style="width:100%;text-align:center;font-size:9.5px;font-weight:900;color:#fef08a;background:linear-gradient(90deg,#78350f,#b45309);border:1px solid #fde047;border-radius:5px;padding:1px 5px;margin-bottom:3px;letter-spacing:0.3px;">${badgeTitle}</div>${cardsMarkup}`;
           revealEl.classList.remove('hidden');
         } else if (yelanCards && yelanCards.length > 0) {
           revealEl.innerHTML = yelanCards

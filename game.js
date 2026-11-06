@@ -1354,6 +1354,8 @@ const CHARACTER_ELEMENTS = {
   mitya: 'electro',
   lyney: 'pyro',
   chiori: 'geo',
+  beidou: 'electro',
+  diona: 'cryo',
 };
 
 // attackerElem: nguyên tố của người ĐANG ĐÁNH (người kích hoạt phản ứng)
@@ -1529,7 +1531,7 @@ const CHARACTER_SKILLS = {
     charName: 'Yae Miko',
     icon: '🌸',
     name: 'Hồ Ly Dụ Hoặc',
-    shortDesc: 'Trong vòng này: Ai tới lượt mà có bài hợp lệ BẮT BUỘC PHẢI ĐÁNH (khóa Bỏ lượt giấu Heo)',
+    shortDesc: 'Trong vòng này: Ai tới lượt mà có bài hợp lệ BẮT BUỘC PHẢI ĐÁNH (khóa Bỏ lượt giấu Heo)! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Băng)',
   },
   yelan: {
     id: 'yelan',
@@ -1747,7 +1749,7 @@ const CHARACTER_SKILLS = {
     icon: '❄️',
     isPassiveBet: true,
     name: 'Bùa Độ Ách',
-    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Khi thua ván, Qiqi dán Bùa Độ Ách giúp giảm 15% tổng tiền phạt đếm lá phải trả cho người Về Nhất (kèm Hoạt Ảnh Nộ 5★ khi Chặt/Thắng).',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Khi thua ván, Qiqi dán Bùa Độ Ách giúp giảm 15% tổng tiền phạt đếm lá phải trả cho người Về Nhất (kèm Hoạt Ảnh Nộ 5★ & kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Lôi).',
   },
   keqing: {
     id: 'keqing',
@@ -1803,7 +1805,7 @@ const CHARACTER_SKILLS = {
     icon: '🍃',
     isPassiveBet: true,
     name: 'Liệu Pháp Mộng Đẹp',
-    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Kết thúc mỗi ván bài (dù thắng hay thua), Baku của Mizuki luôn hồi cố định +1.5× Mức cược bàn Xu an ủi (kèm Hoạt Ảnh Nộ 5★).',
+    shortDesc: '[Nội Tại Cược • Không có Kỹ Năng E] Kết thúc mỗi ván bài (dù thắng hay thua), Baku của Mizuki luôn hồi cố định +1.5× Mức cược bàn Xu an ủi (kèm Hoạt Ảnh Nộ 5★ & kích hoạt Tinh Khuếch Tán ×10 cược với hệ Băng).',
   },
   klee: {
     id: 'klee',
@@ -1880,7 +1882,7 @@ const CHARACTER_SKILLS = {
     charName: 'Cyno',
     icon: '🐺',
     name: 'Thiết Quân Luật Mahamatra',
-    shortDesc: 'Cắm Quyền Trượng Xích Sa ban hành Thiết Quân Luật trong vòng này: CẤM toàn bộ đối thủ đánh ra các quân bài Hoàng Gia (J, Q, K, A, 2 — chỉ được đỡ bằng 3→10) & giáng cấp bài lớn trên bàn xuống bậc 9!',
+    shortDesc: 'Cắm Quyền Trượng Xích Sa ban hành Thiết Quân Luật trong vòng này: CẤM toàn bộ đối thủ đánh ra các quân bài Hoàng Gia (J, Q, K, A, 2 — chỉ được đỡ bằng 3→10) & giáng cấp bài lớn trên bàn xuống bậc 9! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Băng)',
   },
   nilou: {
     id: 'nilou',
@@ -1915,7 +1917,7 @@ const CHARACTER_SKILLS = {
     charName: 'Wriothesley',
     icon: '🥊',
     name: 'Thiết Quyền Đối Xứng',
-    shortDesc: 'Đấm lật ngược toàn bộ bộ bài đang nằm trên sân thành đối xứng gương của nó qua trục giữa (3 ⇄ A, 4 ⇄ K, 5 ⇄ Q, 6 ⇄ J, 7 ⇄ 10, 8 ⇄ 9, 2 ➔ 3; Chất ♠ ⇄ ♥, ♣ ⇄ ♦), biến ngay bài lớn của đối thủ thành bài nhỏ để đánh đè!',
+    shortDesc: 'Đấm lật ngược toàn bộ bộ bài đang nằm trên sân thành đối xứng gương của nó qua trục giữa (3 ⇄ A, 4 ⇄ K, 5 ⇄ Q, 6 ⇄ J, 7 ⇄ 10, 8 ⇄ 9, 2 ➔ 3; Chất ♠ ⇄ ♥, ♣ ⇄ ♦), biến ngay bài lớn của đối thủ thành bài nhỏ để đánh đè! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Lôi)',
   },
   sigewinne: {
     id: 'sigewinne',
@@ -16468,13 +16470,14 @@ class TienLenGame {
     }
 
     // 3. Phản Ứng Tinh (×10 cược): CHỈ khi người đánh đè (attackerCharId) là:
-    // - Sandrone, Odette kích hoạt phản ứng lên bài hệ Lôi (electro) -> Tinh Siêu Dẫn (×10 cược)
-    // - Mitya kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Siêu Dẫn (×10 cược)
-    // - Vesna kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Khuếch Tán (×10 cược)
-    const ASTRAL_SUPERCONDUCT_CHARS = new Set(['sandrone', 'odette']);
+    // - Sandrone, Odette, Wriothesley, Qiqi, Diona kích hoạt phản ứng lên bài hệ Lôi (electro) -> Tinh Siêu Dẫn (×10 cược)
+    // - Mitya, Cyno, Yae Miko, Beidou kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Siêu Dẫn (×10 cược)
+    // - Vesna, Mizuki kích hoạt phản ứng lên bài hệ Băng (cryo) -> Tinh Khuếch Tán (×10 cược)
+    const ASTRAL_SUPERCONDUCT_CRYO_CHARS = new Set(['sandrone', 'odette', 'wriothesley', 'qiqi', 'diona']);
+    const ASTRAL_SUPERCONDUCT_ELECTRO_CHARS = new Set(['mitya', 'cyno', 'yaemiko', 'beidou']);
     const isAstralSuperconduct =
-      (ASTRAL_SUPERCONDUCT_CHARS.has(attackerCharId) && defenderElem === 'electro') ||
-      (attackerCharId === 'mitya' && defenderElem === 'cryo');
+      (ASTRAL_SUPERCONDUCT_CRYO_CHARS.has(attackerCharId) && defenderElem === 'electro') ||
+      (ASTRAL_SUPERCONDUCT_ELECTRO_CHARS.has(attackerCharId) && defenderElem === 'cryo');
     if (isAstralSuperconduct) {
       return {
         id: 'astral_superconduct',
@@ -16485,7 +16488,8 @@ class TienLenGame {
       };
     }
 
-    if (attackerCharId === 'vesna' && defenderElem === 'cryo') {
+    const ASTRAL_SWIRL_CHARS = new Set(['vesna', 'mizuki']);
+    if (ASTRAL_SWIRL_CHARS.has(attackerCharId) && defenderElem === 'cryo') {
       return {
         id: 'astral_swirl',
         shortName: '✨🍃❄️ Tinh Khuếch Tán',
@@ -34008,7 +34012,7 @@ if ('serviceWorker' in navigator) {
     });
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('sw.js?v=214', { updateViaCache: 'none' })
+        .register('sw.js?v=215', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update().catch(() => {});
         })

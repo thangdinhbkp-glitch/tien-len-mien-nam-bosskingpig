@@ -1,4 +1,4 @@
-const CORE_CACHE = 'tienlen-genshin-core-v214';
+const CORE_CACHE = 'tienlen-genshin-core-v215';
 const MEDIA_CACHE = 'tienlen-genshin-media-v6';
 
 const CORE_ASSETS = [

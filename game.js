@@ -1826,7 +1826,7 @@ const CHARACTER_SKILLS = {
     charName: 'Varka',
     icon: '🗡️',
     name: 'Song Kiếm Hợp Lực',
-    shortDesc: 'Trong lượt này: Cho phép Varka ghép 2 lá bài Lẻ khác số bất kỳ cộng gộp điểm lại thành 1 đòn Song Kiếm (tối đa cấp Heo Cơ 2♥) để chém đè trực tiếp lên Bài Lẻ trên bàn!',
+    shortDesc: 'Trong lượt này: Cho phép Varka ghép 2 lá bài bất kỳ (kể cả 2 lá lẻ hoặc 1 Đôi) cộng gộp điểm lại thành 1 đòn Song Kiếm (tối đa cấp Heo Cơ 2♥) để chém đè trực tiếp lên Bài Lẻ (kể cả Heo) trên bàn!',
   },
   nicole: {
     id: 'nicole',
@@ -2688,17 +2688,6 @@ function classifyCombo(cards) {
   }
 
   if (n === 2) {
-    if (sorted[0].rankIndex === sorted[1].rankIndex) {
-      return {
-        type: COMBO_TYPES.PAIR,
-        cards: sorted,
-        length: 2,
-        highCard,
-        highValue,
-        highRank,
-        label: `Đôi ${highCard.rank}`,
-      };
-    }
     if (activeVarkaSumSlash) {
       const face0 = sorted[0].rankIndex + 3;
       const face1 = sorted[1].rankIndex + 3;
@@ -2722,6 +2711,17 @@ function classifyCombo(cards) {
         highRank: sumRank,
         isVarkaSumSlash: true,
         label: `Song Kiếm Hợp Lực (${sorted[0].rank}${sorted[0].suit}+${sorted[1].rank}${sorted[1].suit} ➔ Cấp ${RANKS[sumRank]}${SUITS[sumSuit]} 🗡️)`,
+      };
+    }
+    if (sorted[0].rankIndex === sorted[1].rankIndex) {
+      return {
+        type: COMBO_TYPES.PAIR,
+        cards: sorted,
+        length: 2,
+        highCard,
+        highValue,
+        highRank,
+        label: `Đôi ${highCard.rank}`,
       };
     }
     return null;
@@ -3431,13 +3431,13 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     combos.push(classifyCombo([c]));
   });
 
-  // Song Kiếm Hợp Lực (Varka): Sinh các cặp 2 lá bài Lẻ khác số cộng điểm đè Bài Lẻ trên bàn
+  // Song Kiếm Hợp Lực (Varka): Sinh các cặp 2 lá bài bất kỳ (kể cả Đôi) cộng điểm đè Bài Lẻ trên bàn
   if (activeVarkaSumSlash && sorted.length >= 2) {
     for (let i = 0; i < sorted.length; i++) {
       for (let j = i + 1; j < sorted.length; j++) {
-        if (sorted[i].rankIndex !== sorted[j].rankIndex && sorted[j].rankIndex < 12) {
+        if (sorted[j].rankIndex < 12) {
           const sumCombo = classifyCombo([sorted[i], sorted[j]]);
-          if (sumCombo) combos.push(sumCombo);
+          if (sumCombo && sumCombo.isVarkaSumSlash) combos.push(sumCombo);
         }
       }
     }
@@ -17431,7 +17431,7 @@ class TienLenGame {
     }
     if (this.varkaSumSlashTurn) {
       pills.push(
-        `<span class="round-skill-pill">🗡️ Song Kiếm Varka: Lượt này được ghép 2 Lá Lẻ khác số cộng điểm đè Bài Lẻ trên bàn!</span>`
+        `<span class="round-skill-pill">🗡️ Song Kiếm Varka: Lượt này được ghép 2 lá bài bất kỳ (kể cả Đôi) cộng điểm đè Bài Lẻ trên bàn!</span>`
       );
     }
     if (this.baizhuShieldOwnerId !== null) {
@@ -18652,6 +18652,59 @@ class TienLenGame {
     return candidates[0];
   }
 
+  findBestDurinTransformCard(hand) {
+    if (!Array.isArray(hand) || hand.length === 0) return null;
+    const struct = this.analyzeBotHandStructure(hand);
+    const sortedDesc = [...sortCardsAsc(hand)]
+      .reverse()
+      .filter((c) => c.rankIndex < 12 && !(this.mustPlay3Spade && c.value === 0));
+    if (sortedDesc.length === 0) {
+      return [...sortCardsAsc(hand)].reverse().find((c) => c.rankIndex < 12) || null;
+    }
+    // 1. Ưu tiên cao nhất: Lá lẻ cô lập (< A nếu có lá cô lập <= K, để giữ lại cả A lẫn 2♥; nếu chỉ có A cô lập thì chọn A) không phá Sảnh/Đôi/Sám/Hàng
+    const isolatedNonAce = sortedDesc.find(
+      (c) =>
+        c.rankIndex <= 10 &&
+        !struct.bombRanks.has(c.rankIndex) &&
+        struct.rankCounts[c.rankIndex] === 1 &&
+        !struct.criticalStraightRanks.has(c.rankIndex)
+    );
+    if (isolatedNonAce) return isolatedNonAce;
+
+    const isolatedAny = sortedDesc.find(
+      (c) =>
+        !struct.bombRanks.has(c.rankIndex) &&
+        struct.rankCounts[c.rankIndex] === 1 &&
+        !struct.criticalStraightRanks.has(c.rankIndex)
+    );
+    if (isolatedAny) return isolatedAny;
+
+    // 2. Lá có rankCount === 1 (không phá Đôi/Sám/Hàng) mà khi rút ra ít tăng số lượt nhất
+    const singleRankCands = sortedDesc.filter(
+      (c) => !struct.bombRanks.has(c.rankIndex) && struct.rankCounts[c.rankIndex] === 1
+    );
+    if (singleRankCands.length > 0) {
+      let bestCand = singleRankCands[0];
+      let bestTurns = Infinity;
+      for (const cand of singleRankCands) {
+        const rem = hand.filter((hc) => hc.id !== cand.id);
+        const plan = this.planOptimalHandPartition(rem, false);
+        if (plan.totalTurns < bestTurns) {
+          bestTurns = plan.totalTurns;
+          bestCand = cand;
+        }
+      }
+      return bestCand;
+    }
+
+    // 3. Fallback: Lá cao nhất không nằm trong Hàng
+    return (
+      sortedDesc.find((c) => !struct.bombRanks.has(c.rankIndex)) ||
+      sortedDesc[0] ||
+      null
+    );
+  }
+
   findMityaTripleAndJunk(hand, selectedIds = null, requireSingleSelected = false) {
     if (!Array.isArray(hand) || hand.length < 4) return null;
     const selSet =
@@ -18717,21 +18770,49 @@ class TienLenGame {
     const otherCards = hand.filter((c) => !tripleIdSet.has(c.id));
     if (otherCards.length === 0) return null;
 
-    const selectedJunk = otherCards.find((c) => selSet.has(c.id));
+    const selectedJunk = otherCards.find(
+      (c) => selSet.has(c.id) && !(this.mustPlay3Spade && c.value === 0)
+    );
     let junkCard = selectedJunk || null;
     if (!junkCard) {
+      const remWithoutTriple = otherCards;
+      const remStruct = this.analyzeBotHandStructure(remWithoutTriple);
       const freq = new Map();
       for (const c of otherCards) {
         freq.set(c.rankIndex, (freq.get(c.rankIndex) || 0) + 1);
       }
       const sortedCandidates = [...otherCards].sort((a, b) => {
+        const aMust3S = this.mustPlay3Spade && a.value === 0 ? 1 : 0;
+        const bMust3S = this.mustPlay3Spade && b.value === 0 ? 1 : 0;
+        if (aMust3S !== bMust3S) return aMust3S - bMust3S;
+
         const aIsTwo = a.rankIndex === 12 ? 1 : 0;
-        const bIsTwo = b.rankIndex === 12 ? 0 : -1;
-        if ((a.rankIndex === 12) !== (b.rankIndex === 12)) {
-          return a.rankIndex === 12 ? 1 : -1;
-        }
+        const bIsTwo = b.rankIndex === 12 ? 1 : 0;
+        if (aIsTwo !== bIsTwo) return aIsTwo - bIsTwo;
+
+        const aInBomb = remStruct.bombRanks.has(a.rankIndex) ? 1 : 0;
+        const bInBomb = remStruct.bombRanks.has(b.rankIndex) ? 1 : 0;
+        if (aInBomb !== bInBomb) return aInBomb - bInBomb;
+
+        const aInStraight = remStruct.criticalStraightRanks.has(a.rankIndex) ? 1 : 0;
+        const bInStraight = remStruct.criticalStraightRanks.has(b.rankIndex) ? 1 : 0;
         const aCount = freq.get(a.rankIndex) || 1;
         const bCount = freq.get(b.rankIndex) || 1;
+
+        // Ưu tiên số 1: Lá lẻ cô lập hoàn toàn (count === 1 và không nằm trong Sảnh)
+        const aIsolated = aCount === 1 && !aInStraight ? 0 : 1;
+        const bIsolated = bCount === 1 && !bInStraight ? 0 : 1;
+        if (aIsolated !== bIsolated) return aIsolated - bIsolated;
+
+        // Nếu buộc phải rút từ bộ khác, tính tổng số lượt đánh và số rác của phần bài còn lại
+        const remA = remWithoutTriple.filter((c) => c.id !== a.id);
+        const remB = remWithoutTriple.filter((c) => c.id !== b.id);
+        const planA = this.planOptimalHandPartition(remA, false);
+        const planB = this.planOptimalHandPartition(remB, false);
+        if (planA.totalTurns !== planB.totalTurns) return planA.totalTurns - planB.totalTurns;
+        if (planA.trashSinglesCount !== planB.trashSinglesCount) {
+          return planA.trashSinglesCount - planB.trashSinglesCount;
+        }
         if (aCount !== bCount) return aCount - bCount;
         if (a.rankIndex !== b.rankIndex) return a.rankIndex - b.rankIndex;
         return a.suitIndex - b.suitIndex;
@@ -19831,16 +19912,12 @@ class TienLenGame {
         skillSummary = `⚔️ [Khiên Phản Đòn Tây Phong] ${player.name} dựng khiên phản ngược ${oldLabel} trả lại bắt ${prevTrickOwner.name} (cùng cả bàn) phải tự đỡ lại chính bộ bài của họ!`;
       }
     } else if (charId === 'durin') {
-      const struct = this.analyzeBotHandStructure(player.hand);
-      const sortedDesc = [...sortCardsAsc(player.hand)].reverse();
       let targetCard = null;
       if (preferredCardIds && preferredCardIds.length > 0) {
         targetCard = player.hand.find((c) => preferredCardIds.includes(c.id) && c.rankIndex < 12);
       }
       if (!targetCard) {
-        targetCard =
-          sortedDesc.find((c) => c.rankIndex < 12 && !struct.bombRanks.has(c.rankIndex)) ||
-          sortedDesc.find((c) => c.rankIndex < 12);
+        targetCard = this.findBestDurinTransformCard(player.hand);
       }
       if (targetCard) {
         const oldStr = `${targetCard.rank}${targetCard.suit}`;
@@ -19852,9 +19929,18 @@ class TienLenGame {
         targetCard.value = 12 * 4 + 3;
         targetCard.id = `2♥_durin_${Date.now()}`;
         player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
-        this.selectedCardIds = new Set([targetCard.id]);
+        const otherTwoForPair =
+          (this.currentCombo && this.currentCombo.type === COMBO_TYPES.PAIR) ||
+          (!this.currentCombo && player.hand.length === 2)
+            ? player.hand.find((c) => c.rankIndex === 12 && c.id !== targetCard.id)
+            : null;
+        if (otherTwoForPair) {
+          this.selectedCardIds = new Set([otherTwoForPair.id, targetCard.id]);
+        } else {
+          this.selectedCardIds = new Set([targetCard.id]);
+        }
         this.companionCardIds.clear();
-        skillSummary = `🩸 [Trái Tim Rồng Đỏ] ${player.name} truyền máu Hắc Long biến lá cao nhất dưới Heo (${oldStr}) hóa thành con Heo Cơ 2♥ thực thụ!`;
+        skillSummary = `🩸 [Trái Tim Rồng Đỏ] ${player.name} truyền máu Hắc Long biến lá bài (${oldStr}) hóa thành con Heo Cơ 2♥ thực thụ!`;
       }
     } else if (charId === 'xiao') {
       this.xiaoKarmaOwnerId = player.id;
@@ -20166,27 +20252,31 @@ class TienLenGame {
       const sorted = sortCardsAsc(player.hand).filter((c) => !struct.bombRanks.has(c.rankIndex));
       const pool = sorted.length >= 2 ? sorted : sortCardsAsc(player.hand);
       let chosenPair = null;
-      for (let i = 0; i < pool.length; i++) {
-        for (let j = i + 1; j < pool.length; j++) {
-          if (pool[i].rankIndex === pool[j].rankIndex) continue;
-          const combo = classifyCombo([pool[i], pool[j]]);
-          if (combo && combo.isVarkaSumSlash && (!this.currentCombo || canBeatCombo(this.currentCombo, combo))) {
-            chosenPair = [pool[i], pool[j]];
-            break;
-          }
+      // Nếu người chơi đã chọn sẵn đúng 2 lá bài trên tay mà hợp kích đè được bài trên bàn -> Giữ nguyên 2 lá người chơi chọn!
+      const humanPreselected =
+        player.id === this.mySeatId && savedHumanSelectedIds.size === 2
+          ? player.hand.filter((c) => savedHumanSelectedIds.has(c.id))
+          : [];
+      if (humanPreselected.length === 2) {
+        const preCombo = classifyCombo(humanPreselected);
+        if (preCombo && preCombo.isVarkaSumSlash && (!this.currentCombo || canBeatCombo(preCombo, this.currentCombo).ok)) {
+          chosenPair = humanPreselected;
         }
-        if (chosenPair) break;
       }
-      if (!chosenPair && pool.length >= 2) {
+      if (!chosenPair) {
         for (let i = 0; i < pool.length; i++) {
           for (let j = i + 1; j < pool.length; j++) {
-            if (pool[i].rankIndex !== pool[j].rankIndex) {
+            const combo = classifyCombo([pool[i], pool[j]]);
+            if (combo && combo.isVarkaSumSlash && (!this.currentCombo || canBeatCombo(combo, this.currentCombo).ok)) {
               chosenPair = [pool[i], pool[j]];
               break;
             }
           }
           if (chosenPair) break;
         }
+      }
+      if (!chosenPair && pool.length >= 2) {
+        chosenPair = [pool[0], pool[1]];
       }
       let slashNote = '';
       if (chosenPair) {
@@ -20197,7 +20287,7 @@ class TienLenGame {
           slashNote = ` — Sẵn sàng hợp kích ${slashCombo.label}`;
         }
       }
-      skillSummary = `🗡️ [Song Kiếm Hợp Lực] ${player.name} vung Song Đại Kiếm Bắc Phong: Cho phép gộp 2 lá lẻ khác số cộng dồn tổng điểm thành 1 đòn chém Bài Lẻ cực đại (tối đa hóa thành Heo Cơ 2♥)${slashNote}!`;
+      skillSummary = `🗡️ [Song Kiếm Hợp Lực] ${player.name} vung Song Đại Kiếm Bắc Phong: Cho phép gộp 2 lá bài bất kỳ (kể cả Đôi) cộng dồn tổng điểm thành 1 đòn chém Bài Lẻ cực đại (tối đa hóa thành Heo Cơ 2♥)${slashNote}!`;
     } else if (charId === 'nicole') {
       this.nicoleSuitOnlyRound = true;
       activeNicoleSuitOnlyRound = true;
@@ -20800,9 +20890,25 @@ class TienLenGame {
     // đồng thời khôi phục nguyên vẹn lựa chọn bài trên tay của người chơi thật!
     const createdBySkillIds = Array.from(this.selectedCardIds);
     if (createdBySkillIds.length > 0) {
-      player._skillBoostedCardIds = createdBySkillIds;
       const comboFromSkill = classifyCombo(player.hand.filter((c) => createdBySkillIds.includes(c.id)));
+      const remAfterSkillCombo = player.hand.filter((c) => !createdBySkillIds.includes(c.id));
+      // Không ép Bot tự quăng Heo Cơ 2♥ (Durin) hoặc Hàng Tứ Quý / Đôi Thông (Mitya, Chiori) ra bàn trống khi trên tay còn nhiều bộ bài khác!
+      const isDurinHoldOnLead =
+        charId === 'durin' &&
+        !this.currentCombo &&
+        remAfterSkillCombo.length > 0;
+      const isBombSkillHoldOnLead =
+        (charId === 'mitya' || charId === 'chiori') &&
+        !this.currentCombo &&
+        remAfterSkillCombo.length > 0 &&
+        !classifyCombo(remAfterSkillCombo);
+
+      if (!isDurinHoldOnLead && !isBombSkillHoldOnLead) {
+        player._skillBoostedCardIds = createdBySkillIds;
+      }
       if (
+        !isDurinHoldOnLead &&
+        !isBombSkillHoldOnLead &&
         comboFromSkill &&
         (!this.currentCombo || canBeatCombo(comboFromSkill, this.currentCombo).ok) &&
         [
@@ -21775,25 +21881,79 @@ class TienLenGame {
         }
       }
     } else if (charId === 'durin') {
-      const sortedDesc = [...sortCardsAsc(bot.hand)].reverse();
-      const highCand =
-        sortedDesc.find((c) => c.rankIndex < 12 && !struct.bombRanks.has(c.rankIndex)) ||
-        sortedDesc.find((c) => c.rankIndex < 12);
+      const highCand = this.findBestDurinTransformCard(bot.hand);
       if (highCand) {
+        const hasCleanNormalSingleResponse = Boolean(
+          plannedMove &&
+            plannedMove.highRank < 12 &&
+            this.evaluateMoveBreakCost(plannedMove, struct) < 70 &&
+            !(plannedMove.highRank === 11 && this.currentCombo && this.currentCombo.highRank <= 6 && minOppCards >= 4)
+        );
+        const remAfterSingle2 = bot.hand.filter((c) => c.id !== highCand.id);
+        const remSingleCombo = remAfterSingle2.length > 0 ? classifyCombo(remAfterSingle2) : null;
+        const winsSoonAfterSingle2 =
+          remAfterSingle2.length === 0 ||
+          Boolean(remSingleCombo && this.isMoveUnbeatableByOpponents(bot, remSingleCombo, false)) ||
+          (remAfterSingle2.length <= 5 && Boolean(this.findForcedCheckmateMoveFromLead(bot, remAfterSingle2)));
+
         const canCutSingleWith2Heart =
-          this.currentCombo &&
+          Boolean(this.currentCombo) &&
           this.currentCombo.type === COMBO_TYPES.SINGLE &&
           this.currentCombo.highValue < 51 &&
-          (!plannedMove || this.evaluateMoveBreakCost(plannedMove, struct) >= 75 || this.currentCombo.highRank >= 8);
+          (winsSoonAfterSingle2 ||
+            (minOppCards === 1 && (!plannedMove || plannedMove.highValue < 48)) ||
+            (!hasCleanNormalSingleResponse &&
+              (this.currentCombo.highRank >= 9 ||
+                tac.ownerCards <= 4 ||
+                minOppCards <= 3 ||
+                bot.hand.length <= 4)));
+
+        const hasCleanNormalPairResponse = Boolean(
+          plannedMove &&
+            plannedMove.highRank < 12 &&
+            this.evaluateMoveBreakCost(plannedMove, struct) < 70
+        );
+        const existingTwo = bot.hand.find((c) => c.rankIndex === 12 && c.id !== highCand.id);
+        const remAfterPair2 = existingTwo
+          ? bot.hand.filter((c) => c.id !== highCand.id && c.id !== existingTwo.id)
+          : [];
+        const remPairCombo = remAfterPair2.length > 0 ? classifyCombo(remAfterPair2) : null;
+        const winsSoonAfterPair2 =
+          Boolean(existingTwo) &&
+          (remAfterPair2.length === 0 ||
+            Boolean(remPairCombo && this.isMoveUnbeatableByOpponents(bot, remPairCombo, false)));
+
         const canFormPairOfTwos =
-          this.currentCombo &&
+          Boolean(this.currentCombo) &&
           this.currentCombo.type === COMBO_TYPES.PAIR &&
           this.currentCombo.highValue < 51 &&
           rankCounts[12] >= 1 &&
-          (!plannedMove || this.currentCombo.highRank >= 8);
-        const goodMidEndgameUpgrade =
-          !this.currentCombo && (bot.hand.length <= 7 || minOppCards <= 6);
-        if (canCutSingleWith2Heart || canFormPairOfTwos || goodMidEndgameUpgrade) {
+          (winsSoonAfterPair2 ||
+            (!hasCleanNormalPairResponse &&
+              (this.currentCombo.highRank >= 8 ||
+                tac.ownerCards <= 4 ||
+                minOppCards <= 3 ||
+                bot.hand.length <= 5)));
+
+        // Khi đang cầm Cái (!this.currentCombo): TUYỆT ĐỐI KHÔNG bật [Q] rồi quăng 2♥ ra bàn trống!
+        // Chỉ bật khi còn 1 lá (hoặc 2 lá ghép Đôi Heo về luôn), hoặc khi biến lá lẻ thành 2♥ tạo thành chuỗi Chiếu Hết Cưỡng Bức (<= 4 lá)!
+        let goodLeadCheckmateUpgrade = false;
+        if (!this.currentCombo) {
+          if (bot.hand.length === 1 || (bot.hand.length === 2 && rankCounts[12] === 1)) {
+            goodLeadCheckmateUpgrade = true;
+          } else if (bot.hand.length <= 4 && !hasLeadCheckmateNow) {
+            const simHand = bot.hand.map((c) =>
+              c.id === highCand.id
+                ? { ...c, rankIndex: 12, rank: '2', suitIndex: 3, suit: '♥', isRed: true, value: 51 }
+                : c
+            );
+            if (this.findForcedCheckmateMoveFromLead(bot, simHand)) {
+              goodLeadCheckmateUpgrade = true;
+            }
+          }
+        }
+
+        if (canCutSingleWith2Heart || canFormPairOfTwos || goodLeadCheckmateUpgrade) {
           shouldCast = true;
           preferredIds = [highCand.id];
         }
@@ -21910,7 +22070,7 @@ class TienLenGame {
         if (varkaMoves.length > 0) {
           shouldCast = true;
         }
-      } else if (!this.currentCombo && bot.hand.length === 2 && bot.hand[0].rankIndex !== bot.hand[1].rankIndex) {
+      } else if (!this.currentCombo && bot.hand.length === 2) {
         shouldCast = true;
       }
     } else if (charId === 'nicole') {
@@ -22232,16 +22392,29 @@ class TienLenGame {
       const mityaPlan = this.findMityaTripleAndJunk(bot.hand);
       if (mityaPlan) {
         const canChopTableNow =
-          this.currentCombo &&
-          (this.currentCombo.highRank === 12 ||
-            this.currentCombo.type === COMBO_TYPES.THREE_PAIR_STRAIGHT ||
-            (this.currentCombo.type === COMBO_TYPES.FOUR_OF_KIND &&
+          Boolean(this.currentCombo) &&
+          !activeBaizhuShield &&
+          !this.currentCombo.baizhuShielded &&
+          ((this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank === 12) ||
+            (this.currentCombo.type === COMBO_TYPES.PAIR && this.currentCombo.highRank === 12) ||
+            this.currentCombo.type === COMBO_TYPES.THREE_PAIRS ||
+            (this.currentCombo.type === COMBO_TYPES.FOUR_OF_A_KIND &&
               this.currentCombo.highRank < mityaPlan.targetRankIdx));
-        const goodLeadOrFinish =
-          !this.currentCombo && (bot.hand.length <= 8 || minOppCards <= 6);
-        if (canChopTableNow || goodLeadOrFinish) {
+
+        const fourIds = [...mityaPlan.tripleCards.map((c) => c.id), mityaPlan.junkCard.id];
+        const fourIdSet = new Set(fourIds);
+        const remAfterFour = bot.hand.filter((c) => !fourIdSet.has(c.id));
+        const remComboAfterFour = remAfterFour.length > 0 ? classifyCombo(remAfterFour) : null;
+        // Khi cầm Cái (!this.currentCombo): Chỉ đúc Tứ Quý đánh luôn khi vừa đủ 4 lá Về Nhất (remAfterFour.length === 0)
+        // hoặc phần bài còn lại sau Tứ Quý chỉ còn đúng 1 Bộ hợp lệ (đánh Tứ Quý bất bại cướp vòng rồi xả nốt bộ cuối Về Nhất)!
+        // Tuyệt đối không đúc Tứ Quý rồi ném ra bàn trống khi trên tay còn nhiều lá lẻ rời rạc (giữ kỹ năng để rình chặt Heo/Hàng)!
+        const canInstantOrTwoTurnFinishOnLead =
+          !this.currentCombo &&
+          (remAfterFour.length === 0 || Boolean(remComboAfterFour));
+
+        if (canChopTableNow || canInstantOrTwoTurnFinishOnLead) {
           shouldCast = true;
-          preferredIds = [...mityaPlan.tripleCards.map((c) => c.id), mityaPlan.junkCard.id];
+          preferredIds = fourIds;
         }
       }
     } else if (charId === 'lyney') {
@@ -22271,18 +22444,24 @@ class TienLenGame {
       if (chioriPlan) {
         const pairRunHighRank = chioriPlan.lowStart + 2;
         const canChopHeoOr3Pairs =
-          this.currentCombo &&
+          Boolean(this.currentCombo) &&
+          !activeBaizhuShield &&
+          !this.currentCombo.baizhuShielded &&
           ((this.currentCombo.type === COMBO_TYPES.SINGLE && this.currentCombo.highRank === 12) ||
             (this.currentCombo.type === COMBO_TYPES.THREE_PAIRS &&
               this.currentCombo.highRank < pairRunHighRank));
-        const goodLeadOrFinish =
-          !this.currentCombo && (bot.hand.length <= 9 || minOppCards <= 7);
-        if (canChopHeoOr3Pairs || goodLeadOrFinish) {
+        const sixIds = [
+          ...chioriPlan.lowCards.map((c) => c.id),
+          ...chioriPlan.highCards.map((c) => c.id),
+        ];
+        const sixIdSet = new Set(sixIds);
+        const remAfterSix = bot.hand.filter((c) => !sixIdSet.has(c.id));
+        const canFinishOnLead =
+          !this.currentCombo &&
+          (remAfterSix.length === 0 || Boolean(classifyCombo(remAfterSix)));
+        if (canChopHeoOr3Pairs || canFinishOnLead) {
           shouldCast = true;
-          preferredIds = [
-            ...chioriPlan.lowCards.map((c) => c.id),
-            ...chioriPlan.highCards.map((c) => c.id),
-          ];
+          preferredIds = sixIds;
         }
       }
     }

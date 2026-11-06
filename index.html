@@ -94,7 +94,7 @@
     }
   ]
   </script>
-  <link rel="stylesheet" href="styles.css?v=209" />
+  <link rel="stylesheet" href="styles.css?v=210" />
   <!-- PeerJS hỗ trợ kết nối P2P dự phòng xuyên tường lửa WiFi -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -498,21 +498,21 @@
             <span class="dock-label" style="color:#e0f2fe;font-weight:900;">Kết Bạn &amp; Người Chơi</span>
             <span id="lobby-friends-badge" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:10.5px;font-weight:900;padding:1px 6px;border-radius:999px;border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5);">0</span>
           </button>
-          <button class="app-dock-btn dock-ad" id="btn-lobby-watch-ad" title="Xem Video Rick Roll / Verity 30s nhận +1 Roll (1,600 Xu)!">
+          <button class="app-dock-btn dock-ad" id="btn-lobby-watch-ad" title="Bấm nhận ngay +1,600 Xu &amp; xem Video Rick Roll / Verity!">
             <span class="dock-icon">📺</span>
-            <span class="dock-label">Xem QC (+1 Roll)</span>
+            <span class="dock-label">Xem QC (+1,600 Xu)</span>
           </button>
-          <a class="app-dock-btn dock-ad sponsor-2roll-direct-link" id="btn-lobby-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" title="Mở Trang Nhà Tài Trợ (Monetag / Shopee) nhận ngay +2 Roll (3,200 Xu)!" style="text-decoration:none;background:linear-gradient(135deg,rgba(245,158,11,0.32),rgba(234,88,12,0.38));border-color:#fde047;">
+          <a class="app-dock-btn dock-ad sponsor-2roll-direct-link" id="btn-lobby-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" title="Mở Trang Nhà Tài Trợ (Monetag / Shopee) nhận ngay +3,200 Xu!" style="text-decoration:none;background:linear-gradient(135deg,rgba(245,158,11,0.32),rgba(234,88,12,0.38));border-color:#fde047;">
             <span class="dock-icon">🎁</span>
-            <span class="dock-label" style="color:#fef08a;font-weight:800;">Mở Web (+2 Roll)</span>
+            <span class="dock-label" style="color:#fef08a;font-weight:800;">Mở Web (+3,200 Xu)</span>
           </a>
-          <button class="app-dock-btn dock-ad" id="btn-lobby-shopee-merch" onclick="window.tienLenGame.openShopeeMerchShelfModal()" title="Kệ Hàng Vật Phẩm Genshin &amp; Bộ Bài Nhựa PVC Giá Rẻ (14k–56k) — Xem sản phẩm nhận thêm +1 Roll (1,600 Xu)!" style="background:linear-gradient(135deg,rgba(238,77,45,0.32),rgba(249,115,22,0.38));border-color:#fb923c;">
+          <button class="app-dock-btn dock-ad" id="btn-lobby-shopee-merch" onclick="window.tienLenGame.openShopeeMerchShelfModal()" title="Kệ Hàng Vật Phẩm Genshin &amp; Bộ Bài Nhựa PVC Giá Rẻ (14k–56k) — Bấm xem sản phẩm nhận ngay +1,600 Xu!" style="background:linear-gradient(135deg,rgba(238,77,45,0.32),rgba(249,115,22,0.38));border-color:#fb923c;">
             <span class="dock-icon">🛒</span>
-            <span class="dock-label" style="color:#fed7aa;font-weight:800;">Phụ Kiện 14K (+1 Roll)</span>
+            <span class="dock-label" style="color:#fed7aa;font-weight:800;">Phụ Kiện 14K (+1,600 Xu)</span>
           </button>
           <button class="app-dock-btn dock-ad" id="btn-lobby-giftcode" onclick="window.tienLenGame.openGiftcodeModal()" title="Vượt Link nhận Giftcode Cá Nhân (+5 Roll = 8,000 Xu • Mã Riêng Chống Share 100%) &amp; Nhập Code Tân Thủ" style="background:linear-gradient(135deg,rgba(168,85,247,0.34),rgba(236,72,153,0.38));border-color:#f472b6;">
             <span class="dock-icon">🎟️</span>
-            <span class="dock-label" style="color:#fbcfe8;font-weight:800;">Giftcode (+5 Roll)</span>
+            <span class="dock-label" style="color:#fbcfe8;font-weight:800;">Giftcode (+8,000 Xu)</span>
           </button>
           <button class="app-dock-btn dock-ad" id="btn-lobby-topup" onclick="window.tienLenGame.openTopupModal()" title="Quầy Ủng Hộ Duy Trì Server &amp; Nhận Vé Cầu Nguyện (💫 Roll) / Thẻ Tháng Không Không Nguyệt Chúc 20K (Tặng Gấp Đôi x2 Lần Đầu • Tự Động 24/24)" style="background:linear-gradient(135deg,rgba(5,150,105,0.42),rgba(16,185,129,0.45));border-color:#6ee7b7;box-shadow:0 0 12px rgba(16,185,129,0.35);">
             <span class="dock-icon">☕</span>
@@ -874,10 +874,10 @@
               🤝 Bạn Bè &amp; Người Chơi
             </button>
             <button class="pause-tool-btn ad-reward-btn" id="btn-top-watch-ad">
-              📺 Xem QC 30s (+1 Roll)
+              📺 Xem QC (+1,600 Xu)
             </button>
             <a class="pause-tool-btn ad-reward-btn sponsor-2roll-direct-link" id="btn-top-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" style="text-decoration:none;background:linear-gradient(135deg,#f59e0b,#ea580c);border-color:#fde047;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;">
-              🎁 Mở Web Tài Trợ (+2 Roll)
+              🎁 Mở Web Tài Trợ (+3,200 Xu)
             </a>
             <button class="pause-tool-btn primary-btn" id="btn-new-game">
               🔄 Chia Ván Mới
@@ -1149,13 +1149,13 @@
               🌠 Banner Cầu Nguyện (Gacha)
             </button>
             <button class="shop-tab" id="tab-btn-merch" style="border-color:rgba(249,115,22,0.55);color:#fed7aa;">
-              🛒 Kệ Hàng Genshin &amp; Bộ Bài (+1 Roll)
+              🛒 Kệ Hàng Genshin &amp; Bộ Bài (+1,600 Xu)
             </button>
             <button class="shop-tab" id="tab-btn-history">
               📜 Lịch Sử Roll &amp; Tỷ Lệ Bảo Hiểm
             </button>
             <button class="shop-tab" id="tab-btn-quests">
-              🧭 Nhiệm Vụ Ngày (4 NV • 2 Roll)
+              🧭 Nhiệm Vụ Ngày (4 NV • +3,200 Xu)
             </button>
           </div>
 
@@ -1178,16 +1178,16 @@
               🎒 Vào Kho Đồ Trang Bị
             </button>
             <button class="quest-top-btn" id="btn-claim-bonus" title="Mở 4 Nhiệm Vụ Hàng Ngày — Mỗi nhiệm vụ nhận 0.5 Roll (+800 Xu)">
-              🧭 Làm 4 Nhiệm Vụ Ngày (+2 Roll / 3,200 Xu)
+              🧭 Làm 4 Nhiệm Vụ Ngày (+3,200 Xu)
             </button>
             <button class="ad-reward-btn" id="btn-shop-watch-ad" title="Xem Video Rick Roll / Verity (30 giây) nhận +1,600 Xu (= 1 Lượt Cầu Nguyện!)">
-              📺 Xem QC 30s (+1 Roll = 1,600 Xu)
+              📺 Xem QC (+1,600 Xu)
             </button>
             <a class="ad-reward-btn sponsor-2roll-direct-link" id="btn-shop-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" title="Mở Trang Nhà Tài Trợ (Monetag / Shopee) nhận ngay +2 Roll (+3,200 Xu)!" style="text-decoration:none;background:linear-gradient(135deg,#f59e0b,#ea580c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;">
-              🎁 Mở Web Tài Trợ (+2 Roll = 3,200 Xu) ↗
+              🎁 Mở Web Tài Trợ (+3,200 Xu) ↗
             </a>
             <button type="button" class="ad-reward-btn" id="btn-shop-giftcode" onclick="window.tienLenGame.openGiftcodeModal()" title="Vượt Link nhận Mã Giftcode Cá Nhân (+5 Roll = 8,000 Xu • Chống Share 100%) hoặc nhập Code sự kiện!" style="background:linear-gradient(135deg,#9333ea,#db2777);border:1.5px solid #f9a8d4;color:#ffffff;font-weight:900;">
-              🎟️ Săn Giftcode (+5 Roll = 8,000 Xu)
+              🎟️ Săn Giftcode (+8,000 Xu)
             </button>
             <button type="button" class="ad-reward-btn" id="btn-shop-topup" onclick="window.tienLenGame.openTopupModal()" title="Mở Quầy Ủng Hộ Server &amp; Nhận Vé Cầu Nguyện / Thẻ Tháng Không Không Nguyệt Chúc 20K (Tặng Gấp Đôi x2 Lần Đầu • Duyệt Tự Động 24/24)" style="background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #fde047;color:#ffffff;font-weight:900;box-shadow:0 0 14px rgba(16,185,129,0.45);">
               ☕ Ủng Hộ / Nhận Vé Roll (x2 Đầu)
@@ -1264,7 +1264,7 @@
               🌠 Sang Sảnh Cầu Nguyện (Săn Thêm Đồ Mới)
             </button>
             <button class="quest-top-btn" onclick="window.tienLenGame.closeInventoryModal(); window.tienLenGame.openDailyQuestsModal();">
-              🧭 Làm Nhiệm Vụ Ngày (+2 Roll)
+              🧭 Làm Nhiệm Vụ Ngày (+3,200 Xu)
             </button>
           </div>
           <button class="primary-btn" id="btn-ok-inventory" onclick="window.tienLenGame.closeInventoryModal()">✅ Xong &amp; Đóng Kho Đồ</button>
@@ -1295,10 +1295,10 @@
         <div class="modal-footer summary-footer" style="flex-wrap:wrap;gap:8px;">
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="ad-reward-btn watch-rickroll-ad-btn" id="btn-quests-watch-ad" onclick="window.tienLenGame.startRickRollAd()">
-              📺 Xem QC 30s (+1 Roll = 1,600 Xu)
+              📺 Xem QC (+1,600 Xu)
             </button>
             <a class="ad-reward-btn sponsor-2roll-direct-link" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" style="text-decoration:none;background:linear-gradient(135deg,#f59e0b,#ea580c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;">
-              🎁 Mở Web Tài Trợ (+2 Roll = 3,200 Xu) ↗
+              🎁 Mở Web Tài Trợ (+3,200 Xu) ↗
             </a>
             <button class="shop-btn" id="btn-quests-to-gacha">
               🌠 Sang Sảnh Cầu Nguyện (Gacha)
@@ -1383,10 +1383,10 @@
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="ad-reward-btn" id="btn-results-watch-ad" onclick="window.tienLenGame.startRickRollAd()">
-              📺 Xem QC 30s (+1 Roll)
+              📺 Xem QC (+1,600 Xu)
             </button>
             <a class="ad-reward-btn sponsor-2roll-direct-link" id="btn-results-sponsor-2roll" href="https://uplcm.com/4/12175425" target="_blank" rel="noopener noreferrer" onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)" style="text-decoration:none;background:linear-gradient(135deg,#f59e0b,#ea580c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;">
-              🎁 Mở Web (+2 Roll) ↗
+              🎁 Mở Web (+3,200 Xu) ↗
             </a>
             <button class="icon-btn gacha-wish-btn-sm" onclick="window.tienLenGame.performWish(1)">
               🌠 Cầu Nguyện Tiếp ×1 (1 Vé Roll / 1,600 Xu)
@@ -1406,17 +1406,17 @@
         <!-- Top Ad HUD Bar -->
         <div class="ad-top-bar">
           <div class="ad-sponsor-badge" id="ad-sponsor-badge">
-            📢 QUẢNG CÁO NHẬN THƯỞNG • XEM 30S (+1 ROLL) HOẶC MỞ WEB TÀI TRỢ (+2 ROLL NGAY!)
+            📢 QUẢNG CÁO NHẬN THƯỞNG • XEM QC (+1,600 XU NGAY) HOẶC MỞ WEB TÀI TRỢ (+3,200 XU NGAY!)
           </div>
           <div class="ad-top-right" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <button type="button" class="ad-skip-btn" id="btn-ad-switch-music" onclick="window.tienLenGame.toggleAdMusicTrack()" style="background:rgba(250,204,21,0.18);border-color:#fde047;color:#fef08a;cursor:pointer;" title="Đổi nhạc quảng cáo giữa Rick Roll và Verity">
               🎬 Video: Rick Roll (Đổi ⇄)
             </button>
             <div class="ad-countdown-pill" id="ad-countdown-pill">
-              ⏳ Nhận +1 Roll (1,600 Xu) sau: <strong>30s</strong>
+              ✅ Đã cộng <strong>+1,600 Xu</strong> vào ví!
             </div>
             <button class="ad-skip-btn" id="btn-ad-skip-or-claim">
-              🔒 Chờ 30s...
+              ✅ Đã Nhận +1,600 Xu (Đóng)
             </button>
           </div>
         </div>
@@ -1434,7 +1434,7 @@
             onclick="return window.tienLenGame.onClickSponsorAdLink(event)"
             style="padding:8px 16px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#ea580c);border:2px solid #fde047;color:#fff;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;text-decoration:none;box-shadow:0 4px 15px rgba(245,158,11,0.55);"
           >
-            🎁 Mở Trang Nhà Tài Trợ (Nhận Ngay +2 ROLL = 3,200 Xu!) ↗
+            🎁 Mở Trang Nhà Tài Trợ (Nhận Ngay +3,200 Xu!) ↗
           </a>
         </div>
 
@@ -1490,7 +1490,7 @@
           <div>
             <h2 id="inapp-sponsor-modal-title" style="color:#ffffff;">🛍️ NHÀ TÀI TRỢ SHOPEE VIỆT NAM</h2>
             <p id="inapp-sponsor-modal-sub" style="font-size:12px;color:#fef08a;margin:2px 0 0;font-weight:700;">
-              🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) vào tài khoản của bạn!
+              🎉 Đã cộng ngay 🪙 +3,200 Xu vào tài khoản của bạn!
             </p>
           </div>
           <button type="button" class="close-modal-btn" onclick="window.tienLenGame.closeInAppSponsorModal()">✕</button>
@@ -1501,7 +1501,7 @@
             📋 Copy Link Nhà Tài Trợ
           </button>
           <button type="button" class="primary-btn" onclick="window.tienLenGame.closeInAppSponsorModal()" style="padding:10px 20px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);border:1.5px solid #6ee7b7;">
-            ✅ Đã Nhận +2 Roll (3,200 Xu) • Đóng
+            ✅ Đã Nhận +3,200 Xu • Đóng
           </button>
         </div>
       </div>
@@ -1604,7 +1604,7 @@
       <div class="modal-card" style="max-width: 760px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
         <div class="modal-header">
           <div>
-            <h2>🎟️ SĂN GIFTCODE (+5 ROLL) &amp; ĐỔI MÃ TÂN THỦ</h2>
+            <h2>🎟️ SĂN GIFTCODE (+8,000 XU) &amp; ĐỔI MÃ TÂN THỦ</h2>
             <p style="font-size:12.5px;color:#cbd5e1;margin:2px 0 0;">
               Vượt Link nhận Mã Riêng Từng Tài Khoản (+5 Roll = 8,000 Xu • Chống Share 100%) • Nhập Code Tân Thủ &amp; Sự Kiện
             </p>
@@ -1647,7 +1647,7 @@
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="tool-btn" onclick="window.tienLenGame.closeTopupModal(); window.tienLenGame.openGiftcodeModal();" style="padding:8px 14px;font-weight:800;color:#fbcfe8;border-color:#f472b6;">
-              🎟️ Săn Giftcode Miễn Phí (+5 Roll)
+              🎟️ Săn Giftcode Miễn Phí (+8,000 Xu)
             </button>
             <button type="button" class="primary-btn" onclick="window.tienLenGame.closeTopupModal()" style="padding:8px 20px;font-weight:800;">
               ✅ Đóng Cửa Hàng
@@ -1982,6 +1982,6 @@
       window.__tlmnRefreshCornerAdBanner = function () {};
     })();
   </script>
-  <script src="game.js?v=209"></script>
+  <script src="game.js?v=210"></script>
 </body>
 </html>

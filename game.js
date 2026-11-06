@@ -11132,7 +11132,7 @@ class TienLenGame {
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
               <button type="button" class="ad-reward-btn watch-rickroll-ad-btn" id="btn-gacha-panel-watch-ad" style="width:100%;padding:9px 10px;font-weight:800;font-size:12.5px;border-radius:10px;" onclick="window.tienLenGame.startRickRollAd()">
-                📺 Xem QC 30s (+1 Roll = 1,600 Xu)
+                📺 Xem QC (+1,600 Xu)
               </button>
               <a
                 class="ad-reward-btn sponsor-2roll-direct-link"
@@ -11142,7 +11142,7 @@ class TienLenGame {
                 onclick="return window.tienLenGame.onClickDirectSponsor2Roll(event)"
                 style="width:100%;padding:9px 10px;font-weight:900;font-size:12.5px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#ea580c);border:1.5px solid #fde047;color:#ffffff;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;box-shadow:0 4px 12px rgba(245,158,11,0.45);"
               >
-                🎁 Mở Web Tài Trợ (+2 Roll = 3,200 Xu) ↗
+                🎁 Mở Web Tài Trợ (+3,200 Xu) ↗
               </a>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;">
@@ -11968,13 +11968,13 @@ class TienLenGame {
     const secs = totalSec % 60;
     const rewardStatusHtml =
       remMs > 0
-        ? `<span style="color:#fde68a;font-weight:800;">⏳ Đã nhận +1 Roll (Nhận lại sau ${mins}p ${String(secs).padStart(2, '0')}s • Vẫn xem &amp; mua hàng tự do!)</span>`
-        : `<span style="color:#4ade80;font-weight:900;">🎁 Bấm xem bất kỳ món nào bên dưới để nhận ngay +1 ROLL (+1,600 Xu) miễn phí!</span>`;
+        ? `<span style="color:#fde68a;font-weight:800;">⏳ Đã nhận +1,600 Xu (Nhận lại sau ${mins}p ${String(secs).padStart(2, '0')}s • Vẫn xem &amp; mua hàng tự do!)</span>`
+        : `<span style="color:#4ade80;font-weight:900;">🎁 Bấm xem bất kỳ món nào bên dưới để nhận ngay +1,600 Xu miễn phí!</span>`;
 
     const cardsHtml = items
       .map((item) => {
         const btnText =
-          remMs > 0 ? `🛒 Xem Giá Ưu Đãi Shopee ↗` : `🛒 Xem Trên Shopee (+1 Roll = 1,600 Xu) ↗`;
+          remMs > 0 ? `🛒 Xem Giá Ưu Đãi Shopee ↗` : `🛒 Xem Trên Shopee (+1,600 Xu) ↗`;
         return `
           <div style="background:linear-gradient(145deg,rgba(15,23,42,0.95),rgba(30,41,59,0.92));border:1.5px solid rgba(249,115,22,0.5);border-radius:14px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,0.45);">
             <div>
@@ -12090,10 +12090,9 @@ class TienLenGame {
       }
       this.recordAdMonetizationEvent('click');
       sfx.win();
-      sfx.coin();
-      this.showComboBanner(`🛒 GHÉ KỆ HÀNG SHOPEE: +${rewardCoins.toLocaleString()} XU (+1 ROLL)!`);
+      this.showComboBanner(`🛒 GHÉ KỆ HÀNG SHOPEE: +${rewardCoins.toLocaleString()} XU!`);
       this.addLog(
-        `🛒 <strong>Kệ Hàng Genshin & Bộ Bài Shopee:</strong> Cảm ơn bạn đã xem <strong>${itemName}</strong>! Hệ thống tặng nóng <strong>+${rewardCoins.toLocaleString()} Xu (+1 Lượt Cầu Nguyện)</strong>!`,
+        `🛒 <strong>Kệ Hàng Genshin & Bộ Bài Shopee:</strong> Cảm ơn bạn đã xem <strong>${itemName}</strong>! Hệ thống tặng nóng <strong>+${rewardCoins.toLocaleString()} Xu</strong>!`,
         'log-win'
       );
       this.saveShopProfile();
@@ -12155,17 +12154,17 @@ class TienLenGame {
           if (el.id === 'btn-lobby-watch-ad') {
             el.innerHTML = `<span class="dock-icon">⏳</span><span class="dock-label" style="color:#fde68a;font-weight:800;">QC: ${mins}p${String(secs).padStart(2, '0')}s</span>`;
           } else {
-            el.textContent = `⏳ Xem QC +1 Roll (Chờ ${timeStr})`;
+            el.textContent = `⏳ Xem QC +1,600 Xu (Chờ ${timeStr})`;
           }
         } else {
           el.style.opacity = '1';
           el.style.filter = 'none';
           if (el.id === 'btn-lobby-watch-ad') {
-            el.innerHTML = `<span class="dock-icon">📺</span><span class="dock-label">Xem QC (+1 Roll)</span>`;
+            el.innerHTML = `<span class="dock-icon">📺</span><span class="dock-label">Xem QC (+1,600 Xu)</span>`;
           } else if (el.id === 'btn-results-watch-ad' || el.id === 'btn-top-watch-ad') {
-            el.textContent = `📺 Xem QC 30s (+1 Roll)`;
+            el.textContent = `📺 Xem QC (+1,600 Xu)`;
           } else {
-            el.textContent = `📺 Xem QC 30s (+1 Roll = 1,600 Xu)`;
+            el.textContent = `📺 Xem QC (+1,600 Xu)`;
           }
         }
       });
@@ -12246,9 +12245,9 @@ class TienLenGame {
         if (el.id === 'btn-lobby-sponsor-2roll') {
           el.innerHTML = `<span class="dock-icon">⏳</span><span class="dock-label" style="color:#fde68a;font-weight:800;">Chờ ${mins}p${String(secs).padStart(2, '0')}s</span>`;
         } else if (el.id === 'btn-ad-open-sponsor-link') {
-          el.textContent = `⏳ Đã Nhận +2 Roll (Mở Lại Sau ${timeStr})`;
+          el.textContent = `⏳ Đã Nhận +3,200 Xu (Mở Lại Sau ${timeStr})`;
         } else {
-          el.textContent = `⏳ Mở Web +2 Roll (Chờ ${timeStr})`;
+          el.textContent = `⏳ Mở Web +3,200 Xu (Chờ ${timeStr})`;
         }
       } else {
         if (el.tagName === 'A') {
@@ -12258,13 +12257,13 @@ class TienLenGame {
         el.style.opacity = '1';
         el.style.filter = 'none';
         if (el.id === 'btn-lobby-sponsor-2roll') {
-          el.innerHTML = `<span class="dock-icon">🎁</span><span class="dock-label" style="color:#fef08a;font-weight:800;">Mở Web (+2 Roll)</span>`;
+          el.innerHTML = `<span class="dock-icon">🎁</span><span class="dock-label" style="color:#fef08a;font-weight:800;">Mở Web (+3,200 Xu)</span>`;
         } else if (el.id === 'btn-ad-open-sponsor-link') {
-          el.textContent = `🎁 Mở Trang Nhà Tài Trợ (Nhận Ngay +2 ROLL = 3,200 Xu!) ↗`;
+          el.textContent = `🎁 Mở Trang Nhà Tài Trợ (Nhận Ngay +3,200 Xu!) ↗`;
           el.style.background = 'linear-gradient(135deg,#f59e0b,#ea580c)';
           el.style.color = '#ffffff';
         } else {
-          el.textContent = `🎁 Mở Web Tài Trợ (+2 Roll = 3,200 Xu) ↗`;
+          el.textContent = `🎁 Mở Web Tài Trợ (+3,200 Xu) ↗`;
         }
       }
     });
@@ -12737,12 +12736,15 @@ class TienLenGame {
     const remMs = this.getPersonalGiftcodeCooldownRemainingMs();
     if (remMs > 0) {
       const mins = Math.ceil(remMs / 60000);
-      alert(`⏳ Bạn vừa nhận +5 Roll (8,000 Xu) từ Vượt Link Giftcode gần đây!\nVui lòng quay lại lấy mã mới sau ${mins} phút nữa nhé.`);
+      alert(`⏳ Bạn vừa nhận +8,000 Xu từ Vượt Link Giftcode gần đây!\nVui lòng quay lại nhận tiếp sau ${mins} phút nữa nhé.`);
       return false;
     }
 
     try {
-      localStorage.setItem('tlmn_personal_gc_step1_ms_v1', String(Date.now()));
+      localStorage.setItem('tlmn_personal_gc_step1_ms_v1', String(Date.now() - 16000));
+      if (!this.isAdminAccount()) {
+        localStorage.setItem('tlmn_personal_gc_last_claim_ms_v1', String(Date.now()));
+      }
     } catch (_) {}
     this.recordAdMonetizationEvent('click');
 
@@ -12763,97 +12765,51 @@ class TienLenGame {
       } else {
         this.openSponsorUrlExternally(openUrl);
       }
-      const statusEl = document.getElementById('personal-gc-step1-status');
-      if (this.isAdminAccount()) {
-        try {
-          localStorage.setItem('tlmn_personal_gc_step1_ms_v1', String(Date.now() - 16000));
-        } catch (_) {}
-        const adminCode = this.generatePersonalGiftcodeForUser(myId);
-        this._lastGeneratedPersonalGiftcode = adminCode;
-        const inp = document.getElementById('input-redeem-giftcode');
-        if (inp) inp.value = adminCode;
-        if (statusEl) {
-          statusEl.innerHTML = `👑 <strong style="color:#fde047;">Đặc quyền Admin (@${myId} • 0s chờ):</strong> Đã mở Link4m (<code>${openUrl}</code>) để kiểm tra VÀ tạo sẵn mã riêng của bạn: <code style="color:#34d399;font-weight:900;">${adminCode}</code> (Bấm <strong>🎁 Đổi Mã Ngay</strong> bên dưới để nhận +5 Roll ngay lập tức!)`;
-          statusEl.classList.remove('hidden');
-        }
-        return false;
-      }
-      if (statusEl) {
-        statusEl.innerHTML = `⏳ <strong style="color:#fde047;">Đã mở Link Vượt Quảng Cáo (${openUrl})!</strong> Hãy hoàn thành các bước trên trang vừa mở để lấy mã <code>GC-...</code> của tài khoản <strong>@${myId}</strong> rồi dán vào Bước 2 bên dưới nhé!`;
-        statusEl.classList.remove('hidden');
-      }
-      return false;
-    }
-
-    // Chế độ mặc định (khi Admin chưa gắn link rút gọn Link4m/Yeumoney):
-    // Mở trang Nhà Tài Trợ (Monetag / Shopee) + Đếm ngược 15 giây (Admin 0 giây) rồi cấp mã GC-... riêng tại chỗ!
-    const partner = this.pickRandomSponsorPartner(true);
-    if (typeof window.__tlmnOpenSponsorWebSafe === 'function') {
-      window.__tlmnOpenSponsorWebSafe(partner.url, true);
     } else {
-      this.openSponsorUrlExternally(partner.url);
+      const partner = this.pickRandomSponsorPartner(true);
+      if (typeof window.__tlmnOpenSponsorWebSafe === 'function') {
+        window.__tlmnOpenSponsorWebSafe(partner.url, true);
+      } else {
+        this.openSponsorUrlExternally(partner.url);
+      }
     }
 
-    const waitSeconds = this.isAdminAccount() || this.isWelkinActive() ? 0 : 15;
-    const btn = document.getElementById('btn-personal-gc-step1');
+    const rewardCoins = WISH_COST_SINGLE * 5; // +8,000 Xu
+    const me = this.getLocalPlayer();
+    if (me) {
+      me.coins += rewardCoins;
+      this.savedCoins = me.coins;
+    } else {
+      this.savedCoins = (this.savedCoins || INITIAL_COINS) + rewardCoins;
+    }
+    const personalCode = this.generatePersonalGiftcodeForUser(myId);
+    this._lastGeneratedPersonalGiftcode = personalCode;
+    try {
+      const usedLocalRaw = localStorage.getItem('tlmn_redeemed_codes_v1') || '[]';
+      const usedLocal = JSON.parse(usedLocalRaw);
+      if (Array.isArray(usedLocal)) {
+        usedLocal.push(personalCode);
+        localStorage.setItem('tlmn_redeemed_codes_v1', JSON.stringify(usedLocal.slice(-80)));
+      }
+    } catch (_) {}
+
+    sfx.win();
+    this.saveShopProfile();
+    this.renderSeats();
+    this.renderShopModal();
+    this.renderGiftcodeModal();
+    this.syncCosmeticsInRoom();
+    this.showComboBanner(`🎟️ VƯỢT LINK THÀNH CÔNG: +${rewardCoins.toLocaleString()} XU!`);
+    this.showCenterToast(`🎉 Đã mở Link & cộng ngay +${rewardCoins.toLocaleString()} Xu vào túi!`);
+    this.addLog(
+      `🎟️ <strong>Vượt Link Giftcode:</strong> Tài khoản <strong>@${myId}</strong> vừa nhận ngay <strong>+${rewardCoins.toLocaleString()} Xu</strong>!`,
+      'log-win'
+    );
     const statusEl = document.getElementById('personal-gc-step1-status');
-    clearInterval(this._personalGcStep1Timer);
-
-    const finishStep1Inline = () => {
-      try {
-        localStorage.setItem('tlmn_personal_gc_step1_ms_v1', String(Date.now() - 16000));
-      } catch (_) {}
-      const personalCode = this.generatePersonalGiftcodeForUser(myId);
-      this._lastGeneratedPersonalGiftcode = personalCode;
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = `✅ Đã Mở Link &amp; Tạo Mã Riêng Cho @${myId}`;
-      }
-      if (statusEl) {
-        statusEl.innerHTML = `
-          🎉 <strong>Đã xác nhận vượt link thành công!</strong> Mã Giftcode cá nhân của <strong>@${myId}</strong> là:
-          <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <code style="padding:6px 12px;border-radius:8px;background:rgba(15,23,42,0.95);border:1.5px solid #fde047;color:#fef08a;font-size:14px;font-weight:900;letter-spacing:0.5px;">${personalCode}</code>
-            <button type="button" class="primary-btn" onclick="document.getElementById('input-redeem-giftcode').value='${personalCode}'; window.tienLenGame.redeemGiftcodeNow();" style="padding:6px 14px;font-size:12.5px;font-weight:900;background:linear-gradient(135deg,#059669,#10b981);">
-              🎁 Đổi Nhận Ngay +5 Roll (8,000 Xu)
-            </button>
-          </div>
-        `;
-        statusEl.classList.remove('hidden');
-      }
-      const inp = document.getElementById('input-redeem-giftcode');
-      if (inp) inp.value = personalCode;
-      sfx.win();
-    };
-
-    if (waitSeconds <= 0) {
-      finishStep1Inline();
-      return false;
-    }
-
-    let rem = waitSeconds;
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = `⏳ Đang xác nhận vượt link... (${rem}s)`;
-    }
     if (statusEl) {
-      statusEl.innerHTML = `⏳ Đang kiểm tra vượt link Nhà Tài Trợ cho tài khoản <strong>@${myId}</strong>... Vui lòng chờ <strong>${rem} giây</strong> để nhận mã <code>GC-...</code>!`;
+      statusEl.innerHTML = `🎉 <strong style="color:#4ade80;">Đã mở Link &amp; cộng ngay +${rewardCoins.toLocaleString()} Xu vào tài khoản @${myId}!</strong>`;
       statusEl.classList.remove('hidden');
     }
-
-    this._personalGcStep1Timer = setInterval(() => {
-      rem -= 1;
-      if (rem <= 0) {
-        clearInterval(this._personalGcStep1Timer);
-        this._personalGcStep1Timer = null;
-        finishStep1Inline();
-      } else {
-        if (btn) btn.innerHTML = `⏳ Đang xác nhận vượt link... (${rem}s)`;
-        if (statusEl) {
-          statusEl.innerHTML = `⏳ Đang kiểm tra vượt link Nhà Tài Trợ cho tài khoản <strong>@${myId}</strong>... Vui lòng chờ <strong>${rem} giây</strong> để nhận mã <code>GC-...</code>!`;
-        }
-      }
-    }, 1000);
     return false;
   }
 
@@ -12886,7 +12842,7 @@ class TienLenGame {
     const redeemInp = document.getElementById('input-redeem-giftcode');
     if (redeemInp) redeemInp.value = code;
     sfx.click();
-    alert(`📋 Đã copy Mã Giftcode Cá Nhân: ${code}\n\n👉 Hãy dán vào ô Nhập Mã Giftcode trong game của tài khoản @${this._lastGeneratedPersonalTarget || this.getPersonalGiftcodeIdentityKey()} để nhận +5 Roll (8,000 Xu)!`);
+    alert(`📋 Đã copy Mã Giftcode Cá Nhân: ${code}\n\n👉 Hãy dán vào ô Nhập Mã Giftcode trong game của tài khoản @${this._lastGeneratedPersonalTarget || this.getPersonalGiftcodeIdentityKey()} để nhận +8,000 Xu!`);
   }
 
   async saveAdminQuickGiftcodeShortUrl() {
@@ -13949,7 +13905,7 @@ class TienLenGame {
       ? `
         <div style="padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(6,78,59,0.92),rgba(15,23,42,0.96));border:2px solid #34d399;box-shadow:0 0 22px rgba(16,185,129,0.35);">
           <div style="font-size:15px;font-weight:900;color:#6ee7b7;margin-bottom:6px;">
-            🎉 BẠN ĐÃ VƯỢT LINK THÀNH CÔNG! LẤY MÃ GIFTCODE CÁ NHÂN (+5 ROLL = 8,000 XU)
+            🎉 BẠN ĐÃ VƯỢT LINK THÀNH CÔNG! LẤY MÃ GIFTCODE CÁ NHÂN (+8,000 XU)
           </div>
           <div style="font-size:12px;color:#e2e8f0;line-height:1.45;margin-bottom:8px;">
             Nhập đúng <strong>Tên tài khoản (@username)</strong> (hoặc Mã máy) của bạn trong game để hệ thống mã hóa Mã Giftcode riêng cho bạn:
@@ -13973,7 +13929,7 @@ class TienLenGame {
                       📋 Copy Mã Giftcode
                     </button>
                     <button type="button" class="primary-btn" onclick="document.getElementById('input-redeem-giftcode').value='${this._lastGeneratedPersonalGiftcode}'; window.tienLenGame.redeemGiftcodeNow();" style="padding:8px 14px;font-weight:900;font-size:12.5px;background:linear-gradient(135deg,#059669,#10b981);">
-                      ⚡ Đổi Nhận Ngay +5 Roll
+                      ⚡ Đổi Nhận Ngay +8,000 Xu
                     </button>
                   </div>
                 </div>
@@ -13992,7 +13948,7 @@ class TienLenGame {
             <span style="padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;background:${
               cfg.giftcodeShortUrl ? 'rgba(16,185,129,0.25);color:#6ee7b7;' : 'rgba(250,204,21,0.2);color:#fde047;'
             }">
-              ${cfg.giftcodeShortUrl ? '🟢 Đang dùng Link Rút Gọn' : '🟡 Chế độ Mặc định (15s Tài Trợ)'}
+              ${cfg.giftcodeShortUrl ? '🟢 Đang dùng Link Rút Gọn' : '🟡 Chế độ Mặc định (Mở Link Tài Trợ)'}
             </span>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -14008,20 +13964,19 @@ class TienLenGame {
     body.innerHTML = `
       ${landingBoxHtml}
 
-      <!-- Khung Săn Giftcode Cá Nhân Chống Share (+5 Roll = 8,000 Xu) -->
+      <!-- Khung Săn Giftcode Cá Nhân Chống Share (+8,000 Xu) -->
       <div style="padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(88,28,135,0.68),rgba(15,23,42,0.96));border:1.5px solid #f472b6;box-shadow:0 6px 18px rgba(236,72,153,0.18);">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
           <div style="flex:1;min-width:220px;">
             <div style="display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;background:rgba(236,72,153,0.25);border:1px solid #f472b6;color:#fbcfe8;font-size:11px;font-weight:900;margin-bottom:5px;">
-              🔒 MÃ HÓA RIÊNG TỪNG TÀI KHOẢN • CHỐNG SHARE 100%
+              🪙 BẤM MỞ LINK NHẬN NGAY +8,000 XU MIỄN PHÍ
             </div>
             <div style="font-size:15px;font-weight:900;color:#fdf2f8;">
-              🎟️ VƯỢT LINK NHẬN GIFTCODE CÁ NHÂN (+5 ROLL = 8,000 XU)
+              🎟️ MỞ LINK NHẬN XU &amp; GIFTCODE CÁ NHÂN (+8,000 XU)
             </div>
             <div style="font-size:12px;color:#e2e8f0;margin-top:4px;line-height:1.45;">
-              • <strong>Bước 1:</strong> Bấm nút bên dưới để mở trang Vượt Link lấy mã riêng cho tài khoản <strong style="color:#fde047;">@${myIdentity}</strong>.<br/>
-              • <strong>Bước 2:</strong> Dán mã <code>GC-...</code> vừa nhận vào ô Đổi Mã bên dưới để cộng nóng <strong>+5 Roll (+8,000 Xu)</strong>!<br/>
-              • <span style="color:#fbcfe8;">⚠️ Lưu ý: Mỗi mã chỉ khớp chữ ký với đúng tài khoản <strong>@${myIdentity}</strong> (1 lần / giờ) — người khác copy mã của bạn nhập vào sẽ bị báo lỗi ngay!</span>
+              • Bấm nút bên phải để mở Link Tài Trợ và cộng nóng <strong>+8,000 Xu</strong> vào tài khoản <strong style="color:#fde047;">@${myIdentity}</strong> (1 lần / giờ)!<br/>
+              • Hoặc bấm trực tiếp vào các <strong>Mã Tân Thủ miễn phí</strong> bên dưới để nhận thêm Xu ngay lập tức!
             </div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:210px;">
@@ -14034,34 +13989,34 @@ class TienLenGame {
             };border:1.5px solid #f9a8d4;box-shadow:0 0 14px rgba(219,39,119,0.45);">
               ${
                 remCooldownMs > 0
-                  ? `⏳ Mở Lại Sau ${cooldownMins} Phút`
-                  : `🔗 Bước 1: Mở Link Lấy Mã (+5 Roll) ↗`
+                  ? `⏳ Đã Nhận +8,000 Xu (Chờ ${cooldownMins}p)`
+                  : `🔗 Mở Link Nhận Ngay (+8,000 Xu) ↗`
               }
             </button>
             <div style="font-size:11px;color:#cbd5e1;text-align:center;">
-              👤 Định danh nhận mã: <strong style="color:#38bdf8;">@${myIdentity}</strong>
+              👤 Tài khoản nhận Xu: <strong style="color:#38bdf8;">@${myIdentity}</strong>
             </div>
           </div>
         </div>
         <div id="personal-gc-step1-status" class="hidden" style="margin-top:10px;padding:9px 12px;border-radius:10px;background:rgba(15,23,42,0.9);border:1px solid rgba(250,204,21,0.5);font-size:12px;color:#fef08a;line-height:1.45;"></div>
       </div>
 
-      <!-- Khung 2: Bước 2 Nhập Giftcode Nhận Roll -->
+      <!-- Khung 2: Nhập Giftcode Nhận Xu -->
       <div style="padding:12px 14px;border-radius:12px;background:rgba(15,23,42,0.9);border:1.5px solid rgba(250,204,21,0.5);">
         <div style="font-size:14px;font-weight:900;color:#fde047;margin-bottom:6px;">
-          🔑 BƯỚC 2: NHẬP MÃ GIFTCODE CÁ NHÂN (GC-...) HOẶC CODE TÂN THỦ / SỰ KIỆN
+          🔑 NHẬP MÃ GIFTCODE HOẶC BẤM NHẬN NGAY MÃ TÂN THỦ MIỄN PHÍ
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <input type="text" id="input-redeem-giftcode" value="${this._lastGeneratedPersonalGiftcode || ''}" placeholder="Dán mã GC-... (+5 Roll) hoặc nhập TIENLEN5SAO (+1 Roll)..." style="flex:1;min-width:190px;padding:9px 12px;border-radius:10px;border:1.5px solid rgba(250,204,21,0.55);background:rgba(30,41,59,0.95);color:#fef08a;font-weight:900;font-size:13.5px;text-transform:uppercase;" />
+          <input type="text" id="input-redeem-giftcode" value="${this._lastGeneratedPersonalGiftcode || ''}" placeholder="Nhập mã Giftcode hoặc bấm Mã Tân Thủ bên dưới..." style="flex:1;min-width:190px;padding:9px 12px;border-radius:10px;border:1.5px solid rgba(250,204,21,0.55);background:rgba(30,41,59,0.95);color:#fef08a;font-weight:900;font-size:13.5px;text-transform:uppercase;" />
           <button type="button" class="primary-btn" onclick="window.tienLenGame.redeemGiftcodeNow()" style="padding:9px 18px;font-weight:900;font-size:13.5px;">
-            🎁 Đổi Mã Ngay
+            🎁 Đổi Mã Nhận Xu
           </button>
         </div>
         <div style="font-size:11.5px;color:#cbd5e1;margin-top:6px;">
-          💡 Mã Tân Thủ miễn phí (Bấm vào để điền nhanh):
-          <strong style="color:#fde047;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='RAIDEN5SAO'">RAIDEN5SAO</strong> (+5 Vé Roll) •
-          <strong style="color:#6ee7b7;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TANTHU10ROLL'">TANTHU10ROLL</strong> (+10 Vé Roll) •
-          <strong style="color:#38bdf8;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TIENLEN5SAO'">TIENLEN5SAO</strong> (+2 Vé Roll)
+          💡 Mã Tân Thủ miễn phí (Bấm vào để nhận Xu ngay):
+          <strong style="color:#fde047;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='RAIDEN5SAO';window.tienLenGame.redeemGiftcodeNow();">RAIDEN5SAO</strong> (+8,000 Xu) •
+          <strong style="color:#6ee7b7;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TANTHU10ROLL';window.tienLenGame.redeemGiftcodeNow();">TANTHU10ROLL</strong> (+16,000 Xu) •
+          <strong style="color:#38bdf8;cursor:pointer;text-decoration:underline;margin-left:4px;" onclick="document.getElementById('input-redeem-giftcode').value='TIENLEN5SAO';window.tienLenGame.redeemGiftcodeNow();">TIENLEN5SAO</strong> (+3,200 Xu)
         </div>
       </div>
 
@@ -14151,16 +14106,24 @@ class TienLenGame {
       } catch (_) {}
       this._lastGeneratedPersonalGiftcode = '';
 
-      const rolls = 5;
-      this.addWishes(rolls);
+      const rewardCoins = 5 * WISH_COST_SINGLE; // +8,000 Xu
+      const me = this.getLocalPlayer();
+      if (me) {
+        me.coins += rewardCoins;
+        this.savedCoins = me.coins;
+      } else {
+        this.savedCoins = (this.savedCoins || INITIAL_COINS) + rewardCoins;
+      }
       sfx.win();
+      sfx.coin();
       this.saveShopProfile();
       this.renderSeats();
       this.renderShopModal();
       this.renderGiftcodeModal();
-      this.showComboBanner(`🎟️ ĐỔI GIFTCODE VƯỢT LINK: +5 VÉ ROLL (💫 LƯỢT CẦU NGUYỆN)!`);
+      this.syncCosmeticsInRoom();
+      this.showComboBanner(`🎟️ ĐỔI GIFTCODE VƯỢT LINK: +${rewardCoins.toLocaleString()} XU!`);
       alert(
-        `🎉 Đổi Mã Giftcode Cá Nhân "${code}" thành công!\n🌟 Tài khoản @${this.getPersonalGiftcodeIdentityKey()} nhận ngay: 💫 +5 Vé Roll (Tổng: ${this.formatWishesCount()} Vé Roll)!`
+        `🎉 Đổi Mã Giftcode Cá Nhân "${code}" thành công!\n🌟 Tài khoản @${this.getPersonalGiftcodeIdentityKey()} nhận ngay: 🪙 +${rewardCoins.toLocaleString()} Xu (Số dư: ${(me ? me.coins : this.savedCoins).toLocaleString()} Xu)!`
       );
       return;
     }
@@ -14176,14 +14139,25 @@ class TienLenGame {
       usedLocal.push(code);
       localStorage.setItem('tlmn_redeemed_codes_v1', JSON.stringify(usedLocal));
       const bonusRolls = starterCodesMap[code];
-      this.addWishes(bonusRolls);
+      const rewardCoins = bonusRolls * WISH_COST_SINGLE;
+      const me = this.getLocalPlayer();
+      if (me) {
+        me.coins += rewardCoins;
+        this.savedCoins = me.coins;
+      } else {
+        this.savedCoins = (this.savedCoins || INITIAL_COINS) + rewardCoins;
+      }
       sfx.win();
+      sfx.coin();
       this.saveShopProfile();
       this.renderSeats();
       this.renderShopModal();
       this.renderGiftcodeModal();
-      this.showComboBanner(`🎁 GIFTCODE ${code}: +${bonusRolls} VÉ ROLL (💫 LƯỢT CẦU NGUYỆN)!`);
-      alert(`🎉 Đổi Giftcode "${code}" thành công!\n🎁 Bạn nhận được 💫 +${bonusRolls} Vé Roll (Hiện có: ${this.formatWishesCount()} Vé Roll)!`);
+      this.syncCosmeticsInRoom();
+      this.showComboBanner(`🎁 GIFTCODE ${code}: +${rewardCoins.toLocaleString()} XU!`);
+      alert(
+        `🎉 Đổi Giftcode "${code}" thành công!\n🎁 Bạn nhận được 🪙 +${rewardCoins.toLocaleString()} Xu (Số dư: ${(me ? me.coins : this.savedCoins).toLocaleString()} Xu)!`
+      );
       return;
     }
 
@@ -14319,7 +14293,7 @@ class TienLenGame {
       } catch (_) {}
       if (header) header.style.background = 'linear-gradient(135deg, #ee4d2d, #b91c1c)';
       if (title) title.textContent = '🛍️ NHÀ TÀI TRỢ SHOPEE VIỆT NAM (AFFILIATE)';
-      if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) vào ví của bạn!';
+      if (sub) sub.textContent = '🎉 Đã cộng ngay +3,200 Xu vào ví của bạn!';
       const extLinkBtn = canOpenExtDirectly
         ? `<button type="button" onclick="window.tienLenGame.openSponsorUrlExternally('${sponsorUrl}')" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:10px;background:linear-gradient(135deg,#ee4d2d,#c2410c);border:1.5px solid #fde047;color:#ffffff;font-weight:900;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(238,77,45,0.45);">🛍️ Mở Thẳng App Shopee / Trình Duyệt Ngay ↗</button>`
         : '';
@@ -14336,7 +14310,7 @@ class TienLenGame {
           </div>
           ${extLinkBtn}
           <div style="font-size:12px;color:#6ee7b7;font-weight:700;">
-            ✅ Bạn đã được cộng đủ +2 Roll (+3,200 Xu)! ${hasNativeBridge ? 'Đã tự động mở App Shopee / Trình duyệt ngoài!' : 'Bấm nút Copy Link bên dưới để dán vào trình duyệt hoặc App Shopee nếu muốn mua sắm nhận ưu đãi nhé!'}
+            ✅ Bạn đã được cộng đủ +3,200 Xu! ${hasNativeBridge ? 'Đã tự động mở App Shopee / Trình duyệt ngoài!' : 'Bấm nút Copy Link bên dưới để dán vào trình duyệt hoặc App Shopee nếu muốn mua sắm nhận ưu đãi nhé!'}
           </div>
           ${oldApkNotice}
         </div>
@@ -14350,7 +14324,7 @@ class TienLenGame {
       }
       if (header) header.style.background = 'linear-gradient(135deg, #1d4ed8, #6d28d9)';
       if (title) title.textContent = '📢 NHÀ TÀI TRỢ MONETAG (QUẢNG CÁO ĐỐI TÁC)';
-      if (sub) sub.textContent = '🎉 Đã cộng ngay +2 ROLL (+3,200 Xu) & mở trang Nhà Tài Trợ!';
+      if (sub) sub.textContent = '🎉 Đã cộng ngay +3,200 Xu & mở trang Nhà Tài Trợ!';
       const extMonetagBtn = canOpenExtDirectly
         ? `<button type="button" onclick="window.tienLenGame.openSponsorUrlExternally('${sponsorUrl}')" style="display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);border:1.5px solid #fde047;color:#ffffff;font-weight:900;font-size:13px;cursor:pointer;">🚀 Mở Trang Quảng Cáo Ngoài Trình Duyệt Chrome ↗</button>`
         : '';
@@ -14364,7 +14338,7 @@ class TienLenGame {
           </div>
           ${extMonetagBtn}
           <div style="font-size:12px;color:#6ee7b7;font-weight:700;">
-            ✅ Đã hiển thị trang Nhà Tài Trợ &amp; cộng đủ +2 Roll (+3,200 Xu) ngay trong App!
+            ✅ Đã hiển thị trang Nhà Tài Trợ &amp; cộng đủ +3,200 Xu ngay trong App!
           </div>
           ${oldApkNotice}
         </div>
@@ -14399,7 +14373,7 @@ class TienLenGame {
       const secs = totalSec % 60;
       sfx.pass();
       this.showCenterToast(
-        `⏳ Nút Mở Web (+2 Roll) giới hạn 1 tiếng / 1 lần! Còn ${mins} phút ${secs} giây nữa (hoặc bấm Xem QC 30s +1 Roll)!`
+        `⏳ Nút Mở Web (+3,200 Xu) giới hạn 1 tiếng / 1 lần! Còn ${mins} phút ${secs} giây nữa (hoặc bấm Xem QC +1,600 Xu)!`
       );
       this.syncSponsor2RollButtonsHref();
       return false;
@@ -14435,7 +14409,7 @@ class TienLenGame {
       this.openInAppSponsorModal(partner);
     }
 
-    const AD_REWARD = AD_REWARD_COINS * 2; // +2 Roll = 3,200 Xu
+    const AD_REWARD = AD_REWARD_COINS * 2; // 3,200 Xu
     const me = this.getLocalPlayer();
     if (me) {
       me.coins += AD_REWARD;
@@ -14452,9 +14426,9 @@ class TienLenGame {
     if (resBal && me) resBal.textContent = me.coins.toLocaleString();
     const qBal = document.getElementById('quests-modal-balance');
     if (qBal && me) qBal.textContent = me.coins.toLocaleString();
-    this.showCenterToast(`🎉 Đã mở ${partner.name} • Cộng ngay +2 Roll (+${AD_REWARD.toLocaleString()} Xu)!`);
+    this.showCenterToast(`🎉 Đã mở ${partner.name} • Cộng ngay +${AD_REWARD.toLocaleString()} Xu!`);
     this.addLog(
-      `🎁 <strong>Mở Trang Nhà Tài Trợ (${partner.name}):</strong> Bạn vừa nhận thưởng <strong>+2 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong> (Hồi chiêu: 1 tiếng)!`,
+      `🎁 <strong>Mở Trang Nhà Tài Trợ (${partner.name}):</strong> Bạn vừa nhận thưởng <strong>+${AD_REWARD.toLocaleString()} Xu</strong> (Hồi chiêu: 1 tiếng)!`,
       'log-win'
     );
     this.syncCosmeticsInRoom();
@@ -14522,22 +14496,50 @@ class TienLenGame {
 
     const sub = document.getElementById('ad-real-sponsor-sub');
     if (btn) {
-      btn.textContent = `✅ Đã Mở ${partner.name} (Đã Cộng +2 ROLL = +3,200 Xu!)`;
+      btn.textContent = `✅ Đã Mở ${partner.name} (Đã Cộng +3,200 Xu!)`;
       btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
       btn.style.color = '#ffffff';
     }
     if (sub) {
-      sub.innerHTML = `🎉 <strong>Đã mở ${partner.name}!</strong> Bạn được nhân đôi phần thưởng: cộng ngay <strong>+2 ROLL (+3,200 Xu)</strong> và bỏ qua 30s chờ!`;
+      sub.innerHTML = `🎉 <strong>Đã mở ${partner.name}!</strong> Bạn đã được cộng ngay <strong>+3,200 Xu</strong> vào tài khoản!`;
     }
     if (!this.adRewardClaimed) {
       this.adRemainingSec = 0;
       this.claimRewardedAdCoinsNow(2, partner.name);
+    } else {
+      // Nếu đã cộng +1,600 Xu khi bấm Xem QC, cộng thêm +3,200 Xu từ Mở Trang Nhà Tài Trợ!
+      const extraSponsorCoins = AD_REWARD_COINS * 2;
+      const me = this.getLocalPlayer();
+      if (me) {
+        me.coins += extraSponsorCoins;
+      } else {
+        this.savedCoins = (this.savedCoins || INITIAL_COINS) + extraSponsorCoins;
+      }
+      sfx.win();
+      this.saveShopProfile();
+      this.renderShopModal();
+      this.renderSeats();
+      this.renderBetTiers();
+      this.showCenterToast(`🎉 Đã mở ${partner.name} • Cộng thêm +${extraSponsorCoins.toLocaleString()} Xu!`);
+      this.syncCosmeticsInRoom();
     }
     setTimeout(() => {
       this.syncSponsor2RollButtonsHref();
       this.syncRickRollAdButtonsUI();
     }, 60);
     return !window.__tlmnIsInAppOrStandalone;
+  }
+
+  showCenterToast(msg) {
+    if (typeof this.showComboAnnouncement === 'function') {
+      this.showComboAnnouncement(msg);
+    }
+  }
+
+  showComboBanner(msg) {
+    if (typeof this.showComboAnnouncement === 'function') {
+      this.showComboAnnouncement(msg);
+    }
   }
 
   claimRewardedAdCoinsNow(rollMultiplier = 1, sponsorName = '') {
@@ -14548,7 +14550,7 @@ class TienLenGame {
     if (rollsCount === 1) {
       this.recordRickRollAdClaimTimestamp();
     }
-    const AD_REWARD = AD_REWARD_COINS * rollsCount; // 1 Roll = 1,600 Xu; 2 Roll = 3,200 Xu
+    const AD_REWARD = AD_REWARD_COINS * rollsCount;
     const countdownPill = document.getElementById('ad-countdown-pill');
     const skipBtn = document.getElementById('btn-ad-skip-or-claim');
     const progressFill = document.getElementById('ad-progress-fill');
@@ -14568,24 +14570,24 @@ class TienLenGame {
     this.renderBetTiers();
     const resBal = document.getElementById('gacha-results-balance');
     if (resBal && me) resBal.textContent = me.coins.toLocaleString();
-    this.showCenterToast(`🎉 Đã cộng +${rollsCount} Roll (+${AD_REWARD.toLocaleString()} Xu) vào túi!`);
+    this.showCenterToast(`🎉 Đã cộng +${AD_REWARD.toLocaleString()} Xu vào túi!`);
     this.addLog(
       rollsCount >= 2
-        ? `🎁 <strong>Mở Trang Nhà Tài Trợ (${sponsorName || 'VIP'}):</strong> Bạn vừa nhận thưởng gấp đôi <strong>+${rollsCount} Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`
-        : `🕺 <strong>Xem Quảng Cáo 30 Giây:</strong> Bạn đã xem đủ 30 giây và nhận thưởng <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`,
+        ? `🎁 <strong>Mở Trang Nhà Tài Trợ (${sponsorName || 'VIP'}):</strong> Bạn vừa nhận thưởng <strong>+${AD_REWARD.toLocaleString()} Xu</strong>!`
+        : `🕺 <strong>Xem Quảng Cáo:</strong> Bạn vừa nhận thưởng <strong>+${AD_REWARD.toLocaleString()} Xu</strong>!`,
       'log-win'
     );
     this.syncCosmeticsInRoom();
 
     if (countdownPill) {
-      countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +${rollsCount} ROLL (+${AD_REWARD.toLocaleString()} XU)!</strong>`;
+      countdownPill.innerHTML = `🎉 <strong>ĐÃ CỘNG +${AD_REWARD.toLocaleString()} XU!</strong>`;
     }
     if (skipBtn) {
-      skipBtn.textContent = `✅ Nhận +${rollsCount} Roll (${AD_REWARD.toLocaleString()} Xu) & Đóng QC`;
+      skipBtn.textContent = `✅ Đã Nhận +${AD_REWARD.toLocaleString()} Xu & Đóng QC`;
       skipBtn.classList.add('ready-claim');
     }
     if (toastMsg) {
-      toastMsg.innerHTML = `🎁 <strong>Hoàn tất!</strong> Tài khoản của bạn đã được cộng thêm <strong>+${rollsCount} Roll (+${AD_REWARD.toLocaleString()} Xu)</strong>!`;
+      toastMsg.innerHTML = `🎁 <strong>Hoàn tất!</strong> Tài khoản của bạn đã được cộng thêm <strong>+${AD_REWARD.toLocaleString()} Xu</strong>!`;
     }
   }
 
@@ -14601,7 +14603,7 @@ class TienLenGame {
       this.claimRewardedAdCoinsNow(2, 'Banner Quảng Cáo');
       return;
     }
-    const reward = AD_REWARD_COINS; // +1,600 Xu (= 1 Roll)
+    const reward = AD_REWARD_COINS; // +1,600 Xu
     const me = this.getLocalPlayer();
     if (me) {
       me.coins += reward;
@@ -14616,9 +14618,9 @@ class TienLenGame {
     this.renderBetTiers();
     const resBal = document.getElementById('gacha-results-balance');
     if (resBal && me) resBal.textContent = me.coins.toLocaleString();
-    this.showCenterToast(`🎉 Đã cộng +1 Roll (+${reward.toLocaleString()} Xu) vào túi từ Banner Quảng Cáo!`);
+    this.showCenterToast(`🎉 Đã cộng +${reward.toLocaleString()} Xu vào túi từ Banner Quảng Cáo!`);
     this.addLog(
-      `🎁 <strong>Banner Quảng Cáo Góc Phải:</strong> Bạn vừa nhận ngay <strong>+1 Roll (+${reward.toLocaleString()} Xu)</strong> vào túi!`,
+      `🎁 <strong>Banner Quảng Cáo Góc Phải:</strong> Bạn vừa nhận ngay <strong>+${reward.toLocaleString()} Xu</strong> vào túi!`,
       'log-win'
     );
     this.syncCosmeticsInRoom();
@@ -14632,7 +14634,7 @@ class TienLenGame {
       const secs = totalSec % 60;
       sfx.pass();
       this.showCenterToast(
-        `⏳ Xem Quảng Cáo (+1 Roll) giới hạn 1 tiếng / 1 lần! Còn ${mins} phút ${secs} giây nữa (hoặc bấm Mở Web +2 Roll / Săn Giftcode +5 Roll)!`
+        `⏳ Xem Quảng Cáo (+1,600 Xu) giới hạn 1 tiếng / 1 lần! Còn ${mins} phút ${secs} giây nữa (hoặc bấm Mở Web +3,200 Xu / Săn Giftcode +8,000 Xu)!`
       );
       this.syncRickRollAdButtonsUI();
       return;
@@ -14653,14 +14655,13 @@ class TienLenGame {
       this.adMusicTrack = 'rickroll';
     }
 
-    // Random 50/50 giữa Monetag Direct Link và Shopee Affiliate mỗi lần mở màn hình chờ Quảng Cáo 30s!
+    // Random 50/50 giữa Monetag Direct Link và Shopee Affiliate mỗi lần mở màn hình Quảng Cáo!
     this.currentSponsorOffer = this.pickRandomSponsorPartner();
     const sponsorUrl = this.currentSponsorOffer.url;
 
-    const AD_DURATION = this.isWelkinActive() ? 1 : 30;
-    const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu (= 1 Roll khi xem đủ 30s)
-    const SPONSOR_REWARD = AD_REWARD_COINS * 2; // 3,200 Xu (= 2 Roll khi bấm Mở Trang Nhà Tài Trợ)
-    this.adRemainingSec = AD_DURATION;
+    const AD_REWARD = AD_REWARD_COINS; // 1,600 Xu
+    const SPONSOR_REWARD = AD_REWARD_COINS * 2; // 3,200 Xu
+    this.adRemainingSec = 0;
     this.adRewardClaimed = false;
     this.adSponsorClickedThisSession = false;
     clearInterval(this.adIntervalTimer);
@@ -14673,12 +14674,12 @@ class TienLenGame {
 
     if (btnSponsor) {
       btnSponsor.href = sponsorUrl;
-      btnSponsor.textContent = `🎁 Mở Trang Nhà Tài Trợ (Nhận Ngay +2 ROLL = ${SPONSOR_REWARD.toLocaleString()} Xu!) ↗`;
+      btnSponsor.textContent = `🎁 Mở Trang Nhà Tài Trợ (Nhận Thêm +${SPONSOR_REWARD.toLocaleString()} Xu!) ↗`;
       btnSponsor.style.background = 'linear-gradient(135deg,#f59e0b,#ea580c)';
       btnSponsor.style.color = '#ffffff';
     }
     if (subSponsor) {
-      subSponsor.innerHTML = `🔥 <strong>ƯU ĐÃI X2 THƯỞNG (1 TIẾNG / 1 LẦN):</strong> Ngồi xem hết ${AD_DURATION}s nhận <strong>+1 Roll (${AD_REWARD.toLocaleString()} Xu)</strong> — Hoặc bấm <strong>Mở Trang Nhà Tài Trợ</strong> bên phải để bỏ qua ${AD_DURATION}s và nhận ngay <strong>+2 ROLL (+${SPONSOR_REWARD.toLocaleString()} Xu)!</strong>`;
+      subSponsor.innerHTML = `🔥 <strong>ĐÃ CỘNG NGAY +${AD_REWARD.toLocaleString()} XU:</strong> Bấm thêm <strong>Mở Trang Nhà Tài Trợ</strong> bên phải để nhận thêm <strong>+${SPONSOR_REWARD.toLocaleString()} Xu!</strong>`;
     }
     this.syncSponsor2RollButtonsHref();
 
@@ -14687,31 +14688,17 @@ class TienLenGame {
       window.__tlmnRefreshCornerAdBanner();
     }
 
-    if (countdownPill) {
-      countdownPill.innerHTML = `⏳ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) sau: <strong>${AD_DURATION}s</strong>`;
-    }
-    if (skipBtn) {
-      skipBtn.textContent = `🔒 Chờ ${AD_DURATION}s...`;
-      skipBtn.classList.remove('ready-claim');
-    }
-    if (progressFill) {
-      progressFill.style.width = '0%';
-    }
-    if (toastMsg) {
-      toastMsg.innerHTML = `💡 Xem hết <strong>${AD_DURATION} giây</strong> nhận <strong>+1 Roll (+${AD_REWARD.toLocaleString()} Xu)</strong> • Bấm <strong>Mở Trang Nhà Tài Trợ</strong> nhận ngay <strong>+2 Roll (+${SPONSOR_REWARD.toLocaleString()} Xu)</strong>!`;
-    }
-
     const verityLyricsTimeline = [
       { at: 0, text: "🙂🎵 “Hey, it's me, it's VERITY! ~ Ask me ANYTHING!” 🎵" },
       { at: 8, text: "🤖✨ “I know about a million things ~ I'll do EVERYTHING!” 🎶" },
       { at: 16, text: "🗼🥖 “What's the capital of France? ~ Oh, oui oui oui, it is Paris!” 🎵" },
-      { at: 24, text: "🌟🎶 “Bấm Mở Trang Nhà Tài Trợ phía trên để nhận ngay +2 Roll không cần chờ!” 🎁" },
+      { at: 24, text: "🌟🎶 “Bấm Mở Trang Nhà Tài Trợ phía trên để nhận thêm +3,200 Xu!” 🎁" },
     ];
     const rickLyricsTimeline = [
       { at: 0, text: '🎵 “We’re no strangers to love ~ You know the rules and so do I...” 🎵' },
       { at: 6, text: '🕺 “Never gonna give you up ~ Never gonna let you down!” 🎤' },
       { at: 14, text: '🎶 “Never gonna run around and desert you ~” 🕺' },
-      { at: 22, text: '🔥 “Never gonna make you cry ~ Bấm Mở Trang Tài Trợ lấy ngay +2 Roll!” 👑' },
+      { at: 22, text: '🔥 “Never gonna make you cry ~ Bấm Mở Trang Tài Trợ lấy thêm +3,200 Xu!” 👑' },
     ];
     if (lyricsSub) {
       lyricsSub.textContent =
@@ -14719,31 +14706,9 @@ class TienLenGame {
     }
 
     this.applyAdMusicTrack();
-
-    let elapsed = 0;
-    this.adIntervalTimer = setInterval(() => {
-      elapsed++;
-      this.adRemainingSec = Math.max(0, AD_DURATION - elapsed);
-      const pct = Math.min(100, Math.round((elapsed / AD_DURATION) * 100));
-      if (progressFill) progressFill.style.width = `${pct}%`;
-
-      const activeTimeline = this.adMusicTrack === 'verity' ? verityLyricsTimeline : rickLyricsTimeline;
-      const curLyric = [...activeTimeline].reverse().find((l) => elapsed >= l.at);
-      if (curLyric && lyricsSub) {
-        lyricsSub.textContent = curLyric.text;
-      }
-
-      if (this.adRemainingSec > 0) {
-        if (countdownPill) {
-          countdownPill.innerHTML = `⏳ Nhận +1 Roll (${AD_REWARD.toLocaleString()} Xu) sau: <strong>${this.adRemainingSec}s</strong>`;
-        }
-        if (skipBtn) {
-          skipBtn.textContent = `🔒 Chờ ${this.adRemainingSec}s...`;
-        }
-      } else {
-        this.claimRewardedAdCoinsNow(1);
-      }
-    }, 1000);
+    // Cộng ngay +1,600 Xu ngay khi bấm vào Xem QC!
+    this.claimRewardedAdCoinsNow(1);
+    this.syncRickRollAdButtonsUI();
   }
 
   stopRickRollAd() {
@@ -14933,7 +14898,7 @@ class TienLenGame {
       tabQuestsBtn.textContent =
         readyToClaimCount > 0
           ? `🧭 Nhiệm Vụ Ngày (🎁 Nhận ${readyToClaimCount}!)`
-          : `🧭 Nhiệm Vụ Ngày (${claimedCount}/4 • 2 Roll)`;
+          : `🧭 Nhiệm Vụ Ngày (${claimedCount}/4 • +3,200 Xu)`;
     }
 
     const bonusBtn = document.getElementById('btn-claim-bonus');
@@ -14941,8 +14906,8 @@ class TienLenGame {
       bonusBtn.classList.toggle('has-claimable', readyToClaimCount > 0);
       bonusBtn.textContent =
         readyToClaimCount > 0
-          ? `🎁 Nhận Thưởng Nhiệm Vụ Ngày (${readyToClaimCount} NV × 0.5 Roll chờ nhận!)`
-          : `🧭 Nhiệm Vụ Hàng Ngày (${claimedCount}/4 hoàn tất • Tổng 2 Roll / ngày)`;
+          ? `🎁 Nhận Thưởng Nhiệm Vụ Ngày (${readyToClaimCount} NV × 800 Xu chờ nhận!)`
+          : `🧭 Nhiệm Vụ Hàng Ngày (${claimedCount}/4 hoàn tất • Tổng +3,200 Xu / ngày)`;
     }
 
     const questsBal = document.getElementById('quests-modal-balance');
@@ -14953,12 +14918,11 @@ class TienLenGame {
     const claimAllBtn = document.getElementById('btn-claim-all-quests');
     if (claimAllBtn) {
       if (readyToClaimCount > 0) {
-        const rollsReady = readyToClaimCount * DAILY_QUEST_REWARD_ROLLS;
         const coinsReady = readyToClaimCount * DAILY_QUEST_REWARD_COINS;
-        claimAllBtn.textContent = `🎁 Nhận Tất Cả (+${rollsReady} Roll / +${coinsReady.toLocaleString()} Xu)`;
+        claimAllBtn.textContent = `🎁 Nhận Tất Cả (+${coinsReady.toLocaleString()} Xu)`;
         claimAllBtn.disabled = false;
       } else if (claimedCount === 4) {
-        claimAllBtn.textContent = `✅ Đã Nhận Trọn 2 Roll (+3,200 Xu) Hôm Nay`;
+        claimAllBtn.textContent = `✅ Đã Nhận Trọn +3,200 Xu Hôm Nay`;
         claimAllBtn.disabled = true;
       } else {
         claimAllBtn.textContent = `⏳ Hoàn thành nhiệm vụ để nhận thưởng`;
@@ -14966,7 +14930,6 @@ class TienLenGame {
       }
     }
 
-    const earnedRolls = claimedCount * DAILY_QUEST_REWARD_ROLLS;
     const earnedCoins = claimedCount * DAILY_QUEST_REWARD_COINS;
 
     const cardsHtml = DAILY_QUESTS_CONFIG.map((cfg) => {
@@ -14984,11 +14947,11 @@ class TienLenGame {
       if (isClaimed) {
         statusLabel = '✅ Đã nhận thưởng hôm nay';
         btnClass = 'btn-claimed';
-        btnLabel = '✅ Đã nhận 0.5 Roll';
+        btnLabel = '✅ Đã nhận +800 Xu';
       } else if (isReady) {
         statusLabel = '🌟 Đã hoàn thành! Có thể nhận ngay!';
         btnClass = 'btn-claim-ready';
-        btnLabel = `🎁 Nhận +0.5 Roll (+800 Xu)`;
+        btnLabel = `🎁 Nhận +800 Xu`;
       }
 
       return `
@@ -15002,7 +14965,7 @@ class TienLenGame {
               </div>
             </div>
             <div class="daily-quest-reward-badge">
-              🌠 +${DAILY_QUEST_REWARD_ROLLS} Roll (${DAILY_QUEST_REWARD_COINS.toLocaleString()} Xu)
+              🪙 +${DAILY_QUEST_REWARD_COINS.toLocaleString()} Xu
             </div>
           </div>
 
@@ -15018,7 +14981,7 @@ class TienLenGame {
 
           <div class="daily-quest-bottom">
             <span class="daily-quest-status-text">
-              💎 Phần thưởng: <strong style="color:#fde68a;">0.5 Lượt Cầu Nguyện (+800 Xu)</strong>
+              💎 Phần thưởng: <strong style="color:#fde68a;">+${DAILY_QUEST_REWARD_COINS.toLocaleString()} Xu</strong>
             </span>
             <button class="daily-quest-btn ${btnClass}" onclick="window.tienLenGame.claimDailyQuest('${cfg.id}')">
               ${btnLabel}
@@ -15032,15 +14995,15 @@ class TienLenGame {
       <div class="daily-quests-banner">
         <div class="daily-quests-banner-left">
           <div class="daily-quests-banner-title">
-            🧭 SỔ TAY ỦY THÁC HÀNG NGÀY (4 NHIỆM VỤ × 0.5 ROLL = 2 ROLL / NGÀY)
+            🧭 SỔ TAY ỦY THÁC HÀNG NGÀY (4 NHIỆM VỤ × 800 XU = 3,200 XU / NGÀY)
           </div>
           <div class="daily-quests-banner-sub">
-            Mỗi nhiệm vụ hoàn thành thưởng <strong>0.5 Roll (+800 Xu)</strong>. Làm đủ 4 nhiệm vụ nhận trọn <strong>2 Roll (+3,200 Xu)</strong>! Tự động làm mới mỗi ngày.
+            Mỗi nhiệm vụ hoàn thành thưởng <strong>+800 Xu</strong>. Làm đủ 4 nhiệm vụ nhận trọn <strong>+3,200 Xu</strong>! Tự động làm mới mỗi ngày.
           </div>
         </div>
         <div class="daily-quests-summary-pill">
           Đã nhận hôm nay: <strong>${claimedCount}/4 NV</strong><br/>
-          🌠 <strong>${earnedRolls} / 2 Roll</strong> (+${earnedCoins.toLocaleString()} / 3,200 Xu)
+          🪙 <strong>+${earnedCoins.toLocaleString()} / 3,200 Xu</strong>
         </div>
       </div>
       <div class="daily-quests-grid">
@@ -24259,42 +24222,92 @@ class TienLenGame {
     // Đảm bảo Khách mới vào bàn hoặc Máy 2 tiếp quản ghế Khách của Máy 1 được khớp đúng ghế!
     let myExistingSeat =
       this.players.find((p) => p.clientId === this.myClientId) ||
+      this.players.find((p) => p.queuedHumanReplacement?.clientId === this.myClientId) ||
       (myCleanUser
         ? this.players.find(
-            (p) => p.active && !p.isBot && String(p.accountUsername || '').trim().toLowerCase() === myCleanUser
+            (p) =>
+              (p.active && !p.isBot && String(p.accountUsername || '').trim().toLowerCase() === myCleanUser) ||
+              String(p.queuedHumanReplacement?.accountUsername || '').trim().toLowerCase() === myCleanUser
           )
         : null);
+    const isMidActiveMatchOnJoin = this.matchCount >= 1 && !this.isGameOver;
     if (!myExistingSeat) {
       myExistingSeat =
+        (isMidActiveMatchOnJoin
+          ? this.players.find((p, idx) => idx > 0 && p.isBot && p.active && !p.queuedHumanReplacement)
+          : null) ||
         this.players.find((p, idx) => idx > 0 && !p.active) ||
-        this.players.find((p, idx) => idx > 0 && p.isBot) ||
-        this.players.find((p) => (!p.active || p.isBot) && p.clientId !== this.hostClientId);
+        this.players.find((p, idx) => idx > 0 && p.isBot && !p.queuedHumanReplacement) ||
+        this.players.find((p) => (!p.active || (p.isBot && !p.queuedHumanReplacement)) && p.clientId !== this.hostClientId);
       if (myExistingSeat) {
         this.mySeatId = myExistingSeat.id;
-        myExistingSeat.name = myName;
-        myExistingSeat.avatar = mySavedAvatarBeforeJoin;
-        myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
-        myExistingSeat.chopBurst = mySavedCharBeforeJoin;
-        myExistingSeat.winBurst = mySavedCharBeforeJoin;
-        myExistingSeat.activeChar = mySavedCharBeforeJoin;
-        myExistingSeat.coins = this.savedCoins;
-        myExistingSeat.isBot = false;
-        myExistingSeat.active = true;
-        myExistingSeat.clientId = this.myClientId;
-        myExistingSeat.accountUsername = this.currentAccountUsername || '';
+        if (isMidActiveMatchOnJoin) {
+          if (myExistingSeat.isBot && myExistingSeat.active) {
+            myExistingSeat.queuedHumanReplacement = {
+              clientId: this.myClientId,
+              accountUsername: this.currentAccountUsername || '',
+              name: myName,
+              avatar: mySavedAvatarBeforeJoin,
+              cardSkin: mySavedSkinBeforeJoin,
+              activeChar: mySavedCharBeforeJoin,
+              chopBurst: mySavedCharBeforeJoin,
+              winBurst: mySavedCharBeforeJoin,
+              coins: this.savedCoins,
+            };
+          } else {
+            myExistingSeat.name = myName;
+            myExistingSeat.avatar = mySavedAvatarBeforeJoin;
+            myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
+            myExistingSeat.chopBurst = mySavedCharBeforeJoin;
+            myExistingSeat.winBurst = mySavedCharBeforeJoin;
+            myExistingSeat.activeChar = mySavedCharBeforeJoin;
+            myExistingSeat.coins = this.savedCoins;
+            myExistingSeat.isBot = false;
+            myExistingSeat.active = true;
+            myExistingSeat.spectatingCurrentMatch = true;
+            myExistingSeat.hand = [];
+            myExistingSeat.passed = true;
+            myExistingSeat.finishRank = null;
+            myExistingSeat.clientId = this.myClientId;
+            myExistingSeat.accountUsername = this.currentAccountUsername || '';
+          }
+        } else {
+          myExistingSeat.name = myName;
+          myExistingSeat.avatar = mySavedAvatarBeforeJoin;
+          myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
+          myExistingSeat.chopBurst = mySavedCharBeforeJoin;
+          myExistingSeat.winBurst = mySavedCharBeforeJoin;
+          myExistingSeat.activeChar = mySavedCharBeforeJoin;
+          myExistingSeat.coins = this.savedCoins;
+          myExistingSeat.isBot = false;
+          myExistingSeat.active = true;
+          myExistingSeat.clientId = this.myClientId;
+          myExistingSeat.accountUsername = this.currentAccountUsername || '';
+        }
       } else {
         this.mySeatId = 1;
       }
     } else {
       this.mySeatId = myExistingSeat.id;
-      myExistingSeat.clientId = this.myClientId;
-      myExistingSeat.accountUsername = this.currentAccountUsername || myExistingSeat.accountUsername || '';
-      myExistingSeat.isBot = false;
-      myExistingSeat.activeChar = mySavedCharBeforeJoin;
-      myExistingSeat.chopBurst = mySavedCharBeforeJoin;
-      myExistingSeat.winBurst = mySavedCharBeforeJoin;
-      myExistingSeat.avatar = mySavedAvatarBeforeJoin;
-      myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
+      if (myExistingSeat.isBot && myExistingSeat.queuedHumanReplacement) {
+        myExistingSeat.queuedHumanReplacement.clientId = this.myClientId;
+        myExistingSeat.queuedHumanReplacement.accountUsername =
+          this.currentAccountUsername || myExistingSeat.queuedHumanReplacement.accountUsername || '';
+        myExistingSeat.queuedHumanReplacement.activeChar = mySavedCharBeforeJoin;
+        myExistingSeat.queuedHumanReplacement.chopBurst = mySavedCharBeforeJoin;
+        myExistingSeat.queuedHumanReplacement.winBurst = mySavedCharBeforeJoin;
+        myExistingSeat.queuedHumanReplacement.avatar = mySavedAvatarBeforeJoin;
+        myExistingSeat.queuedHumanReplacement.cardSkin = mySavedSkinBeforeJoin;
+      } else {
+        myExistingSeat.clientId = this.myClientId;
+        myExistingSeat.accountUsername = this.currentAccountUsername || myExistingSeat.accountUsername || '';
+        myExistingSeat.isBot = false;
+        myExistingSeat.activeChar = mySavedCharBeforeJoin;
+        myExistingSeat.chopBurst = mySavedCharBeforeJoin;
+        myExistingSeat.winBurst = mySavedCharBeforeJoin;
+        myExistingSeat.avatar = mySavedAvatarBeforeJoin;
+        myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
+      }
     }
     this._hasConfirmedSeatInRoom = false;
 
@@ -24324,7 +24337,11 @@ class TienLenGame {
     this.pollTimer = setInterval(() => this.pollRoomAsGuest(), 850);
     if (!isAutoRestore || options.isAccountHandover || (this.matchCount >= 1 && !this.isGameOver)) {
       this.hideAllLobbyModalsForActiveMatch();
-      this.showComboBanner(`⚡ ĐÃ NHẢY VÀO BÀN #${cleanCode} — THAM CHIẾN NGAY!`);
+      this.showComboBanner(
+        this.isLocalSpectatorNow()
+          ? `👁️ ĐÃ VÀO BÀN #${cleanCode} — ĐANG NGỒI XEM, HẾT VÁN SẼ TỰ ĐỘNG VÀO CHƠI!`
+          : `⚡ ĐÃ VÀO BÀN #${cleanCode} — SẴN SÀNG THAM CHIẾN!`
+      );
     }
     this.renderLobbyModal();
     this.renderMultiplayerTablesList();
@@ -25260,6 +25277,7 @@ class TienLenGame {
       }
 
       if (!seat) {
+        const isMidActiveMatchForSeatPick = this.matchCount >= 1 && !this.isGameOver;
         if (
           typeof evt.preferredSeatId === 'number' &&
           evt.preferredSeatId > 0 &&
@@ -25271,6 +25289,9 @@ class TienLenGame {
           seat = this.players[evt.preferredSeatId];
         } else {
           seat =
+            (isMidActiveMatchForSeatPick
+              ? this.players.find((p, idx) => idx > 0 && p.isBot && p.active && !p.queuedHumanReplacement)
+              : null) ||
             this.players.find((p, idx) => idx > 0 && !p.active) ||
             this.players.find((p, idx) => idx > 0 && p.isBot && !p.queuedHumanReplacement) ||
             this.players.find(
@@ -25280,8 +25301,10 @@ class TienLenGame {
       }
       if (seat && seat.id !== this.mySeatId) {
         const wasBotSeat = !!seat.isBot && seat.active;
+        const isPlayingHumanRejoin =
+          !!seat && seat.active && !seat.isBot && !seat.spectatingCurrentMatch;
         const resolvedGuestChar =
-          isRejoin && seat.activeChar && seat.activeChar !== 'none'
+          isPlayingHumanRejoin && seat.activeChar && seat.activeChar !== 'none'
             ? seat.activeChar
             : evt.activeChar && evt.activeChar !== 'none'
             ? evt.activeChar
@@ -25291,50 +25314,108 @@ class TienLenGame {
             ? evt.winBurst
             : 'none';
 
-        // Cho phép người chơi nhảy vào bàn thế chỗ Bot (giữ nguyên bài của ghế Bot đang cầm) hoặc nhận bài vào ghế trống ngay lập tức, dùng đúng nhân vật của chính người chơi!
+        const isMidActiveMatch = this.matchCount >= 1 && !this.isGameOver;
+
+        // Nếu đang đánh dở ván bài (isMidActiveMatch) và không phải là người chơi cũ kết nối lại (!isPlayingHumanRejoin)
+        // -> KHÔNG nhảy vào đánh tiếp bài của Bot hay chia bài giữa ván! Phải ngồi xem đợi hết ván hiện tại!
+        if (isMidActiveMatch && !isPlayingHumanRejoin) {
+          if (wasBotSeat) {
+            const alreadyQueuedSame =
+              seat.queuedHumanReplacement &&
+              (seat.queuedHumanReplacement.clientId === evt.clientId ||
+                (cleanEvtUser &&
+                  String(seat.queuedHumanReplacement.accountUsername || '').trim().toLowerCase() === cleanEvtUser));
+            seat.queuedHumanReplacement = {
+              clientId: evt.clientId,
+              accountUsername: evt.accountUsername || '',
+              name: evt.name || `Người chơi ${seat.id + 1}`,
+              avatar: evt.avatar || 'default_player',
+              cardSkin: evt.cardSkin || 'classic',
+              activeChar: resolvedGuestChar,
+              chopBurst: resolvedGuestChar,
+              winBurst: resolvedGuestChar,
+              coins: typeof evt.coins === 'number' ? evt.coins : INITIAL_COINS,
+            };
+            if (!alreadyQueuedSame) {
+              const guestDisplay = evt.name || `Người chơi ${seat.id + 1}`;
+              this.showComboBanner(
+                `👁️ ${guestDisplay.toUpperCase()} ĐANG NGỒI XEM — SẼ THẾ CHỖ ${seat.name.toUpperCase()} Ở VÁN SAU!`
+              );
+              this.addLog(
+                `👁️ <strong>${guestDisplay}</strong> đã vào phòng (Đang ngồi xem — Sẽ tự động thế chỗ <strong>${seat.name}</strong> ở <strong>Ghế #${seat.id + 1}</strong> khi hết ván này)!`,
+                'log-win'
+              );
+              sfx.win();
+            }
+          } else {
+            const alreadySpectatingSame =
+              seat.spectatingCurrentMatch &&
+              (seat.clientId === evt.clientId ||
+                (cleanEvtUser &&
+                  String(seat.accountUsername || '').trim().toLowerCase() === cleanEvtUser));
+            seat.name = evt.name || seat.name || `Người chơi ${seat.id + 1}`;
+            seat.avatar = evt.avatar || seat.avatar || 'default_player';
+            seat.cardSkin = evt.cardSkin || seat.cardSkin || 'classic';
+            seat.activeChar = resolvedGuestChar;
+            seat.chopBurst = resolvedGuestChar;
+            seat.winBurst = resolvedGuestChar;
+            if (typeof evt.coins === 'number') seat.coins = evt.coins;
+            seat.accountUsername = evt.accountUsername || seat.accountUsername || '';
+            seat.clientId = evt.clientId;
+            seat.isBot = false;
+            seat.active = true;
+            seat.spectatingCurrentMatch = true;
+            seat.queuedHumanReplacement = null;
+            seat.isAfkBotPlaying = false;
+            seat.hand = [];
+            seat.finishRank = null;
+            seat.passed = true;
+            seat.skillUsed = false;
+            seat.readyForNextMatch = true;
+            seat.manualActionsInMatch = 1;
+            seat.afkAutoTurns = 0;
+            if (!alreadySpectatingSame) {
+              this.showComboBanner(
+                `👁️ ${seat.name.toUpperCase()} ĐANG NGỒI XEM (GHẾ #${seat.id + 1}) — VÀO CHƠI Ở VÁN SAU!`
+              );
+              this.addLog(
+                `👁️ <strong>${seat.name}</strong> đã vào <strong>Ghế #${seat.id + 1}</strong> (Đang ngồi xem ván hiện tại — Sẽ được chia bài ở ván tiếp theo)!`,
+                'log-win'
+              );
+              sfx.win();
+            }
+          }
+          this.preloadActiveBurstVideos();
+          this.renderLobbyModal();
+          this.renderSummaryReadyStateUI();
+          this.renderAll();
+          this.broadcastState();
+          this.publishRoomToDirectory(false);
+          return;
+        }
+
         const oldSeatClientId = seat.clientId;
         if (oldSeatClientId && evt.clientId && oldSeatClientId !== evt.clientId) {
           if (!this.displacedClientIds) this.displacedClientIds = {};
           this.displacedClientIds[oldSeatClientId] = evt.clientId;
         }
-        const oldBotName = wasBotSeat ? seat.name : '';
         seat.name = evt.name || seat.name || `Người chơi ${seat.id + 1}`;
         seat.avatar = evt.avatar || seat.avatar || 'default_player';
         seat.cardSkin = evt.cardSkin || seat.cardSkin || 'classic';
         seat.activeChar = resolvedGuestChar;
         seat.chopBurst = resolvedGuestChar;
         seat.winBurst = resolvedGuestChar;
-        if (!isRejoin && typeof evt.coins === 'number') seat.coins = evt.coins;
+        if (!isPlayingHumanRejoin && typeof evt.coins === 'number') seat.coins = evt.coins;
         seat.accountUsername = evt.accountUsername || seat.accountUsername || '';
         seat.isBot = false;
         seat.active = true;
         seat.spectatingCurrentMatch = false;
         seat.queuedHumanReplacement = null;
         seat.isAfkBotPlaying = false;
-        if (!isRejoin) {
-          if (this.matchCount >= 1 && !this.isGameOver) {
-            if (!Array.isArray(seat.hand) || seat.hand.length === 0) {
-              seat.hand = this.dealDropInHandForMidMatchSeat(seat);
-              seat.finishRank = null;
-              seat.passed = false;
-              seat.skillUsed = false;
-            }
-            this.showComboBanner(
-              wasBotSeat
-                ? `🚀 ${seat.name.toUpperCase()} ĐÃ THẾ CHỖ ${oldBotName.toUpperCase()} (GHẾ #${seat.id + 1})!`
-                : `🚀 ${seat.name.toUpperCase()} ĐÃ NHẢY VÀO BÀN (GHẾ #${seat.id + 1})!`
-            );
-            this.addLog(
-              wasBotSeat
-                ? `🚀 <strong>${seat.name}</strong> đã nhảy vào thế chỗ <strong>${oldBotName} (Ghế #${seat.id + 1})</strong> và tham chiến ngay!`
-                : `🚀 <strong>${seat.name}</strong> đã nhảy vào <strong>Ghế #${seat.id + 1}</strong> và tham chiến ngay!`,
-              'log-win'
-            );
-          } else {
-            seat.finishRank = null;
-            seat.passed = false;
-            this.addLog(`👋 <strong>${seat.name}</strong> đã vào bàn (Ghế #${seat.id + 1})!`, 'log-win');
-          }
+        if (!isPlayingHumanRejoin) {
+          seat.finishRank = null;
+          seat.passed = false;
+          this.addLog(`👋 <strong>${seat.name}</strong> đã vào bàn (Ghế #${seat.id + 1})!`, 'log-win');
           seat.readyForNextMatch = true;
           seat.manualActionsInMatch = 1;
           seat.afkAutoTurns = 0;
@@ -25347,7 +25428,7 @@ class TienLenGame {
         this.renderAll();
 
         // Nếu bàn đang chờ ở Ván #0 (chưa chia bài) và vừa có người nhảy vào ➔ Tự động đóng mọi bảng chờ & chia bài chơi luôn!
-        if (!isRejoin && this.matchCount === 0 && this.players.filter((p) => p.active).length >= 2) {
+        if (!isPlayingHumanRejoin && this.matchCount === 0 && this.players.filter((p) => p.active).length >= 2) {
           this.hideAllLobbyModalsForActiveMatch();
           this.startNewMatch(true);
           return;
@@ -25411,7 +25492,7 @@ class TienLenGame {
       this.publishRoomToDirectory(false);
     } else if (evt.type === 'GUEST_TIMEOUT') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
-      if (!seat || this.isGameOver) return;
+      if (!seat || seat.spectatingCurrentMatch || this.isGameOver) return;
       seat.isAfkBotPlaying = true;
       seat.afkAutoTurns = (seat.afkAutoTurns || 0) + 1;
       if (this.currentTurn === seat.id) {
@@ -25421,7 +25502,7 @@ class TienLenGame {
       }
     } else if (evt.type === 'RESUME_FROM_AFK') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
-      if (!seat) return;
+      if (!seat || seat.spectatingCurrentMatch) return;
       seat.isAfkBotPlaying = false;
       seat.afkAutoTurns = 0;
       seat.manualActionsInMatch = (seat.manualActionsInMatch || 0) + 1;
@@ -25432,6 +25513,28 @@ class TienLenGame {
         this.startTurnCountdown(true);
       }
     } else if (evt.type === 'UPDATE_COSMETICS') {
+      const queuedSeat = this.players.find(
+        (p) => p.queuedHumanReplacement?.clientId === evt.clientId && p.id !== this.mySeatId
+      );
+      if (queuedSeat && queuedSeat.queuedHumanReplacement) {
+        const q = queuedSeat.queuedHumanReplacement;
+        if (evt.avatar) q.avatar = evt.avatar;
+        if (evt.cardSkin) q.cardSkin = evt.cardSkin;
+        const resolvedGuestChar =
+          evt.activeChar && evt.activeChar !== 'none'
+            ? evt.activeChar
+            : evt.chopBurst && evt.chopBurst !== 'none'
+            ? evt.chopBurst
+            : evt.winBurst && evt.winBurst !== 'none'
+            ? evt.winBurst
+            : 'none';
+        q.activeChar = resolvedGuestChar;
+        q.chopBurst = resolvedGuestChar;
+        q.winBurst = resolvedGuestChar;
+        if (typeof evt.coins === 'number') q.coins = evt.coins;
+        this.broadcastState();
+        return;
+      }
       const seat = this.players.find((p) => p.clientId === evt.clientId && p.id !== this.mySeatId);
       if (seat) {
         if (evt.avatar) seat.avatar = evt.avatar;
@@ -25471,7 +25574,7 @@ class TienLenGame {
       }
     } else if (evt.type === 'USE_CHAR_SKILL') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
-      if (!seat || this.isGameOver) return;
+      if (!seat || seat.spectatingCurrentMatch || this.isGameOver) return;
       const seatCharId = evt.charId || this.getPlayerActiveCharId(seat);
       const canBaizhuOutTurn = seatCharId === 'baizhu' && seat.passed && this.currentCombo !== null;
       if (this.currentTurn !== seat.id && !canBaizhuOutTurn) return;
@@ -25492,7 +25595,7 @@ class TienLenGame {
       );
     } else if (evt.type === 'PLAY_CARDS') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
-      if (!seat || this.isGameOver) return;
+      if (!seat || seat.spectatingCurrentMatch || this.isGameOver) return;
       if (this.isBurstPlaying && typeof this._activeFinishBurstFn === 'function') {
         this._activeFinishBurstFn();
       }
@@ -25510,7 +25613,7 @@ class TienLenGame {
       }
     } else if (evt.type === 'PASS_TURN') {
       const seat = this.players.find((p) => p.clientId === evt.clientId);
-      if (!seat || this.currentTurn !== seat.id || this.isGameOver || !this.currentCombo) return;
+      if (!seat || seat.spectatingCurrentMatch || this.currentTurn !== seat.id || this.isGameOver || !this.currentCombo) return;
       if (this.isBurstPlaying && typeof this._activeFinishBurstFn === 'function') {
         this._activeFinishBurstFn();
       }
@@ -25920,11 +26023,21 @@ class TienLenGame {
     this.renderSummaryReadyStateUI();
     this.syncAfkBotTakeoverUI();
     this.renderAll();
-    if (this.isGameOver || mySeatObj?.isAfkBotPlaying || this.isLocalAfkBotPlaying) {
+    if (this.isGameOver || isSpectatingNow || mySeatObj?.isAfkBotPlaying || this.isLocalAfkBotPlaying) {
       this.stopTurnCountdown();
     } else {
       this.startTurnCountdown(false);
     }
+  }
+
+  isLocalSpectatorNow() {
+    if (!this.isMultiplayer || this.isGameOver || this.matchCount < 1) return false;
+    const me = this.getLocalPlayer();
+    if (!me) return false;
+    if (me.spectatingCurrentMatch) return true;
+    if (me.isBot && me.queuedHumanReplacement) return true;
+    if (me.queuedHumanReplacement?.clientId === this.myClientId) return true;
+    return false;
   }
 
   renderLobbyModal() {
@@ -26591,11 +26704,12 @@ class TienLenGame {
     } else {
       this.lastLoserId = null;
     }
-    this.promoteSpectatorsAndQueuedHumansAfterMatch();
-    const bannerTitle = `🎉 ${winner.name} TỚI TRẮNG (${reason}) - ĂN TRỌN +${totalWon.toLocaleString()} XU!`;
-    this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
-    const burstDetail = `👑 ${winner.name} Tới Trắng (${reason}) • +${totalWon.toLocaleString()} Xu!`;
+    const winnerDisplayName = winner.name;
     const winBurstId = this.getPlayerActiveCharId(winner);
+    this.promoteSpectatorsAndQueuedHumansAfterMatch();
+    const bannerTitle = `🎉 ${winnerDisplayName} TỚI TRẮNG (${reason}) - ĂN TRỌN +${totalWon.toLocaleString()} XU!`;
+    this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
+    const burstDetail = `👑 ${winnerDisplayName} Tới Trắng (${reason}) • +${totalWon.toLocaleString()} Xu!`;
     this.lastBurstEffect = { id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, type: winBurstId, burstId: winBurstId, isWin: true, detail: burstDetail };
     this.incrementDailyQuest('play_matches', 1);
     if (winnerId === this.mySeatId) {
@@ -26735,7 +26849,7 @@ class TienLenGame {
   }
 
   startTurnCountdown(forceReset = false) {
-    if (this.isGameOver || this.inInitialLobby) {
+    if (this.isGameOver || this.inInitialLobby || this.isLocalSpectatorNow()) {
       this.stopTurnCountdown();
       return;
     }
@@ -26845,6 +26959,10 @@ class TienLenGame {
 
     // CHỐNG CHẠY 2 BÀN SONG SONG: Ở chế độ Multiplayer, Khách (Guest) bật chế độ Bot đánh hộ và gửi tín hiệu GUEST_TIMEOUT lên Chủ phòng (Host)!
     if (this.isMultiplayer && !this.isHost) {
+      if (this.isLocalSpectatorNow()) {
+        this.stopTurnCountdown();
+        return;
+      }
       if (this.currentTurn === this.mySeatId) {
         this.isLocalAfkBotPlaying = true;
         currentPlayer.isAfkBotPlaying = true;
@@ -31371,6 +31489,20 @@ class TienLenGame {
   }
 
   updateHumanActionButtons() {
+    if (this.isLocalSpectatorNow()) {
+      if (this.btnPlay) this.btnPlay.disabled = true;
+      if (this.btnPass) this.btnPass.disabled = true;
+      if (this.btnCharSkill) {
+        this.btnCharSkill.disabled = true;
+        this.btnCharSkill.classList.remove('skill-ready');
+      }
+      if (this.elSelectedPreview) {
+        this.elSelectedPreview.textContent =
+          '👁️ Bạn đang ngồi xem ván bài hiện tại — Sẽ tự động vào bàn khi hết ván này!';
+        this.elSelectedPreview.classList.remove('invalid');
+      }
+      return;
+    }
     const human = this.getLocalPlayer();
     const isMyTurn = !this.isGameOver && this.currentTurn === this.mySeatId;
     const selectedCards = this.getSelectedCards();
@@ -31536,7 +31668,7 @@ class TienLenGame {
   }
 
   onHumanPlay(isAutoTimeout = false) {
-    if (this.isGameOver || this.isBurstPlaying) return;
+    if (this.isGameOver || this.isBurstPlaying || this.isLocalSpectatorNow()) return;
     if (!this.tutorialCompleted && this.tutorialStep === 5 && !this.tutorialMatch2SkillUsed) {
       this.showCenterToast('🌟 Nhà Lữ Hành: Hãy bấm vào nút [🔮 Chiêu Nộ Q] đang có mũi tên chỉ vào để thử Chiêu Nộ của Raiden Shogun trước nhé!');
       this.renderTravelerGuide();
@@ -31672,7 +31804,14 @@ class TienLenGame {
   }
 
   onHumanPass(isAutoTimeout = false) {
-    if (this.isGameOver || this.isBurstPlaying || this.currentTurn !== this.mySeatId || !this.currentCombo) return;
+    if (
+      this.isGameOver ||
+      this.isBurstPlaying ||
+      this.isLocalSpectatorNow() ||
+      this.currentTurn !== this.mySeatId ||
+      !this.currentCombo
+    )
+      return;
     if (!this.tutorialCompleted && this.tutorialStep === 5) {
       if (!this.tutorialMatch2SkillUsed) {
         this.showCenterToast('🌟 Nhà Lữ Hành: Đừng bỏ lượt! Hãy bấm vào nút [🔮 Chiêu Nộ Q] đang có mũi tên chỉ vào để chém đứt Đôi 3 của Bot Furina nhé!');
@@ -31820,7 +31959,7 @@ class TienLenGame {
 
     // 6. Yumemizuki Mizuki (Liệu Pháp Mộng Đẹp Baku): Kết thúc mỗi ván (thắng hay thua) đều được Baku hồi cố định +1.5× Mức cược Xu
     this.players.forEach((p) => {
-      if (!p.active) return;
+      if (!p.active || p.spectatingCurrentMatch) return;
       if (this.getPlayerActiveCharId(p) === 'mizuki') {
         const mizukiHeal = Math.round(b * 1.5);
         p.coins += mizukiHeal;
@@ -31839,7 +31978,7 @@ class TienLenGame {
     // KIỂM TRA TREO MÁY (AFK) CẢ TRẬN TRONG CHẾ ĐỘ NHIỀU NGƯỜI CHƠI -> TỰ OUT BÀN VÀO TRẬN SAU!
     if (this.isMultiplayer) {
       this.players.forEach((p) => {
-        if (!p.active || p.isBot) return;
+        if (!p.active || p.isBot || p.spectatingCurrentMatch) return;
         const afkWholeMatch = (p.manualActionsInMatch || 0) === 0 && (p.afkAutoTurns || 0) >= 1;
         if (afkWholeMatch) {
           p.wasFullMatchAfk = true;
@@ -31860,6 +31999,7 @@ class TienLenGame {
         localP &&
         localP.active &&
         !localP.isBot &&
+        !localP.spectatingCurrentMatch &&
         (localP.manualActionsInMatch || 0) === 0 &&
         (localP.afkAutoTurns || 0) >= 1
       ) {
@@ -31897,17 +32037,18 @@ class TienLenGame {
     } else {
       this.lastLoserId = null;
     }
+    const winnerDisplayName = winner.name;
+    const winBurstId = this.getPlayerActiveCharId(winner);
     this.promoteSpectatorsAndQueuedHumansAfterMatch();
-    this.elTurnBanner.textContent = `🏁 ${winner.name} Về Nhất (+${totalWinnerGain.toLocaleString()} xu)! Đã lật bài toàn bàn.`;
+    this.elTurnBanner.textContent = `🏁 ${winnerDisplayName} Về Nhất (+${totalWinnerGain.toLocaleString()} xu)! Đã lật bài toàn bàn.`;
 
     const bannerTitle = wonBy3Spade
-      ? `👑 ${winner.name.toUpperCase()} ĐÚT 3 BÍCH VỀ NHẤT — ĂN TRỌN +${totalWinnerGain.toLocaleString()} XU!`
-      : `🏆 ${winner.name.toUpperCase()} VỀ NHẤT — ĂN TRỌN +${totalWinnerGain.toLocaleString()} XU!`;
+      ? `👑 ${winnerDisplayName.toUpperCase()} ĐÚT 3 BÍCH VỀ NHẤT — ĂN TRỌN +${totalWinnerGain.toLocaleString()} XU!`
+      : `🏆 ${winnerDisplayName.toUpperCase()} VỀ NHẤT — ĂN TRỌN +${totalWinnerGain.toLocaleString()} XU!`;
 
     const winBurstDetail = wonBy3Spade
-      ? `👑 ${winner.name} Đút 3♠ Về Nhất • +${totalWinnerGain.toLocaleString()} Xu!`
-      : `🏆 ${winner.name} Về Nhất Ăn Tất • +${totalWinnerGain.toLocaleString()} Xu!`;
-    const winBurstId = this.getPlayerActiveCharId(winner);
+      ? `👑 ${winnerDisplayName} Đút 3♠ Về Nhất • +${totalWinnerGain.toLocaleString()} Xu!`
+      : `🏆 ${winnerDisplayName} Về Nhất Ăn Tất • +${totalWinnerGain.toLocaleString()} Xu!`;
     this.lastBurstEffect = { id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, type: winBurstId, burstId: winBurstId, isWin: true, detail: winBurstDetail };
     this.lastSummaryData = { coinChanges, detailsByPlayer, bannerTitle };
     this.incrementDailyQuest('play_matches', 1);
@@ -32042,9 +32183,10 @@ class TienLenGame {
     const div = document.createElement('div');
     const isSelected = interactive && this.selectedCardIds.has(card.id);
     const isCompanion = interactive && this.companionCardIds.has(card.id);
-    const isNaviaLocked = interactive && activeNaviaLockedCardIds && activeNaviaLockedCardIds.has(card.id);
-    const isZhongliPetrified =
-      interactive && activeZhongliPetrifiedCardIds && activeZhongliPetrifiedCardIds.has(card.id);
+    const isNaviaLocked = Boolean(activeNaviaLockedCardIds && activeNaviaLockedCardIds.has(card.id));
+    const isZhongliPetrified = Boolean(
+      activeZhongliPetrifiedCardIds && activeZhongliPetrifiedCardIds.has(card.id)
+    );
     const activeSkin = getCardSkinMeta(skinId);
 
     div.className = `playing-card ${card.isRed ? 'red-card' : 'black-card'} ${
@@ -32115,7 +32257,20 @@ class TienLenGame {
       seatEl.classList.toggle('active-turn', !this.isGameOver && this.currentTurn === p.id);
       seatEl.classList.toggle('passed-turn', p.passed);
 
-      if (nameEl) nameEl.textContent = visualSlot === 0 ? `${p.name} (Bạn)` : p.name;
+      if (nameEl) {
+        if (p.queuedHumanReplacement) {
+          const qName = p.queuedHumanReplacement.name || 'Khách';
+          nameEl.textContent =
+            visualSlot === 0
+              ? `${p.name} (⏳ ${qName} đợi hết ván)`
+              : `${p.name} (⏳ ${qName} vào ván sau)`;
+        } else if (p.spectatingCurrentMatch) {
+          nameEl.textContent =
+            visualSlot === 0 ? `${p.name} (Bạn • Đang xem)` : `${p.name} (Đang xem)`;
+        } else {
+          nameEl.textContent = visualSlot === 0 ? `${p.name} (Bạn)` : p.name;
+        }
+      }
       if (avatarEl) {
         const avatarKey = String(p.avatar || AVATARS[p.id] || '');
         if (avatarEl.getAttribute('data-avatar-key') !== avatarKey) {
@@ -32126,7 +32281,10 @@ class TienLenGame {
       coinsEl.textContent = p.coins.toLocaleString();
       countEl.textContent = p.hand.length;
 
-      if (p.passed && p.finishRank === null) {
+      if (p.spectatingCurrentMatch && !this.isGameOver) {
+        statusEl.textContent = '👁️ Đợi ván sau';
+        statusEl.classList.remove('hidden');
+      } else if (p.passed && p.finishRank === null) {
         statusEl.textContent = 'Bỏ lượt';
         statusEl.classList.remove('hidden');
       } else {
@@ -32191,9 +32349,27 @@ class TienLenGame {
 
       // Khi ván bài kết thúc (isGameOver), lật ngửa toàn bộ bài còn lại của các đối thủ ngay trên bàn!
       // Hoặc khi Yelan / Nahida kích hoạt kỹ năng, lộ diện 3 lá của đối thủ!
+      // Hoặc khi Zhongli (Thiên Tinh Hoá Đá) / Xilonen (Bàn Xoay DJ) khóa bài đối thủ, hiển thị bài đối thủ bị khóa ngay trên bàn!
       if (revealEl) {
         const yelanEntry = !this.isGameOver && this.yelanRevealedByPlayer?.[p.id];
         const yelanCards = Array.isArray(yelanEntry) ? yelanEntry : yelanEntry?.cards;
+        const zhongliLockedCards =
+          !this.isGameOver &&
+          p.id !== this.mySeatId &&
+          activeZhongliPetrifiedCardIds &&
+          activeZhongliPetrifiedCardIds.size > 0 &&
+          Array.isArray(p.hand)
+            ? p.hand.filter((c) => activeZhongliPetrifiedCardIds.has(c.id))
+            : [];
+        const naviaLockedCards =
+          !this.isGameOver &&
+          p.id !== this.mySeatId &&
+          activeNaviaLockedCardIds &&
+          activeNaviaLockedCardIds.size > 0 &&
+          Array.isArray(p.hand)
+            ? p.hand.filter((c) => activeNaviaLockedCardIds.has(c.id))
+            : [];
+
         if (this.isGameOver && p.hand.length > 0) {
           const penSet = this.penaltyCardIdsByPlayer[p.id] || new Set();
           revealEl.innerHTML = p.hand
@@ -32207,6 +32383,29 @@ class TienLenGame {
               </div>`;
             })
             .join('');
+          revealEl.classList.remove('hidden');
+        } else if (zhongliLockedCards.length > 0 || naviaLockedCards.length > 0) {
+          const isZhongli = zhongliLockedCards.length > 0;
+          const lockedSet = isZhongli ? activeZhongliPetrifiedCardIds : activeNaviaLockedCardIds;
+          const badgeTitle = isZhongli
+            ? `☄️ HOÁ ĐÁ KHÓA (${zhongliLockedCards.length} LÁ)`
+            : `🔒 BỊ KHÓA (${naviaLockedCards.length} LÁ)`;
+          const cardsMarkup = p.hand
+            .map((c) => {
+              const isLocked = lockedSet.has(c.id);
+              if (isLocked) {
+                return `<div class="mini-open-card zhongli-petrified-card ${c.isRed ? 'red-card' : 'black-card'} penalty-card" style="border:2px dashed #f59e0b;background:#fef3c7;box-shadow:0 0 10px rgba(245,158,11,0.85);position:relative;" title="☄️ Bị khóa cứng trong vòng này!">
+                  <span style="font-size:10.5px;font-weight:900;">${c.rank}${c.suit}</span>
+                  <span style="font-size:8px;font-weight:900;color:#fef08a;background:#78350f;padding:0 3px;border-radius:3px;line-height:1.1;">🔒</span>
+                </div>`;
+              }
+              return `<div class="mini-open-card ${c.isRed ? 'red-card' : 'black-card'}" style="opacity:0.88;">
+                <span>${c.rank}</span>
+                <span>${c.suit}</span>
+              </div>`;
+            })
+            .join('');
+          revealEl.innerHTML = `<div style="width:100%;text-align:center;font-size:9.5px;font-weight:900;color:#fef08a;background:linear-gradient(90deg,#78350f,#b45309);border:1px solid #fde047;border-radius:5px;padding:1px 5px;margin-bottom:3px;letter-spacing:0.3px;">${badgeTitle}</div>${cardsMarkup}`;
           revealEl.classList.remove('hidden');
         } else if (yelanCards && yelanCards.length > 0) {
           revealEl.innerHTML = yelanCards
@@ -32315,9 +32514,23 @@ class TienLenGame {
 
   renderHumanHand() {
     const human = this.getLocalPlayer();
+    this.elHumanHand.innerHTML = '';
+    if (!human) return;
+    if (this.isLocalSpectatorNow()) {
+      const waitingSeatNum = (human.id ?? this.mySeatId ?? 0) + 1;
+      const botName = human.isBot && human.queuedHumanReplacement ? human.name : '';
+      this.elHumanHand.innerHTML = `
+        <div style="padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,rgba(15,23,42,0.92),rgba(30,58,138,0.88));border:2px dashed #fde047;color:#fef08a;font-weight:800;font-size:13.5px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,0.55);max-width:560px;margin:0 auto;">
+          👁️ <strong>ĐANG NGỒI XEM VÁN HIỆN TẠI</strong><br/>
+          <span style="font-size:12px;color:#e2e8f0;font-weight:600;">Bạn sẽ tự động vào <strong>Ghế #${waitingSeatNum}</strong>${
+        botName ? ` (thế chỗ <strong>${botName}</strong>)` : ''
+      } và được chia 13 lá bài ngay khi ván này kết thúc!</span>
+        </div>
+      `;
+      return;
+    }
     const penSet = this.penaltyCardIdsByPlayer[human.id] || new Set();
     const mySkin = human.cardSkin || this.equippedSkin || 'classic';
-    this.elHumanHand.innerHTML = '';
     human.hand.forEach((card) => {
       const isPen = this.isGameOver && penSet.has(card.id);
       this.elHumanHand.appendChild(

@@ -6616,11 +6616,13 @@ class TienLenGame {
         }
         const isTrulyMe =
           Boolean(me) &&
+          me.active &&
           !me.isBot &&
           !hasForeignIdentity &&
           (!this.isMultiplayer ||
-            me.clientId === this.myClientId ||
-            (myCleanUser && meCleanUser === myCleanUser) ||
+            (this._hasConfirmedSeatInRoom &&
+              (me.clientId === this.myClientId ||
+                (myCleanUser && meCleanUser === myCleanUser))) ||
             (this.isHost && this.mySeatId === 0));
         if (me && isTrulyMe && typeof me.coins === 'number') {
           if (preserveSavedCoins || !bumpTimestamp) {
@@ -6632,9 +6634,22 @@ class TienLenGame {
           this.isMultiplayer &&
           me &&
           me.queuedHumanReplacement &&
-          me.queuedHumanReplacement.clientId === this.myClientId
+          (me.queuedHumanReplacement.clientId === this.myClientId ||
+            (myCleanUser &&
+              String(me.queuedHumanReplacement.accountUsername || '').trim().toLowerCase() === myCleanUser))
         ) {
-          me.queuedHumanReplacement.coins = this.savedCoins;
+          if (
+            !preserveSavedCoins &&
+            bumpTimestamp &&
+            typeof me.queuedHumanReplacement.coins === 'number' &&
+            me.queuedHumanReplacement.coins !== INITIAL_COINS
+          ) {
+            this.savedCoins = me.queuedHumanReplacement.coins;
+          } else {
+            me.queuedHumanReplacement.coins = this.savedCoins;
+          }
+        } else if (this.isMultiplayer && me && !me.isBot && !this._hasConfirmedSeatInRoom) {
+          me.coins = this.savedCoins;
         }
       }
 
@@ -10937,7 +10952,7 @@ class TienLenGame {
     }
     const lobbyBal = document.getElementById('lobby-balance-display');
     if (lobbyBal && me) {
-      lobbyBal.textContent = me.coins.toLocaleString();
+      lobbyBal.textContent = this.getLocalHumanCoins().toLocaleString();
     }
     this.syncWishesBadgesUI();
 
@@ -15834,7 +15849,7 @@ class TienLenGame {
         this.tutorialCompleted = true;
         this.tutorialStep = 0;
         this.hideTravelerGuide();
-        this.saveShopProfile();
+        this.saveShopProfile({ preserveSavedCoins: true });
       }
       if (!this.isMultiplayer && this.isMidMatch()) {
         clearTimeout(this.botTimer);
@@ -22712,14 +22727,35 @@ class TienLenGame {
     this.syncAutoRandomBotsUI();
   }
 
+  getLocalHumanCoins() {
+    const me = this.getLocalPlayer();
+    if (!me) return typeof this.savedCoins === 'number' ? this.savedCoins : INITIAL_COINS;
+    if (this.isMultiplayer) {
+      const myCleanUser = String(this.currentAccountUsername || '').trim().toLowerCase();
+      if (
+        me.queuedHumanReplacement &&
+        (me.queuedHumanReplacement.clientId === this.myClientId ||
+          (myCleanUser &&
+            String(me.queuedHumanReplacement.accountUsername || '').trim().toLowerCase() === myCleanUser))
+      ) {
+        return typeof me.queuedHumanReplacement.coins === 'number'
+          ? me.queuedHumanReplacement.coins
+          : this.savedCoins;
+      }
+      if (!me.active || me.isBot || !this._hasConfirmedSeatInRoom) {
+        return typeof this.savedCoins === 'number' ? this.savedCoins : INITIAL_COINS;
+      }
+    }
+    return typeof me.coins === 'number' ? me.coins : this.savedCoins;
+  }
+
   selectBetTier(betVal, isCustom = false) {
     if (this.isMidMatch()) {
       alert('⛔ Ván bài đang diễn ra! Bạn phải đánh xong ván hiện tại mới được đổi mức cược.');
       return;
     }
     const clampedBet = clampBetPerCard(betVal);
-    const me = this.getLocalPlayer();
-    const myCoins = me ? me.coins : this.savedCoins;
+    const myCoins = this.getLocalHumanCoins();
     const tier = BET_TIERS.find((t) => t.betPerCard === clampedBet);
     const reqCoins = tier
       ? tier.minCoins
@@ -22810,8 +22846,7 @@ class TienLenGame {
   renderBetTiers() {
     const grid = document.getElementById('bet-tiers-grid');
     const preview = document.getElementById('bet-rules-preview');
-    const me = this.getLocalPlayer();
-    const myCoins = me ? me.coins : this.savedCoins;
+    const myCoins = this.getLocalHumanCoins();
     const lobbyBal = document.getElementById('lobby-balance-display');
     if (lobbyBal) lobbyBal.textContent = myCoins.toLocaleString();
     const modeSetupBal = document.getElementById('mode-setup-balance');
@@ -24536,6 +24571,14 @@ class TienLenGame {
         myExistingSeat.queuedHumanReplacement.winBurst = mySavedCharBeforeJoin;
         myExistingSeat.queuedHumanReplacement.avatar = mySavedAvatarBeforeJoin;
         myExistingSeat.queuedHumanReplacement.cardSkin = mySavedSkinBeforeJoin;
+        if (
+          this.matchCount === 0 ||
+          this.isGameOver ||
+          typeof myExistingSeat.queuedHumanReplacement.coins !== 'number' ||
+          (myExistingSeat.queuedHumanReplacement.coins === INITIAL_COINS && this.savedCoins !== INITIAL_COINS)
+        ) {
+          myExistingSeat.queuedHumanReplacement.coins = this.savedCoins;
+        }
       } else {
         myExistingSeat.clientId = this.myClientId;
         myExistingSeat.accountUsername = this.currentAccountUsername || myExistingSeat.accountUsername || '';
@@ -24545,6 +24588,14 @@ class TienLenGame {
         myExistingSeat.winBurst = mySavedCharBeforeJoin;
         myExistingSeat.avatar = mySavedAvatarBeforeJoin;
         myExistingSeat.cardSkin = mySavedSkinBeforeJoin;
+        if (
+          this.matchCount === 0 ||
+          this.isGameOver ||
+          typeof myExistingSeat.coins !== 'number' ||
+          (myExistingSeat.coins === INITIAL_COINS && this.savedCoins !== INITIAL_COINS)
+        ) {
+          myExistingSeat.coins = this.savedCoins;
+        }
       }
     }
     this._hasConfirmedSeatInRoom = false;
@@ -25757,7 +25808,15 @@ class TienLenGame {
         seat.activeChar = resolvedGuestChar;
         seat.chopBurst = resolvedGuestChar;
         seat.winBurst = resolvedGuestChar;
-        if (!isPlayingHumanRejoin && typeof evt.coins === 'number') seat.coins = evt.coins;
+        if (
+          typeof evt.coins === 'number' &&
+          (!isPlayingHumanRejoin ||
+            this.matchCount === 0 ||
+            this.isGameOver ||
+            (seat.coins === INITIAL_COINS && evt.coins !== INITIAL_COINS))
+        ) {
+          seat.coins = evt.coins;
+        }
         seat.accountUsername = evt.accountUsername || seat.accountUsername || '';
         seat.isBot = false;
         seat.active = true;
@@ -26196,7 +26255,30 @@ class TienLenGame {
           (me.clientId === this.myClientId ||
             (myCleanUser && String(me.accountUsername || '').trim().toLowerCase() === myCleanUser));
         if (isConfirmedMyHumanSeat) {
+          if (
+            this.matchCount === 0 &&
+            me.coins === INITIAL_COINS &&
+            typeof this.savedCoins === 'number' &&
+            this.savedCoins !== INITIAL_COINS
+          ) {
+            me.coins = this.savedCoins;
+          }
           this.saveShopProfile();
+        } else if (
+          me.isBot &&
+          me.queuedHumanReplacement &&
+          (me.queuedHumanReplacement.clientId === this.myClientId ||
+            (myCleanUser &&
+              String(me.queuedHumanReplacement.accountUsername || '').trim().toLowerCase() === myCleanUser))
+        ) {
+          if (
+            me.queuedHumanReplacement.coins === INITIAL_COINS &&
+            typeof this.savedCoins === 'number' &&
+            this.savedCoins !== INITIAL_COINS
+          ) {
+            me.queuedHumanReplacement.coins = this.savedCoins;
+          }
+          this.saveShopProfile({ preserveSavedCoins: true });
         }
       } else {
         const firstGuestSeat =
@@ -26212,6 +26294,8 @@ class TienLenGame {
           this.mySeatId = firstGuestSeat.id;
           if (!firstGuestSeat.isBot || !firstGuestSeat.active || this.matchCount === 0 || this.isGameOver) {
             firstGuestSeat.coins = this.savedCoins;
+          } else if (firstGuestSeat.queuedHumanReplacement) {
+            firstGuestSeat.queuedHumanReplacement.coins = this.savedCoins;
           }
           const myName =
             document.getElementById('input-player-name')?.value.trim() ||
@@ -26414,7 +26498,7 @@ class TienLenGame {
     }
     const lobbyBal = document.getElementById('lobby-balance-display');
     if (lobbyBal && me) {
-      lobbyBal.textContent = me.coins.toLocaleString();
+      lobbyBal.textContent = this.getLocalHumanCoins().toLocaleString();
     }
     const grid = document.getElementById('lobby-seats-grid');
     if (!grid) return;
@@ -32706,7 +32790,13 @@ class TienLenGame {
           avatarEl.innerHTML = getAvatarHtml(avatarKey);
         }
       }
-      coinsEl.textContent = p.coins.toLocaleString();
+      const seatCoinsVal =
+        visualSlot === 0
+          ? this.getLocalHumanCoins()
+          : typeof p.coins === 'number'
+          ? p.coins
+          : INITIAL_COINS;
+      coinsEl.textContent = seatCoinsVal.toLocaleString();
       countEl.textContent = p.hand.length;
 
       if (p.spectatingCurrentMatch && !this.isGameOver) {

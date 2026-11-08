@@ -4074,24 +4074,26 @@ class TienLenGame {
     this.renderLobbyModal();
     this.detectLanInfoAndUrlRoom();
     this.fetchLiveAnimeImages();
-    const restoredSoloMatch = Boolean(this.currentAccountUsername && this.loadActiveMatchSnapshot(true));
-    if (!restoredSoloMatch) {
-      this.startNewMatch(true);
-    }
+    this.clearActiveMatchSnapshot();
+    this.inInitialLobby = true;
+    this.startNewMatch(true);
     ['mode-setup-modal', 'inventory-modal', 'shop-modal', 'pause-modal', 'quests-modal', 'rules-modal', 'account-modal', 'summary-modal'].forEach(
       (id) => document.getElementById(id)?.classList.add('hidden')
     );
-    if (restoredSoloMatch || (this.matchCount >= 1 && !this.isGameOver && !this.inInitialLobby)) {
-      this.hideAllLobbyModalsForActiveMatch();
-      this.promptCurrentTurn();
-    } else {
-      this.modalWifi?.classList.remove('hidden');
-    }
+    this.modalWifi?.classList.remove('hidden');
+    this.updateMidMatchLockUI();
     if (!this.currentAccountUsername) {
       clearTimeout(this.botTimer);
       clearInterval(this.turnCountdownInterval);
       this.openAccountModal('register');
-    } else if (this.isAdminAccount() || this.tutorialCompleted || this.hasVeteranPostTutorialProgress()) {
+    } else if (
+      this.isAdminAccount() ||
+      this.tutorialCompleted ||
+      this.hasVeteranPostTutorialProgress() ||
+      this.unlockedBursts.size > 0 ||
+      (this.totalWishes || 0) > 0 ||
+      this.beginnerBannerUsed
+    ) {
       this.tutorialCompleted = true;
       this.beginnerBannerUsed = true;
       this.tutorialStep = 0;
@@ -4099,15 +4101,19 @@ class TienLenGame {
     } else {
       // Đợi đồng bộ Đám Mây xong rồi mới kiểm tra xem có phải tài khoản Tân Thủ thật sự hay không (tránh chạy nhầm hướng dẫn khi mạng đang tải hồ sơ Cloud!)
       this.pullAccountFromCloudAndSync(this.currentAccountUsername, { isBootSessionClaim: true }).finally(() => {
-        if (this.isAdminAccount() || this.tutorialCompleted || this.hasVeteranPostTutorialProgress()) {
+        if (
+          this.isAdminAccount() ||
+          this.tutorialCompleted ||
+          this.hasVeteranPostTutorialProgress() ||
+          this.unlockedBursts.size > 0 ||
+          (this.totalWishes || 0) > 0 ||
+          this.beginnerBannerUsed
+        ) {
           this.tutorialCompleted = true;
           this.beginnerBannerUsed = true;
           this.tutorialStep = 0;
           this.hideTravelerGuide();
           return;
-        }
-        if (this.beginnerBannerUsed && (!this.tutorialStep || this.tutorialStep < 4)) {
-          this.tutorialStep = 4;
         }
         if (this.tutorialStep >= 2 && this.tutorialStep <= 6) {
           this.resumeNewbieTutorialOnBoot();
@@ -5263,7 +5269,8 @@ class TienLenGame {
     const g4 = p.gachaGuaranteed4 ? 1 : 0;
     const tw = Math.max(0, Number(p.totalWishes) || 0).toString(36);
     const wTenths = Math.max(0, Math.round((Number(p.wishes) || 0) * 10)).toString(36);
-    const pityPack = `${p5}_${p4}_${g5}_${g4}_${tw}_${wTenths}`;
+    const tutDoneFlag = p.tutorialCompleted || accObj.tutorialCompleted ? 1 : 0;
+    const pityPack = `${p5}_${p4}_${g5}_${g4}_${tw}_${wTenths}_${tutDoneFlag}`;
 
     const qDate = String(p.dailyQuestsDate || this.getTodayKey()).replace(/[^0-9]/g, '').slice(-6) || '0';
     const qParts = [qDate];
@@ -5397,9 +5404,10 @@ class TienLenGame {
 
       const isVetDone =
         usernameKey === 'thang.dinhbkp' ||
-        unlockedBursts.length > 1 ||
-        totalWishes > 10 ||
-        (unlockedBursts.length === 1 && unlockedBursts[0] !== 'raiden');
+        pt[6] === '1' ||
+        unlockedBursts.length > 0 ||
+        totalWishes > 0 ||
+        equippedActiveChar !== 'none';
       const hasUsedBeginner = Boolean(unlockedBursts.length > 0 || totalWishes > 0 || usernameKey === 'thang.dinhbkp');
 
       return {
@@ -5627,21 +5635,9 @@ class TienLenGame {
       } catch (_) {}
     }
 
-    // 3. Nếu Máy 1 đang đánh dở ván Đấu Với Bot (Solo Bot Match)
-    if (activity && activity.type === 'solo' && activity.matchSnapshot) {
-      try {
-        localStorage.setItem('tlmn_active_match_v18', JSON.stringify(activity.matchSnapshot));
-        if (this.loadActiveMatchSnapshot(true)) {
-          this.hideAllLobbyModalsForActiveMatch();
-          this.promptCurrentTurn();
-          this.showComboBanner(`🔄 ĐÃ TIẾP TỤC VÁN #${this.matchCount} TỪ MÁY 1!`);
-          this.addLog(
-            `🔄 <strong>Tiếp quản từ Máy 1:</strong> Đã khôi phục nguyên trạng <strong>Ván #${this.matchCount}</strong> (bài trên tay, lượt đánh & bàn đấu) từ Máy 1!`,
-            'log-win'
-          );
-          return true;
-        }
-      } catch (_) {}
+    // 3. Nếu Máy 1 đang đánh dở ván Đấu Với Bot (Solo Bot Match) -> KHÔNG tự động ép vào bàn Bot khi mới mở game / đăng nhập để người chơi tự do Tạo Bàn hoặc Chọn Chế Độ ở Sảnh Chờ!
+    if (activity && activity.type === 'solo') {
+      this.clearActiveMatchSnapshot();
     }
 
     return false;
@@ -6780,6 +6776,8 @@ class TienLenGame {
     if (w > 10) return true;
     if (arr.length > 1) return true;
     if (arr.length === 1 && arr[0] !== 'raiden') return true;
+    if (arr.length >= 1 && this.equippedActiveChar && this.equippedActiveChar !== 'none') return true;
+    if (Number(this.tutorialStep) >= 6) return true;
     return false;
   }
 
@@ -9143,6 +9141,19 @@ class TienLenGame {
       );
       this.renderAccountModal();
       document.getElementById('account-modal')?.classList.add('hidden');
+      if (
+        this.isAdminAccount() ||
+        this.tutorialCompleted ||
+        this.hasVeteranPostTutorialProgress() ||
+        this.unlockedBursts.size > 0 ||
+        (this.totalWishes || 0) > 0 ||
+        this.beginnerBannerUsed
+      ) {
+        this.tutorialCompleted = true;
+        this.beginnerBannerUsed = true;
+        this.tutorialStep = 0;
+        this.hideTravelerGuide();
+      }
       if (!this.tutorialCompleted && this.unlockedBursts.size === 0 && (this.totalWishes || 0) === 0) {
         this._pendingJoinRoomParam = '';
         this.startNewbieTutorial(1);
@@ -9159,7 +9170,15 @@ class TienLenGame {
         this.searchMultiplayerRoomById(pendingRoom);
         return;
       }
-      await this.resumeAccountActivityFromCloud(prevActivity);
+      const resumedMp = await this.resumeAccountActivityFromCloud(prevActivity);
+      if (!resumedMp && (!this.isMultiplayer || !this.roomId)) {
+        clearTimeout(this.botTimer);
+        this.stopTurnCountdown();
+        this.clearActiveMatchSnapshot();
+        this.inInitialLobby = true;
+        this.modalWifi?.classList.remove('hidden');
+        this.updateMidMatchLockUI();
+      }
     } finally {
       this._isLoggingIn = false;
       if (btnEl) {
@@ -15307,6 +15326,12 @@ class TienLenGame {
 
     this.btnWifi.addEventListener('click', async () => {
       if (!this.requireAccountLogin()) return;
+      if (!this.isMultiplayer && this.isMidMatch() && (this.getLocalPlayer()?.manualActionsInMatch || 0) === 0) {
+        clearTimeout(this.botTimer);
+        this.stopTurnCountdown();
+        this.clearActiveMatchSnapshot();
+        this.inInitialLobby = true;
+      }
       if (this.isMidMatch()) {
         alert('⛔ Ván bài hiện tại chưa kết thúc! Bạn phải đánh xong ván bài này mới được quay về Màn Hình Chờ / Đổi Chế Độ.');
         return;
@@ -15368,8 +15393,10 @@ class TienLenGame {
     document.getElementById('btn-create-room')?.addEventListener('click', () => {
       if (!this.requireAccountLogin()) return;
       if (!this.isMultiplayer && this.isMidMatch()) {
-        alert('⛔ Bạn đang đánh dở ván bài với Bot! Không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
-        return;
+        clearTimeout(this.botTimer);
+        this.stopTurnCountdown();
+        this.clearActiveMatchSnapshot();
+        this.inInitialLobby = true;
       }
       if (this.isMultiplayer && this.isMidMatch()) {
         alert('⛔ Trận đấu trong phòng hiện tại chưa kết thúc! Bạn không được phép tạo phòng khác khi ván bài đang diễn ra.');
@@ -15798,18 +15825,29 @@ class TienLenGame {
   openModeSetupModal(mode = 'bot') {
     if (!this.requireAccountLogin()) return;
     const targetMode = mode === 'human' ? 'human' : 'bot';
-    if (!this.tutorialCompleted && (this.tutorialStep === 2 || this.tutorialStep === 3)) {
-      alert('🌟 Nhà Lữ Hành: Hãy vào Sảnh Cầu Nguyện để nhận Nhân Vật 5★ Limited tặng Tân Thủ trước khi tạo bàn nhé!');
-      return;
-    }
-    if (!this.tutorialCompleted && this.tutorialStep === 4 && this.equippedActiveChar !== 'raiden') {
-      alert('🌟 Nhà Lữ Hành: Bạn phải vào "🎒 Kho Đồ" mặc Raiden Shogun trước thì mới sử dụng được nhân vật trên bàn đấu nhé!');
-      this.renderTravelerGuide();
-      return;
-    }
-    if (!this.tutorialCompleted && this.tutorialStep === 4 && targetMode === 'human') {
-      alert('🌟 Nhà Lữ Hành: Ở bước hướng dẫn này, hãy bấm chọn "🤖 CHƠI VỚI BOT" để mình hướng dẫn bạn xài chiêu của Raiden Shogun và Phản Ứng Nguyên Tố nhé!');
-      return;
+    if (targetMode === 'human') {
+      if (!this.tutorialCompleted) {
+        this.tutorialCompleted = true;
+        this.tutorialStep = 0;
+        this.hideTravelerGuide();
+        this.saveShopProfile();
+      }
+      if (!this.isMultiplayer && this.isMidMatch()) {
+        clearTimeout(this.botTimer);
+        this.stopTurnCountdown();
+        this.clearActiveMatchSnapshot();
+        this.inInitialLobby = true;
+      }
+    } else {
+      if (!this.tutorialCompleted && (this.tutorialStep === 2 || this.tutorialStep === 3)) {
+        alert('🌟 Nhà Lữ Hành: Hãy vào Sảnh Cầu Nguyện để nhận Nhân Vật 5★ Limited tặng Tân Thủ trước khi tạo bàn nhé!');
+        return;
+      }
+      if (!this.tutorialCompleted && this.tutorialStep === 4 && this.equippedActiveChar !== 'raiden') {
+        alert('🌟 Nhà Lữ Hành: Bạn phải vào "🎒 Kho Đồ" mặc Raiden Shogun trước thì mới sử dụng được nhân vật trên bàn đấu nhé!');
+        this.renderTravelerGuide();
+        return;
+      }
     }
     if (targetMode === 'bot' && this.isMultiplayer && this.roomId) {
       if (this.isMidMatch()) {
@@ -15817,10 +15855,6 @@ class TienLenGame {
       } else {
         alert(`⛔ Bạn đang ở trong Phòng Đấu Với Người (#${this.roomId})! Không thể mở bàn Đấu Với Bot cùng lúc. Vui lòng bấm "✕ Rời phòng" trước nếu muốn chuyển sang chơi với Bot.`);
       }
-      return;
-    }
-    if (targetMode === 'human' && !this.isMultiplayer && this.isMidMatch()) {
-      alert('⛔ Bạn đang trong trận đấu với Bot chưa kết thúc! Tuyệt đối không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
       return;
     }
     this.selectLobbyMode(targetMode);
@@ -15850,7 +15884,11 @@ class TienLenGame {
     if (requestedMode === 'bot' && this.isMultiplayer && this.roomId) {
       this.selectedLobbyMode = 'human';
     } else if (requestedMode === 'human' && !this.isMultiplayer && this.isMidMatch()) {
-      this.selectedLobbyMode = 'bot';
+      clearTimeout(this.botTimer);
+      this.stopTurnCountdown();
+      this.clearActiveMatchSnapshot();
+      this.inInitialLobby = true;
+      this.selectedLobbyMode = 'human';
     } else {
       this.selectedLobbyMode = requestedMode;
     }
@@ -24064,8 +24102,10 @@ class TienLenGame {
 
   async createWifiRoom() {
     if (!this.isMultiplayer && this.isMidMatch()) {
-      alert('⛔ Bạn đang đánh dở ván bài với Bot! Không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
-      return;
+      clearTimeout(this.botTimer);
+      this.stopTurnCountdown();
+      this.clearActiveMatchSnapshot();
+      this.inInitialLobby = true;
     }
     if (this.isMultiplayer && this.isMidMatch()) {
       alert('⛔ Trận đấu trong phòng hiện tại chưa kết thúc! Bạn không được phép tạo phòng khác khi ván bài đang diễn ra.');
@@ -24222,8 +24262,10 @@ class TienLenGame {
     if (!cleanCode) return;
     if (!isAutoRestore) {
       if (!this.isMultiplayer && this.isMidMatch()) {
-        alert('⛔ Bạn đang đánh dở ván bài với Bot! Không thể chơi 2 trận với Người và với Bot cùng 1 lúc.');
-        return;
+        clearTimeout(this.botTimer);
+        this.stopTurnCountdown();
+        this.clearActiveMatchSnapshot();
+        this.inInitialLobby = true;
       }
       if (this.isMultiplayer && this.roomId && this.roomId !== cleanCode && this.isMidMatch()) {
         alert(`⛔ Bạn đang trong trận đấu tại Phòng #${this.roomId} chưa kết thúc! Không thể vào phòng khác khi trận đang diễn ra.`);
@@ -33380,6 +33422,9 @@ class TienLenGame {
   advanceTutorialStep(nextStep) {
     if (this.tutorialCompleted) return;
     this.tutorialStep = nextStep;
+    if (nextStep >= 6) {
+      this.tutorialCompleted = true;
+    }
 
     if (nextStep === 3) {
       // Đảm bảo Banner Tân Thủ luôn hiển thị ở Bước 3 và chưa trang bị sẵn nhân vật để Bước 4 hướng dẫn vào Kho Đồ mặc Raiden Shogun

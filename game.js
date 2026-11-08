@@ -240,7 +240,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'mizuki', name: 'Yumemizuki Mizuki (Bác Sĩ Tâm Lý Baku)', desc: '[5★ Thường • Lệch Rate] Đại cổ đông Phòng Tắm Hơi Aisa hồi cố định +1.5× cược sau mỗi ván bài.', avatarPrice: 65000, skinPrice: 100000, crest: '🍃' },
   { id: 'klee', name: 'Klee (Mặt Trời Chạy Trốn)', desc: '[Huyền Thoại] Kỵ Sĩ Tia Lửa của Đội Kỵ Sĩ Tây Phong ném Bom Nảy phá nát bộ bài trên tay đối thủ.', avatarPrice: 75000, skinPrice: 115000, crest: '💣' },
   { id: 'albedo', name: 'Albedo (Kreideprinz Giả Kim)', desc: '[Huyền Thoại] Giả kim thuật sĩ trưởng Đội Kỵ Sĩ Tây Phong luyện Đôi + lá rác thành Sảnh đồng chất Cơ ♥.', avatarPrice: 75000, skinPrice: 115000, crest: '⚜️' },
-  { id: 'varka', name: 'Varka (Đại Đoàn Trưởng Tây Phong)', desc: '[Thần Thoại] Kỵ Sĩ Bắc Phong vung đại kiếm chẻ đôi bộ bài trên bàn, quét bay nửa lớn hơn.', avatarPrice: 90000, skinPrice: 140000, crest: '🗡️' },
+  { id: 'varka', name: 'Varka (Đại Đoàn Trưởng Tây Phong)', desc: '[Thần Thoại] Kỵ Sĩ Bắc Phong vung Song Kiếm Hợp Lực: Cộng gộp 2 lá bài trong phạm vi tổng ≤ 15 thành đòn chém Bài Lẻ.', avatarPrice: 90000, skinPrice: 140000, crest: '🗡️' },
   { id: 'nicole', name: 'Nicole Reeyn (Phù Thủy Hexenzirkel N)', desc: '[Thần Thoại] Phù thủy tiên tri Hội Ma Nữ viết lại quy luật: Mọi bậc số 3→A ngang nhau, đè bài thuần bằng Chất!', avatarPrice: 90000, skinPrice: 140000, crest: '🔮' },
   { id: 'zhongli', name: 'Zhongli (Nham Vương Đế Quân)', desc: '[Thần Thoại] Nham Thần giáng Thiên Tinh hóa đá khóa toàn bộ lá bài chất Đen (♠, ♣) của mọi đối thủ.', avatarPrice: 95000, skinPrice: 145000, crest: '🪨' },
   { id: 'baizhu', name: 'Baizhu (Chủ Nhà Thuốc Bubu)', desc: '[Huyền Thoại] Danh y Liyue bắt mạch bộ bài trên bàn và biến bài rác thành bộ cùng số chất Đỏ ♥/♦ cao nhất.', avatarPrice: 78000, skinPrice: 120000, crest: '🐍' },
@@ -946,7 +946,7 @@ const GENSHIN_BURSTS = [
   {
     id: 'varka',
     name: 'Varka — Bão Kiếm Bắc Phong',
-    desc: '[Thần Thoại] Đại Đoàn Trưởng Tây Phong vung Song Kiếm Hợp Lực: Ghép 2 lá bài Lẻ khác số cộng gộp điểm lại thành 1 đòn Song Kiếm (tối đa cấp 2♥) đè thẳng lên Bài Lẻ lớn trên bàn (Video + Giọng Nhật thật).',
+    desc: '[Thần Thoại] Đại Đoàn Trưởng Tây Phong vung Song Kiếm Hợp Lực: Ghép 2 lá bài bất kỳ có tổng điểm ≤ 15 (quá 15 không được cộng) thành 1 đòn Song Kiếm (tối đa cấp 2♥) đè thẳng lên Bài Lẻ trên bàn (Video + Giọng Nhật thật).',
     price: 175000,
     mp4Url: 'varka_burst.mp4?v=64',
     audioUrl: 'varka_burst.ogg?v=64',
@@ -1826,7 +1826,7 @@ const CHARACTER_SKILLS = {
     charName: 'Varka',
     icon: '🗡️',
     name: 'Song Kiếm Hợp Lực',
-    shortDesc: 'Trong lượt này: Cho phép Varka ghép 2 lá bài bất kỳ (kể cả 2 lá lẻ hoặc 1 Đôi) cộng gộp điểm lại thành 1 đòn Song Kiếm (tối đa cấp Heo Cơ 2♥) để chém đè trực tiếp lên Bài Lẻ (kể cả Heo) trên bàn!',
+    shortDesc: 'Trong lượt này: Cho phép Varka ghép 2 lá bài bất kỳ có tổng điểm ≤ 15 (vượt quá 15 không được cộng; điểm tính 3→10, J=11, Q=12, K=13, A=14, 2=15) thành 1 đòn Song Kiếm (tối đa cấp Heo Cơ 2♥) để chém đè trực tiếp lên Bài Lẻ trên bàn!',
   },
   nicole: {
     id: 'nicole',
@@ -2691,27 +2691,30 @@ function classifyCombo(cards) {
     if (activeVarkaSumSlash) {
       const face0 = sorted[0].rankIndex + 3;
       const face1 = sorted[1].rankIndex + 3;
-      const sumRank = Math.min(12, Math.max(sorted[1].rankIndex + 1, face0 + face1 - 3));
-      const sumSuit = sumRank === 12 ? 3 : Math.max(sorted[0].suitIndex, sorted[1].suitIndex, 2);
-      const virtualHighCard = {
-        ...highCard,
-        rankIndex: sumRank,
-        suitIndex: sumSuit,
-        rank: RANKS[sumRank],
-        suit: SUITS[sumSuit],
-        isRed: sumSuit >= 2,
-        value: sumRank * 4 + sumSuit,
-      };
-      return {
-        type: COMBO_TYPES.SINGLE,
-        cards: sorted,
-        length: 1,
-        highCard: virtualHighCard,
-        highValue: virtualHighCard.value,
-        highRank: sumRank,
-        isVarkaSumSlash: true,
-        label: `Song Kiếm Hợp Lực (${sorted[0].rank}${sorted[0].suit}+${sorted[1].rank}${sorted[1].suit} ➔ Cấp ${RANKS[sumRank]}${SUITS[sumSuit]} 🗡️)`,
-      };
+      const totalPoints = face0 + face1;
+      if (totalPoints <= 15) {
+        const sumRank = Math.min(12, Math.max(sorted[1].rankIndex + 1, totalPoints - 3));
+        const sumSuit = sumRank === 12 ? 3 : Math.max(sorted[0].suitIndex, sorted[1].suitIndex, 2);
+        const virtualHighCard = {
+          ...highCard,
+          rankIndex: sumRank,
+          suitIndex: sumSuit,
+          rank: RANKS[sumRank],
+          suit: SUITS[sumSuit],
+          isRed: sumSuit >= 2,
+          value: sumRank * 4 + sumSuit,
+        };
+        return {
+          type: COMBO_TYPES.SINGLE,
+          cards: sorted,
+          length: 1,
+          highCard: virtualHighCard,
+          highValue: virtualHighCard.value,
+          highRank: sumRank,
+          isVarkaSumSlash: true,
+          label: `Song Kiếm Hợp Lực (${sorted[0].rank}${sorted[0].suit}+${sorted[1].rank}${sorted[1].suit}=${totalPoints}≤15 ➔ Cấp ${RANKS[sumRank]}${SUITS[sumSuit]} 🗡️)`,
+        };
+      }
     }
     if (sorted[0].rankIndex === sorted[1].rankIndex) {
       return {
@@ -3431,11 +3434,12 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     combos.push(classifyCombo([c]));
   });
 
-  // Song Kiếm Hợp Lực (Varka): Sinh các cặp 2 lá bài bất kỳ (kể cả Đôi) cộng điểm đè Bài Lẻ trên bàn
+  // Song Kiếm Hợp Lực (Varka): Sinh các cặp 2 lá bài có tổng điểm <= 15 cộng điểm đè Bài Lẻ trên bàn (quá 15 không được cộng)
   if (activeVarkaSumSlash && sorted.length >= 2) {
     for (let i = 0; i < sorted.length; i++) {
       for (let j = i + 1; j < sorted.length; j++) {
-        if (sorted[j].rankIndex < 12) {
+        const totalPts = sorted[i].rankIndex + 3 + (sorted[j].rankIndex + 3);
+        if (totalPts <= 15 && sorted[j].rankIndex < 12) {
           const sumCombo = classifyCombo([sorted[i], sorted[j]]);
           if (sumCombo && sumCombo.isVarkaSumSlash) combos.push(sumCombo);
         }
@@ -17469,7 +17473,7 @@ class TienLenGame {
     }
     if (this.varkaSumSlashTurn) {
       pills.push(
-        `<span class="round-skill-pill">🗡️ Song Kiếm Varka: Lượt này được ghép 2 lá bài bất kỳ (kể cả Đôi) cộng điểm đè Bài Lẻ trên bàn!</span>`
+        `<span class="round-skill-pill">🗡️ Song Kiếm Varka: Lượt này được ghép 2 lá bài có tổng điểm ≤ 15 (quá 15 không được cộng) đè Bài Lẻ trên bàn!</span>`
       );
     }
     if (this.baizhuShieldOwnerId !== null) {
@@ -18325,6 +18329,12 @@ class TienLenGame {
       }
       if (player.hand.length < 2) {
         return { ok: false, reason: 'Cần ít nhất 2 lá bài trên tay để thi triển Song Kiếm Hợp Lực!' };
+      }
+      const hasValidSum15Pair = player.hand.some((c1, idx) =>
+        player.hand.slice(idx + 1).some((c2) => c1.rankIndex + 3 + (c2.rankIndex + 3) <= 15)
+      );
+      if (!hasValidSum15Pair) {
+        return { ok: false, reason: 'Không có cặp 2 lá bài nào trên tay có tổng điểm ≤ 15 (quá 15 không được cộng)!' };
       }
     }
     if (charId === 'nicole' && this.nicoleSuitOnlyRound) {
@@ -20314,7 +20324,15 @@ class TienLenGame {
         }
       }
       if (!chosenPair && pool.length >= 2) {
-        chosenPair = [pool[0], pool[1]];
+        for (let i = 0; i < pool.length; i++) {
+          for (let j = i + 1; j < pool.length; j++) {
+            if (pool[i].rankIndex + 3 + (pool[j].rankIndex + 3) <= 15) {
+              chosenPair = [pool[i], pool[j]];
+              break;
+            }
+          }
+          if (chosenPair) break;
+        }
       }
       let slashNote = '';
       if (chosenPair) {
@@ -20325,7 +20343,7 @@ class TienLenGame {
           slashNote = ` — Sẵn sàng hợp kích ${slashCombo.label}`;
         }
       }
-      skillSummary = `🗡️ [Song Kiếm Hợp Lực] ${player.name} vung Song Đại Kiếm Bắc Phong: Cho phép gộp 2 lá bài bất kỳ (kể cả Đôi) cộng dồn tổng điểm thành 1 đòn chém Bài Lẻ cực đại (tối đa hóa thành Heo Cơ 2♥)${slashNote}!`;
+      skillSummary = `🗡️ [Song Kiếm Hợp Lực] ${player.name} vung Song Đại Kiếm Bắc Phong: Cho phép gộp 2 lá bài bất kỳ có tổng điểm ≤ 15 (quá 15 không được cộng) thành 1 đòn chém Bài Lẻ (tối đa cấp Heo Cơ 2♥)${slashNote}!`;
     } else if (charId === 'nicole') {
       this.nicoleSuitOnlyRound = true;
       activeNicoleSuitOnlyRound = true;
@@ -22109,7 +22127,10 @@ class TienLenGame {
           shouldCast = true;
         }
       } else if (!this.currentCombo && bot.hand.length === 2) {
-        shouldCast = true;
+        const sum2 = bot.hand[0].rankIndex + 3 + (bot.hand[1].rankIndex + 3);
+        if (sum2 <= 15) {
+          shouldCast = true;
+        }
       }
     } else if (charId === 'nicole') {
       if (this.currentCombo && !this.currentCombo.isBomb && this.currentCombo.highRank < 12 && (!plannedMove || plannedMove.highRank === 12)) {
@@ -31990,6 +32011,13 @@ class TienLenGame {
       this.elSelectedPreview.classList.remove('invalid');
     } else if (!combo) {
       if (
+        this.varkaSumSlashTurn &&
+        selectedCards.length === 2 &&
+        selectedCards[0].rankIndex + 3 + (selectedCards[1].rankIndex + 3) > 15
+      ) {
+        const sumPts = selectedCards[0].rankIndex + 3 + (selectedCards[1].rankIndex + 3);
+        this.elSelectedPreview.textContent = `⚠️ Song Kiếm Varka: Tổng 2 lá (${selectedCards[0].rank}+${selectedCards[1].rank}=${sumPts} > 15) vượt phạm vi 15 nên không được cộng!`;
+      } else if (
         this.getPlayerActiveCharId(human) === 'chiori' &&
         !human.skillUsed &&
         this.findChioriTwoDisjointStraights(human.hand)

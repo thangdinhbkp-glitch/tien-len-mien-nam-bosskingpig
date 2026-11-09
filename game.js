@@ -198,7 +198,7 @@ const GENSHIN_FANART_ROSTER = [
   { id: 'zibai', name: 'Zibai (Tiên Nhân Bạch Mã)', desc: '[Hiếm] Fanart Tiên Nhân Zibai thanh tao của vùng đất Liyue.', avatarPrice: 22000, skinPrice: 30000, crest: '🐎' },
   { id: 'lauma', name: 'Lauma (Nữ Tu Sương Giá)', desc: '[Hiếm] Nữ tu Nguyệt Tộc thu hồi trọn bộ bài trên cùng bàn đấu về tay (trừ Heo 2), nhưng phải đánh chặt/đè lại bộ trước đó ngay hoặc mất vòng!', avatarPrice: 23000, skinPrice: 32000, crest: '✨' },
   { id: 'linnea', name: 'Linnea (Ảo Thuật Gia Tinh Linh)', desc: '[Hiếm] Fanart thiếu nữ tinh linh duyên dáng và sắc sảo.', avatarPrice: 23000, skinPrice: 32000, crest: '🎩' },
-  { id: 'citlali', name: 'Citlali (Bà Ngoại Itztli)', desc: '[Hiếm] Đại pháp sư Chủ Nhân Gió Đêm gắn Gối Ôm Ký Sinh xả bài rác ké theo mỗi lá bài đối thủ đánh ra.', avatarPrice: 25000, skinPrice: 35000, crest: '❄️' },
+  { id: 'citlali', name: 'Citlali (Bà Ngoại Itztli)', desc: '[Hiếm] Đại pháp sư Chủ Nhân Gió Đêm kết hợp 2 bộ Đôi liên tiếp (dưới Heo) thành 2 Đôi Thông Mini đè thẳng lên mọi bộ Đôi trên bàn.', avatarPrice: 25000, skinPrice: 35000, crest: '❄️' },
   { id: 'nefer', name: 'Nefer (Nữ Hoàng Sa Mạc)', desc: '[Hiếm] Fanart vẻ đẹp quyến rũ và quyền lực vùng cát vàng.', avatarPrice: 25000, skinPrice: 35000, crest: '🌙' },
   { id: 'odette', name: 'Odette (Thiên Nga Băng Giá)', desc: '[Hiếm] Vũ công thiên nga kết hợp 4 bộ Đôi bất kỳ không cần liên tiếp thành Hàng 4 Đôi Thiên Nga chặt Heo (2).', avatarPrice: 25000, skinPrice: 35000, crest: '🦢' },
   { id: 'mualani', name: 'Mualani (Hướng Dẫn Viên Suối Nước)', desc: '[Hiếm] Fanart cô nàng lướt sóng năng động của Cư Dân Suối Nước.', avatarPrice: 26000, skinPrice: 38000, crest: '🦈' },
@@ -531,8 +531,8 @@ const GENSHIN_BURSTS = [
   },
   {
     id: 'citlali',
-    name: 'Citlali — Gối Sao Đêm Ký Sinh',
-    desc: '[Sử Thi] Đại pháp sư Chủ Nhân Gió Đêm gắn Gối Ôm Ký Sinh lên đối thủ ít bài nhất trong vòng này: Hễ đối thủ đánh ra bao nhiêu lá bài, Citlali tự động vứt bỏ theo bấy nhiêu lá rác nhỏ nhất (Video + Giọng lồng tiếng thật).',
+    name: 'Citlali — Đôi Thông Mini (2 Đôi Liên Tiếp)',
+    desc: '[Sử Thi] Đại pháp sư Chủ Nhân Gió Đêm triệu hồi Gối Băng Citlalin cho phép ghép chỉ cần 2 bộ Đôi liên tiếp dưới Heo (4 lá sát nhau, VD: 33-44, 77-88, KK-AA) thành 2 Đôi Thông Mini để ĐÈ THẲNG LÊN MỌI BỘ ĐÔI trên bàn (kể cả Đôi Át hoặc Đôi Heo 2) (Video + Giọng lồng tiếng thật).',
     price: 125000,
     mp4Url: 'citlali_burst.mp4',
     audioUrl: 'citlali_burst.ogg?v=48',
@@ -540,8 +540,8 @@ const GENSHIN_BURSTS = [
     theme: 'theme-cryo',
     sfxType: 'skirk',
     tag: '❄️ KỸ NĂNG NỘ • CITLALI (EDICT OF ENTWINED SPLENDOR)',
-    title: 'CHỦ NHÂN GIÓ ĐÊM: GỐI ÔM KÝ SINH',
-    quote: '“Gối Sao Đêm Itzpapa — Nghịch Chuyển Vòng Đấu!”',
+    title: 'CHỦ NHÂN GIÓ ĐÊM: 2 ĐÔI THÔNG MINI',
+    quote: '“Gối Băng Citlalin — Hai Đôi Thông Đè Mọi Đôi!”',
   },
   {
     id: 'mualani',
@@ -1492,6 +1492,7 @@ let activeMavuikaWrapStraight = false;
 let activeNaviaFlushStraight = false;
 let activeOdetteAnyFourPairs = false;
 let activeLyneyThreeFlush = false;
+let activeCitlaliTwoPairs = false;
 let activeVentiVortexMerge = false;
 let activeVentiSuckedCardIds = new Set();
 let activeXiaoKarmaMaxRank = null;
@@ -1614,8 +1615,8 @@ const CHARACTER_SKILLS = {
     id: 'citlali',
     charName: 'Citlali',
     icon: '❄️',
-    name: 'Gối Ôm Ký Sinh',
-    shortDesc: 'Tự chọn 1 đối thủ mục tiêu để gắn Gối Citlalin ký sinh trong vòng này: Hễ đối thủ đó đánh ra bao nhiêu lá bài, Citlali tự động được vứt bỏ theo bấy nhiêu lá bài rác nhỏ nhất trên tay mình!',
+    name: 'Đôi Thông Mini: 2 Đôi Liên Tiếp',
+    shortDesc: 'Trong lượt này: Cho phép Citlali ghép chỉ cần 2 bộ Đôi liên tiếp dưới Heo (4 lá sát nhau, VD: 33-44, 77-88, KK-AA) thành bộ 2 Đôi Thông Mini để ĐÈ THẲNG LÊN MỌI BỘ ĐÔI đang nằm trên bàn (kể cả Đôi Át hoặc Đôi Heo 2)! (Kích hoạt Tinh Siêu Dẫn ×10 cược với hệ Lôi)',
   },
   mualani: {
     id: 'mualani',
@@ -2764,6 +2765,26 @@ function classifyCombo(cards) {
         label: `Tứ quý ${highCard.rank}`,
       };
     }
+    // Đôi Thông Mini: 2 Đôi Liên Tiếp (Citlali): Cho phép ghép 2 bộ Đôi liên tiếp dưới Heo (4 lá sát nhau, VD: 33-44, 77-88, KK-AA) thành 2 Đôi Thông Mini đè lên mọi bộ Đôi trên bàn!
+    if (
+      activeCitlaliTwoPairs &&
+      highRank < 12 &&
+      sorted[0].rankIndex === sorted[1].rankIndex &&
+      sorted[2].rankIndex === sorted[3].rankIndex &&
+      sorted[2].rankIndex === sorted[0].rankIndex + 1
+    ) {
+      return {
+        type: COMBO_TYPES.PAIR,
+        cards: sorted,
+        length: 4,
+        highCard,
+        highValue,
+        highRank,
+        isBomb: false,
+        isCitlaliTwoPairs: true,
+        label: `2 Đôi Thông Mini (${sorted[0].rank}→${highCard.rank} ❄️)`,
+      };
+    }
   }
 
   if ((n === 6 || n === 8) && highRank < 12) {
@@ -3063,6 +3084,39 @@ function canBeatCombo(candidate, current) {
     return {
       ok: true,
       isChop: false,
+    };
+  }
+
+  // Đôi Thông Mini: 2 Đôi Liên Tiếp (Citlali): Chỉ dùng 2 bộ Đôi liên tiếp (4 lá dưới Heo) để ĐÈ THẲNG LÊN MỌI BỘ ĐÔI đang nằm trên bàn (kể cả Đôi Át hoặc Đôi Heo 2)!
+  const isCitlaliTwoPairsBeat =
+    Boolean(activeCitlaliTwoPairs) && Boolean(candidate.isCitlaliTwoPairs);
+  if (isCitlaliTwoPairsBeat) {
+    if (!current || current.type !== COMBO_TYPES.PAIR) {
+      return {
+        ok: false,
+        isChop: false,
+        reason: '❄️ Đôi Thông Mini (Citlali) chỉ dùng để đè lên bộ ĐÔI đang nằm trên bàn!',
+      };
+    }
+    if (current.baizhuShielded || activeBaizhuShield) {
+      return {
+        ok: false,
+        isChop: false,
+        reason: '🐍 Khiên Trường Sinh (Baizhu): Bộ bài này đang được Khiên Ngọc bảo hộ — Miễn nhiễm bị chặt!',
+      };
+    }
+    if (current.isCitlaliTwoPairs && candidate.highValue <= current.highValue) {
+      return {
+        ok: false,
+        isChop: false,
+        reason: '❄️ Cần bộ 2 Đôi Thông Mini lớn hơn bộ 2 Đôi Thông Mini đang nằm trên bàn!',
+      };
+    }
+    const isChopPair2 = current.highRank === 12;
+    return {
+      ok: true,
+      isChop: isChopPair2,
+      chopReason: isChopPair2 ? `${candidate.label} đè chặt ${current.label}!` : undefined,
     };
   }
 
@@ -3732,6 +3786,29 @@ function generateAllCombosFromHand(hand, preferredCard = null) {
     }
   }
 
+  // Đôi Thông Mini: 2 Đôi Liên Tiếp (Citlali): Sinh các bộ 2 Đôi liên tiếp (4 lá dưới Heo)
+  if (activeCitlaliTwoPairs) {
+    for (let r = 0; r <= 10; r++) {
+      if (byRank[r].length >= 2 && byRank[r + 1].length >= 2) {
+        const pickPair = (rankIdx, isHighPair) => {
+          const group = byRank[rankIdx];
+          if (preferredCard && preferredCard.rankIndex === rankIdx) {
+            const others = group.filter((c) => c.id !== preferredCard.id);
+            const partner = isHighPair ? others[others.length - 1] : others[0];
+            return [preferredCard, partner];
+          }
+          return isHighPair
+            ? [group[group.length - 2], group[group.length - 1]]
+            : [group[0], group[1]];
+        };
+        const cards = [...pickPair(r, false), ...pickPair(r + 1, true)];
+        if (preferredCard && !cards.some((x) => x.id === preferredCard.id)) continue;
+        const tc = classifyCombo(cards);
+        if (tc) combos.push(tc);
+      }
+    }
+  }
+
   return combos.filter(Boolean);
 }
 
@@ -3994,6 +4071,8 @@ class TienLenGame {
     activeOdetteAnyFourPairs = false;
     this.lyneyThreeFlushTurn = false;
     activeLyneyThreeFlush = false;
+    this.citlaliTwoPairsTurn = false;
+    activeCitlaliTwoPairs = false;
     this.ventiVortexMergeTurn = false;
     activeVentiVortexMerge = false;
     this.ventiSuckedCardIds = new Set();
@@ -17534,6 +17613,11 @@ class TienLenGame {
         `<span class="round-skill-pill">🎩 Ảo Thuật Năm Lá (Lyney): Lượt này được ghép 5 lá bất kỳ ĐỒNG CHẤT (dưới Heo) thành Thùng 5 Lá Ảo Thuật đè mọi bộ bài thường trừ Heo (2)!</span>`
       );
     }
+    if (this.citlaliTwoPairsTurn) {
+      pills.push(
+        `<span class="round-skill-pill">❄️ Đôi Thông Mini (Citlali): Lượt này được ghép 2 bộ Đôi liên tiếp (dưới Heo) để đè thẳng lên mọi bộ Đôi trên bàn!</span>`
+      );
+    }
     if (this.ventiVortexMergeTurn) {
       pills.push(
         `<span class="round-skill-pill">🌪️ Mắt Bão Nuốt Bàn (Venti): Đã hút bộ bài trên bàn nhập vào tay — Ghép thành bộ lớn hơn đánh đè ngay lập tức!</span>`
@@ -17655,6 +17739,7 @@ class TienLenGame {
     activeZibaiGallopStraight = Boolean(this.zibaiGallopStraightTurn);
     activeOdetteAnyFourPairs = Boolean(this.odetteAnyFourPairsTurn);
     activeLyneyThreeFlush = Boolean(this.lyneyThreeFlushTurn);
+    activeCitlaliTwoPairs = Boolean(this.citlaliTwoPairsTurn);
     activeVentiVortexMerge = Boolean(this.ventiVortexMergeTurn);
     activeVentiSuckedCardIds = this.ventiSuckedCardIds || new Set();
     activeBaizhuShield = Boolean(
@@ -18140,11 +18225,43 @@ class TienLenGame {
       }
     }
     if (charId === 'citlali') {
-      if (this.citlaliPillowOwnerId !== null) {
-        return { ok: false, reason: 'Gối Ôm Ký Sinh đã gắn lên đối thủ trong vòng này' };
+      if (this.citlaliTwoPairsTurn) {
+        return { ok: false, reason: 'Đôi Thông Mini (2 Đôi Liên Tiếp) đã bật trong lượt này' };
       }
-      if (player.hand.length < 2) {
-        return { ok: false, reason: 'Cần còn ít nhất 2 lá bài trên tay để gắn Gối Ôm Ký Sinh!' };
+      if (!this.currentCombo || this.currentCombo.type !== COMBO_TYPES.PAIR) {
+        return {
+          ok: false,
+          reason: 'Đôi Thông Mini của Citlali chỉ kích hoạt khi trên bàn đang là một bộ ĐÔI (để ghép 2 Đôi liên tiếp đè lên mọi Đôi)!',
+        };
+      }
+      const rc = new Array(13).fill(0);
+      player.hand.forEach((c) => {
+        if (c.rankIndex <= 11) rc[c.rankIndex]++;
+      });
+      let hasConsecTwoPairs = false;
+      for (let r = 0; r <= 10; r++) {
+        if (rc[r] >= 2 && rc[r + 1] >= 2) {
+          hasConsecTwoPairs = true;
+          break;
+        }
+      }
+      if (!hasConsecTwoPairs) {
+        return {
+          ok: false,
+          reason: 'Cần có ít nhất 2 bộ Đôi liên tiếp (dưới Heo, VD: 33-44, 77-88, KK-AA) trên tay để ghép thành 2 Đôi Thông Mini đè Đôi!',
+        };
+      }
+      const prevCitlali = activeCitlaliTwoPairs;
+      activeCitlaliTwoPairs = true;
+      const twoPairMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isCitlaliTwoPairs
+      );
+      activeCitlaliTwoPairs = prevCitlali;
+      if (twoPairMoves.length === 0) {
+        return {
+          ok: false,
+          reason: 'Không tìm thấy bộ 2 Đôi Thông Mini hợp lệ để đè bộ Đôi hiện tại trên bàn!',
+        };
       }
     }
     if (charId === 'mualani') {
@@ -18966,11 +19083,6 @@ class TienLenGame {
         candidates: activeOpponents,
         allowPickOwnCard: true,
       },
-      citlali: {
-        title: '🛏️ Gối Ôm Ký Sinh — Chọn đối thủ để gắn Gối Citlalin:',
-        desc: 'Hễ mục tiêu này đánh ra bao nhiêu lá bài trong vòng, bạn được vứt bỏ theo bấy nhiêu lá bài rác nhỏ nhất!',
-        candidates: activeOpponents,
-      },
       ayaka: {
         title: '❄️ Sương Hoa Phong Ấn — Chọn đối thủ để Đóng Băng:',
         desc: 'Đối thủ bị chọn sẽ bị đóng băng mất lượt kế tiếp trong vòng này!',
@@ -19618,17 +19730,28 @@ class TienLenGame {
         }
       }
     } else if (charId === 'citlali') {
-      const unpassedOpps = activeOpponents.filter((p) => !p.passed);
-      const candOpps = unpassedOpps.length > 0 ? unpassedOpps : activeOpponents;
-      const target = resolveTargetOpponent(
-        candOpps,
-        (opps) => [...opps].sort((a, b) => a.hand.length - b.hand.length)[0]
+      const preSelectedIds = new Set(
+        preferredCardIds.length > 0 ? preferredCardIds : Array.from(this.selectedCardIds || [])
       );
-      if (target) {
-        this.citlaliPillowOwnerId = player.id;
-        this.citlaliPillowTargetId = target.id;
-        skillSummary = `🛏️ [Gối Ôm Ký Sinh] ${player.name} gắn Gối Citlalin ký sinh lên ${target.name} (${target.hand.length} lá) trong vòng này: Hễ ${target.name} đánh ra bao nhiêu lá bài, ${player.name} sẽ tự động được vứt bỏ theo bấy nhiêu lá bài rác nhỏ nhất trên tay!`;
+      this.citlaliTwoPairsTurn = true;
+      activeCitlaliTwoPairs = true;
+      this.syncRoundRuleGlobals(player.id);
+      const twoPairMoves = getValidMoves(player.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+        (m) => m.isCitlaliTwoPairs
+      );
+      const chosenTwoPairs =
+        twoPairMoves.find((m) => m.cards.every((c) => preSelectedIds.has(c.id))) ||
+        twoPairMoves.find((m) => m.cards.some((c) => preSelectedIds.has(c.id))) ||
+        twoPairMoves[0];
+      let twoPairNote = '';
+      if (chosenTwoPairs) {
+        const pairIds = chosenTwoPairs.cards.map((c) => c.id);
+        this.selectedCardIds = new Set(pairIds);
+        this.companionCardIds.clear();
+        player._skillForcedComboIds = pairIds;
+        twoPairNote = ` — Sẵn sàng tung ${chosenTwoPairs.label}`;
       }
+      skillSummary = `❄️ [Đôi Thông Mini: 2 Đôi Liên Tiếp] ${player.name} triệu hồi Gối Băng Citlalin: Cho phép ghép 2 bộ Đôi liên tiếp (dưới Heo) thành 2 Đôi Thông Mini để ĐÈ THẲNG LÊN MỌI BỘ ĐÔI trên bàn${twoPairNote}!`;
     } else if (charId === 'mualani') {
       this.mualaniCrossBeatTurn = true;
       activeMualaniCrossBeat = true;
@@ -21664,19 +21787,25 @@ class TienLenGame {
         }
       }
     } else if (charId === 'citlali') {
-      // Gối Sao Itzpapa: Nếu mục tiêu đè bài của Citlali thì Citlali cướp lại Cái!
-      // Phải bật khi bàn đấu đang nhỏ (hoặc mở vòng mới) và đánh bài mồi nhỏ/vừa (<= 9) để mục tiêu có thể đè bài và sập bẫy!
-      const isSmallTableForPillow = !this.currentCombo || this.currentCombo.highRank <= 5;
-      if (
-        isSmallTableForPillow &&
-        plannedMove &&
-        !plannedMove.isBomb &&
-        plannedMove.highRank <= 6 &&
-        unpassedOpps.length >= 1 &&
-        bot.hand.length - plannedMove.length >= 1 &&
-        (bot.hand.length <= 10 || minOppCards <= 8)
-      ) {
-        shouldCast = true;
+      if (this.currentCombo && this.currentCombo.type === COMBO_TYPES.PAIR) {
+        const prevCitlali = activeCitlaliTwoPairs;
+        activeCitlaliTwoPairs = true;
+        const twoPairMoves = getValidMoves(bot.hand, this.currentCombo, this.mustPlay3Spade, false).filter(
+          (m) => m.isCitlaliTwoPairs && !m.cards.some((c) => struct.bombRanks.has(c.rankIndex))
+        );
+        activeCitlaliTwoPairs = prevCitlali;
+        if (twoPairMoves.length > 0) {
+          const needTwoPairsToBeat =
+            !plannedMove ||
+            this.currentCombo.highRank === 12 ||
+            plannedMove.highRank === 12 ||
+            this.evaluateMoveBreakCost(plannedMove, struct) >= 65 ||
+            this.currentCombo.highRank >= 7 ||
+            bot.hand.length <= 6;
+          if (needTwoPairsToBeat) {
+            shouldCast = true;
+          }
+        }
       }
     } else if (charId === 'mualani') {
       if (
@@ -24094,6 +24223,8 @@ class TienLenGame {
     activeOdetteAnyFourPairs = this.odetteAnyFourPairsTurn;
     this.lyneyThreeFlushTurn = !!state.lyneyThreeFlushTurn;
     activeLyneyThreeFlush = this.lyneyThreeFlushTurn;
+    this.citlaliTwoPairsTurn = !!state.citlaliTwoPairsTurn;
+    activeCitlaliTwoPairs = this.citlaliTwoPairsTurn;
     this.ventiVortexMergeTurn = !!state.ventiVortexMergeTurn;
     activeVentiVortexMerge = this.ventiVortexMergeTurn;
     this.ventiSuckedCardIds = new Set(Array.isArray(state.ventiSuckedCardIds) ? state.ventiSuckedCardIds : []);
@@ -25287,6 +25418,7 @@ class TienLenGame {
       zibaiGallopStraightTurn: !!this.zibaiGallopStraightTurn,
       odetteAnyFourPairsTurn: !!this.odetteAnyFourPairsTurn,
       lyneyThreeFlushTurn: !!this.lyneyThreeFlushTurn,
+      citlaliTwoPairsTurn: !!this.citlaliTwoPairsTurn,
       ventiVortexMergeTurn: !!this.ventiVortexMergeTurn,
       ventiSuckedCardIds: Array.from(this.ventiSuckedCardIds || []),
       varkaSumSlashTurn: !!this.varkaSumSlashTurn,
@@ -26180,6 +26312,8 @@ class TienLenGame {
     activeOdetteAnyFourPairs = this.odetteAnyFourPairsTurn;
     this.lyneyThreeFlushTurn = !!state.lyneyThreeFlushTurn;
     activeLyneyThreeFlush = this.lyneyThreeFlushTurn;
+    this.citlaliTwoPairsTurn = !!state.citlaliTwoPairsTurn;
+    activeCitlaliTwoPairs = this.citlaliTwoPairsTurn;
     this.ventiVortexMergeTurn = !!state.ventiVortexMergeTurn;
     activeVentiVortexMerge = this.ventiVortexMergeTurn;
     this.ventiSuckedCardIds = new Set(Array.isArray(state.ventiSuckedCardIds) ? state.ventiSuckedCardIds : []);
@@ -27038,6 +27172,8 @@ class TienLenGame {
     activeOdetteAnyFourPairs = false;
     this.lyneyThreeFlushTurn = false;
     activeLyneyThreeFlush = false;
+    this.citlaliTwoPairsTurn = false;
+    activeCitlaliTwoPairs = false;
     this.ventiVortexMergeTurn = false;
     activeVentiVortexMerge = false;
     this.ventiSuckedCardIds = new Set();
@@ -27765,6 +27901,7 @@ class TienLenGame {
       this.zibaiGallopStraightTurn ||
       this.odetteAnyFourPairsTurn ||
       this.lyneyThreeFlushTurn ||
+      this.citlaliTwoPairsTurn ||
       this.ventiVortexMergeTurn ||
       this.wriothesleyPairSmashTurn ||
       this.varkaSumSlashTurn
@@ -27785,6 +27922,8 @@ class TienLenGame {
       activeOdetteAnyFourPairs = false;
       this.lyneyThreeFlushTurn = false;
       activeLyneyThreeFlush = false;
+      this.citlaliTwoPairsTurn = false;
+      activeCitlaliTwoPairs = false;
       this.ventiVortexMergeTurn = false;
       activeVentiVortexMerge = false;
       this.ventiSuckedCardIds = new Set();
@@ -27912,61 +28051,6 @@ class TienLenGame {
           );
           this.addLog(
             `🎆 <strong>[Dây Pháo Liên Hoàn]</strong> <strong>${player.name}</strong> châm ngòi nổ dây chuyền cuốn bay thêm <strong>${ignitedCards.length} lá liên tiếp (${chainStr})</strong> ra bàn, chốt bàn ở bậc <strong>${topIgnited.rank}${topIgnited.suit}</strong>!`,
-            'log-win'
-          );
-        }
-      }
-      this.renderRoundSkillStatusBar();
-    }
-
-    // Gối Ôm Ký Sinh của Citlali: Khi đối thủ bị gắn Gối Citlalin đánh ra bao nhiêu lá bài, Citlali tự động được vứt bỏ theo bấy nhiêu lá bài rác nhỏ nhất trên tay mình!
-    if (
-      this.citlaliPillowOwnerId !== null &&
-      player.id === this.citlaliPillowTargetId &&
-      player.hand.length > 0
-    ) {
-      const citlaliOwner = this.players[this.citlaliPillowOwnerId];
-      if (
-        citlaliOwner &&
-        citlaliOwner.active &&
-        citlaliOwner.finishRank === null &&
-        citlaliOwner.hand.length > 1
-      ) {
-        const maxDrop = Math.min(combo.cards.length, citlaliOwner.hand.length - 1);
-        const cStruct = this.analyzeBotHandStructure(citlaliOwner.hand);
-        const cSorted = sortCardsAsc(citlaliOwner.hand);
-        const pureTrash = cSorted.filter(
-          (c) =>
-            c.rankIndex < 12 &&
-            cStruct.rankCounts[c.rankIndex] === 1 &&
-            !cStruct.bombRanks.has(c.rankIndex) &&
-            !cStruct.criticalStraightRanks.has(c.rankIndex)
-        );
-        const fallbackNormal = cSorted.filter(
-          (c) =>
-            c.rankIndex < 12 &&
-            !cStruct.bombRanks.has(c.rankIndex) &&
-            !pureTrash.some((pt) => pt.id === c.id)
-        );
-        const dropPool = [
-          ...pureTrash,
-          ...fallbackNormal,
-          ...cSorted.filter(
-            (c) => !pureTrash.some((pt) => pt.id === c.id) && !fallbackNormal.some((fn) => fn.id === c.id)
-          ),
-        ];
-        const droppedCards = dropPool.slice(0, maxDrop);
-        if (droppedCards.length > 0) {
-          const dropIds = new Set(droppedCards.map((c) => c.id));
-          citlaliOwner.hand = citlaliOwner.hand.filter((c) => !dropIds.has(c.id));
-          this.matchGraveyardCards.push(...droppedCards);
-          const dropStr = droppedCards.map((c) => `${c.rank}${c.suit}`).join(', ');
-          this.showComboBanner(
-            `🛏️❄️ GỐI CITLALIN KÝ SINH: ${citlaliOwner.name.toUpperCase()} VỨT KÈM ${droppedCards.length} LÁ RÁC (${dropStr})!`,
-            'reaction-superconduct'
-          );
-          this.addLog(
-            `🛏️❄️ <strong>[Gối Ôm Ký Sinh]</strong> Do <strong>${player.name}</strong> đánh ra <strong>${combo.cards.length} lá</strong>, Gối Citlalin tự động giúp <strong>${citlaliOwner.name}</strong> vứt bỏ theo <strong>${droppedCards.length} lá bài rác (${dropStr})</strong>!`,
             'log-win'
           );
         }
@@ -28385,6 +28469,7 @@ class TienLenGame {
       this.zibaiGallopStraightTurn ||
       this.odetteAnyFourPairsTurn ||
       this.lyneyThreeFlushTurn ||
+      this.citlaliTwoPairsTurn ||
       this.ventiVortexMergeTurn ||
       this.varkaSumSlashTurn ||
       this.ayatoCloneReady
@@ -28407,6 +28492,8 @@ class TienLenGame {
       activeOdetteAnyFourPairs = false;
       this.lyneyThreeFlushTurn = false;
       activeLyneyThreeFlush = false;
+      this.citlaliTwoPairsTurn = false;
+      activeCitlaliTwoPairs = false;
       this.ventiVortexMergeTurn = false;
       activeVentiVortexMerge = false;
       this.ventiSuckedCardIds = new Set();
@@ -28639,6 +28726,8 @@ class TienLenGame {
     activeOdetteAnyFourPairs = false;
     this.lyneyThreeFlushTurn = false;
     activeLyneyThreeFlush = false;
+    this.citlaliTwoPairsTurn = false;
+    activeCitlaliTwoPairs = false;
     this.ventiVortexMergeTurn = false;
     activeVentiVortexMerge = false;
     this.ventiSuckedCardIds = new Set();
@@ -31503,6 +31592,9 @@ class TienLenGame {
         if (this.lyneyThreeFlushTurn && move.isLyneyThreeFlush) {
           skillSynergyBonus -= 650;
         }
+        if (this.citlaliTwoPairsTurn && move.isCitlaliTwoPairs) {
+          skillSynergyBonus -= 650;
+        }
         if (this.varkaSumSlashTurn && move.isVarkaSumSlash) {
           skillSynergyBonus -= 340;
         }
@@ -31579,6 +31671,7 @@ class TienLenGame {
       (this.zibaiGallopStraightTurn && activeCharId === 'zibai') ||
       (this.odetteAnyFourPairsTurn && activeCharId === 'odette') ||
       (this.lyneyThreeFlushTurn && activeCharId === 'lyney') ||
+      (this.citlaliTwoPairsTurn && activeCharId === 'citlali') ||
       (this.ventiVortexMergeTurn && activeCharId === 'venti') ||
       (this.mualaniCrossBeatTurn && activeCharId === 'mualani') ||
       (this.columbinaExtraTurnReady && activeCharId === 'columbina') ||
@@ -31593,6 +31686,10 @@ class TienLenGame {
       if (this.lyneyThreeFlushTurn && activeCharId === 'lyney') {
         const lyneyCand = candidates.find((c) => c.move.isLyneyThreeFlush) || candidates[0];
         if (lyneyCand) return lyneyCand.move;
+      }
+      if (this.citlaliTwoPairsTurn && activeCharId === 'citlali') {
+        const citlaliCand = candidates.find((c) => c.move.isCitlaliTwoPairs) || candidates[0];
+        if (citlaliCand) return citlaliCand.move;
       }
       if (this.ventiVortexMergeTurn && activeCharId === 'venti') {
         const ventiCand =

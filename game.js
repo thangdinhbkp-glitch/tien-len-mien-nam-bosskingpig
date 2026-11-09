@@ -6877,17 +6877,67 @@ class TienLenGame {
     this.syncGlobalDeviceRegistry(true);
   }
 
+  isBlockedTestAccount(username) {
+    const u = String(username || '').trim().replace(/^@+/, '').toLowerCase();
+    if (!u || u === 'guest' || u === 'khách') return true;
+    if (/^test_/i.test(u) || u === 'bosskingpig') return true;
+    return false;
+  }
+
+  sanitizeGlobalRegistryObject(reg) {
+    if (!reg || typeof reg !== 'object') return { v: 1, updatedAtMs: 0, devices: {}, accounts: {} };
+    const cleanAccounts = {};
+    Object.keys(reg.accounts || {}).forEach((rawU) => {
+      const u = String(rawU || '').trim().toLowerCase();
+      if (this.isBlockedTestAccount(u)) return;
+      const acc = reg.accounts[rawU];
+      if (!acc || typeof acc !== 'object') return;
+      cleanAccounts[u] = { ...acc, username: u };
+    });
+    const cleanDevices = {};
+    const myDevId = typeof this.getOrCreateDeviceId === 'function' ? this.getOrCreateDeviceId() : '';
+    Object.keys(reg.devices || {}).forEach((devId) => {
+      const d = reg.devices[devId];
+      if (!d || typeof d !== 'object') return;
+      const validAccs = (Array.isArray(d.accounts) ? d.accounts : [])
+        .map((a) => String(a || '').trim().toLowerCase())
+        .filter((a) => a && !this.isBlockedTestAccount(a));
+      const cleanLastAcc = !this.isBlockedTestAccount(d.lastAccount)
+        ? String(d.lastAccount || '').trim().toLowerCase()
+        : validAccs[0] || '';
+      if (validAccs.length === 0 && !cleanLastAcc && devId !== myDevId) {
+        return;
+      }
+      cleanDevices[devId] = {
+        ...d,
+        accounts: Array.from(new Set(validAccs)),
+        lastAccount: cleanLastAcc,
+      };
+    });
+    reg.accounts = cleanAccounts;
+    reg.devices = cleanDevices;
+    if (reg.social && typeof reg.social === 'object' && reg.social.relations) {
+      Object.keys(reg.social.relations).forEach((k) => {
+        const rel = reg.social.relations[k];
+        if (!rel || this.isBlockedTestAccount(rel.userA) || this.isBlockedTestAccount(rel.userB)) {
+          delete reg.social.relations[k];
+        }
+      });
+    }
+    return reg;
+  }
+
   loadGlobalRegistryCache() {
     if (this.globalRegistryCache && typeof this.globalRegistryCache === 'object') {
-      return this.globalRegistryCache;
+      return this.sanitizeGlobalRegistryObject(this.globalRegistryCache);
     }
     try {
       const raw = localStorage.getItem('tlmn_global_registry_cache_v1');
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
-          this.globalRegistryCache = parsed;
-          return parsed;
+          this.globalRegistryCache = this.sanitizeGlobalRegistryObject(parsed);
+          return this.globalRegistryCache;
         }
       }
     } catch (_) {}
@@ -6916,7 +6966,7 @@ class TienLenGame {
           if (txt && txt.startsWith('TLMN_GLOBAL_DEV_V1:')) {
             const jsonStr = decodeURIComponent(escape(atob(txt.slice('TLMN_GLOBAL_DEV_V1:'.length))));
             const parsed = JSON.parse(jsonStr);
-            if (parsed && typeof parsed === 'object') remoteReg = parsed;
+            if (parsed && typeof parsed === 'object') remoteReg = this.sanitizeGlobalRegistryObject(parsed);
           }
         }
       } catch (_) {}
@@ -6975,7 +7025,7 @@ class TienLenGame {
       const accountsDb = this.loadAccountsDb();
       Object.keys(accountsDb).forEach((u) => {
         const acc = accountsDb[u];
-        if (!acc || !u) return;
+        if (!acc || !u || this.isBlockedTestAccount(u)) return;
         const prof = acc.profile || {};
         const accDevs = Array.isArray(prof.devices) ? prof.devices : [];
         accDevs.forEach((d) => {
@@ -7062,7 +7112,7 @@ class TienLenGame {
         );
         devUsers.forEach((rawU) => {
           const u = String(rawU || '').trim().toLowerCase();
-          if (!u || u === 'khách' || u === 'guest') return;
+          if (!u || this.isBlockedTestAccount(u)) return;
           const dLast = Number(d.lastSeenMs) || now;
           const exAcc = mergedAccounts[u];
           if (!exAcc) {
@@ -7118,7 +7168,9 @@ class TienLenGame {
       }
 
       // Tự động khôi phục & đồng bộ các tài khoản lịch sử đã có trên Cloud trước v135 (như @thang.dinhbkp, @quynh2489)
-      const seedCloudUsers = Array.from(new Set(['thang.dinhbkp', 'quynh2489', ...Object.keys(mergedAccounts)]));
+      const seedCloudUsers = Array.from(new Set(['thang.dinhbkp', 'quynh2489', ...Object.keys(mergedAccounts)])).filter(
+        (u) => !this.isBlockedTestAccount(u)
+      );
       if (force || !mergedAccounts['quynh2489'] || !mergedAccounts['thang.dinhbkp']) {
         const fetchedSeed = await Promise.all(
           seedCloudUsers.slice(0, 15).map((u) => this.fetchCloudAccount(u).catch(() => null))
@@ -7126,6 +7178,7 @@ class TienLenGame {
         fetchedSeed.forEach((cAcc) => {
           if (!cAcc || !cAcc.username) return;
           const u = String(cAcc.username).trim().toLowerCase();
+          if (this.isBlockedTestAccount(u)) return;
           const cProf = cAcc.profile || {};
           const prevAcc = mergedAccounts[u] || {};
           const cDevs = Array.isArray(cProf.devices)
@@ -7307,14 +7360,14 @@ class TienLenGame {
         chats: mergedChats,
       };
 
-      const finalReg = {
+      const finalReg = this.sanitizeGlobalRegistryObject({
         v: 1,
         updatedAtMs: now,
         devices: mergedDevices,
         accounts: mergedAccounts,
         adMonetization: mergedAdMonetization,
         social: mergedSocial,
-      };
+      });
       this.globalRegistryCache = finalReg;
       this._lastGlobalRegistrySyncMs = now;
       try {
@@ -7423,7 +7476,7 @@ class TienLenGame {
     Object.values(reg.accounts || {}).forEach((acc) => {
       if (!acc || !acc.username) return;
       const u = String(acc.username).trim().toLowerCase();
-      if (!u || u === 'guest' || u === 'khách') return;
+      if (!u || this.isBlockedTestAccount(u)) return;
       map.set(u, {
         username: u,
         displayName: this.resolveCleanPlayerName(acc.displayName || u, u),
@@ -7447,7 +7500,7 @@ class TienLenGame {
       );
       devUsers.forEach((rawU) => {
         const u = String(rawU || '').trim().toLowerCase();
-        if (!u || u === 'guest' || u === 'khách') return;
+        if (!u || this.isBlockedTestAccount(u)) return;
         const dLast = Number(d.lastSeenMs) || 0;
         const ex = map.get(u);
         if (!ex) {
@@ -7479,7 +7532,7 @@ class TienLenGame {
       if (!rel) return;
       [rel.userA, rel.userB].forEach((rawU) => {
         const u = String(rawU || '').trim().toLowerCase();
-        if (!u || u === 'guest' || u === 'khách' || map.has(u)) return;
+        if (!u || this.isBlockedTestAccount(u) || map.has(u)) return;
         map.set(u, {
           username: u,
           displayName: u,
@@ -7504,7 +7557,7 @@ class TienLenGame {
       (r.players || []).forEach((rp) => {
         if (!rp || rp.isBot) return;
         const u = String(rp.accountUsername || '').trim().toLowerCase();
-        if (!u) return;
+        if (!u || this.isBlockedTestAccount(u)) return;
         openRoomsByUser.set(u, {
           roomId: String(r.roomId).toUpperCase(),
           title: r.title || `Bàn #${r.roomId}`,

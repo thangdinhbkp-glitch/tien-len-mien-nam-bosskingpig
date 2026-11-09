@@ -1686,7 +1686,7 @@ const CHARACTER_SKILLS = {
     charName: 'Sandrone',
     icon: '⚙️',
     name: 'Dây Cót Con Rối',
-    shortDesc: 'Tái cấu trúc 3 lá bài lẻ rời rạc nhỏ nhất (dưới Heo) trên tay bạn thành 1 bộ Sảnh 3 lá liên tiếp',
+    shortDesc: 'Chọn đúng 3 lá bài thường (dưới Heo) trên tay rồi bấm [Q] để tái cấu trúc 3 lá đó thành 1 bộ Sảnh 3 lá liên tiếp!',
   },
   columbina: {
     id: 'columbina',
@@ -18426,8 +18426,26 @@ class TienLenGame {
     if (charId === 'vesna' && this.vesnaSpringOwnerId !== null) {
       return { ok: false, reason: 'Gió Xuân Đoạt Cái đã kích hoạt trong vòng này' };
     }
-    if (charId === 'sandrone' && player.hand.length < 3) {
-      return { ok: false, reason: 'Cần ít nhất 3 lá bài trên tay để chế tạo Sảnh 3 lá liên tiếp' };
+    if (charId === 'sandrone') {
+      const normals = player.hand.filter((c) => c.rankIndex <= 11);
+      if (normals.length < 3) {
+        return { ok: false, reason: 'Cần ít nhất 3 lá bài thường (dưới Heo) trên tay để chế tạo Sảnh 3 lá liên tiếp!' };
+      }
+      if (isHumanManualCheck) {
+        const selCards = player.hand.filter((c) => selSet.has(c.id));
+        if (selCards.length !== 3) {
+          return {
+            ok: false,
+            reason: `Hãy bấm chọn đúng 3 lá bài thường (dưới Heo) trên tay rồi bấm Kỹ Năng [Q] để Sandrone tái cấu trúc thành Sảnh 3 lá liên tiếp (đang chọn ${selCards.length}/3 lá)!`,
+          };
+        }
+        if (selCards.some((c) => c.rankIndex >= 12)) {
+          return {
+            ok: false,
+            reason: 'Không thể dùng lá Heo (2) để chế tạo Sảnh! Hãy chọn 3 lá bài thường (3→A).',
+          };
+        }
+      }
     }
     if (charId === 'columbina') {
       if (this.columbinaExtraTurnReady) {
@@ -20051,15 +20069,43 @@ class TienLenGame {
       const bloomNote = bloomLogs.length > 0 ? ` (nở hoa nhuộm Đỏ ${bloomLogs.join(', ')}) và ` : ': ';
       skillSummary = `🍃 [Gió Xuân Đoạt Cái] ${player.name} thổi Gió Xuân${bloomNote}yểm Lời Nguyền Bài Đỏ lên bàn: Nếu vòng này kết thúc mà bộ bài thắng vòng của đối thủ có chứa lá Đỏ (♥/♦), ${player.name} sẽ TỊCH THU QUYỀN CẦM CÁI mở vòng mới!`;
     } else if (charId === 'sandrone') {
-      const struct = this.analyzeBotHandStructure(player.hand);
-      const isolated = sortCardsAsc(player.hand).filter(
-        (c) => c.rankIndex <= 11 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
-      );
-      const pool = (isolated.length >= 3 ? isolated : sortCardsAsc(player.hand).filter((c) => c.rankIndex <= 11)).slice(0, 3);
+      const activeSelSet =
+        preferredCardIds && preferredCardIds.length > 0
+          ? new Set(preferredCardIds)
+          : savedHumanSelectedIds;
+      const humanChosen3 =
+        !player.isBot && activeSelSet.size === 3
+          ? sortCardsAsc(player.hand.filter((c) => activeSelSet.has(c.id) && c.rankIndex <= 11))
+          : [];
+      let pool = humanChosen3.length === 3 ? humanChosen3 : [];
+      if (pool.length !== 3) {
+        const struct = this.analyzeBotHandStructure(player.hand);
+        const isolated = sortCardsAsc(player.hand).filter(
+          (c) => c.rankIndex <= 11 && struct.rankCounts[c.rankIndex] === 1 && !struct.bombRanks.has(c.rankIndex)
+        );
+        pool = (isolated.length >= 3 ? isolated : sortCardsAsc(player.hand).filter((c) => c.rankIndex <= 11)).slice(0, 3);
+      }
       if (pool.length === 3) {
-        const baseRank = Math.min(9, Math.max(1, pool[1].rankIndex - 1));
+        const oldStr = pool.map((c) => `${c.rank}${c.suit}`).join(', ');
+        const baseRank = this.computeSandroneStraightBaseRank(pool);
+        const targetRanks = [baseRank, baseRank + 1, baseRank + 2];
+        const assignedCardToRank = new Map();
+        const usedRanks = new Set();
+        pool.forEach((c) => {
+          if (targetRanks.includes(c.rankIndex) && !usedRanks.has(c.rankIndex)) {
+            assignedCardToRank.set(c, c.rankIndex);
+            usedRanks.add(c.rankIndex);
+          }
+        });
+        const remainingRanks = targetRanks.filter((r) => !usedRanks.has(r));
+        let remIdx = 0;
+        pool.forEach((c) => {
+          if (!assignedCardToRank.has(c)) {
+            assignedCardToRank.set(c, remainingRanks[remIdx++]);
+          }
+        });
         pool.forEach((c, idx) => {
-          const rIdx = baseRank + idx;
+          const rIdx = assignedCardToRank.get(c);
           c.rankIndex = rIdx;
           c.rank = RANKS[rIdx];
           c.value = rIdx * 4 + c.suitIndex;
@@ -20068,7 +20114,9 @@ class TienLenGame {
         player.hand = sortHandByMode(player.hand, player.id === this.mySeatId ? this.sortMode : 'asc');
         this.selectedCardIds = new Set(pool.map((c) => c.id));
         this.companionCardIds.clear();
-        skillSummary = `⚙️ [Dây Cót Con Rối] ${player.name} tái cấu trúc 3 lá bài lẻ thành bộ Sảnh 3 lá ${RANKS[baseRank]}-${RANKS[baseRank + 1]}-${RANKS[baseRank + 2]}!`;
+        player._skillForcedComboIds = pool.map((c) => c.id);
+        const newStr = sortCardsAsc(pool).map((c) => `${c.rank}${c.suit}`).join('-');
+        skillSummary = `⚙️ [Dây Cót Con Rối] ${player.name} tái cấu trúc 3 lá đã chọn (${oldStr}) thành bộ Sảnh 3 lá ${RANKS[baseRank]}-${RANKS[baseRank + 1]}-${RANKS[baseRank + 2]} (${newStr})!`;
       }
     } else if (charId === 'columbina') {
       this.columbinaExtraTurnReady = true;
@@ -31864,6 +31912,39 @@ class TienLenGame {
     return p;
   }
 
+  computeSandroneStraightBaseRank(selectedThree) {
+    const sorted = sortCardsAsc((selectedThree || []).filter((c) => c && c.rankIndex <= 11));
+    if (sorted.length < 3) return 0;
+    const [c0, c1, c2] = sorted;
+    if (this.mustPlay3Spade && sorted.some((c) => c.value === 0)) {
+      return 0;
+    }
+    let baseRank;
+    if (c2.rankIndex - c1.rankIndex === 1) {
+      baseRank = Math.min(9, c1.rankIndex);
+    } else if (c1.rankIndex - c0.rankIndex === 1) {
+      baseRank = Math.min(9, c0.rankIndex);
+    } else if (c2.rankIndex - c1.rankIndex === 2) {
+      baseRank = Math.min(9, c1.rankIndex);
+    } else if (c1.rankIndex - c0.rankIndex === 2) {
+      baseRank = Math.min(9, c0.rankIndex);
+    } else {
+      baseRank = Math.min(9, Math.max(0, c1.rankIndex - 1));
+      if (
+        this.currentCombo &&
+        this.currentCombo.type === COMBO_TYPES.STRAIGHT &&
+        this.currentCombo.length === 3 &&
+        baseRank + 2 <= this.currentCombo.highRank
+      ) {
+        const highAnchorBase = Math.min(9, Math.max(0, c2.rankIndex - 2));
+        if (highAnchorBase > baseRank) {
+          baseRank = highAnchorBase;
+        }
+      }
+    }
+    return Math.min(9, Math.max(0, baseRank));
+  }
+
   toggleCardSelection(cardId) {
     if (this.isGameOver) return;
     const human = this.getLocalPlayer();
@@ -31881,17 +31962,19 @@ class TienLenGame {
       return;
     }
 
-    // 1. NẾU MÌNH LÀ NGƯỜI ĐI TRƯỚC (MỞ VÒNG MỚI) HOẶC ĐANG DÙNG CHIORI / MITYA / SHENHE / LINNEA / NEFER CHƯA TUNG NỘ (ĐỂ TỰ CHỌN LÁ BÀI MỤC TIÊU TRÊN TAY):
+    // 1. NẾU MÌNH LÀ NGƯỜI ĐI TRƯỚC (MỞ VÒNG MỚI) HOẶC ĐANG DÙNG CHIORI / SANDRONE / MITYA / SHENHE / LINNEA / NEFER CHƯA TUNG NỘ (ĐỂ TỰ CHỌN LÁ BÀI MỤC TIÊU TRÊN TAY):
     const humanActiveCharId = this.getPlayerActiveCharId(human);
     const isChioriManualTargeting =
       humanActiveCharId === 'chiori' && !human.skillUsed && this.findChioriTwoDisjointStraights(human.hand);
+    const isSandroneManualTargeting =
+      humanActiveCharId === 'sandrone' && !human.skillUsed && human.hand.filter((c) => c.rankIndex <= 11).length >= 3;
     const isSingleCardSkillTargeting =
       !human.skillUsed &&
       ((humanActiveCharId === 'mitya' && this.findMityaTripleAndJunk(human.hand)) ||
         (humanActiveCharId === 'shenhe' && this.lastWinnerId === human.id) ||
         humanActiveCharId === 'linnea' ||
         humanActiveCharId === 'nefer');
-    if (!this.currentCombo || isChioriManualTargeting || isSingleCardSkillTargeting) {
+    if (!this.currentCombo || isChioriManualTargeting || isSandroneManualTargeting || isSingleCardSkillTargeting) {
       this.companionCardIds.clear();
       if (this.selectedCardIds.has(cardId)) {
         this.selectedCardIds.delete(cardId);
@@ -32194,6 +32277,13 @@ class TienLenGame {
             this.elCharSkillLabel.textContent = chioriSix
               ? `✂️ Đúc 3 Đôi Thông (${RANKS[chioriSix.lowStart]}→${RANKS[chioriSix.lowStart + 2]}) [Q]`
               : `✂️ Chọn 6 Lá (2 Sảnh 3) [Q]`;
+          } else if (charId === 'sandrone' && !human.skillUsed) {
+            if (selectedCards.length === 3 && skillCheck.ok) {
+              const sBase = this.computeSandroneStraightBaseRank(selectedCards);
+              this.elCharSkillLabel.textContent = `⚙️ Đúc Sảnh ${RANKS[sBase]}-${RANKS[sBase + 1]}-${RANKS[sBase + 2]} [Q]`;
+            } else {
+              this.elCharSkillLabel.textContent = `⚙️ Chọn 3 Lá (${selectedCards.length}/3) ➔ Ghép Sảnh [Q]`;
+            }
           } else if (
             ['mitya', 'shenhe', 'linnea', 'nefer'].includes(charId) &&
             !human.skillUsed
@@ -32222,6 +32312,13 @@ class TienLenGame {
         ? this.parseChioriExactSixSelectedCards(human.hand, this.selectedCardIds)
         : null;
 
+    const isSandroneReadyOnThree =
+      this.getPlayerActiveCharId(human) === 'sandrone' &&
+      !human.skillUsed &&
+      selectedCards.length === 3 &&
+      selectedCards.every((c) => c.rankIndex <= 11) &&
+      this.canUseCharacterSkill(human).ok;
+
     const singleTargetCharId = this.getPlayerActiveCharId(human);
     const isSingleSkillReadyOnCard =
       !human.skillUsed &&
@@ -32237,6 +32334,12 @@ class TienLenGame {
       const highLbl = chioriTargetPlan.highCards.map((c) => `${c.rank}${c.suit}`).join('-');
       const outLbl = `${RANKS[chioriTargetPlan.lowStart]}→${RANKS[chioriTargetPlan.lowStart + 2]}`;
       this.elSelectedPreview.textContent = `✂️ Đã chọn 2 Sảnh riêng biệt (${lowLbl} & ${highLbl}) ➔ Bấm Kỹ Năng [Q] để đúc 3 Đôi Thông (${outLbl})!`;
+      this.elSelectedPreview.classList.remove('invalid');
+    } else if (isSandroneReadyOnThree) {
+      const sBase = this.computeSandroneStraightBaseRank(selectedCards);
+      const selLbl = selectedCards.map((c) => `${c.rank}${c.suit}`).join(', ');
+      const outLbl = `${RANKS[sBase]}-${RANKS[sBase + 1]}-${RANKS[sBase + 2]}`;
+      this.elSelectedPreview.textContent = `⚙️ Đã chọn 3 lá (${selLbl}) ➔ Bấm Kỹ Năng [Q] để Sandrone tái cấu trúc thành Sảnh ${outLbl} (hoặc bấm Đánh bài nếu hợp lệ)!`;
       this.elSelectedPreview.classList.remove('invalid');
     } else if (isSingleSkillReadyOnCard) {
       const c1 = selectedCards[0];
@@ -32257,6 +32360,12 @@ class TienLenGame {
         this.findChioriTwoDisjointStraights(human.hand)
       ) {
         this.elSelectedPreview.textContent = `✂️ Chiori: Đang chọn ${selectedCards.length}/6 lá — Hãy chọn đúng 2 Sảnh 3 lá riêng biệt (VD: 3-4-5 & 6-7-8) để bấm [Q]!`;
+      } else if (
+        this.getPlayerActiveCharId(human) === 'sandrone' &&
+        !human.skillUsed &&
+        human.hand.filter((c) => c.rankIndex <= 11).length >= 3
+      ) {
+        this.elSelectedPreview.textContent = `⚙️ Sandrone: Đang chọn ${selectedCards.length}/3 lá — Hãy chọn đúng 3 lá bài thường (dưới Heo) trên tay để bấm [Q] ghép thành Sảnh 3 lá!`;
       } else {
         this.elSelectedPreview.textContent = `⚠️ ${selectedCards.length} lá đang chọn chưa tạo thành bộ hợp lệ`;
       }

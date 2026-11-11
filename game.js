@@ -6855,8 +6855,9 @@ class TienLenGame {
     } catch (_) {}
   }
 
-  formatWishesCount(val = this.savedWishes) {
-    const n = Math.max(0, Math.round((Number(val) || 0) * 10) / 10);
+  formatWishesCount(val) {
+    if (val === undefined && this.isAdminAccount()) return '∞';
+    const n = Math.max(0, Math.round((Number(val ?? this.savedWishes) || 0) * 10) / 10);
     return Number.isInteger(n) ? String(n) : n.toFixed(1);
   }
 
@@ -6868,11 +6869,24 @@ class TienLenGame {
   }
 
   syncWishesBadgesUI() {
-    const wStr = this.formatWishesCount(this.savedWishes);
+    const isAdmin = this.isAdminAccount();
+    const wStr = isAdmin ? '∞' : this.formatWishesCount(this.savedWishes);
     ['lobby-wishes-display', 'shop-wishes-display', 'gacha-results-wishes', 'topup-wishes-display'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.textContent = wStr;
     });
+    const resBtn1 = document.getElementById('btn-results-wish-1');
+    if (resBtn1) {
+      resBtn1.textContent = isAdmin
+        ? '🌠 Cầu Nguyện Tiếp ×1 (👑 ∞ Roll Vô Hạn)'
+        : '🌠 Cầu Nguyện Tiếp ×1 (1 Vé Roll / 1,600 Xu)';
+    }
+    const resBtn10 = document.getElementById('btn-results-wish-10');
+    if (resBtn10) {
+      resBtn10.textContent = isAdmin
+        ? '🌟 Cầu Nguyện Tiếp ×10 (👑 ∞ Roll Vô Hạn)'
+        : '🌟 Cầu Nguyện Tiếp ×10 (10 Vé Roll / 16,000 Xu)';
+    }
   }
 
   hasVeteranPostTutorialProgress(burstsIter = this.unlockedBursts, wishesCount = this.totalWishes) {
@@ -6939,6 +6953,7 @@ class TienLenGame {
       if (guestBanner) guestBanner.classList.remove('hidden');
     }
     this.syncAdminReplayButtonsUI();
+    this.syncWishesBadgesUI();
   }
 
   requireAccountLogin() {
@@ -10342,30 +10357,33 @@ class TienLenGame {
     }
     const me = this.getLocalPlayer();
     if (!me) return;
-    const neededRolls = 10;
-    const availWishes = Math.floor(Math.max(0, Number(this.savedWishes) || 0));
-    const useWishes = Math.min(neededRolls, availWishes);
-    const remRolls = neededRolls - useWishes;
-    const neededCoins = remRolls * WISH_COST_SINGLE;
+    const isAdmin = this.isAdminAccount();
+    if (!isAdmin) {
+      const neededRolls = 10;
+      const availWishes = Math.floor(Math.max(0, Number(this.savedWishes) || 0));
+      const useWishes = Math.min(neededRolls, availWishes);
+      const remRolls = neededRolls - useWishes;
+      const neededCoins = remRolls * WISH_COST_SINGLE;
 
-    if (me.coins < neededCoins) {
-      if (this.tutorialStep === 3 || !this.tutorialCompleted) {
-        me.coins = Math.max(20000, me.coins);
-        this.savedCoins = me.coins;
-      } else {
-        alert(
-          `⚠️ Bạn cần 10 Vé Roll (💫) hoặc ${WISH_COST_TEN.toLocaleString()} Xu để Cầu Nguyện Tân Thủ ×10!\n(Hiện có: 💫 ${this.formatWishesCount()} Vé Roll & 🪙 ${me.coins.toLocaleString()} Xu)`
-        );
-        return;
+      if (me.coins < neededCoins) {
+        if (this.tutorialStep === 3 || !this.tutorialCompleted) {
+          me.coins = Math.max(20000, me.coins);
+          this.savedCoins = me.coins;
+        } else {
+          alert(
+            `⚠️ Bạn cần 10 Vé Roll (💫) hoặc ${WISH_COST_TEN.toLocaleString()} Xu để Cầu Nguyện Tân Thủ ×10!\n(Hiện có: 💫 ${this.formatWishesCount()} Vé Roll & 🪙 ${me.coins.toLocaleString()} Xu)`
+          );
+          return;
+        }
       }
-    }
 
-    if (useWishes > 0) {
-      this.addWishes(-useWishes);
-    }
-    if (neededCoins > 0) {
-      me.coins -= neededCoins;
-      this.savedCoins = me.coins;
+      if (useWishes > 0) {
+        this.addWishes(-useWishes);
+      }
+      if (neededCoins > 0) {
+        me.coins -= neededCoins;
+        this.savedCoins = me.coins;
+      }
     }
     this.beginnerBannerUsed = true;
 
@@ -10499,25 +10517,29 @@ class TienLenGame {
     const me = this.getLocalPlayer();
     if (!me) return;
     const pullCount = count === 10 ? 10 : 1;
-    const availWishes = Math.floor(Math.max(0, Number(this.savedWishes) || 0));
-    const useWishes = Math.min(pullCount, availWishes);
-    const remRolls = pullCount - useWishes;
-    const neededCoins = remRolls * WISH_COST_SINGLE;
+    const isAdmin = this.isAdminAccount();
 
-    if (me.coins < neededCoins) {
-      const fullCost = pullCount === 10 ? WISH_COST_TEN : WISH_COST_SINGLE;
-      alert(
-        `⚠️ Bạn chưa đủ Vé Roll hoặc Xu để Cầu Nguyện ×${pullCount}!\n• Cần: ${pullCount} Vé Roll (💫) hoặc ${fullCost.toLocaleString()} Xu\n• Hiện có: 💫 ${this.formatWishesCount()} Vé Roll & 🪙 ${me.coins.toLocaleString()} Xu\n\n💡 Bạn có thể đánh bài tích Xu, làm 4 Nhiệm Vụ Ngày (+2 Roll), nhập Giftcode hoặc ghé Quầy Ủng Hộ nhận Vé Roll nhé!`
-      );
-      return;
-    }
+    if (!isAdmin) {
+      const availWishes = Math.floor(Math.max(0, Number(this.savedWishes) || 0));
+      const useWishes = Math.min(pullCount, availWishes);
+      const remRolls = pullCount - useWishes;
+      const neededCoins = remRolls * WISH_COST_SINGLE;
 
-    if (useWishes > 0) {
-      this.addWishes(-useWishes);
-    }
-    if (neededCoins > 0) {
-      me.coins -= neededCoins;
-      this.savedCoins = me.coins;
+      if (me.coins < neededCoins) {
+        const fullCost = pullCount === 10 ? WISH_COST_TEN : WISH_COST_SINGLE;
+        alert(
+          `⚠️ Bạn chưa đủ Vé Roll hoặc Xu để Cầu Nguyện ×${pullCount}!\n• Cần: ${pullCount} Vé Roll (💫) hoặc ${fullCost.toLocaleString()} Xu\n• Hiện có: 💫 ${this.formatWishesCount()} Vé Roll & 🪙 ${me.coins.toLocaleString()} Xu\n\n💡 Bạn có thể đánh bài tích Xu, làm 4 Nhiệm Vụ Ngày (+2 Roll), nhập Giftcode hoặc ghé Quầy Ủng Hộ nhận Vé Roll nhé!`
+        );
+        return;
+      }
+
+      if (useWishes > 0) {
+        this.addWishes(-useWishes);
+      }
+      if (neededCoins > 0) {
+        me.coins -= neededCoins;
+        this.savedCoins = me.coins;
+      }
     }
     const results = [];
     let totalRefundRolls = 0;
@@ -10530,8 +10552,10 @@ class TienLenGame {
       }
     }
 
-    if (totalRefundRolls > 0) {
+    if (!isAdmin && totalRefundRolls > 0) {
       this.addWishes(totalRefundRolls);
+    } else if (isAdmin) {
+      this.syncWishesBadgesUI();
     }
 
     const maxStar = Math.max(...results.map((r) => r.star));
@@ -11340,11 +11364,11 @@ class TienLenGame {
             <div class="gacha-wish-buttons-row">
               <button class="gacha-wish-btn wish-1x" onclick="window.tienLenGame.performWish(1)">
                 <span class="gacha-wish-btn-title">🌠 Cầu Nguyện ×1</span>
-                <span class="gacha-wish-btn-cost">${Math.floor(this.savedWishes || 0) >= 1 ? `💫 Dùng 1 Vé Roll (Đang có ${this.formatWishesCount()})` : `💫 1 Vé Roll hoặc 🪙 ${WISH_COST_SINGLE.toLocaleString()} Xu`}</span>
+                <span class="gacha-wish-btn-cost">${this.isAdminAccount() ? '👑 Đặc Quyền Admin: 💫 ∞ Lượt Roll Vô Hạn' : Math.floor(this.savedWishes || 0) >= 1 ? `💫 Dùng 1 Vé Roll (Đang có ${this.formatWishesCount()})` : `💫 1 Vé Roll hoặc 🪙 ${WISH_COST_SINGLE.toLocaleString()} Xu`}</span>
               </button>
               <button class="gacha-wish-btn wish-10x" onclick="window.tienLenGame.performWish(10)">
                 <span class="gacha-wish-btn-title">🌟 Cầu Nguyện ×10</span>
-                <span class="gacha-wish-btn-cost">${Math.floor(this.savedWishes || 0) >= 10 ? `💫 Dùng 10 Vé Roll (Đang có ${this.formatWishesCount()})` : `💫 10 Vé Roll hoặc 🪙 ${WISH_COST_TEN.toLocaleString()} Xu`} • ≥ 1 món 4★+</span>
+                <span class="gacha-wish-btn-cost">${this.isAdminAccount() ? '👑 Đặc Quyền Admin: 💫 ∞ Lượt Roll Vô Hạn • ≥ 1 món 4★+' : `${Math.floor(this.savedWishes || 0) >= 10 ? `💫 Dùng 10 Vé Roll (Đang có ${this.formatWishesCount()})` : `💫 10 Vé Roll hoặc 🪙 ${WISH_COST_TEN.toLocaleString()} Xu`} • ≥ 1 món 4★+`}</span>
               </button>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">

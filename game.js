@@ -5023,6 +5023,7 @@ class TienLenGame {
     if (typeof data.gachaPity4 === 'number' && isNewerOrEqual) this.gachaPity4 = Math.max(0, Math.min(9, data.gachaPity4));
     if (typeof data.gachaGuaranteed5 === 'boolean' && isNewerOrEqual) this.gachaGuaranteed5 = data.gachaGuaranteed5;
     if (typeof data.gachaGuaranteed4 === 'boolean' && isNewerOrEqual) this.gachaGuaranteed4 = data.gachaGuaranteed4;
+    if (typeof data.gachaRadiance5 === 'number' && isNewerOrEqual) this.gachaRadiance5 = Math.max(0, Math.min(3, Math.floor(data.gachaRadiance5)));
     if (data.selectedBannerBurstId && GENSHIN_BURSTS.some((b) => b.id === data.selectedBannerBurstId) && isNewerOrEqual) {
       this.selectedBannerBurstId = data.selectedBannerBurstId;
     }
@@ -5159,6 +5160,7 @@ class TienLenGame {
     this.gachaPity4 = 0;
     this.gachaGuaranteed5 = false;
     this.gachaGuaranteed4 = false;
+    this.gachaRadiance5 = 1;
     this.selectedBannerBurstId = 'raiden';
     this.totalWishes = 0;
     this.gachaHistory = [];
@@ -5353,7 +5355,8 @@ class TienLenGame {
     const tw = Math.max(0, Number(p.totalWishes) || 0).toString(36);
     const wTenths = Math.max(0, Math.round((Number(p.wishes) || 0) * 10)).toString(36);
     const tutDoneFlag = p.tutorialCompleted || accObj.tutorialCompleted ? 1 : 0;
-    const pityPack = `${p5}_${p4}_${g5}_${g4}_${tw}_${wTenths}_${tutDoneFlag}`;
+    const rad5 = Math.max(0, Math.min(3, typeof p.gachaRadiance5 === 'number' ? Math.floor(p.gachaRadiance5) : 1));
+    const pityPack = `${p5}_${p4}_${g5}_${g4}_${tw}_${wTenths}_${tutDoneFlag}_${rad5}`;
 
     const qDate = String(p.dailyQuestsDate || this.getTodayKey()).replace(/[^0-9]/g, '').slice(-6) || '0';
     const qParts = [qDate];
@@ -5451,6 +5454,7 @@ class TienLenGame {
       const gachaGuaranteed4 = verTag === 'v1' ? false : pt[3] === '1';
       const totalWishes = verTag === 'v1' ? Number(pt[3]) || 0 : parseInt(pt[4] || '0', 36) || 0;
       const wishes = verTag === 'v1' ? 0 : Math.max(0, Math.round(((parseInt(pt[5] || '0', 36) || 0) / 10) * 10) / 10);
+      const gachaRadiance5 = verTag === 'v2' && pt[7] !== undefined ? Math.max(0, Math.min(3, Number(pt[7]) || 0)) : 1;
 
       const qp = (questsPack || '').split('_');
       const qRawDate = qp[0] || '';
@@ -5531,6 +5535,7 @@ class TienLenGame {
           gachaPity4,
           gachaGuaranteed5,
           gachaGuaranteed4,
+          gachaRadiance5,
           selectedBannerBurstId,
           totalWishes,
           tutorialCompleted: Boolean(isVetDone),
@@ -6519,6 +6524,7 @@ class TienLenGame {
               gachaPity4: this.gachaPity4,
               gachaGuaranteed5: this.gachaGuaranteed5,
               gachaGuaranteed4: this.gachaGuaranteed4,
+              gachaRadiance5: typeof this.gachaRadiance5 === 'number' ? this.gachaRadiance5 : 1,
               selectedBannerBurstId: this.selectedBannerBurstId,
               totalWishes: this.totalWishes,
               gachaHistory: this.gachaHistory,
@@ -6798,6 +6804,7 @@ class TienLenGame {
         gachaPity4: this.gachaPity4 || 0,
         gachaGuaranteed5: !!this.gachaGuaranteed5,
         gachaGuaranteed4: !!this.gachaGuaranteed4,
+        gachaRadiance5: typeof this.gachaRadiance5 === 'number' ? this.gachaRadiance5 : 1,
         selectedBannerBurstId: this.selectedBannerBurstId || 'raiden',
         totalWishes: this.totalWishes || 0,
         gachaHistory: (this.gachaHistory || []).slice(0, 300),
@@ -9711,8 +9718,8 @@ class TienLenGame {
   }
 
   // ============================================================================
-  // HỆ THỐNG CẦU NGUYỆN GACHA CHUẨN GENSHIN IMPACT & KHO ĐỒ TRANG BỊ
-  // - 5★ (⭐⭐⭐⭐⭐): 10 Hiệu Ứng Kỹ Năng Nộ (Base 0.6%, Soft Pity từ 74 +6%/lượt, Hard Pity 90, 50/50 & Đại Bảo Hiểm UP)
+  // HỆ THỐNG CẦU NGUYỆN GACHA CHUẨN GENSHIN IMPACT (5.0+) & KHO ĐỒ TRANG BỊ
+  // - 5★ (⭐⭐⭐⭐⭐): Hiệu Ứng Kỹ Năng Nộ (Base 0.60% lượt 1–73, Soft Pity từ 74 +6%/lượt, Hard Pity 90: 100%, 50/50 + Đại Bảo Hiểm + Ánh Sáng Rực Rỡ tổng hợp 55%)
   // - 4★ (⭐⭐⭐⭐): 29 Decor / Skin Bài Fanart (Base 5.1%, Soft Pity lượt 9: 56.1%, Hard Pity 10: 100%, 50/50 Rate-Up)
   // - 3★ (⭐⭐⭐): 29 Avatar Fanart Nhân Vật (94.3% cơ bản)
   // - Trùng đồ: Tự động quy đổi Tinh Huy / Tinh Trần hoàn trả Xu (+600 / +3,200 / +16,000 Xu)
@@ -9721,11 +9728,11 @@ class TienLenGame {
     const p = Math.max(1, Number(pullNum5) || 1);
     if (p >= 90) return 1.0; // 100% Bảo hiểm cứng (Hard Pity) ở lượt 90
     if (p <= 73) {
-      // Tăng dần nhẹ theo mỗi lượt roll từ 1 -> 73: bắt đầu 0.60% ở lượt 1, tăng +0.04% mỗi lượt (đạt 3.48% ở lượt 73)
-      return 0.006 + (p - 1) * 0.0004;
+      // Chuẩn Genshin Impact: giữ cố định 0.60% từ lượt 1 -> 73
+      return 0.006;
     }
-    // Soft Pity (Bảo hiểm mềm) từ lượt 74 -> 89: nhảy vọt +6% mỗi lượt (từ 9.5% ở lượt 74 lên 99.5% ở lượt 89)
-    return Math.min(0.995, 0.035 + (p - 73) * 0.06);
+    // Soft Pity (Bảo hiểm mềm) từ lượt 74 -> 89: cộng thêm +6.0% mỗi lượt (74: 6.6%, 75: 12.6%, ..., 89: 96.6%)
+    return Math.min(1.0, 0.006 + (p - 73) * 0.06);
   }
 
   setGachaHistoryFilter(filterVal = 'all') {
@@ -10181,20 +10188,35 @@ class TienLenGame {
 
       let chosenBurst = null;
       let rateNote = '';
+      const rad5 = typeof this.gachaRadiance5 === 'number' ? Math.max(0, Math.min(3, Math.floor(this.gachaRadiance5))) : 1;
       if (this.gachaGuaranteed5) {
         chosenBurst = getBurstMeta(featuredId);
         this.gachaGuaranteed5 = false;
         rateNote = '🔥 Nổ Đại Bảo Hiểm 100% UP';
-      } else if (Math.random() < 0.55) {
-        // 50/50 + Capturing Radiance (55% thắng UP)
+      } else if (rad5 >= 3) {
+        // Bộ đếm Ánh Sáng Rực Rỡ đạt ngưỡng tối đa (3): 100% kích hoạt Capturing Radiance cứu chuỗi lệch 50/50, reset bộ đếm về 1
         chosenBurst = getBurstMeta(featuredId);
         this.gachaGuaranteed5 = false;
+        this.gachaRadiance5 = 1;
+        rateNote = '🌈 Ánh Sáng Rực Rỡ! (Chống Lệch Chuỗi 50/50)';
+      } else if (Math.random() < 0.5) {
+        // Thắng 50/50 cơ bản (50%): giảm 1 điểm bộ đếm Ánh Sáng Rực Rỡ (tối thiểu 0)
+        chosenBurst = getBurstMeta(featuredId);
+        this.gachaGuaranteed5 = false;
+        this.gachaRadiance5 = Math.max(0, rad5 - 1);
         rateNote = '🎯 Thắng 50/50 (Trúng UP)';
+      } else if (rad5 === 2 && Math.random() < 1 / 11) {
+        // Ở ngưỡng rad5 = 2, có ~4.55% tổng thể (1/11 khi trượt 50%) nổ sớm Ánh Sáng Rực Rỡ giúp xác suất tổng hợp đạt đúng 55.000%
+        chosenBurst = getBurstMeta(featuredId);
+        this.gachaGuaranteed5 = false;
+        this.gachaRadiance5 = 1;
+        rateNote = '🌈 Ánh Sáng Rực Rỡ! (Cứu Lệch 50/50)';
       } else {
         const standardPool = GENSHIN_BURSTS.filter((b) => b.isStandard);
         const others = standardPool.length > 0 ? standardPool : GENSHIN_BURSTS.filter((b) => b.id !== featuredId);
         chosenBurst = others[Math.floor(Math.random() * others.length)] || GENSHIN_BURSTS[0];
         this.gachaGuaranteed5 = true;
+        this.gachaRadiance5 = Math.min(3, rad5 + 1);
         rateNote = '☯️ Lệch 50/50 ra 5★ Thường (Kích hoạt Đại Bảo Hiểm 100% UP)';
       }
 
@@ -11126,8 +11148,9 @@ class TienLenGame {
       const rateUp4Ids = BANNER_4STAR_RATEUPS[featuredBurst.id] || ['raiden', 'furina', 'skirk'];
       const nextPull5 = (this.gachaPity5 || 0) + 1;
       const nextPull4 = (this.gachaPity4 || 0) + 1;
-      const curChance5 = (this.get5StarDropChance(nextPull5) * 100).toFixed(1);
+      const curChance5 = (this.get5StarDropChance(nextPull5) * 100).toFixed(2);
       const curChance4 = (this.get4StarDropChance(nextPull4) * 100).toFixed(1);
+      const rad5Display = typeof this.gachaRadiance5 === 'number' ? Math.max(0, Math.min(3, Math.floor(this.gachaRadiance5))) : 1;
       const pity5Pct = Math.min(100, Math.round(((this.gachaPity5 || 0) / 90) * 100));
       const pity4Pct = Math.min(100, Math.round(((this.gachaPity4 || 0) / 10) * 100));
 
@@ -11277,15 +11300,15 @@ class TienLenGame {
               <div class="gacha-pity-row">
                 <div class="gacha-pity-header">
                   <span style="color:#fde047;">⭐⭐⭐⭐⭐ Bảo Hiểm 5★ (Kỹ Năng Nộ): <strong>${this.gachaPity5 || 0} / 90</strong></span>
-                  <span style="color:${this.gachaGuaranteed5 ? '#34d399' : '#fbbf24'};">
-                    ${this.gachaGuaranteed5 ? '🔥 ĐẠI BẢO HIỂM 100% TRÚNG UP' : '☯️ Đang 50/50 (55% Trúng UP)'}
+                  <span style="color:${this.gachaGuaranteed5 ? '#34d399' : rad5Display >= 3 ? '#f472b6' : '#fbbf24'};">
+                    ${this.gachaGuaranteed5 ? '🔥 ĐẠI BẢO HIỂM 100% TRÚNG UP' : rad5Display >= 3 ? '🌈 ÁNH SÁNG RỰC RỠ (100% TRÚNG UP)' : '☯️ Đang 50/50 (50% + Ánh Sáng Rực Rỡ)'}
                   </span>
                 </div>
                 <div class="gacha-pity-bar-bg">
                   <div class="gacha-pity-bar-fill gold" style="width:${pity5Pct}%;"></div>
                 </div>
                 <div class="gacha-pity-sub">
-                  <span>Tỷ lệ nổ lượt kế (#${nextPull5}): <strong>${curChance5}%</strong> ${nextPull5 >= 74 ? '🔥 (Soft Pity +6%/lượt!)' : '(Tăng dần mỗi lượt + Soft Pity từ 74)'}</span>
+                  <span>Tỷ lệ nổ lượt kế (#${nextPull5}): <strong>${curChance5}%</strong> ${nextPull5 >= 74 ? '🔥 (Soft Pity +6%/lượt!)' : '(Cố định 0.60% lượt 1–73 • Soft Pity từ 74)'}</span>
                   <span>Còn tối đa <strong>${90 - (this.gachaPity5 || 0)}</strong> lượt</span>
                 </div>
               </div>
@@ -11428,24 +11451,19 @@ class TienLenGame {
 
       historyPanel.innerHTML = `
         <div class="gacha-rules-card">
-          <h3>📈 Cơ Chế Tăng Tỷ Lệ Nổ 5★ Khi Roll Càng Nhiều (Tăng Dần + Soft Pity + Hard Pity)</h3>
+          <h3>📈 Cơ Chế Tỷ Lệ Gacha Chuẩn Genshin Impact 5.0+ (Soft Pity + Ánh Sáng Rực Rỡ)</h3>
           <div style="font-size:12.5px;color:#e2e8f0;line-height:1.55;display:flex;flex-direction:column;gap:6px;">
-            <div>• <strong>Không phải đợi tới đúng 90 mới nổ!</strong> Tỷ lệ nổ 5★ <strong>tăng dần sau mỗi lượt bạn roll</strong> và bùng nổ cực mạnh từ lượt 74 (Soft Pity):</div>
+            <div>• <strong>Đường cong xác suất 5★ chuẩn Genshin:</strong> Giữ nguyên <strong>0.60%</strong> từ lượt 1 đến 73 (~35.5% cơ hội nổ sớm trước Pity), sau đó bùng nổ <strong>Soft Pity (+6.00%/lượt)</strong> từ lượt 74:</div>
             <div class="gacha-pity-curve-grid">
-              <div class="gacha-pity-step-card ${nextP5 <= 30 ? 'current-zone' : ''}">
-                <span class="gacha-pity-step-range">Lượt Roll 1 ➔ 30</span>
-                <span class="gacha-pity-step-rate">0.60% ➔ 1.76%</span>
-                <span class="gacha-pity-step-desc">Tăng nhẹ +0.04% sau mỗi lượt roll (Có thể nổ sớm!)</span>
-              </div>
-              <div class="gacha-pity-step-card ${nextP5 >= 31 && nextP5 <= 73 ? 'current-zone' : ''}">
-                <span class="gacha-pity-step-range">Lượt Roll 31 ➔ 73</span>
-                <span class="gacha-pity-step-rate">1.80% ➔ 3.48%</span>
-                <span class="gacha-pity-step-desc">Tích lũy vận khí trước ngưỡng Bảo Hiểm Mềm</span>
+              <div class="gacha-pity-step-card ${nextP5 <= 73 ? 'current-zone' : ''}">
+                <span class="gacha-pity-step-range">Lượt Roll 1 ➔ 73</span>
+                <span class="gacha-pity-step-rate">0.60% cố định</span>
+                <span class="gacha-pity-step-desc">Xác suất cơ bản chuẩn Genshin (~35.5% nổ vàng sớm trong vùng này)</span>
               </div>
               <div class="gacha-pity-step-card ${nextP5 >= 74 && nextP5 <= 89 ? 'current-zone' : ''}">
                 <span class="gacha-pity-step-range">🔥 Lượt 74 ➔ 89 (Soft Pity)</span>
-                <span class="gacha-pity-step-rate">9.5% ➔ 99.5%</span>
-                <span class="gacha-pity-step-desc">Tăng vọt <strong>+6% mỗi lượt</strong> (Đa số nổ vàng ở lượt 75–82!)</span>
+                <span class="gacha-pity-step-rate">6.60% ➔ 96.60%</span>
+                <span class="gacha-pity-step-desc">Tăng vọt <strong>+6.00% mỗi lượt</strong> (Đa số nổ vàng ở lượt 74–82!)</span>
               </div>
               <div class="gacha-pity-step-card ${nextP5 >= 90 ? 'current-zone' : ''}">
                 <span class="gacha-pity-step-range">👑 Lượt 90 (Hard Pity)</span>
@@ -11456,7 +11474,7 @@ class TienLenGame {
             <div style="margin-top:4px;color:#fde68a;font-weight:700;">
               🎯 Trạng thái Pity hiện tại của bạn: Đang ở lượt <strong>#${nextP5}/90</strong> ➔ Xác suất nổ 5★ ngay lượt kế tiếp là <strong>${nextChanceStr}%</strong>!
             </div>
-            <div>• <strong>☯️ Cơ chế 50/50 & Đại Bảo Hiểm:</strong> Khi nổ 5★, có <strong>55%</strong> trúng ngay Nhân Vật 5★ UP đang chọn. Nếu lệch, lần nổ 5★ kế tiếp được <strong>🔥 Đại Bảo Hiểm 100% trúng UP</strong>!</div>
+            <div>• <strong>☯️ Cơ chế 50/50, Đại Bảo Hiểm &amp; 🌈 Ánh Sáng Rực Rỡ (Tổng hợp 55%):</strong> Khi nổ 5★ không bảo hiểm, tỷ lệ cơ bản là <strong>50/50 (50% trúng UP)</strong>; nếu lệch thì lần 5★ kế tiếp được <strong>🔥 Đại Bảo Hiểm 100% trúng UP</strong>. Nếu lệch 50/50 liên tiếp nhiều chu kỳ, cơ chế <strong>🌈 Ánh Sáng Rực Rỡ (Capturing Radiance)</strong> sẽ kích hoạt cứu thua (chắc chắn không bao giờ lệch quá 3 lần 50/50 liên tiếp!).</div>
             <div>• <strong>⭐⭐⭐⭐ 4 Sao (Decor Bài):</strong> Lượt 1–8: <strong>5.1%</strong> • Lượt 9 (Soft Pity): <strong>56.1%</strong> • Lượt 10: <strong>100% nổ ≥ 4★</strong>.</div>
           </div>
         </div>

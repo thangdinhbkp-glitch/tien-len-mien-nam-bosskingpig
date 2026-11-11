@@ -11301,7 +11301,7 @@ class TienLenGame {
                 <div class="gacha-pity-header">
                   <span style="color:#fde047;">⭐⭐⭐⭐⭐ Bảo Hiểm 5★ (Kỹ Năng Nộ): <strong>${this.gachaPity5 || 0} / 90</strong></span>
                   <span style="color:${this.gachaGuaranteed5 ? '#34d399' : rad5Display >= 3 ? '#f472b6' : '#fbbf24'};">
-                    ${this.gachaGuaranteed5 ? '🔥 ĐẠI BẢO HIỂM 100% TRÚNG UP' : rad5Display >= 3 ? '🌈 ÁNH SÁNG RỰC RỠ (100% TRÚNG UP)' : '☯️ Đang 50/50 (50% + Ánh Sáng Rực Rỡ)'}
+                    ${this.gachaGuaranteed5 ? '🔥 ĐẠI BẢO HIỂM 100% TRÚNG UP' : rad5Display >= 3 ? '🌈 ÁNH SÁNG RỰC RỠ (100% TRÚNG UP)' : '☯️ Đang 50/50 (Tổng hợp 55% • Ánh Sáng Rực Rỡ)'}
                   </span>
                 </div>
                 <div class="gacha-pity-bar-bg">
